@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-line-9-grakallbanen",
+  "name": "GrÃ¥kallbanen",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": { "publicCode": "9", "mode": "tram" },
+  "directions": [
+    { "id": "lian", "label": "mot Lian", "destinationMatches": ["lian"], "color": "#00e66b" },
+    { "id": "ila", "label": "mot Ila", "destinationMatches": ["ila"], "color": "#18a9ff" }
+  ],
+  "stops": [
+    { "name": "Lian", "lat": 63.402909, "lon": 10.314250 },
+    { "name": "HerlofsonlÃ¸ypa", "lat": 63.405185, "lon": 10.320049 },
+    { "name": "Vestmarka", "lat": 63.406483, "lon": 10.325116 },
+    { "name": "Kyvannet", "lat": 63.404107, "lon": 10.337601 },
+    { "name": "Ugla", "lat": 63.400533, "lon": 10.343923 },
+    { "name": "Ferstad", "lat": 63.399498, "lon": 10.349037 },
+    { "name": "Munkvoll", "lat": 63.397756, "lon": 10.359984 },
+    { "name": "Rognheim", "lat": 63.399425, "lon": 10.373459 },
+    { "name": "SÃ¸ndre Hoem", "lat": 63.403350, "lon": 10.381672 },
+    { "name": "Nordre Hoem", "lat": 63.405587, "lon": 10.381037 },
+    { "name": "Breidablikk", "lat": 63.412348, "lon": 10.377005 },
+    { "name": "Belvedere", "lat": 63.416226, "lon": 10.376340 },
+    { "name": "Bygrensen", "lat": 63.418824, "lon": 10.375680 },
+    { "name": "Nyveibakken", "lat": 63.424354, "lon": 10.372478 },
+    { "name": "Bergsli gate", "lat": 63.427819, "lon": 10.367510 },
+    { "name": "Ila", "lat": 63.429279, "lon": 10.368299 }
+  ],
+  "display": { "layout": "route-leds" }
+}
+
