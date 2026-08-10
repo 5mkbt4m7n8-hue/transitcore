@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://transitcore.local/schemas/route-profile-v1.json",
+  "title": "TransitCore Route Profile v1",
+  "type": "object",
+  "required": ["schemaVersion", "id", "name", "provider", "line", "display"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "provider": {
+      "type": "object",
+      "required": ["codespaceId", "vehicleEndpoint"],
+      "properties": {
+        "codespaceId": { "type": "string" },
+        "vehicleEndpoint": { "type": "string", "format": "uri" }
+      }
+    },
+    "line": {
+      "type": "object",
+      "required": ["publicCode", "mode"],
+      "properties": {
+        "publicCode": { "type": "string" },
+        "mode": { "enum": ["tram", "bus", "rail", "metro", "ferry", "other"] }
+      }
+    },
+    "directions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "destinationMatches", "color"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "destinationMatches": { "type": "array", "items": { "type": "string" } },
+          "color": { "type": "string" }
+        }
+      }
+    },
+    "stops": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "lat", "lon"],
+        "properties": {
+          "name": { "type": "string" },
+          "lat": { "type": "number" },
+          "lon": { "type": "number" }
+        }
+      }
+    },
+    "display": {
+      "type": "object",
+      "required": ["layout"],
+      "properties": {
+        "layout": { "enum": ["route-leds", "vehicle-cards"] }
+      }
+    }
+  }
+}
+
