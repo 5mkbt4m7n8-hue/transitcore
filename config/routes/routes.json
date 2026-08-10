@@ -8,6 +8,10 @@
     {
       "profile": "atb-bus-3-live.json",
       "enabled": true
+    },
+    {
+      "profile": "atb-bus-1-live.json",
+      "enabled": true
     }
   ]
 }
