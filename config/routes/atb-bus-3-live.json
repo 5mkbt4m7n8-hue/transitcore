@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-3-live",
+  "name": "AtB buss 3",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": { "publicCode": "3", "mode": "bus" },
+  "directions": [],
+  "stops": [],
+  "display": { "layout": "vehicle-cards" }
+}
+
