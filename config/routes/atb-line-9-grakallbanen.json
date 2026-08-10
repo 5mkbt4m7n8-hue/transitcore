@@ -1,34 +1,412 @@
 {
   "schemaVersion": 1,
   "id": "atb-line-9-grakallbanen",
-  "name": "GrÃ¥kallbanen",
+  "name": "Gråkallbanen",
   "provider": {
     "codespaceId": "ATB",
     "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
   },
-  "line": { "publicCode": "9", "mode": "tram" },
+  "line": {
+    "id": "ATB:Line:2_9",
+    "publicCode": "9",
+    "mode": "tram",
+    "longName": "Ila - Lian"
+  },
   "directions": [
-    { "id": "lian", "label": "mot Lian", "destinationMatches": ["lian"], "color": "#00e66b" },
-    { "id": "ila", "label": "mot Ila", "destinationMatches": ["ila"], "color": "#18a9ff" }
+    {
+      "id": "lian",
+      "label": "mot Lian",
+      "destinationMatches": [
+        "Lian"
+      ],
+      "color": "#00e66b",
+      "reverseShape": true
+    },
+    {
+      "id": "ila",
+      "label": "mot Ila",
+      "destinationMatches": [
+        "Ila"
+      ],
+      "color": "#18a9ff",
+      "reverseShape": false
+    }
   ],
   "stops": [
-    { "name": "Lian", "lat": 63.402909, "lon": 10.314250 },
-    { "name": "HerlofsonlÃ¸ypa", "lat": 63.405185, "lon": 10.320049 },
-    { "name": "Vestmarka", "lat": 63.406483, "lon": 10.325116 },
-    { "name": "Kyvannet", "lat": 63.404107, "lon": 10.337601 },
-    { "name": "Ugla", "lat": 63.400533, "lon": 10.343923 },
-    { "name": "Ferstad", "lat": 63.399498, "lon": 10.349037 },
-    { "name": "Munkvoll", "lat": 63.397756, "lon": 10.359984 },
-    { "name": "Rognheim", "lat": 63.399425, "lon": 10.373459 },
-    { "name": "SÃ¸ndre Hoem", "lat": 63.403350, "lon": 10.381672 },
-    { "name": "Nordre Hoem", "lat": 63.405587, "lon": 10.381037 },
-    { "name": "Breidablikk", "lat": 63.412348, "lon": 10.377005 },
-    { "name": "Belvedere", "lat": 63.416226, "lon": 10.376340 },
-    { "name": "Bygrensen", "lat": 63.418824, "lon": 10.375680 },
-    { "name": "Nyveibakken", "lat": 63.424354, "lon": 10.372478 },
-    { "name": "Bergsli gate", "lat": 63.427819, "lon": 10.367510 },
-    { "name": "Ila", "lat": 63.429279, "lon": 10.368299 }
+    {
+      "id": "NSR:Quay:73481",
+      "name": "Lian",
+      "lat": 63.402909,
+      "lon": 10.31425,
+      "gpio": 16,
+      "vled": 0,
+      "shapeDistanceMeters": 0.0,
+      "segmentToNext": {
+        "vledStart": 1,
+        "vledCount": 2
+      }
+    },
+    {
+      "id": "NSR:Quay:71253",
+      "name": "Herlofsonløypa",
+      "lat": 63.405185,
+      "lon": 10.320049,
+      "gpio": 17,
+      "vled": 3,
+      "shapeDistanceMeters": 518.0,
+      "segmentToNext": {
+        "vledStart": 4,
+        "vledCount": 1
+      }
+    },
+    {
+      "id": "NSR:Quay:72110",
+      "name": "Vestmarka",
+      "lat": 63.406483,
+      "lon": 10.325116,
+      "gpio": 18,
+      "vled": 5,
+      "shapeDistanceMeters": 820.0,
+      "segmentToNext": {
+        "vledStart": 6,
+        "vledCount": 3
+      }
+    },
+    {
+      "id": "NSR:Quay:73099",
+      "name": "Kyvannet",
+      "lat": 63.404107,
+      "lon": 10.337601,
+      "gpio": 19,
+      "vled": 9,
+      "shapeDistanceMeters": 1576.0,
+      "segmentToNext": {
+        "vledStart": 10,
+        "vledCount": 2
+      }
+    },
+    {
+      "id": "NSR:Quay:71779",
+      "name": "Ugla",
+      "lat": 63.400533,
+      "lon": 10.343923,
+      "gpio": 21,
+      "vled": 12,
+      "shapeDistanceMeters": 2078.0,
+      "segmentToNext": {
+        "vledStart": 13,
+        "vledCount": 1
+      }
+    },
+    {
+      "id": "NSR:Quay:75148",
+      "name": "Ferstad",
+      "lat": 63.399498,
+      "lon": 10.349037,
+      "gpio": 22,
+      "vled": 14,
+      "shapeDistanceMeters": 2370.0,
+      "segmentToNext": {
+        "vledStart": 15,
+        "vledCount": 3
+      }
+    },
+    {
+      "id": "NSR:Quay:73442",
+      "name": "Munkvoll",
+      "lat": 63.397756,
+      "lon": 10.359984,
+      "gpio": 23,
+      "vled": 18,
+      "shapeDistanceMeters": 2952.0,
+      "segmentToNext": {
+        "vledStart": 19,
+        "vledCount": 3
+      }
+    },
+    {
+      "id": "NSR:Quay:71448",
+      "name": "Rognheim",
+      "lat": 63.399425,
+      "lon": 10.373459,
+      "gpio": 25,
+      "vled": 22,
+      "shapeDistanceMeters": 3656.0,
+      "segmentToNext": {
+        "vledStart": 23,
+        "vledCount": 3
+      }
+    },
+    {
+      "id": "NSR:Quay:73562",
+      "name": "Søndre Hoem",
+      "lat": 63.40335,
+      "lon": 10.381672,
+      "gpio": 26,
+      "vled": 26,
+      "shapeDistanceMeters": 4308.0,
+      "segmentToNext": {
+        "vledStart": 27,
+        "vledCount": 1
+      }
+    },
+    {
+      "id": "NSR:Quay:74088",
+      "name": "Nordre Hoem",
+      "lat": 63.405587,
+      "lon": 10.381037,
+      "gpio": 27,
+      "vled": 28,
+      "shapeDistanceMeters": 4561.0,
+      "segmentToNext": {
+        "vledStart": 29,
+        "vledCount": 3
+      }
+    },
+    {
+      "id": "NSR:Quay:75322",
+      "name": "Breidablikk",
+      "lat": 63.412348,
+      "lon": 10.377005,
+      "gpio": 32,
+      "vled": 32,
+      "shapeDistanceMeters": 5389.0,
+      "segmentToNext": {
+        "vledStart": 33,
+        "vledCount": 2
+      }
+    },
+    {
+      "id": "NSR:Quay:74896",
+      "name": "Belvedere",
+      "lat": 63.416226,
+      "lon": 10.37634,
+      "gpio": 33,
+      "vled": 35,
+      "shapeDistanceMeters": 5832.0,
+      "segmentToNext": {
+        "vledStart": 36,
+        "vledCount": 1
+      }
+    },
+    {
+      "id": "NSR:Quay:75517",
+      "name": "Bygrensen",
+      "lat": 63.418824,
+      "lon": 10.37568,
+      "gpio": 4,
+      "vled": 37,
+      "shapeDistanceMeters": 6121.0,
+      "segmentToNext": {
+        "vledStart": 38,
+        "vledCount": 3
+      }
+    },
+    {
+      "id": "NSR:Quay:74338",
+      "name": "Nyveibakken",
+      "lat": 63.424354,
+      "lon": 10.372478,
+      "gpio": 5,
+      "vled": 41,
+      "shapeDistanceMeters": 6767.0,
+      "segmentToNext": {
+        "vledStart": 42,
+        "vledCount": 2
+      }
+    },
+    {
+      "id": "NSR:Quay:75008",
+      "name": "Bergsli gate",
+      "lat": 63.427819,
+      "lon": 10.36751,
+      "gpio": 13,
+      "vled": 44,
+      "shapeDistanceMeters": 7224.0,
+      "segmentToNext": {
+        "vledStart": 45,
+        "vledCount": 1
+      }
+    },
+    {
+      "id": "NSR:Quay:104110",
+      "name": "Ila",
+      "lat": 63.429279,
+      "lon": 10.368299,
+      "gpio": 14,
+      "vled": 46,
+      "shapeDistanceMeters": 7392.0
+    }
   ],
-  "display": { "layout": "route-leds" }
+  "shape": [
+    {
+      "lat": 63.40289,
+      "lon": 10.314239
+    },
+    {
+      "lat": 63.402588,
+      "lon": 10.313924
+    },
+    {
+      "lat": 63.402426,
+      "lon": 10.314548
+    },
+    {
+      "lat": 63.402548,
+      "lon": 10.314873
+    },
+    {
+      "lat": 63.403272,
+      "lon": 10.314977
+    },
+    {
+      "lat": 63.404939,
+      "lon": 10.318501
+    },
+    {
+      "lat": 63.405568,
+      "lon": 10.322765
+    },
+    {
+      "lat": 63.406658,
+      "lon": 10.325711
+    },
+    {
+      "lat": 63.406948,
+      "lon": 10.328845
+    },
+    {
+      "lat": 63.406938,
+      "lon": 10.329802
+    },
+    {
+      "lat": 63.406672,
+      "lon": 10.331657
+    },
+    {
+      "lat": 63.405564,
+      "lon": 10.334807
+    },
+    {
+      "lat": 63.403425,
+      "lon": 10.338923
+    },
+    {
+      "lat": 63.401932,
+      "lon": 10.341008
+    },
+    {
+      "lat": 63.40057,
+      "lon": 10.34376
+    },
+    {
+      "lat": 63.3995,
+      "lon": 10.349038
+    },
+    {
+      "lat": 63.39775,
+      "lon": 10.36001
+    },
+    {
+      "lat": 63.399713,
+      "lon": 10.375662
+    },
+    {
+      "lat": 63.400199,
+      "lon": 10.377846
+    },
+    {
+      "lat": 63.400864,
+      "lon": 10.379596
+    },
+    {
+      "lat": 63.4017,
+      "lon": 10.381072
+    },
+    {
+      "lat": 63.402735,
+      "lon": 10.381751
+    },
+    {
+      "lat": 63.405548,
+      "lon": 10.38102
+    },
+    {
+      "lat": 63.407267,
+      "lon": 10.38001
+    },
+    {
+      "lat": 63.408509,
+      "lon": 10.380439
+    },
+    {
+      "lat": 63.408924,
+      "lon": 10.380359
+    },
+    {
+      "lat": 63.409502,
+      "lon": 10.379732
+    },
+    {
+      "lat": 63.410618,
+      "lon": 10.377531
+    },
+    {
+      "lat": 63.411205,
+      "lon": 10.376884
+    },
+    {
+      "lat": 63.41175,
+      "lon": 10.376734
+    },
+    {
+      "lat": 63.413618,
+      "lon": 10.37728
+    },
+    {
+      "lat": 63.414526,
+      "lon": 10.37688
+    },
+    {
+      "lat": 63.415467,
+      "lon": 10.376988
+    },
+    {
+      "lat": 63.416988,
+      "lon": 10.375726
+    },
+    {
+      "lat": 63.41879,
+      "lon": 10.37571
+    },
+    {
+      "lat": 63.424374,
+      "lon": 10.372488
+    },
+    {
+      "lat": 63.42782,
+      "lon": 10.36751
+    },
+    {
+      "lat": 63.42928,
+      "lon": 10.3683
+    }
+  ],
+  "display": {
+    "layout": "route-live",
+    "showVled": true
+  },
+  "hardwareMapping": {
+    "totalVleds": 47,
+    "source": "TransitCore_v0_40_1.ino"
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_9",
+    "shapeId": "ATB:JourneyPattern:9_Inbound_251215112494339_251215112489847",
+    "checkedDate": "2026-08-10"
+  }
 }
 
