@@ -12,6 +12,10 @@
     {
       "profile": "atb-bus-1-live.json",
       "enabled": true
+    },
+    {
+      "profile": "rut-metro-1-live.json",
+      "enabled": true
     }
   ]
 }
