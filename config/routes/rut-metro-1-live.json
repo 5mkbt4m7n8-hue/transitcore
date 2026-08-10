@@ -6,6 +6,14 @@
     "codespaceId": "RUT",
     "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
   },
+  "positioning": {
+    "strategy": "estimated-station-calls",
+    "endpoint": "https://api.entur.io/journey-planner/v3/graphql",
+    "pollIntervalMs": 30000,
+    "lookBehindSeconds": 75,
+    "lookAheadSeconds": 600,
+    "stationWindowSeconds": 45
+  },
   "line": {
     "id": "RUT:Line:1",
     "publicCode": "1",
@@ -87,7 +95,7 @@
     },
     {
       "id": "NSR:Quay:10883",
-      "name": "HÃ¸yenhall",
+      "name": "Høyenhall",
       "lat": 59.906187,
       "lon": 10.819613,
       "shapeDistanceMeters": 5331.0
@@ -108,21 +116,21 @@
     },
     {
       "id": "NSR:Quay:11107",
-      "name": "EnsjÃ¸",
+      "name": "Ensjø",
       "lat": 59.913797,
       "lon": 10.78777,
       "shapeDistanceMeters": 7487.0
     },
     {
       "id": "NSR:Quay:11895",
-      "name": "TÃ¸yen",
+      "name": "Tøyen",
       "lat": 59.915679,
       "lon": 10.775828,
       "shapeDistanceMeters": 8456.0
     },
     {
       "id": "NSR:Quay:11929",
-      "name": "GrÃ¸nland",
+      "name": "Grønland",
       "lat": 59.91283,
       "lon": 10.76018,
       "shapeDistanceMeters": 9508.0
@@ -157,7 +165,7 @@
     },
     {
       "id": "NSR:Quay:11441",
-      "name": "FrÃ¸en",
+      "name": "Frøen",
       "lat": 59.934594,
       "lon": 10.709318,
       "shapeDistanceMeters": 13671.0
@@ -199,14 +207,14 @@
     },
     {
       "id": "NSR:Quay:11553",
-      "name": "GrÃ¥kammen",
+      "name": "Gråkammen",
       "lat": 59.955042,
       "lon": 10.701711,
       "shapeDistanceMeters": 17031.0
     },
     {
       "id": "NSR:Quay:11561",
-      "name": "GullerÃ¥sen",
+      "name": "Gulleråsen",
       "lat": 59.955796,
       "lon": 10.696797,
       "shapeDistanceMeters": 17411.0
@@ -220,7 +228,7 @@
     },
     {
       "id": "NSR:Quay:11570",
-      "name": "SkÃ¥dalen",
+      "name": "Skådalen",
       "lat": 59.961867,
       "lon": 10.690778,
       "shapeDistanceMeters": 18274.0
