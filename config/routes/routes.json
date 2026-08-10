@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "routes": [
+    {
+      "profile": "atb-line-9-grakallbanen.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-3-live.json",
+      "enabled": true
+    }
+  ]
+}
+
