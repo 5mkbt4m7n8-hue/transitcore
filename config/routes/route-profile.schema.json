@@ -20,8 +20,10 @@
       "type": "object",
       "required": ["publicCode", "mode"],
       "properties": {
+        "id": { "type": "string" },
         "publicCode": { "type": "string" },
-        "mode": { "enum": ["tram", "bus", "rail", "metro", "ferry", "other"] }
+        "mode": { "enum": ["tram", "bus", "rail", "metro", "ferry", "other"] },
+        "longName": { "type": "string" }
       }
     },
     "directions": {
@@ -34,6 +36,7 @@
           "label": { "type": "string" },
           "destinationMatches": { "type": "array", "items": { "type": "string" } },
           "color": { "type": "string" }
+          ,"reverseShape": { "type": "boolean" }
         }
       }
     },
@@ -43,7 +46,21 @@
         "type": "object",
         "required": ["name", "lat", "lon"],
         "properties": {
+          "id": { "type": "string" },
           "name": { "type": "string" },
+          "lat": { "type": "number" },
+          "lon": { "type": "number" },
+          "shapeDistanceMeters": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "shape": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["lat", "lon"],
+        "properties": {
           "lat": { "type": "number" },
           "lon": { "type": "number" }
         }
@@ -53,7 +70,7 @@
       "type": "object",
       "required": ["layout"],
       "properties": {
-        "layout": { "enum": ["route-leds", "vehicle-cards"] }
+        "layout": { "enum": ["route-leds", "route-live", "vehicle-cards"] }
       }
     }
   }
