@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a TransitCore route profile from Entur's authoritative AtB GTFS."""
+"""Generate a TransitCore route profile from an authoritative Entur GTFS feed."""
 
 import argparse
 import csv
@@ -18,7 +18,6 @@ GTFS_URL = "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_at
 PALETTE = ["#ef5350", "#66bb6a", "#42a5f5", "#ffca28", "#ab47bc", "#26c6da"]
 ROOT = Path(__file__).resolve().parent.parent
 ROUTES_DIR = ROOT / "config" / "routes"
-CACHE_ZIP = ROOT / ".cache" / "entur" / "atb.zip"
 
 
 class GtfsSource:
@@ -48,7 +47,10 @@ class GtfsSource:
 
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--line", required=True, help="Public AtB line number, for example 1")
+    parser.add_argument("--line", required=True, help="Public line number, for example 1")
+    parser.add_argument("--codespace", default="ATB", help="Entur codespace, for example ATB or RUT")
+    parser.add_argument("--provider-name", default="AtB", help="Provider name used in the profile")
+    parser.add_argument("--dataset-url", default=GTFS_URL, help="Authoritative GTFS URL recorded in the profile")
     parser.add_argument("--date", default=date_type.today().isoformat(), help="Service date, YYYY-MM-DD")
     source = parser.add_mutually_exclusive_group()
     source.add_argument("--gtfs-dir", help="Use an already extracted GTFS directory")
@@ -62,25 +64,29 @@ def parse_args():
     return parser.parse_args()
 
 
-def download_dataset(refresh):
-    CACHE_ZIP.parent.mkdir(parents=True, exist_ok=True)
-    if refresh or not CACHE_ZIP.exists():
-        print(f"Downloading Entur AtB GTFS to {CACHE_ZIP.relative_to(ROOT)}...")
-        request = urllib.request.Request(GTFS_URL, headers={"User-Agent": "TransitCore route generator"})
-        with urllib.request.urlopen(request, timeout=60) as response, CACHE_ZIP.open("wb") as output:
+def download_dataset(refresh, url, codespace):
+    cache_zip = ROOT / ".cache" / "entur" / f"{codespace.lower()}.zip"
+    cache_zip.parent.mkdir(parents=True, exist_ok=True)
+    if refresh or not cache_zip.exists():
+        print(f"Downloading Entur {codespace} GTFS to {cache_zip.relative_to(ROOT)}...")
+        request = urllib.request.Request(url, headers={"User-Agent": "TransitCore route generator"})
+        with urllib.request.urlopen(request, timeout=60) as response, cache_zip.open("wb") as output:
             while chunk := response.read(1024 * 1024):
                 output.write(chunk)
-    return CACHE_ZIP
+    return cache_zip
 
 
 def active_services(source, service_date):
     compact = service_date.strftime("%Y%m%d")
     weekday = service_date.strftime("%A").lower()
-    active = {
-        row["service_id"]
-        for row in source.rows("calendar.txt")
-        if row.get(weekday) == "1" and row["start_date"] <= compact <= row["end_date"]
-    }
+    try:
+        active = {
+            row["service_id"]
+            for row in source.rows("calendar.txt")
+            if row.get(weekday) == "1" and row["start_date"] <= compact <= row["end_date"]
+        }
+    except (FileNotFoundError, KeyError):
+        active = set()
     for row in source.rows("calendar_dates.txt"):
         if row["date"] != compact:
             continue
@@ -141,8 +147,8 @@ def is_contiguous_subset(candidate, canonical):
     return False
 
 
-def safe_output_path(requested, mode, line):
-    default = ROUTES_DIR / f"atb-{mode}-{line}-live.json"
+def safe_output_path(requested, codespace, mode, line):
+    default = ROUTES_DIR / f"{codespace.lower()}-{mode}-{line}-live.json"
     output = (ROOT / requested).resolve() if requested else default.resolve()
     if not output.is_relative_to(ROOT):
         raise ValueError("output must stay inside the repository")
@@ -162,7 +168,7 @@ def write_json_atomic(path, value):
 def generate(source, args, service_date):
     matches = [row for row in source.rows("routes.txt") if row["route_short_name"] == args.line]
     if len(matches) != 1:
-        raise ValueError(f"expected one AtB route for line {args.line}, found {len(matches)}")
+        raise ValueError(f"expected one route for line {args.line}, found {len(matches)}")
     route = matches[0]
     route_id = route["route_id"]
     services = active_services(source, service_date)
@@ -240,13 +246,14 @@ def generate(source, args, service_date):
         })
 
     mode = transport_mode(route["route_type"])
-    norwegian_mode = {"bus": "buss", "tram": "trikk", "rail": "tog", "ferry": "ferge"}.get(mode, mode)
+    norwegian_mode = {"bus": "buss", "tram": "trikk", "rail": "tog", "metro": "T-bane", "ferry": "ferge"}.get(mode, mode)
+    slug = args.codespace.lower()
     profile = {
         "schemaVersion": 1,
-        "id": f"atb-{mode}-{args.line}-live",
-        "name": args.name or f"AtB {norwegian_mode} {args.line}",
+        "id": f"{slug}-{mode}-{args.line}-live",
+        "name": args.name or f"{args.provider_name} {norwegian_mode} {args.line}",
         "provider": {
-            "codespaceId": "ATB",
+            "codespaceId": args.codespace,
             "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql",
         },
         "line": {
@@ -279,8 +286,8 @@ def generate(source, args, service_date):
         },
         "source": {
             "format": "GTFS",
-            "dataset": "Entur ATB aggregated",
-            "url": GTFS_URL,
+            "dataset": f"Entur {args.codespace} aggregated",
+            "url": args.dataset_url,
             "routeId": route_id,
             "shapeId": canonical["shape"],
             "checkedDate": service_date.isoformat(),
@@ -344,14 +351,14 @@ def main():
         if args.gtfs_dir:
             source = GtfsSource(directory=args.gtfs_dir)
         else:
-            archive = Path(args.gtfs_zip) if args.gtfs_zip else download_dataset(args.refresh)
+            archive = Path(args.gtfs_zip) if args.gtfs_zip else download_dataset(args.refresh, args.dataset_url, args.codespace)
             source = GtfsSource(archive=archive)
         try:
             profile, patterns = generate(source, args, service_date)
         finally:
             source.close()
         validate_generated(profile)
-        output = safe_output_path(args.output, profile["line"]["mode"], args.line)
+        output = safe_output_path(args.output, args.codespace, profile["line"]["mode"], args.line)
         if output.exists() and not args.force:
             raise ValueError(f"{output.relative_to(ROOT)} already exists; use --force to replace it")
         registration = prepare_registration(output.resolve(), profile) if args.register else None

@@ -1,0 +1,852 @@
+{
+  "schemaVersion": 1,
+  "id": "rut-metro-1-live",
+  "name": "Ruter T-bane 1",
+  "provider": {
+    "codespaceId": "RUT",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "RUT:Line:1",
+    "publicCode": "1",
+    "mode": "metro",
+    "longName": "Frognerseteren - Bergkrystallen"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Frognerseteren / Skogen",
+      "destinationMatches": [
+        "Frognerseteren",
+        "Skogen"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Bergkrystallen / Helsfyr / Ryen",
+      "destinationMatches": [
+        "Bergkrystallen",
+        "Helsfyr",
+        "Ryen"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": true
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:10681",
+      "name": "Bergkrystallen",
+      "lat": 59.867035,
+      "lon": 10.821702,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:10667",
+      "name": "Munkelia",
+      "lat": 59.868879,
+      "lon": 10.812746,
+      "shapeDistanceMeters": 556.0
+    },
+    {
+      "id": "NSR:Quay:10630",
+      "name": "Lambertseter",
+      "lat": 59.873562,
+      "lon": 10.810324,
+      "shapeDistanceMeters": 1064.0
+    },
+    {
+      "id": "NSR:Quay:12286",
+      "name": "Karlsrud",
+      "lat": 59.880459,
+      "lon": 10.805456,
+      "shapeDistanceMeters": 1931.0
+    },
+    {
+      "id": "NSR:Quay:12292",
+      "name": "Brattlikollen",
+      "lat": 59.887367,
+      "lon": 10.80114,
+      "shapeDistanceMeters": 2750.0
+    },
+    {
+      "id": "NSR:Quay:10819",
+      "name": "Ryen",
+      "lat": 59.895653,
+      "lon": 10.804898,
+      "shapeDistanceMeters": 3792.0
+    },
+    {
+      "id": "NSR:Quay:10851",
+      "name": "Manglerud",
+      "lat": 59.89799,
+      "lon": 10.81284,
+      "shapeDistanceMeters": 4323.0
+    },
+    {
+      "id": "NSR:Quay:10883",
+      "name": "HÃ¸yenhall",
+      "lat": 59.906187,
+      "lon": 10.819613,
+      "shapeDistanceMeters": 5331.0
+    },
+    {
+      "id": "NSR:Quay:11176",
+      "name": "Brynseng",
+      "lat": 59.90921,
+      "lon": 10.812089,
+      "shapeDistanceMeters": 5942.0
+    },
+    {
+      "id": "NSR:Quay:11135",
+      "name": "Helsfyr",
+      "lat": 59.912697,
+      "lon": 10.801446,
+      "shapeDistanceMeters": 6715.0
+    },
+    {
+      "id": "NSR:Quay:11107",
+      "name": "EnsjÃ¸",
+      "lat": 59.913797,
+      "lon": 10.78777,
+      "shapeDistanceMeters": 7487.0
+    },
+    {
+      "id": "NSR:Quay:11895",
+      "name": "TÃ¸yen",
+      "lat": 59.915679,
+      "lon": 10.775828,
+      "shapeDistanceMeters": 8456.0
+    },
+    {
+      "id": "NSR:Quay:11929",
+      "name": "GrÃ¸nland",
+      "lat": 59.91283,
+      "lon": 10.76018,
+      "shapeDistanceMeters": 9508.0
+    },
+    {
+      "id": "NSR:Quay:7184",
+      "name": "Jernbanetorget",
+      "lat": 59.912268,
+      "lon": 10.751326,
+      "shapeDistanceMeters": 9996.0
+    },
+    {
+      "id": "NSR:Quay:7255",
+      "name": "Stortinget",
+      "lat": 59.913478,
+      "lon": 10.743221,
+      "shapeDistanceMeters": 10506.0
+    },
+    {
+      "id": "NSR:Quay:7334",
+      "name": "Nationaltheatret",
+      "lat": 59.91535,
+      "lon": 10.73233,
+      "shapeDistanceMeters": 11143.0
+    },
+    {
+      "id": "NSR:Quay:8028",
+      "name": "Majorstuen",
+      "lat": 59.930279,
+      "lon": 10.714647,
+      "shapeDistanceMeters": 13118.0
+    },
+    {
+      "id": "NSR:Quay:11441",
+      "name": "FrÃ¸en",
+      "lat": 59.934594,
+      "lon": 10.709318,
+      "shapeDistanceMeters": 13671.0
+    },
+    {
+      "id": "NSR:Quay:11447",
+      "name": "Steinerud",
+      "lat": 59.939153,
+      "lon": 10.70438,
+      "shapeDistanceMeters": 14258.0
+    },
+    {
+      "id": "NSR:Quay:11461",
+      "name": "Vinderen",
+      "lat": 59.9422,
+      "lon": 10.704586,
+      "shapeDistanceMeters": 14603.0
+    },
+    {
+      "id": "NSR:Quay:11479",
+      "name": "Gaustad",
+      "lat": 59.9457,
+      "lon": 10.71005,
+      "shapeDistanceMeters": 15119.0
+    },
+    {
+      "id": "NSR:Quay:11506",
+      "name": "Ris",
+      "lat": 59.948016,
+      "lon": 10.704774,
+      "shapeDistanceMeters": 15612.0
+    },
+    {
+      "id": "NSR:Quay:11517",
+      "name": "Slemdal",
+      "lat": 59.950938,
+      "lon": 10.694447,
+      "shapeDistanceMeters": 16338.0
+    },
+    {
+      "id": "NSR:Quay:11553",
+      "name": "GrÃ¥kammen",
+      "lat": 59.955042,
+      "lon": 10.701711,
+      "shapeDistanceMeters": 17031.0
+    },
+    {
+      "id": "NSR:Quay:11561",
+      "name": "GullerÃ¥sen",
+      "lat": 59.955796,
+      "lon": 10.696797,
+      "shapeDistanceMeters": 17411.0
+    },
+    {
+      "id": "NSR:Quay:11569",
+      "name": "Vettakollen",
+      "lat": 59.959784,
+      "lon": 10.695834,
+      "shapeDistanceMeters": 17888.0
+    },
+    {
+      "id": "NSR:Quay:11570",
+      "name": "SkÃ¥dalen",
+      "lat": 59.961867,
+      "lon": 10.690778,
+      "shapeDistanceMeters": 18274.0
+    },
+    {
+      "id": "NSR:Quay:11576",
+      "name": "Midtstuen",
+      "lat": 59.961366,
+      "lon": 10.683024,
+      "shapeDistanceMeters": 18802.0
+    },
+    {
+      "id": "NSR:Quay:11593",
+      "name": "Besserud",
+      "lat": 59.957981,
+      "lon": 10.67417,
+      "shapeDistanceMeters": 19436.0
+    },
+    {
+      "id": "NSR:Quay:11606",
+      "name": "Holmenkollen",
+      "lat": 59.960247,
+      "lon": 10.663143,
+      "shapeDistanceMeters": 20223.0
+    },
+    {
+      "id": "NSR:Quay:11609",
+      "name": "Voksenlia",
+      "lat": 59.966968,
+      "lon": 10.654778,
+      "shapeDistanceMeters": 21267.0
+    },
+    {
+      "id": "NSR:Quay:11612",
+      "name": "Skogen",
+      "lat": 59.975365,
+      "lon": 10.647528,
+      "shapeDistanceMeters": 22316.0
+    },
+    {
+      "id": "NSR:Quay:11617",
+      "name": "Lillevann",
+      "lat": 59.980434,
+      "lon": 10.653182,
+      "shapeDistanceMeters": 23115.0
+    },
+    {
+      "id": "NSR:Quay:11638",
+      "name": "Voksenkollen",
+      "lat": 59.980036,
+      "lon": 10.665104,
+      "shapeDistanceMeters": 24080.0
+    },
+    {
+      "id": "NSR:Quay:12151",
+      "name": "Frognerseteren",
+      "lat": 59.979037,
+      "lon": 10.676023,
+      "shapeDistanceMeters": 24678.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 59.867137,
+      "lon": 10.820933
+    },
+    {
+      "lat": 59.867504,
+      "lon": 10.814921
+    },
+    {
+      "lat": 59.868235,
+      "lon": 10.813193
+    },
+    {
+      "lat": 59.869591,
+      "lon": 10.812218
+    },
+    {
+      "lat": 59.872084,
+      "lon": 10.81132
+    },
+    {
+      "lat": 59.880169,
+      "lon": 10.805554
+    },
+    {
+      "lat": 59.882419,
+      "lon": 10.804775
+    },
+    {
+      "lat": 59.885366,
+      "lon": 10.801029
+    },
+    {
+      "lat": 59.886185,
+      "lon": 10.800587
+    },
+    {
+      "lat": 59.889632,
+      "lon": 10.801969
+    },
+    {
+      "lat": 59.891323,
+      "lon": 10.801891
+    },
+    {
+      "lat": 59.893536,
+      "lon": 10.801008
+    },
+    {
+      "lat": 59.894499,
+      "lon": 10.80136
+    },
+    {
+      "lat": 59.895345,
+      "lon": 10.802945
+    },
+    {
+      "lat": 59.896156,
+      "lon": 10.807975
+    },
+    {
+      "lat": 59.896591,
+      "lon": 10.809665
+    },
+    {
+      "lat": 59.898821,
+      "lon": 10.814365
+    },
+    {
+      "lat": 59.901641,
+      "lon": 10.818163
+    },
+    {
+      "lat": 59.903569,
+      "lon": 10.819817
+    },
+    {
+      "lat": 59.90504,
+      "lon": 10.820287
+    },
+    {
+      "lat": 59.906482,
+      "lon": 10.819221
+    },
+    {
+      "lat": 59.907477,
+      "lon": 10.816837
+    },
+    {
+      "lat": 59.908469,
+      "lon": 10.81561
+    },
+    {
+      "lat": 59.908977,
+      "lon": 10.814372
+    },
+    {
+      "lat": 59.909411,
+      "lon": 10.807973
+    },
+    {
+      "lat": 59.909721,
+      "lon": 10.806518
+    },
+    {
+      "lat": 59.910203,
+      "lon": 10.805683
+    },
+    {
+      "lat": 59.911642,
+      "lon": 10.804453
+    },
+    {
+      "lat": 59.912363,
+      "lon": 10.802949
+    },
+    {
+      "lat": 59.913187,
+      "lon": 10.798715
+    },
+    {
+      "lat": 59.913481,
+      "lon": 10.79539
+    },
+    {
+      "lat": 59.913485,
+      "lon": 10.793443
+    },
+    {
+      "lat": 59.913193,
+      "lon": 10.790823
+    },
+    {
+      "lat": 59.913399,
+      "lon": 10.789004
+    },
+    {
+      "lat": 59.914695,
+      "lon": 10.785099
+    },
+    {
+      "lat": 59.915253,
+      "lon": 10.784262
+    },
+    {
+      "lat": 59.916733,
+      "lon": 10.783034
+    },
+    {
+      "lat": 59.917325,
+      "lon": 10.780937
+    },
+    {
+      "lat": 59.917316,
+      "lon": 10.77955
+    },
+    {
+      "lat": 59.916992,
+      "lon": 10.778159
+    },
+    {
+      "lat": 59.914883,
+      "lon": 10.774594
+    },
+    {
+      "lat": 59.913974,
+      "lon": 10.771233
+    },
+    {
+      "lat": 59.912624,
+      "lon": 10.769319
+    },
+    {
+      "lat": 59.912101,
+      "lon": 10.767277
+    },
+    {
+      "lat": 59.91213,
+      "lon": 10.76603
+    },
+    {
+      "lat": 59.912716,
+      "lon": 10.762627
+    },
+    {
+      "lat": 59.912877,
+      "lon": 10.758327
+    },
+    {
+      "lat": 59.912779,
+      "lon": 10.756796
+    },
+    {
+      "lat": 59.912161,
+      "lon": 10.753956
+    },
+    {
+      "lat": 59.912362,
+      "lon": 10.749171
+    },
+    {
+      "lat": 59.913305,
+      "lon": 10.745021
+    },
+    {
+      "lat": 59.91393,
+      "lon": 10.737641
+    },
+    {
+      "lat": 59.915168,
+      "lon": 10.732667
+    },
+    {
+      "lat": 59.916869,
+      "lon": 10.730587
+    },
+    {
+      "lat": 59.923486,
+      "lon": 10.726012
+    },
+    {
+      "lat": 59.927551,
+      "lon": 10.719518
+    },
+    {
+      "lat": 59.929628,
+      "lon": 10.715636
+    },
+    {
+      "lat": 59.933235,
+      "lon": 10.710016
+    },
+    {
+      "lat": 59.936302,
+      "lon": 10.707826
+    },
+    {
+      "lat": 59.939115,
+      "lon": 10.704366
+    },
+    {
+      "lat": 59.940548,
+      "lon": 10.703952
+    },
+    {
+      "lat": 59.942267,
+      "lon": 10.704597
+    },
+    {
+      "lat": 59.944494,
+      "lon": 10.707263
+    },
+    {
+      "lat": 59.945755,
+      "lon": 10.710072
+    },
+    {
+      "lat": 59.946355,
+      "lon": 10.710592
+    },
+    {
+      "lat": 59.946853,
+      "lon": 10.710469
+    },
+    {
+      "lat": 59.947247,
+      "lon": 10.70954
+    },
+    {
+      "lat": 59.947247,
+      "lon": 10.706926
+    },
+    {
+      "lat": 59.948448,
+      "lon": 10.703463
+    },
+    {
+      "lat": 59.948771,
+      "lon": 10.700543
+    },
+    {
+      "lat": 59.949446,
+      "lon": 10.698536
+    },
+    {
+      "lat": 59.949619,
+      "lon": 10.696106
+    },
+    {
+      "lat": 59.951452,
+      "lon": 10.69388
+    },
+    {
+      "lat": 59.952085,
+      "lon": 10.693686
+    },
+    {
+      "lat": 59.952508,
+      "lon": 10.694141
+    },
+    {
+      "lat": 59.953947,
+      "lon": 10.699968
+    },
+    {
+      "lat": 59.955387,
+      "lon": 10.701853
+    },
+    {
+      "lat": 59.955851,
+      "lon": 10.701556
+    },
+    {
+      "lat": 59.956108,
+      "lon": 10.700677
+    },
+    {
+      "lat": 59.956095,
+      "lon": 10.699211
+    },
+    {
+      "lat": 59.955733,
+      "lon": 10.697286
+    },
+    {
+      "lat": 59.956052,
+      "lon": 10.696063
+    },
+    {
+      "lat": 59.956485,
+      "lon": 10.695811
+    },
+    {
+      "lat": 59.957917,
+      "lon": 10.696278
+    },
+    {
+      "lat": 59.960339,
+      "lon": 10.695372
+    },
+    {
+      "lat": 59.9607,
+      "lon": 10.694515
+    },
+    {
+      "lat": 59.96122,
+      "lon": 10.691724
+    },
+    {
+      "lat": 59.962274,
+      "lon": 10.690015
+    },
+    {
+      "lat": 59.96238,
+      "lon": 10.688706
+    },
+    {
+      "lat": 59.962179,
+      "lon": 10.687914
+    },
+    {
+      "lat": 59.961417,
+      "lon": 10.686907
+    },
+    {
+      "lat": 59.961153,
+      "lon": 10.686166
+    },
+    {
+      "lat": 59.961101,
+      "lon": 10.685359
+    },
+    {
+      "lat": 59.961364,
+      "lon": 10.683684
+    },
+    {
+      "lat": 59.961252,
+      "lon": 10.682424
+    },
+    {
+      "lat": 59.960558,
+      "lon": 10.681157
+    },
+    {
+      "lat": 59.959938,
+      "lon": 10.678582
+    },
+    {
+      "lat": 59.958838,
+      "lon": 10.676553
+    },
+    {
+      "lat": 59.958095,
+      "lon": 10.674597
+    },
+    {
+      "lat": 59.957547,
+      "lon": 10.672676
+    },
+    {
+      "lat": 59.957595,
+      "lon": 10.671427
+    },
+    {
+      "lat": 59.958777,
+      "lon": 10.669522
+    },
+    {
+      "lat": 59.958898,
+      "lon": 10.668727
+    },
+    {
+      "lat": 59.958743,
+      "lon": 10.667564
+    },
+    {
+      "lat": 59.95882,
+      "lon": 10.666728
+    },
+    {
+      "lat": 59.959993,
+      "lon": 10.664023
+    },
+    {
+      "lat": 59.960782,
+      "lon": 10.661299
+    },
+    {
+      "lat": 59.962854,
+      "lon": 10.659585
+    },
+    {
+      "lat": 59.964212,
+      "lon": 10.659931
+    },
+    {
+      "lat": 59.965082,
+      "lon": 10.65972
+    },
+    {
+      "lat": 59.965869,
+      "lon": 10.660083
+    },
+    {
+      "lat": 59.966373,
+      "lon": 10.659808
+    },
+    {
+      "lat": 59.966769,
+      "lon": 10.658712
+    },
+    {
+      "lat": 59.966888,
+      "lon": 10.655188
+    },
+    {
+      "lat": 59.967144,
+      "lon": 10.654107
+    },
+    {
+      "lat": 59.970403,
+      "lon": 10.650082
+    },
+    {
+      "lat": 59.9732,
+      "lon": 10.648152
+    },
+    {
+      "lat": 59.975304,
+      "lon": 10.647498
+    },
+    {
+      "lat": 59.976485,
+      "lon": 10.64753
+    },
+    {
+      "lat": 59.977554,
+      "lon": 10.648067
+    },
+    {
+      "lat": 59.979034,
+      "lon": 10.649368
+    },
+    {
+      "lat": 59.979259,
+      "lon": 10.650431
+    },
+    {
+      "lat": 59.979045,
+      "lon": 10.652541
+    },
+    {
+      "lat": 59.979414,
+      "lon": 10.653566
+    },
+    {
+      "lat": 59.980005,
+      "lon": 10.653693
+    },
+    {
+      "lat": 59.981128,
+      "lon": 10.652356
+    },
+    {
+      "lat": 59.981762,
+      "lon": 10.653042
+    },
+    {
+      "lat": 59.981893,
+      "lon": 10.654152
+    },
+    {
+      "lat": 59.981651,
+      "lon": 10.656313
+    },
+    {
+      "lat": 59.982065,
+      "lon": 10.658667
+    },
+    {
+      "lat": 59.980676,
+      "lon": 10.662323
+    },
+    {
+      "lat": 59.980135,
+      "lon": 10.664576
+    },
+    {
+      "lat": 59.979977,
+      "lon": 10.667718
+    },
+    {
+      "lat": 59.979468,
+      "lon": 10.669886
+    },
+    {
+      "lat": 59.979321,
+      "lon": 10.673857
+    },
+    {
+      "lat": 59.979077,
+      "lon": 10.675753
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Bergkrystallen - Frognerseteren",
+    "supportedShortTurns": [
+      "Helsfyr - Frognerseteren",
+      "Ryen - Frognerseteren",
+      "Helsfyr - Skogen",
+      "Majorstuen - Frognerseteren"
+    ]
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur RUT aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_rut-aggregated-gtfs.zip",
+    "routeId": "RUT:Line:1",
+    "shapeId": "RUT:JourneyPattern:002128",
+    "checkedDate": "2026-08-10"
+  }
+}
+
