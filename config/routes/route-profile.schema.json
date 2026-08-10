@@ -35,8 +35,8 @@
           "id": { "type": "string" },
           "label": { "type": "string" },
           "destinationMatches": { "type": "array", "items": { "type": "string" } },
-          "color": { "type": "string" }
-          ,"reverseShape": { "type": "boolean" }
+          "color": { "type": "string" },
+          "reverseShape": { "type": "boolean" }
         }
       }
     },
@@ -50,7 +50,17 @@
           "name": { "type": "string" },
           "lat": { "type": "number" },
           "lon": { "type": "number" },
-          "shapeDistanceMeters": { "type": "number", "minimum": 0 }
+          "gpio": { "type": "integer", "minimum": 0 },
+          "vled": { "type": "integer", "minimum": 0 },
+          "shapeDistanceMeters": { "type": "number", "minimum": 0 },
+          "segmentToNext": {
+            "type": "object",
+            "required": ["vledStart", "vledCount"],
+            "properties": {
+              "vledStart": { "type": "integer", "minimum": 0 },
+              "vledCount": { "type": "integer", "minimum": 1 }
+            }
+          }
         }
       }
     },
@@ -70,9 +80,11 @@
       "type": "object",
       "required": ["layout"],
       "properties": {
-        "layout": { "enum": ["route-leds", "route-live", "vehicle-cards"] }
+        "layout": { "enum": ["route-leds", "route-live", "vehicle-cards"] },
+        "showVled": { "type": "boolean" }
       }
     }
   }
 }
+
 
