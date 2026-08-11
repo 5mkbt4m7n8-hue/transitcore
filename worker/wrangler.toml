@@ -1,0 +1,7 @@
+name = "transitcore-led-feed"
+main = "led-feed-worker.mjs"
+compatibility_date = "2026-08-11"
+
+[observability]
+enabled = true
+
