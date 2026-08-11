@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ROUTES = ROOT / "config" / "routes"
 OUT = ROOT / "config" / "boards" / "trondheim-bus-board.json"
-PROFILE_FILES = ["atb-bus-1-live.json", "atb-bus-3-live.json"]
+PROFILE_FILES = ["atb-bus-1-live.json", "atb-bus-2-live.json", "atb-bus-3-live.json"]
 
 
 def slug(value):
