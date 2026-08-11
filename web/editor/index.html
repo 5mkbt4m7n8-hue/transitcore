@@ -15,7 +15,7 @@
 <p class="sub">Koble logiske stasjoner og plattformer til den faktiske LED-rekkefølgen på tavlen. Live-data, ruter, retninger og kildeprofilene endres ikke.</p>
 <div class="toolbar">
   <select id="boardSelect" aria-label="Velg tavle"><option value="trondheim-bus-board">Trondheim buss</option><option value="oslo-metro-board">Oslo T-bane</option></select>
-  <button id="auto">Nummerer synlige</button><button id="reset">Tilbakestill</button>
+  <button id="auto">Nummerer etter linje</button><button id="reset">Tilbakestill</button>
   <span class="spacer"></span><button id="importButton">Importer JSON</button><button id="exportButton" class="primary">Last ned hardwareprofil</button>
   <input id="importFile" class="hidden" type="file" accept="application/json,.json">
 </div>
@@ -42,7 +42,20 @@ function matches(item){const q=$("search").value.trim().toLowerCase(),route=$("r
 function render(){const {errors,used}=validation();visible=assignments.filter(matches).sort((a,b)=>(a.physicalLed??1e9)-(b.physicalLed??1e9)||a.name.localeCompare(b.name,"no"));$("rows").innerHTML=visible.map(item=>`<tr data-id="${esc(item.sourceNodeId)}"><td><input class="enabled-box" type="checkbox" ${item.enabled?"checked":""} aria-label="Aktiver ${esc(item.name)}"></td><td><input class="led-input ${errors.has(item.sourceNodeId)?"invalid":""}" type="number" min="0" step="1" value="${item.physicalLed??""}" title="${esc(errors.get(item.sourceNodeId)||"")}"></td><td><div class="name">${esc(item.name)}</div><div class="details">${esc(item.direction)}${item.quayId?` · ${esc(item.quayId)}`:""}</div></td><td class="routes">${item.routes.map(routeLabel).map(esc).join(", ")}</td><td class="logical">${String(item.logicalLed).padStart(3,"0")}</td><td class="row-actions"><button class="up" title="Bytt med forrige">↑</button><button class="down" title="Bytt med neste">↓</button></td></tr>`).join("");$("empty").classList.toggle("hidden",visible.length>0);$("total").textContent=assignments.length;$("enabled").textContent=assignments.filter(x=>x.enabled).length;$("assigned").textContent=used.size;$("maxLed").textContent=used.size?Math.max(...used.keys()):"–";$("issues").textContent=errors.size;$("status").className=errors.size?"error":"ok";$("status").textContent=errors.size?`${errors.size} punkter må rettes før eksport.`:`Klar for eksport · utkast lagres automatisk lokalt.`;bindRows()}
 function bindRows(){for(const tr of $("rows").querySelectorAll("tr")){const item=assignments.find(x=>x.sourceNodeId===tr.dataset.id);tr.querySelector(".enabled-box").onchange=e=>{item.enabled=e.target.checked;save();render()};tr.querySelector(".led-input").onchange=e=>{item.physicalLed=e.target.value===""?null:Number(e.target.value);save();render()};tr.querySelector(".up").onclick=()=>swap(item,-1);tr.querySelector(".down").onclick=()=>swap(item,1)}}
 function swap(item,delta){const ordered=assignments.filter(x=>x.enabled&&Number.isInteger(x.physicalLed)).sort((a,b)=>a.physicalLed-b.physicalLed),index=ordered.indexOf(item),other=ordered[index+delta];if(!other)return;[item.physicalLed,other.physicalLed]=[other.physicalLed,item.physicalLed];save();render()}
-function autoNumber(){let next=0;for(const item of visible){if(item.enabled)item.physicalLed=next++}save();render()}
+function routeOrder(a,b){return Number(routeLabel(a))-Number(routeLabel(b))||a.localeCompare(b,"no")}
+function autoNumber(){
+  if(!confirm(`Nummerere alle aktive punkter i ${board.name} på nytt etter linje?`))return;
+  const routes=[...new Set(assignments.flatMap(item=>item.routes))].sort(routeOrder),claimed=new Set,ordered=[],ranges=[];
+  for(const route of routes){
+    const group=assignments.filter(item=>item.enabled&&!claimed.has(item.sourceNodeId)&&item.routes.includes(route)).sort((a,b)=>a.name.localeCompare(b.name,"no")||a.direction.localeCompare(b.direction,"no")||a.logicalLed-b.logicalLed);
+    if(!group.length)continue;
+    const start=ordered.length;
+    for(const item of group){claimed.add(item.sourceNodeId);ordered.push(item)}
+    ranges.push(`linje ${routeLabel(route)}: ${start}–${ordered.length-1}`);
+  }
+  for(const item of assignments.filter(item=>item.enabled&&!claimed.has(item.sourceNodeId)).sort((a,b)=>a.name.localeCompare(b.name,"no")||a.logicalLed-b.logicalLed))ordered.push(item);
+  ordered.forEach((item,index)=>item.physicalLed=index);save();render();$("status").textContent=`Nummerert uten kollisjoner · ${ranges.join(" · ")}`;
+}
 function hardwareProfile(){return {schemaVersion:1,id:`${board.id}-hardware`,name:`${board.name} hardwareprofil`,boardProfile:board.id,generatedAt:new Date().toISOString(),leds:{count:assignments.filter(x=>x.enabled).length,dataPin:null,brightnessLimit:board.leds.brightnessLimit??32},assignments:assignments.filter(x=>x.enabled).sort((a,b)=>a.physicalLed-b.physicalLed).map(({sourceNodeId,stationId,quayId,name,direction,routes,logicalLed,physicalLed})=>({sourceNodeId,stationId,quayId,name,direction,routes,logicalLed,physicalLed}))}}
 function download(){const {errors}=validation();if(errors.size){render();return}const blob=new Blob([JSON.stringify(hardwareProfile(),null,2)+"\n"],{type:"application/json"}),link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download=`${board.id}-hardware.json`;link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000)}
 async function importProfile(file){const data=JSON.parse(await file.text());if(data.boardProfile!==board.id||!Array.isArray(data.assignments))throw Error(`Filen tilhører ikke ${board.name}`);assignments=normalize(data.assignments.map(x=>({...x,enabled:true})));save();render()}
