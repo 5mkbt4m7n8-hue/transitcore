@@ -45,3 +45,24 @@ for(const entry of registry.routes||[]){
 if(errors.length){console.error(errors.join("\n"));process.exit(1)}
 console.log(`Route profiles OK: ${seenIds.size} profiles, simultaneous display supported.`);
 
+const boardDir=path.join(root,"config","boards");
+if(fs.existsSync(boardDir)){
+  const boardFiles=fs.readdirSync(boardDir).filter(file=>file.endsWith(".json"));
+  for(const file of boardFiles){
+    const board=JSON.parse(fs.readFileSync(path.join(boardDir,file),"utf8"));
+    if(board.schemaVersion!==1)throw new Error(`${file}: schemaVersion must be 1`);
+    if(!["station-network","route-segments"].includes(board.layout))throw new Error(`${file}: invalid layout`);
+    if(!Array.isArray(board.routes)||!board.routes.length)throw new Error(`${file}: routes must be non-empty`);
+    for(const route of board.routes)if(!seenIds.has(route))throw new Error(`${file}: unknown route profile ${route}`);
+    if(!Number.isInteger(board.leds?.count)||board.leds.count<1)throw new Error(`${file}: invalid LED count`);
+    const nodeIds=new Set();
+    for(const node of board.nodes||[]){
+      if(nodeIds.has(node.id))throw new Error(`${file}: duplicate node ${node.id}`);nodeIds.add(node.id);
+      if(!Number.isInteger(node.led)||node.led<0||node.led>=board.leds.count)throw new Error(`${file}: node ${node.id} has invalid LED`);
+      if(!Array.isArray(node.stopIds)||!node.stopIds.length)throw new Error(`${file}: node ${node.id} has no stop IDs`);
+    }
+  }
+  console.log(`Board profiles OK: ${boardFiles.length} board definitions.`);
+}
+
+

@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "oslo-metro-board",
+  "name": "Oslo T-bane",
+  "layout": "station-network",
+  "routes": [
+    "rut-metro-1-live"
+  ],
+  "leds": {
+    "count": 35,
+    "dataPin": null,
+    "brightnessLimit": 32
+  },
+  "nodes": [
+    {
+      "id": "majorstuen",
+      "name": "Majorstuen",
+      "led": 0,
+      "stopIds": [
+        "NSR:Quay:8028"
+      ]
+    },
+    {
+      "id": "nationaltheatret",
+      "name": "Nationaltheatret",
+      "led": 1,
+      "stopIds": [
+        "NSR:Quay:7334"
+      ]
+    },
+    {
+      "id": "stortinget",
+      "name": "Stortinget",
+      "led": 2,
+      "stopIds": [
+        "NSR:Quay:7255"
+      ]
+    },
+    {
+      "id": "jernbanetorget",
+      "name": "Jernbanetorget",
+      "led": 3,
+      "stopIds": [
+        "NSR:Quay:7184"
+      ]
+    }
+  ],
+  "render": {
+    "collisionMode": "alternate",
+    "routePriority": [],
+    "arrivalHoldSeconds": 45,
+    "freshnessSeconds": 120
+  },
+  "status": "example-only"
+}
+
