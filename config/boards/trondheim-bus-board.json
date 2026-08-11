@@ -1,0 +1,733 @@
+{
+  "schemaVersion": 1,
+  "id": "trondheim-bus-board",
+  "name": "Trondheim buss",
+  "layout": "station-network",
+  "positioning": "vehicle-proximity",
+  "routes": [
+    "atb-bus-1-live",
+    "atb-bus-3-live"
+  ],
+  "leds": {
+    "count": 54,
+    "dataPin": null,
+    "brightnessLimit": 32
+  },
+  "nodes": [
+    {
+      "id": "anders-syseths-veg",
+      "name": "Anders Søyseths veg",
+      "lat": 63.4326,
+      "lon": 10.510365,
+      "stopIds": [
+        "NSR:Quay:102723"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 0
+    },
+    {
+      "id": "arnt-smistads-veg",
+      "name": "Arnt Smistads veg",
+      "lat": 63.395918,
+      "lon": 10.355357,
+      "stopIds": [
+        "NSR:Quay:74357"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 1
+    },
+    {
+      "id": "bakkegata",
+      "name": "Bakkegata",
+      "lat": 63.432418,
+      "lon": 10.407192,
+      "stopIds": [
+        "NSR:Quay:74792"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 2
+    },
+    {
+      "id": "bekkasinvegen",
+      "name": "Bekkasinvegen",
+      "lat": 63.346806,
+      "lon": 10.345599,
+      "stopIds": [
+        "NSR:Quay:74867"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 3
+    },
+    {
+      "id": "berg-studentby",
+      "name": "Berg studentby",
+      "lat": 63.413576,
+      "lon": 10.414052,
+      "stopIds": [
+        "NSR:Quay:74954"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 4
+    },
+    {
+      "id": "bergheim",
+      "name": "Bergheim",
+      "lat": 63.410465,
+      "lon": 10.457547,
+      "stopIds": [
+        "NSR:Quay:74980"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 5
+    },
+    {
+      "id": "bratsbergvegen",
+      "name": "Bratsbergvegen",
+      "lat": 63.403358,
+      "lon": 10.395995,
+      "stopIds": [
+        "NSR:Quay:75301"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 6
+    },
+    {
+      "id": "buran",
+      "name": "Buran",
+      "lat": 63.436496,
+      "lon": 10.425779,
+      "stopIds": [
+        "NSR:Quay:103009"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 7
+    },
+    {
+      "id": "byasen-skole",
+      "name": "Byåsen skole",
+      "lat": 63.39839,
+      "lon": 10.357495,
+      "stopIds": [
+        "NSR:Quay:75529"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 8
+    },
+    {
+      "id": "city-syd",
+      "name": "City Syd",
+      "lat": 63.360978,
+      "lon": 10.379237,
+      "stopIds": [
+        "NSR:Quay:75611"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 9
+    },
+    {
+      "id": "dalen-hageby",
+      "name": "Dalen Hageby",
+      "lat": 63.437512,
+      "lon": 10.448049,
+      "stopIds": [
+        "NSR:Quay:74497"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 10
+    },
+    {
+      "id": "dragvoll",
+      "name": "Dragvoll",
+      "lat": 63.407917,
+      "lon": 10.471679,
+      "stopIds": [
+        "NSR:Quay:74610"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 11
+    },
+    {
+      "id": "edvard-bulls-veg",
+      "name": "Edvard Bulls veg",
+      "lat": 63.410581,
+      "lon": 10.469652,
+      "stopIds": [
+        "NSR:Quay:73723"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 12
+    },
+    {
+      "id": "gildheim",
+      "name": "Gildheim",
+      "lat": 63.434481,
+      "lon": 10.460567,
+      "stopIds": [
+        "NSR:Quay:75657"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 13
+    },
+    {
+      "id": "glshaugen",
+      "name": "Gløshaugen",
+      "lat": 63.416835,
+      "lon": 10.407556,
+      "stopIds": [
+        "NSR:Quay:75708"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 14
+    },
+    {
+      "id": "grilstadkleiva",
+      "name": "Grilstadkleiva",
+      "lat": 63.433808,
+      "lon": 10.502053,
+      "stopIds": [
+        "NSR:Quay:72172"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 15
+    },
+    {
+      "id": "hallset",
+      "name": "Hallset",
+      "lat": 63.393917,
+      "lon": 10.368884,
+      "stopIds": [
+        "NSR:Quay:73032"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 16
+    },
+    {
+      "id": "havstadsenteret",
+      "name": "Havstadsenteret",
+      "lat": 63.407559,
+      "lon": 10.35945,
+      "stopIds": [
+        "NSR:Quay:72855"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 17
+    },
+    {
+      "id": "heimdal-stasjon",
+      "name": "Heimdal stasjon",
+      "lat": 63.351546,
+      "lon": 10.356846,
+      "stopIds": [
+        "NSR:Quay:72946"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 18
+    },
+    {
+      "id": "hesthagen",
+      "name": "Hesthagen",
+      "lat": 63.416799,
+      "lon": 10.3972,
+      "stopIds": [
+        "NSR:Quay:102719"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 19
+    },
+    {
+      "id": "hgskoleringen",
+      "name": "Høgskoleringen",
+      "lat": 63.420867,
+      "lon": 10.404181,
+      "stopIds": [
+        "NSR:Quay:71939"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 20
+    },
+    {
+      "id": "ila",
+      "name": "Ila",
+      "lat": 63.428721,
+      "lon": 10.367065,
+      "stopIds": [
+        "NSR:Quay:72051"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 21
+    },
+    {
+      "id": "johan-falkbergets-vei",
+      "name": "Johan Falkbergets vei",
+      "lat": 63.4111,
+      "lon": 10.36099,
+      "stopIds": [
+        "NSR:Quay:73845"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 22
+    },
+    {
+      "id": "kattemsenteret",
+      "name": "Kattemsenteret",
+      "lat": 63.345819,
+      "lon": 10.337876,
+      "stopIds": [
+        "NSR:Quay:74026"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 23
+    },
+    {
+      "id": "kongens-gate",
+      "name": "Kongens gate",
+      "lat": 63.43066,
+      "lon": 10.39072,
+      "stopIds": [
+        "NSR:Quay:74265"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 24
+    },
+    {
+      "id": "leangen",
+      "name": "Leangen",
+      "lat": 63.431851,
+      "lon": 10.476167,
+      "stopIds": [
+        "NSR:Quay:71365"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 25
+    },
+    {
+      "id": "lerkendal",
+      "name": "Lerkendal",
+      "lat": 63.41174,
+      "lon": 10.399045,
+      "stopIds": [
+        "NSR:Quay:102720"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 26
+    },
+    {
+      "id": "loholtbakken",
+      "name": "Loholtbakken",
+      "lat": 63.40492,
+      "lon": 10.459607,
+      "stopIds": [
+        "NSR:Quay:73593"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 27
+    },
+    {
+      "id": "martin-linges-veg",
+      "name": "Martin Linges veg",
+      "lat": 63.359841,
+      "lon": 10.368315,
+      "stopIds": [
+        "NSR:Quay:72719"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 28
+    },
+    {
+      "id": "moholt-studentby",
+      "name": "Moholt studentby",
+      "lat": 63.412254,
+      "lon": 10.433627,
+      "stopIds": [
+        "NSR:Quay:73260"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 29
+    },
+    {
+      "id": "nidarosdomen",
+      "name": "Nidarosdomen",
+      "lat": 63.425815,
+      "lon": 10.393372,
+      "stopIds": [
+        "NSR:Quay:71174",
+        "NSR:Quay:71175"
+      ],
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-3-live"
+      ],
+      "led": 30
+    },
+    {
+      "id": "nyveibakken",
+      "name": "Nyveibakken",
+      "lat": 63.423966,
+      "lon": 10.371359,
+      "stopIds": [
+        "NSR:Quay:74329"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 31
+    },
+    {
+      "id": "olav-tryggvasons-gate",
+      "name": "Olav Tryggvasons gate",
+      "lat": 63.433292,
+      "lon": 10.397798,
+      "stopIds": [
+        "NSR:Quay:101521"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 32
+    },
+    {
+      "id": "peder-morsets-veg",
+      "name": "Peder Morsets veg",
+      "lat": 63.356477,
+      "lon": 10.361958,
+      "stopIds": [
+        "NSR:Quay:74972"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 33
+    },
+    {
+      "id": "prinsens-gate",
+      "name": "Prinsens gate",
+      "lat": 63.430874,
+      "lon": 10.391899,
+      "stopIds": [
+        "NSR:Quay:71184"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 34
+    },
+    {
+      "id": "ranheim",
+      "name": "Ranheim",
+      "lat": 63.425209,
+      "lon": 10.533367,
+      "stopIds": [
+        "NSR:Quay:74983"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 35
+    },
+    {
+      "id": "ranheim-idrettsplass",
+      "name": "Ranheim idrettsplass",
+      "lat": 63.427952,
+      "lon": 10.522386,
+      "stopIds": [
+        "NSR:Quay:71249"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 36
+    },
+    {
+      "id": "rostengrenda",
+      "name": "Rostengrenda",
+      "lat": 63.365978,
+      "lon": 10.381981,
+      "stopIds": [
+        "NSR:Quay:71517"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 37
+    },
+    {
+      "id": "rnningsbakken",
+      "name": "Rønningsbakken",
+      "lat": 63.437178,
+      "lon": 10.43725,
+      "stopIds": [
+        "NSR:Quay:71687"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 38
+    },
+    {
+      "id": "skansen",
+      "name": "Skansen",
+      "lat": 63.430071,
+      "lon": 10.373602,
+      "stopIds": [
+        "NSR:Quay:72210"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 39
+    },
+    {
+      "id": "skovgard",
+      "name": "Skovgård",
+      "lat": 63.429671,
+      "lon": 10.493327,
+      "stopIds": [
+        "NSR:Quay:102732"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 40
+    },
+    {
+      "id": "sluppen",
+      "name": "Sluppen",
+      "lat": 63.40095,
+      "lon": 10.39504,
+      "stopIds": [
+        "NSR:Quay:107264"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 41
+    },
+    {
+      "id": "solsiden",
+      "name": "Solsiden",
+      "lat": 63.433946,
+      "lon": 10.412788,
+      "stopIds": [
+        "NSR:Quay:73975"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 42
+    },
+    {
+      "id": "stabells-veg",
+      "name": "Stabells veg",
+      "lat": 63.402788,
+      "lon": 10.357793,
+      "stopIds": [
+        "NSR:Quay:74072"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 43
+    },
+    {
+      "id": "strindheim",
+      "name": "Strindheim",
+      "lat": 63.435506,
+      "lon": 10.45548,
+      "stopIds": [
+        "NSR:Quay:73034"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 44
+    },
+    {
+      "id": "studentersamfundet",
+      "name": "Studentersamfundet",
+      "lat": 63.422222,
+      "lon": 10.394384,
+      "stopIds": [
+        "NSR:Quay:73103",
+        "NSR:Quay:73100"
+      ],
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-3-live"
+      ],
+      "led": 45
+    },
+    {
+      "id": "tillerterminalen",
+      "name": "Tillerterminalen",
+      "lat": 63.360163,
+      "lon": 10.374465,
+      "stopIds": [
+        "NSR:Quay:75607"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 46
+    },
+    {
+      "id": "tonstadkrysset",
+      "name": "Tonstadkrysset",
+      "lat": 63.370705,
+      "lon": 10.382118,
+      "stopIds": [
+        "NSR:Quay:102733"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 47
+    },
+    {
+      "id": "tvetestien",
+      "name": "Tvetestien",
+      "lat": 63.417785,
+      "lon": 10.372038,
+      "stopIds": [
+        "NSR:Quay:71633"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 48
+    },
+    {
+      "id": "valyvegen",
+      "name": "Valøyvegen",
+      "lat": 63.407852,
+      "lon": 10.398032,
+      "stopIds": [
+        "NSR:Quay:71982"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 49
+    },
+    {
+      "id": "voll-studentby",
+      "name": "Voll studentby",
+      "lat": 63.40927,
+      "lon": 10.443923,
+      "stopIds": [
+        "NSR:Quay:72401"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 50
+    },
+    {
+      "id": "asveien-skole",
+      "name": "Åsveien skole",
+      "lat": 63.414482,
+      "lon": 10.365735,
+      "stopIds": [
+        "NSR:Quay:72801"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 51
+    },
+    {
+      "id": "stre-berg",
+      "name": "Østre Berg",
+      "lat": 63.416009,
+      "lon": 10.430124,
+      "stopIds": [
+        "NSR:Quay:72852"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "led": 52
+    },
+    {
+      "id": "stre-lund",
+      "name": "Østre Lund",
+      "lat": 63.350453,
+      "lon": 10.331402,
+      "stopIds": [
+        "NSR:Quay:102721"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "led": 53
+    }
+  ],
+  "render": {
+    "collisionMode": "alternate",
+    "routePriority": [],
+    "arrivalRadiusMeters": 85,
+    "approachRadiusMeters": 250,
+    "freshnessSeconds": 120
+  },
+  "status": "logical-map-ready-hardware-order-pending"
+}
+
