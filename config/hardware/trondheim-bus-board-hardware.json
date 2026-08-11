@@ -1,0 +1,1806 @@
+{
+  "schemaVersion": 1,
+  "id": "trondheim-bus-board-hardware",
+  "name": "Trondheim buss hardwareprofil",
+  "boardProfile": "trondheim-bus-board",
+  "generatedAt": "2026-08-11T11:23:08.030Z",
+  "leds": {
+    "count": 147,
+    "dataPin": null,
+    "brightnessLimit": 32
+  },
+  "assignments": [
+    {
+      "sourceNodeId": "ranheim-nsr-quay-74983",
+      "stationId": "ranheim",
+      "quayId": "NSR:Quay:74983",
+      "name": "Ranheim",
+      "direction": "Spor 1/2 · mot Kattem",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 98,
+      "physicalLed": 0
+    },
+    {
+      "sourceNodeId": "ranheim-nsr-quay-74982",
+      "stationId": "ranheim",
+      "quayId": "NSR:Quay:74982",
+      "name": "Ranheim",
+      "direction": "Spor 2/2 · mot Ranheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 99,
+      "physicalLed": 1
+    },
+    {
+      "sourceNodeId": "ranheim-idrettsplass-nsr-quay-71249",
+      "stationId": "ranheim-idrettsplass",
+      "quayId": "NSR:Quay:71249",
+      "name": "Ranheim idrettsplass",
+      "direction": "Spor 1/2 · mot Kattem",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 100,
+      "physicalLed": 2
+    },
+    {
+      "sourceNodeId": "ranheim-idrettsplass-nsr-quay-71250",
+      "stationId": "ranheim-idrettsplass",
+      "quayId": "NSR:Quay:71250",
+      "name": "Ranheim idrettsplass",
+      "direction": "Spor 2/2 · mot Ranheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 101,
+      "physicalLed": 3
+    },
+    {
+      "sourceNodeId": "anders-syseths-veg-nsr-quay-102723",
+      "stationId": "anders-syseths-veg",
+      "quayId": "NSR:Quay:102723",
+      "name": "Anders Søyseths veg",
+      "direction": "Spor 1/2 · mot Kattem",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 2,
+      "physicalLed": 4
+    },
+    {
+      "sourceNodeId": "anders-syseths-veg-nsr-quay-102722",
+      "stationId": "anders-syseths-veg",
+      "quayId": "NSR:Quay:102722",
+      "name": "Anders Søyseths veg",
+      "direction": "Spor 2/2 · mot Ranheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 3,
+      "physicalLed": 5
+    },
+    {
+      "sourceNodeId": "grilstadkleiva-nsr-quay-72172",
+      "stationId": "grilstadkleiva",
+      "quayId": "NSR:Quay:72172",
+      "name": "Grilstadkleiva",
+      "direction": "Spor 1/2 · mot Kattem",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 42,
+      "physicalLed": 6
+    },
+    {
+      "sourceNodeId": "grilstadkleiva-nsr-quay-72171",
+      "stationId": "grilstadkleiva",
+      "quayId": "NSR:Quay:72171",
+      "name": "Grilstadkleiva",
+      "direction": "Spor 2/2 · mot Ranheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 43,
+      "physicalLed": 7
+    },
+    {
+      "sourceNodeId": "skovgard-nsr-quay-102732",
+      "stationId": "skovgard",
+      "quayId": "NSR:Quay:102732",
+      "name": "Skovgård",
+      "direction": "Spor 1/2 · mot Kattem",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 110,
+      "physicalLed": 8
+    },
+    {
+      "sourceNodeId": "skovgard-nsr-quay-102731",
+      "stationId": "skovgard",
+      "quayId": "NSR:Quay:102731",
+      "name": "Skovgård",
+      "direction": "Spor 2/2 · mot Ranheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 111,
+      "physicalLed": 9
+    },
+    {
+      "sourceNodeId": "leangen-nsr-quay-71365",
+      "stationId": "leangen",
+      "quayId": "NSR:Quay:71365",
+      "name": "Leangen",
+      "direction": "Spor 1/2 · mot Kattem",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 72,
+      "physicalLed": 10
+    },
+    {
+      "sourceNodeId": "leangen-nsr-quay-71363",
+      "stationId": "leangen",
+      "quayId": "NSR:Quay:71363",
+      "name": "Leangen",
+      "direction": "Spor 2/2 · mot Ranheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 73,
+      "physicalLed": 11
+    },
+    {
+      "sourceNodeId": "gildheim-nsr-quay-75657",
+      "stationId": "gildheim",
+      "quayId": "NSR:Quay:75657",
+      "name": "Gildheim",
+      "direction": "Spor 1/2 · mot Kattem",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 38,
+      "physicalLed": 12
+    },
+    {
+      "sourceNodeId": "gildheim-nsr-quay-75658",
+      "stationId": "gildheim",
+      "quayId": "NSR:Quay:75658",
+      "name": "Gildheim",
+      "direction": "Spor 2/2 · mot Ranheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 39,
+      "physicalLed": 13
+    },
+    {
+      "sourceNodeId": "strindheim-nsr-quay-73034",
+      "stationId": "strindheim",
+      "quayId": "NSR:Quay:73034",
+      "name": "Strindheim",
+      "direction": "Spor 1/4 · mot Kattem / Tillerterminalen",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 120,
+      "physicalLed": 14
+    },
+    {
+      "sourceNodeId": "strindheim-nsr-quay-73033",
+      "stationId": "strindheim",
+      "quayId": "NSR:Quay:73033",
+      "name": "Strindheim",
+      "direction": "Spor 2/4 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 121,
+      "physicalLed": 15
+    },
+    {
+      "sourceNodeId": "dalen-hageby-nsr-quay-74497",
+      "stationId": "dalen-hageby",
+      "quayId": "NSR:Quay:74497",
+      "name": "Dalen Hageby",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 30,
+      "physicalLed": 16
+    },
+    {
+      "sourceNodeId": "dalen-hageby-nsr-quay-74498",
+      "stationId": "dalen-hageby",
+      "quayId": "NSR:Quay:74498",
+      "name": "Dalen Hageby",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 31,
+      "physicalLed": 17
+    },
+    {
+      "sourceNodeId": "rnningsbakken-nsr-quay-71687",
+      "stationId": "rnningsbakken",
+      "quayId": "NSR:Quay:71687",
+      "name": "Rønningsbakken",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 104,
+      "physicalLed": 18
+    },
+    {
+      "sourceNodeId": "rnningsbakken-nsr-quay-71686",
+      "stationId": "rnningsbakken",
+      "quayId": "NSR:Quay:71686",
+      "name": "Rønningsbakken",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 105,
+      "physicalLed": 19
+    },
+    {
+      "sourceNodeId": "buran-nsr-quay-103009",
+      "stationId": "buran",
+      "quayId": "NSR:Quay:103009",
+      "name": "Buran",
+      "direction": "Spor 1/4 · mot Kattem / Tillerterminalen",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 20,
+      "physicalLed": 20
+    },
+    {
+      "sourceNodeId": "buran-nsr-quay-103007",
+      "stationId": "buran",
+      "quayId": "NSR:Quay:103007",
+      "name": "Buran",
+      "direction": "Spor 2/4 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 21,
+      "physicalLed": 21
+    },
+    {
+      "sourceNodeId": "solsiden-nsr-quay-73975",
+      "stationId": "solsiden",
+      "quayId": "NSR:Quay:73975",
+      "name": "Solsiden",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 116,
+      "physicalLed": 22
+    },
+    {
+      "sourceNodeId": "solsiden-nsr-quay-73976",
+      "stationId": "solsiden",
+      "quayId": "NSR:Quay:73976",
+      "name": "Solsiden",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 117,
+      "physicalLed": 23
+    },
+    {
+      "sourceNodeId": "bakkegata-nsr-quay-74792",
+      "stationId": "bakkegata",
+      "quayId": "NSR:Quay:74792",
+      "name": "Bakkegata",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 6,
+      "physicalLed": 24
+    },
+    {
+      "sourceNodeId": "bakkegata-nsr-quay-74793",
+      "stationId": "bakkegata",
+      "quayId": "NSR:Quay:74793",
+      "name": "Bakkegata",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 7,
+      "physicalLed": 25
+    },
+    {
+      "sourceNodeId": "strindheim-nsr-quay-73036",
+      "stationId": "strindheim",
+      "quayId": "NSR:Quay:73036",
+      "name": "Strindheim",
+      "direction": "Spor 3/4 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 122,
+      "physicalLed": 26
+    },
+    {
+      "sourceNodeId": "olav-tryggvasons-gate-nsr-quay-74205",
+      "stationId": "olav-tryggvasons-gate",
+      "quayId": "NSR:Quay:74205",
+      "name": "Olav Tryggvasons gate",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 93,
+      "physicalLed": 27
+    },
+    {
+      "sourceNodeId": "strindheim-nsr-quay-73038",
+      "stationId": "strindheim",
+      "quayId": "NSR:Quay:73038",
+      "name": "Strindheim",
+      "direction": "Spor 4/4 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 123,
+      "physicalLed": 28
+    },
+    {
+      "sourceNodeId": "haakon-vii-gate-25-nsr-quay-72455",
+      "stationId": "haakon-vii-gate-25",
+      "quayId": "NSR:Quay:72455",
+      "name": "Haakon VII gate 25",
+      "direction": "Spor 1/2 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 44,
+      "physicalLed": 29
+    },
+    {
+      "sourceNodeId": "haakon-vii-gate-25-nsr-quay-72453",
+      "stationId": "haakon-vii-gate-25",
+      "quayId": "NSR:Quay:72453",
+      "name": "Haakon VII gate 25",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 45,
+      "physicalLed": 30
+    },
+    {
+      "sourceNodeId": "lade-idrettsanlegg-nsr-quay-72461",
+      "stationId": "lade-idrettsanlegg",
+      "quayId": "NSR:Quay:72461",
+      "name": "Lade idrettsanlegg",
+      "direction": "Spor 1/2 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 68,
+      "physicalLed": 31
+    },
+    {
+      "sourceNodeId": "lade-idrettsanlegg-nsr-quay-72460",
+      "stationId": "lade-idrettsanlegg",
+      "quayId": "NSR:Quay:72460",
+      "name": "Lade idrettsanlegg",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 69,
+      "physicalLed": 32
+    },
+    {
+      "sourceNodeId": "ingemann-torps-vei-nsr-quay-72107",
+      "stationId": "ingemann-torps-vei",
+      "quayId": "NSR:Quay:72107",
+      "name": "Ingemann Torps vei",
+      "direction": "Spor 1/2 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 60,
+      "physicalLed": 33
+    },
+    {
+      "sourceNodeId": "ingemann-torps-vei-nsr-quay-72108",
+      "stationId": "ingemann-torps-vei",
+      "quayId": "NSR:Quay:72108",
+      "name": "Ingemann Torps vei",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 61,
+      "physicalLed": 34
+    },
+    {
+      "sourceNodeId": "ladeveien-nsr-quay-73154",
+      "stationId": "ladeveien",
+      "quayId": "NSR:Quay:73154",
+      "name": "Ladeveien",
+      "direction": "Spor 1/2 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 70,
+      "physicalLed": 35
+    },
+    {
+      "sourceNodeId": "ladeveien-nsr-quay-73152",
+      "stationId": "ladeveien",
+      "quayId": "NSR:Quay:73152",
+      "name": "Ladeveien",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 71,
+      "physicalLed": 36
+    },
+    {
+      "sourceNodeId": "anders-buens-gate-nsr-quay-74588",
+      "stationId": "anders-buens-gate",
+      "quayId": "NSR:Quay:74588",
+      "name": "Anders Buens gate",
+      "direction": "Spor 1/2 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 0,
+      "physicalLed": 37
+    },
+    {
+      "sourceNodeId": "anders-buens-gate-nsr-quay-74587",
+      "stationId": "anders-buens-gate",
+      "quayId": "NSR:Quay:74587",
+      "name": "Anders Buens gate",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 1,
+      "physicalLed": 38
+    },
+    {
+      "sourceNodeId": "buran-nsr-quay-108948",
+      "stationId": "buran",
+      "quayId": "NSR:Quay:108948",
+      "name": "Buran",
+      "direction": "Spor 3/4 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 22,
+      "physicalLed": 39
+    },
+    {
+      "sourceNodeId": "buran-nsr-quay-103008",
+      "stationId": "buran",
+      "quayId": "NSR:Quay:103008",
+      "name": "Buran",
+      "direction": "Spor 4/4 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 23,
+      "physicalLed": 40
+    },
+    {
+      "sourceNodeId": "dyre-halses-gate-nsr-quay-102714",
+      "stationId": "dyre-halses-gate",
+      "quayId": "NSR:Quay:102714",
+      "name": "Dyre Halses gate",
+      "direction": "Spor 1/2 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 34,
+      "physicalLed": 41
+    },
+    {
+      "sourceNodeId": "dyre-halses-gate-nsr-quay-102713",
+      "stationId": "dyre-halses-gate",
+      "quayId": "NSR:Quay:102713",
+      "name": "Dyre Halses gate",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 35,
+      "physicalLed": 42
+    },
+    {
+      "sourceNodeId": "trondheim-s-nsr-quay-71418",
+      "stationId": "trondheim-s",
+      "quayId": "NSR:Quay:71418",
+      "name": "Trondheim S",
+      "direction": "Spor 1/2 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 132,
+      "physicalLed": 43
+    },
+    {
+      "sourceNodeId": "trondheim-s-nsr-quay-71416",
+      "stationId": "trondheim-s",
+      "quayId": "NSR:Quay:71416",
+      "name": "Trondheim S",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 133,
+      "physicalLed": 44
+    },
+    {
+      "sourceNodeId": "rostengrenda-nsr-quay-71517",
+      "stationId": "rostengrenda",
+      "quayId": "NSR:Quay:71517",
+      "name": "Rostengrenda",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 102,
+      "physicalLed": 45
+    },
+    {
+      "sourceNodeId": "rostengrenda-nsr-quay-71518",
+      "stationId": "rostengrenda",
+      "quayId": "NSR:Quay:71518",
+      "name": "Rostengrenda",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 103,
+      "physicalLed": 46
+    },
+    {
+      "sourceNodeId": "city-syd-nsr-quay-75611",
+      "stationId": "city-syd",
+      "quayId": "NSR:Quay:75611",
+      "name": "City Syd",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 28,
+      "physicalLed": 47
+    },
+    {
+      "sourceNodeId": "city-syd-nsr-quay-75612",
+      "stationId": "city-syd",
+      "quayId": "NSR:Quay:75612",
+      "name": "City Syd",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 29,
+      "physicalLed": 48
+    },
+    {
+      "sourceNodeId": "tillerterminalen-nsr-quay-75607",
+      "stationId": "tillerterminalen",
+      "quayId": "NSR:Quay:75607",
+      "name": "Tillerterminalen",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 128,
+      "physicalLed": 49
+    },
+    {
+      "sourceNodeId": "tillerterminalen-nsr-quay-75606",
+      "stationId": "tillerterminalen",
+      "quayId": "NSR:Quay:75606",
+      "name": "Tillerterminalen",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 129,
+      "physicalLed": 50
+    },
+    {
+      "sourceNodeId": "martin-linges-veg-nsr-quay-72719",
+      "stationId": "martin-linges-veg",
+      "quayId": "NSR:Quay:72719",
+      "name": "Martin Linges veg",
+      "direction": "Spor 1/2 · mot Kattem",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 82,
+      "physicalLed": 51
+    },
+    {
+      "sourceNodeId": "martin-linges-veg-nsr-quay-72720",
+      "stationId": "martin-linges-veg",
+      "quayId": "NSR:Quay:72720",
+      "name": "Martin Linges veg",
+      "direction": "Spor 2/2 · mot Ranheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 83,
+      "physicalLed": 52
+    },
+    {
+      "sourceNodeId": "peder-morsets-veg-nsr-quay-74972",
+      "stationId": "peder-morsets-veg",
+      "quayId": "NSR:Quay:74972",
+      "name": "Peder Morsets veg",
+      "direction": "Spor 1/2 · mot Kattem",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 94,
+      "physicalLed": 53
+    },
+    {
+      "sourceNodeId": "peder-morsets-veg-nsr-quay-74973",
+      "stationId": "peder-morsets-veg",
+      "quayId": "NSR:Quay:74973",
+      "name": "Peder Morsets veg",
+      "direction": "Spor 2/2 · mot Ranheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 95,
+      "physicalLed": 54
+    },
+    {
+      "sourceNodeId": "olav-tryggvasons-gate-nsr-quay-101521",
+      "stationId": "olav-tryggvasons-gate",
+      "quayId": "NSR:Quay:101521",
+      "name": "Olav Tryggvasons gate",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen / Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 92,
+      "physicalLed": 55
+    },
+    {
+      "sourceNodeId": "prinsens-gate-nsr-quay-71184",
+      "stationId": "prinsens-gate",
+      "quayId": "NSR:Quay:71184",
+      "name": "Prinsens gate",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen / Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 96,
+      "physicalLed": 56
+    },
+    {
+      "sourceNodeId": "bekkasinvegen-nsr-quay-74867",
+      "stationId": "bekkasinvegen",
+      "quayId": "NSR:Quay:74867",
+      "name": "Bekkasinvegen",
+      "direction": "Spor 1/2 · mot Kattem",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 8,
+      "physicalLed": 57
+    },
+    {
+      "sourceNodeId": "bekkasinvegen-nsr-quay-74866",
+      "stationId": "bekkasinvegen",
+      "quayId": "NSR:Quay:74866",
+      "name": "Bekkasinvegen",
+      "direction": "Spor 2/2 · mot Ranheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 9,
+      "physicalLed": 58
+    },
+    {
+      "sourceNodeId": "kattemsenteret-nsr-quay-74026",
+      "stationId": "kattemsenteret",
+      "quayId": "NSR:Quay:74026",
+      "name": "Kattemsenteret",
+      "direction": "Spor 1/2 · mot Kattem",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 64,
+      "physicalLed": 59
+    },
+    {
+      "sourceNodeId": "kattemsenteret-nsr-quay-74027",
+      "stationId": "kattemsenteret",
+      "quayId": "NSR:Quay:74027",
+      "name": "Kattemsenteret",
+      "direction": "Spor 2/2 · mot Ranheim",
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "logicalLed": 65,
+      "physicalLed": 60
+    },
+    {
+      "sourceNodeId": "prinsens-gate-nsr-quay-71181",
+      "stationId": "prinsens-gate",
+      "quayId": "NSR:Quay:71181",
+      "name": "Prinsens gate",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 97,
+      "physicalLed": 61
+    },
+    {
+      "sourceNodeId": "loholtbakken-nsr-quay-73593",
+      "stationId": "loholtbakken",
+      "quayId": "NSR:Quay:73593",
+      "name": "Loholtbakken",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 78,
+      "physicalLed": 62
+    },
+    {
+      "sourceNodeId": "loholtbakken-nsr-quay-73581",
+      "stationId": "loholtbakken",
+      "quayId": "NSR:Quay:73581",
+      "name": "Loholtbakken",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 79,
+      "physicalLed": 63
+    },
+    {
+      "sourceNodeId": "dragvoll-nsr-quay-74610",
+      "stationId": "dragvoll",
+      "quayId": "NSR:Quay:74610",
+      "name": "Dragvoll",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 32,
+      "physicalLed": 64
+    },
+    {
+      "sourceNodeId": "dragvoll-nsr-quay-74609",
+      "stationId": "dragvoll",
+      "quayId": "NSR:Quay:74609",
+      "name": "Dragvoll",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 33,
+      "physicalLed": 65
+    },
+    {
+      "sourceNodeId": "edvard-bulls-veg-nsr-quay-73723",
+      "stationId": "edvard-bulls-veg",
+      "quayId": "NSR:Quay:73723",
+      "name": "Edvard Bulls veg",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 36,
+      "physicalLed": 66
+    },
+    {
+      "sourceNodeId": "edvard-bulls-veg-nsr-quay-73724",
+      "stationId": "edvard-bulls-veg",
+      "quayId": "NSR:Quay:73724",
+      "name": "Edvard Bulls veg",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 37,
+      "physicalLed": 67
+    },
+    {
+      "sourceNodeId": "lerkendal-nsr-quay-102720",
+      "stationId": "lerkendal",
+      "quayId": "NSR:Quay:102720",
+      "name": "Lerkendal",
+      "direction": "Spor 1/4 · mot Kattem / Tillerterminalen / Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 74,
+      "physicalLed": 68
+    },
+    {
+      "sourceNodeId": "lerkendal-nsr-quay-73729",
+      "stationId": "lerkendal",
+      "quayId": "NSR:Quay:73729",
+      "name": "Lerkendal",
+      "direction": "Spor 2/4 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 75,
+      "physicalLed": 69
+    },
+    {
+      "sourceNodeId": "valyvegen-nsr-quay-71982",
+      "stationId": "valyvegen",
+      "quayId": "NSR:Quay:71982",
+      "name": "Valøyvegen",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen / Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 136,
+      "physicalLed": 70
+    },
+    {
+      "sourceNodeId": "valyvegen-nsr-quay-71981",
+      "stationId": "valyvegen",
+      "quayId": "NSR:Quay:71981",
+      "name": "Valøyvegen",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 137,
+      "physicalLed": 71
+    },
+    {
+      "sourceNodeId": "bratsbergvegen-nsr-quay-75301",
+      "stationId": "bratsbergvegen",
+      "quayId": "NSR:Quay:75301",
+      "name": "Bratsbergvegen",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen / Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 18,
+      "physicalLed": 72
+    },
+    {
+      "sourceNodeId": "bratsbergvegen-nsr-quay-75300",
+      "stationId": "bratsbergvegen",
+      "quayId": "NSR:Quay:75300",
+      "name": "Bratsbergvegen",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 19,
+      "physicalLed": 73
+    },
+    {
+      "sourceNodeId": "sluppen-nsr-quay-107264",
+      "stationId": "sluppen",
+      "quayId": "NSR:Quay:107264",
+      "name": "Sluppen",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen / Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 114,
+      "physicalLed": 74
+    },
+    {
+      "sourceNodeId": "sluppen-nsr-quay-103404",
+      "stationId": "sluppen",
+      "quayId": "NSR:Quay:103404",
+      "name": "Sluppen",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 115,
+      "physicalLed": 75
+    },
+    {
+      "sourceNodeId": "tonstadkrysset-nsr-quay-102733",
+      "stationId": "tonstadkrysset",
+      "quayId": "NSR:Quay:102733",
+      "name": "Tonstadkrysset",
+      "direction": "Spor 1/2 · mot Kattem / Ranheim / Strindheim / Tillerterminalen",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 130,
+      "physicalLed": 76
+    },
+    {
+      "sourceNodeId": "tonstadkrysset-nsr-quay-71209",
+      "stationId": "tonstadkrysset",
+      "quayId": "NSR:Quay:71209",
+      "name": "Tonstadkrysset",
+      "direction": "Spor 2/2 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 131,
+      "physicalLed": 77
+    },
+    {
+      "sourceNodeId": "bjrndalsbrua-nsr-quay-75175",
+      "stationId": "bjrndalsbrua",
+      "quayId": "NSR:Quay:75175",
+      "name": "Bjørndalsbrua",
+      "direction": "Spor 1/2 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 14,
+      "physicalLed": 78
+    },
+    {
+      "sourceNodeId": "bjrndalsbrua-nsr-quay-75176",
+      "stationId": "bjrndalsbrua",
+      "quayId": "NSR:Quay:75176",
+      "name": "Bjørndalsbrua",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 15,
+      "physicalLed": 79
+    },
+    {
+      "sourceNodeId": "bjrndalstoppen-nsr-quay-75178",
+      "stationId": "bjrndalstoppen",
+      "quayId": "NSR:Quay:75178",
+      "name": "Bjørndalstoppen",
+      "direction": "Spor 1/2 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 16,
+      "physicalLed": 80
+    },
+    {
+      "sourceNodeId": "bjrndalstoppen-nsr-quay-75179",
+      "stationId": "bjrndalstoppen",
+      "quayId": "NSR:Quay:75179",
+      "name": "Bjørndalstoppen",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 17,
+      "physicalLed": 81
+    },
+    {
+      "sourceNodeId": "husebytunet-nsr-quay-71825",
+      "stationId": "husebytunet",
+      "quayId": "NSR:Quay:71825",
+      "name": "Husebytunet",
+      "direction": "Spor 1/2 · mot Lund / Midteggen / Husebytunet",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 54,
+      "physicalLed": 82
+    },
+    {
+      "sourceNodeId": "husebytunet-nsr-quay-71824",
+      "stationId": "husebytunet",
+      "quayId": "NSR:Quay:71824",
+      "name": "Husebytunet",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 55,
+      "physicalLed": 83
+    },
+    {
+      "sourceNodeId": "saupstadsenteret-nsr-quay-71912",
+      "stationId": "saupstadsenteret",
+      "quayId": "NSR:Quay:71912",
+      "name": "Saupstadsenteret",
+      "direction": "Spor 1/2 · mot Lund / Midteggen",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 106,
+      "physicalLed": 84
+    },
+    {
+      "sourceNodeId": "saupstadsenteret-nsr-quay-71913",
+      "stationId": "saupstadsenteret",
+      "quayId": "NSR:Quay:71913",
+      "name": "Saupstadsenteret",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 107,
+      "physicalLed": 85
+    },
+    {
+      "sourceNodeId": "casper-lundes-veg-nsr-quay-75581",
+      "stationId": "casper-lundes-veg",
+      "quayId": "NSR:Quay:75581",
+      "name": "Casper Lundes veg",
+      "direction": "Spor 1/2 · mot Lund / Midteggen",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 26,
+      "physicalLed": 86
+    },
+    {
+      "sourceNodeId": "casper-lundes-veg-nsr-quay-75580",
+      "stationId": "casper-lundes-veg",
+      "quayId": "NSR:Quay:75580",
+      "name": "Casper Lundes veg",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 27,
+      "physicalLed": 87
+    },
+    {
+      "sourceNodeId": "midteggen-nsr-quay-73008",
+      "stationId": "midteggen",
+      "quayId": "NSR:Quay:73008",
+      "name": "Midteggen",
+      "direction": "Spor 1/2 · mot Lund / Midteggen",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 84,
+      "physicalLed": 88
+    },
+    {
+      "sourceNodeId": "midteggen-nsr-quay-73009",
+      "stationId": "midteggen",
+      "quayId": "NSR:Quay:73009",
+      "name": "Midteggen",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 85,
+      "physicalLed": 89
+    },
+    {
+      "sourceNodeId": "skyttervegen-nsr-quay-72490",
+      "stationId": "skyttervegen",
+      "quayId": "NSR:Quay:72490",
+      "name": "Skyttervegen",
+      "direction": "Spor 1/2 · mot Lund",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 112,
+      "physicalLed": 90
+    },
+    {
+      "sourceNodeId": "skyttervegen-nsr-quay-72489",
+      "stationId": "skyttervegen",
+      "quayId": "NSR:Quay:72489",
+      "name": "Skyttervegen",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 113,
+      "physicalLed": 91
+    },
+    {
+      "sourceNodeId": "lyngvegen-nsr-quay-73684",
+      "stationId": "lyngvegen",
+      "quayId": "NSR:Quay:73684",
+      "name": "Lyngvegen",
+      "direction": "Spor 1/2 · mot Lund",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 80,
+      "physicalLed": 92
+    },
+    {
+      "sourceNodeId": "lyngvegen-nsr-quay-73683",
+      "stationId": "lyngvegen",
+      "quayId": "NSR:Quay:73683",
+      "name": "Lyngvegen",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 81,
+      "physicalLed": 93
+    },
+    {
+      "sourceNodeId": "heimdal-stasjon-nsr-quay-72946",
+      "stationId": "heimdal-stasjon",
+      "quayId": "NSR:Quay:72946",
+      "name": "Heimdal stasjon",
+      "direction": "Spor 1/2 · mot Kattem / Lund",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 50,
+      "physicalLed": 94
+    },
+    {
+      "sourceNodeId": "heimdal-stasjon-nsr-quay-72955",
+      "stationId": "heimdal-stasjon",
+      "quayId": "NSR:Quay:72955",
+      "name": "Heimdal stasjon",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 51,
+      "physicalLed": 95
+    },
+    {
+      "sourceNodeId": "asheim-skole-nsr-quay-72755",
+      "stationId": "asheim-skole",
+      "quayId": "NSR:Quay:72755",
+      "name": "Åsheim skole",
+      "direction": "Spor 1/2 · mot Lund",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 140,
+      "physicalLed": 96
+    },
+    {
+      "sourceNodeId": "asheim-skole-nsr-quay-72756",
+      "stationId": "asheim-skole",
+      "quayId": "NSR:Quay:72756",
+      "name": "Åsheim skole",
+      "direction": "Spor 2/2 · mot Strindheim",
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 141,
+      "physicalLed": 97
+    },
+    {
+      "sourceNodeId": "stre-lund-nsr-quay-102721",
+      "stationId": "stre-lund",
+      "quayId": "NSR:Quay:102721",
+      "name": "Østre Lund",
+      "direction": "Ett spor · mot Kattem / Ranheim / Lund / Strindheim",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "logicalLed": 146,
+      "physicalLed": 98
+    },
+    {
+      "sourceNodeId": "bergheim-nsr-quay-74980",
+      "stationId": "bergheim",
+      "quayId": "NSR:Quay:74980",
+      "name": "Bergheim",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 12,
+      "physicalLed": 99
+    },
+    {
+      "sourceNodeId": "bergheim-nsr-quay-74981",
+      "stationId": "bergheim",
+      "quayId": "NSR:Quay:74981",
+      "name": "Bergheim",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 13,
+      "physicalLed": 100
+    },
+    {
+      "sourceNodeId": "voll-studentby-nsr-quay-72401",
+      "stationId": "voll-studentby",
+      "quayId": "NSR:Quay:72401",
+      "name": "Voll studentby",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 138,
+      "physicalLed": 101
+    },
+    {
+      "sourceNodeId": "voll-studentby-nsr-quay-72402",
+      "stationId": "voll-studentby",
+      "quayId": "NSR:Quay:72402",
+      "name": "Voll studentby",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 139,
+      "physicalLed": 102
+    },
+    {
+      "sourceNodeId": "moholt-studentby-nsr-quay-73260",
+      "stationId": "moholt-studentby",
+      "quayId": "NSR:Quay:73260",
+      "name": "Moholt studentby",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 86,
+      "physicalLed": 103
+    },
+    {
+      "sourceNodeId": "moholt-studentby-nsr-quay-73261",
+      "stationId": "moholt-studentby",
+      "quayId": "NSR:Quay:73261",
+      "name": "Moholt studentby",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 87,
+      "physicalLed": 104
+    },
+    {
+      "sourceNodeId": "stre-berg-nsr-quay-72852",
+      "stationId": "stre-berg",
+      "quayId": "NSR:Quay:72852",
+      "name": "Østre Berg",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 144,
+      "physicalLed": 105
+    },
+    {
+      "sourceNodeId": "stre-berg-nsr-quay-102730",
+      "stationId": "stre-berg",
+      "quayId": "NSR:Quay:102730",
+      "name": "Østre Berg",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 145,
+      "physicalLed": 106
+    },
+    {
+      "sourceNodeId": "berg-studentby-nsr-quay-74954",
+      "stationId": "berg-studentby",
+      "quayId": "NSR:Quay:74954",
+      "name": "Berg studentby",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 10,
+      "physicalLed": 107
+    },
+    {
+      "sourceNodeId": "berg-studentby-nsr-quay-74952",
+      "stationId": "berg-studentby",
+      "quayId": "NSR:Quay:74952",
+      "name": "Berg studentby",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 11,
+      "physicalLed": 108
+    },
+    {
+      "sourceNodeId": "glshaugen-nsr-quay-75708",
+      "stationId": "glshaugen",
+      "quayId": "NSR:Quay:75708",
+      "name": "Gløshaugen",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 40,
+      "physicalLed": 109
+    },
+    {
+      "sourceNodeId": "glshaugen-nsr-quay-75707",
+      "stationId": "glshaugen",
+      "quayId": "NSR:Quay:75707",
+      "name": "Gløshaugen",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 41,
+      "physicalLed": 110
+    },
+    {
+      "sourceNodeId": "hgskoleringen-nsr-quay-71939",
+      "stationId": "hgskoleringen",
+      "quayId": "NSR:Quay:71939",
+      "name": "Høgskoleringen",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 56,
+      "physicalLed": 111
+    },
+    {
+      "sourceNodeId": "hgskoleringen-nsr-quay-71940",
+      "stationId": "hgskoleringen",
+      "quayId": "NSR:Quay:71940",
+      "name": "Høgskoleringen",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 57,
+      "physicalLed": 112
+    },
+    {
+      "sourceNodeId": "lerkendal-nsr-quay-73421",
+      "stationId": "lerkendal",
+      "quayId": "NSR:Quay:73421",
+      "name": "Lerkendal",
+      "direction": "Spor 3/4 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 76,
+      "physicalLed": 113
+    },
+    {
+      "sourceNodeId": "lerkendal-nsr-quay-73420",
+      "stationId": "lerkendal",
+      "quayId": "NSR:Quay:73420",
+      "name": "Lerkendal",
+      "direction": "Spor 4/4 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 77,
+      "physicalLed": 114
+    },
+    {
+      "sourceNodeId": "hesthagen-nsr-quay-102719",
+      "stationId": "hesthagen",
+      "quayId": "NSR:Quay:102719",
+      "name": "Hesthagen",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen / Lund / Midteggen / Husebytunet / Lohove",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 52,
+      "physicalLed": 115
+    },
+    {
+      "sourceNodeId": "hesthagen-nsr-quay-71204",
+      "stationId": "hesthagen",
+      "quayId": "NSR:Quay:71204",
+      "name": "Hesthagen",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim / Hallset",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 53,
+      "physicalLed": 116
+    },
+    {
+      "sourceNodeId": "studentersamfundet-nsr-quay-73100",
+      "stationId": "studentersamfundet",
+      "quayId": "NSR:Quay:73100",
+      "name": "Studentersamfundet",
+      "direction": "Spor 3/4 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 126,
+      "physicalLed": 117
+    },
+    {
+      "sourceNodeId": "studentersamfundet-nsr-quay-73102",
+      "stationId": "studentersamfundet",
+      "quayId": "NSR:Quay:73102",
+      "name": "Studentersamfundet",
+      "direction": "Spor 4/4 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 127,
+      "physicalLed": 118
+    },
+    {
+      "sourceNodeId": "studentersamfundet-nsr-quay-73103",
+      "stationId": "studentersamfundet",
+      "quayId": "NSR:Quay:73103",
+      "name": "Studentersamfundet",
+      "direction": "Spor 1/4 · mot Kattem / Tillerterminalen / Lund / Midteggen / Husebytunet / Lohove",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 124,
+      "physicalLed": 119
+    },
+    {
+      "sourceNodeId": "studentersamfundet-nsr-quay-73101",
+      "stationId": "studentersamfundet",
+      "quayId": "NSR:Quay:73101",
+      "name": "Studentersamfundet",
+      "direction": "Spor 2/4 · mot Ranheim / Strindheim / Hallset",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 125,
+      "physicalLed": 120
+    },
+    {
+      "sourceNodeId": "nidarosdomen-nsr-quay-71174",
+      "stationId": "nidarosdomen",
+      "quayId": "NSR:Quay:71174",
+      "name": "Nidarosdomen",
+      "direction": "Spor 1/2 · mot Kattem / Tillerterminalen / Lund / Midteggen / Husebytunet / Lohove",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 88,
+      "physicalLed": 121
+    },
+    {
+      "sourceNodeId": "nidarosdomen-nsr-quay-71175",
+      "stationId": "nidarosdomen",
+      "quayId": "NSR:Quay:71175",
+      "name": "Nidarosdomen",
+      "direction": "Spor 2/2 · mot Ranheim / Strindheim / Hallset",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 89,
+      "physicalLed": 122
+    },
+    {
+      "sourceNodeId": "kongens-gate-nsr-quay-74265",
+      "stationId": "kongens-gate",
+      "quayId": "NSR:Quay:74265",
+      "name": "Kongens gate",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 66,
+      "physicalLed": 123
+    },
+    {
+      "sourceNodeId": "kongens-gate-nsr-quay-74264",
+      "stationId": "kongens-gate",
+      "quayId": "NSR:Quay:74264",
+      "name": "Kongens gate",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 67,
+      "physicalLed": 124
+    },
+    {
+      "sourceNodeId": "skansen-nsr-quay-72210",
+      "stationId": "skansen",
+      "quayId": "NSR:Quay:72210",
+      "name": "Skansen",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 108,
+      "physicalLed": 125
+    },
+    {
+      "sourceNodeId": "skansen-nsr-quay-72212",
+      "stationId": "skansen",
+      "quayId": "NSR:Quay:72212",
+      "name": "Skansen",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 109,
+      "physicalLed": 126
+    },
+    {
+      "sourceNodeId": "ila-nsr-quay-72051",
+      "stationId": "ila",
+      "quayId": "NSR:Quay:72051",
+      "name": "Ila",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 58,
+      "physicalLed": 127
+    },
+    {
+      "sourceNodeId": "ila-nsr-quay-72052",
+      "stationId": "ila",
+      "quayId": "NSR:Quay:72052",
+      "name": "Ila",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 59,
+      "physicalLed": 128
+    },
+    {
+      "sourceNodeId": "nyveibakken-nsr-quay-74329",
+      "stationId": "nyveibakken",
+      "quayId": "NSR:Quay:74329",
+      "name": "Nyveibakken",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 90,
+      "physicalLed": 129
+    },
+    {
+      "sourceNodeId": "nyveibakken-nsr-quay-74330",
+      "stationId": "nyveibakken",
+      "quayId": "NSR:Quay:74330",
+      "name": "Nyveibakken",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 91,
+      "physicalLed": 130
+    },
+    {
+      "sourceNodeId": "tvetestien-nsr-quay-71633",
+      "stationId": "tvetestien",
+      "quayId": "NSR:Quay:71633",
+      "name": "Tvetestien",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 134,
+      "physicalLed": 131
+    },
+    {
+      "sourceNodeId": "tvetestien-nsr-quay-71634",
+      "stationId": "tvetestien",
+      "quayId": "NSR:Quay:71634",
+      "name": "Tvetestien",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 135,
+      "physicalLed": 132
+    },
+    {
+      "sourceNodeId": "asveien-skole-nsr-quay-72801",
+      "stationId": "asveien-skole",
+      "quayId": "NSR:Quay:72801",
+      "name": "Åsveien skole",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 142,
+      "physicalLed": 133
+    },
+    {
+      "sourceNodeId": "asveien-skole-nsr-quay-72800",
+      "stationId": "asveien-skole",
+      "quayId": "NSR:Quay:72800",
+      "name": "Åsveien skole",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 143,
+      "physicalLed": 134
+    },
+    {
+      "sourceNodeId": "johan-falkbergets-vei-nsr-quay-73845",
+      "stationId": "johan-falkbergets-vei",
+      "quayId": "NSR:Quay:73845",
+      "name": "Johan Falkbergets vei",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 62,
+      "physicalLed": 135
+    },
+    {
+      "sourceNodeId": "johan-falkbergets-vei-nsr-quay-73843",
+      "stationId": "johan-falkbergets-vei",
+      "quayId": "NSR:Quay:73843",
+      "name": "Johan Falkbergets vei",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 63,
+      "physicalLed": 136
+    },
+    {
+      "sourceNodeId": "havstadsenteret-nsr-quay-72855",
+      "stationId": "havstadsenteret",
+      "quayId": "NSR:Quay:72855",
+      "name": "Havstadsenteret",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 48,
+      "physicalLed": 137
+    },
+    {
+      "sourceNodeId": "havstadsenteret-nsr-quay-72856",
+      "stationId": "havstadsenteret",
+      "quayId": "NSR:Quay:72856",
+      "name": "Havstadsenteret",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 49,
+      "physicalLed": 138
+    },
+    {
+      "sourceNodeId": "stabells-veg-nsr-quay-74072",
+      "stationId": "stabells-veg",
+      "quayId": "NSR:Quay:74072",
+      "name": "Stabells veg",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 118,
+      "physicalLed": 139
+    },
+    {
+      "sourceNodeId": "stabells-veg-nsr-quay-74073",
+      "stationId": "stabells-veg",
+      "quayId": "NSR:Quay:74073",
+      "name": "Stabells veg",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 119,
+      "physicalLed": 140
+    },
+    {
+      "sourceNodeId": "byasen-skole-nsr-quay-75529",
+      "stationId": "byasen-skole",
+      "quayId": "NSR:Quay:75529",
+      "name": "Byåsen skole",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 24,
+      "physicalLed": 141
+    },
+    {
+      "sourceNodeId": "byasen-skole-nsr-quay-75528",
+      "stationId": "byasen-skole",
+      "quayId": "NSR:Quay:75528",
+      "name": "Byåsen skole",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 25,
+      "physicalLed": 142
+    },
+    {
+      "sourceNodeId": "arnt-smistads-veg-nsr-quay-74357",
+      "stationId": "arnt-smistads-veg",
+      "quayId": "NSR:Quay:74357",
+      "name": "Arnt Smistads veg",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 4,
+      "physicalLed": 143
+    },
+    {
+      "sourceNodeId": "arnt-smistads-veg-nsr-quay-102734",
+      "stationId": "arnt-smistads-veg",
+      "quayId": "NSR:Quay:102734",
+      "name": "Arnt Smistads veg",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 5,
+      "physicalLed": 144
+    },
+    {
+      "sourceNodeId": "hallset-nsr-quay-73032",
+      "stationId": "hallset",
+      "quayId": "NSR:Quay:73032",
+      "name": "Hallset",
+      "direction": "Spor 1/2 · mot Hallset",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 46,
+      "physicalLed": 145
+    },
+    {
+      "sourceNodeId": "hallset-nsr-quay-102729",
+      "stationId": "hallset",
+      "quayId": "NSR:Quay:102729",
+      "name": "Hallset",
+      "direction": "Spor 2/2 · mot Lohove",
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "logicalLed": 47,
+      "physicalLed": 146
+    }
+  ]
+}
+
