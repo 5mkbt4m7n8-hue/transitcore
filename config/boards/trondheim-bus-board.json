@@ -1,142 +1,587 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "trondheim-bus-board",
   "name": "Trondheim buss",
   "layout": "station-network",
   "positioning": "vehicle-proximity",
+  "directionalPlatforms": true,
   "routes": [
     "atb-bus-1-live",
     "atb-bus-2-live",
     "atb-bus-3-live"
   ],
   "leds": {
-    "count": 70,
+    "count": 147,
     "dataPin": null,
     "brightnessLimit": 32
   },
   "nodes": [
     {
-      "id": "anders-buens-gate",
+      "id": "anders-buens-gate-nsr-quay-74588",
+      "stationId": "anders-buens-gate",
       "name": "Anders Buens gate",
       "lat": 63.438403,
       "lon": 10.429582,
+      "quayId": "NSR:Quay:74588",
       "stopIds": [
         "NSR:Quay:74588"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
       "led": 0
     },
     {
-      "id": "anders-syseths-veg",
+      "id": "anders-buens-gate-nsr-quay-74587",
+      "stationId": "anders-buens-gate",
+      "name": "Anders Buens gate",
+      "lat": 63.438616,
+      "lon": 10.430228,
+      "quayId": "NSR:Quay:74587",
+      "stopIds": [
+        "NSR:Quay:74587"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 1
+    },
+    {
+      "id": "anders-syseths-veg-nsr-quay-102723",
+      "stationId": "anders-syseths-veg",
       "name": "Anders Søyseths veg",
       "lat": 63.4326,
       "lon": 10.510365,
+      "quayId": "NSR:Quay:102723",
       "stopIds": [
         "NSR:Quay:102723"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 1
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 2
     },
     {
-      "id": "arnt-smistads-veg",
+      "id": "anders-syseths-veg-nsr-quay-102722",
+      "stationId": "anders-syseths-veg",
+      "name": "Anders Søyseths veg",
+      "lat": 63.432493,
+      "lon": 10.510649,
+      "quayId": "NSR:Quay:102722",
+      "stopIds": [
+        "NSR:Quay:102722"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 3
+    },
+    {
+      "id": "arnt-smistads-veg-nsr-quay-74357",
+      "stationId": "arnt-smistads-veg",
       "name": "Arnt Smistads veg",
       "lat": 63.395918,
       "lon": 10.355357,
+      "quayId": "NSR:Quay:74357",
       "stopIds": [
         "NSR:Quay:74357"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 2
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 4
     },
     {
-      "id": "bakkegata",
+      "id": "arnt-smistads-veg-nsr-quay-102734",
+      "stationId": "arnt-smistads-veg",
+      "name": "Arnt Smistads veg",
+      "lat": 63.395831,
+      "lon": 10.355797,
+      "quayId": "NSR:Quay:102734",
+      "stopIds": [
+        "NSR:Quay:102734"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 5
+    },
+    {
+      "id": "bakkegata-nsr-quay-74792",
+      "stationId": "bakkegata",
       "name": "Bakkegata",
       "lat": 63.432418,
       "lon": 10.407192,
+      "quayId": "NSR:Quay:74792",
       "stopIds": [
         "NSR:Quay:74792"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 3
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 6
     },
     {
-      "id": "bekkasinvegen",
+      "id": "bakkegata-nsr-quay-74793",
+      "stationId": "bakkegata",
+      "name": "Bakkegata",
+      "lat": 63.432263,
+      "lon": 10.407305,
+      "quayId": "NSR:Quay:74793",
+      "stopIds": [
+        "NSR:Quay:74793"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 7
+    },
+    {
+      "id": "bekkasinvegen-nsr-quay-74867",
+      "stationId": "bekkasinvegen",
       "name": "Bekkasinvegen",
       "lat": 63.346806,
       "lon": 10.345599,
+      "quayId": "NSR:Quay:74867",
       "stopIds": [
         "NSR:Quay:74867"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 4
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 8
     },
     {
-      "id": "berg-studentby",
+      "id": "bekkasinvegen-nsr-quay-74866",
+      "stationId": "bekkasinvegen",
+      "name": "Bekkasinvegen",
+      "lat": 63.347088,
+      "lon": 10.346546,
+      "quayId": "NSR:Quay:74866",
+      "stopIds": [
+        "NSR:Quay:74866"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 9
+    },
+    {
+      "id": "berg-studentby-nsr-quay-74954",
+      "stationId": "berg-studentby",
       "name": "Berg studentby",
       "lat": 63.413576,
       "lon": 10.414052,
+      "quayId": "NSR:Quay:74954",
       "stopIds": [
         "NSR:Quay:74954"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 5
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 10
     },
     {
-      "id": "bergheim",
+      "id": "berg-studentby-nsr-quay-74952",
+      "stationId": "berg-studentby",
+      "name": "Berg studentby",
+      "lat": 63.413529,
+      "lon": 10.416951,
+      "quayId": "NSR:Quay:74952",
+      "stopIds": [
+        "NSR:Quay:74952"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 11
+    },
+    {
+      "id": "bergheim-nsr-quay-74980",
+      "stationId": "bergheim",
       "name": "Bergheim",
       "lat": 63.410465,
       "lon": 10.457547,
+      "quayId": "NSR:Quay:74980",
       "stopIds": [
         "NSR:Quay:74980"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 6
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 12
     },
     {
-      "id": "bjrndalsbrua",
+      "id": "bergheim-nsr-quay-74981",
+      "stationId": "bergheim",
+      "name": "Bergheim",
+      "lat": 63.409863,
+      "lon": 10.453826,
+      "quayId": "NSR:Quay:74981",
+      "stopIds": [
+        "NSR:Quay:74981"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 13
+    },
+    {
+      "id": "bjrndalsbrua-nsr-quay-75175",
+      "stationId": "bjrndalsbrua",
       "name": "Bjørndalsbrua",
       "lat": 63.370956,
       "lon": 10.363111,
+      "quayId": "NSR:Quay:75175",
       "stopIds": [
         "NSR:Quay:75175"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 7
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 14
     },
     {
-      "id": "bjrndalstoppen",
+      "id": "bjrndalsbrua-nsr-quay-75176",
+      "stationId": "bjrndalsbrua",
+      "name": "Bjørndalsbrua",
+      "lat": 63.37081,
+      "lon": 10.364235,
+      "quayId": "NSR:Quay:75176",
+      "stopIds": [
+        "NSR:Quay:75176"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 15
+    },
+    {
+      "id": "bjrndalstoppen-nsr-quay-75178",
+      "stationId": "bjrndalstoppen",
       "name": "Bjørndalstoppen",
       "lat": 63.370558,
       "lon": 10.353316,
+      "quayId": "NSR:Quay:75178",
       "stopIds": [
         "NSR:Quay:75178"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 8
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 16
     },
     {
-      "id": "bratsbergvegen",
+      "id": "bjrndalstoppen-nsr-quay-75179",
+      "stationId": "bjrndalstoppen",
+      "name": "Bjørndalstoppen",
+      "lat": 63.370582,
+      "lon": 10.356669,
+      "quayId": "NSR:Quay:75179",
+      "stopIds": [
+        "NSR:Quay:75179"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 17
+    },
+    {
+      "id": "bratsbergvegen-nsr-quay-75301",
+      "stationId": "bratsbergvegen",
       "name": "Bratsbergvegen",
       "lat": 63.403358,
       "lon": 10.395995,
+      "quayId": "NSR:Quay:75301",
       "stopIds": [
         "NSR:Quay:75301"
       ],
@@ -144,197 +589,1022 @@
         "atb-bus-1-live",
         "atb-bus-2-live"
       ],
-      "led": 9
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 18
     },
     {
-      "id": "buran",
-      "name": "Buran",
-      "lat": 63.436496,
-      "lon": 10.425779,
+      "id": "bratsbergvegen-nsr-quay-75300",
+      "stationId": "bratsbergvegen",
+      "name": "Bratsbergvegen",
+      "lat": 63.405387,
+      "lon": 10.397457,
+      "quayId": "NSR:Quay:75300",
       "stopIds": [
-        "NSR:Quay:103009",
-        "NSR:Quay:108948"
+        "NSR:Quay:75300"
       ],
       "routes": [
         "atb-bus-1-live",
         "atb-bus-2-live"
       ],
-      "led": 10
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 19
     },
     {
-      "id": "byasen-skole",
+      "id": "buran-nsr-quay-103009",
+      "stationId": "buran",
+      "name": "Buran",
+      "lat": 63.436496,
+      "lon": 10.425779,
+      "quayId": "NSR:Quay:103009",
+      "stopIds": [
+        "NSR:Quay:103009"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 4,
+      "led": 20
+    },
+    {
+      "id": "buran-nsr-quay-103007",
+      "stationId": "buran",
+      "name": "Buran",
+      "lat": 63.43627,
+      "lon": 10.42478,
+      "quayId": "NSR:Quay:103007",
+      "stopIds": [
+        "NSR:Quay:103007"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 4,
+      "led": 21
+    },
+    {
+      "id": "buran-nsr-quay-108948",
+      "stationId": "buran",
+      "name": "Buran",
+      "lat": 63.43669,
+      "lon": 10.42571,
+      "quayId": "NSR:Quay:108948",
+      "stopIds": [
+        "NSR:Quay:108948"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 3,
+      "platformCount": 4,
+      "led": 22
+    },
+    {
+      "id": "buran-nsr-quay-103008",
+      "stationId": "buran",
+      "name": "Buran",
+      "lat": 63.437122,
+      "lon": 10.426835,
+      "quayId": "NSR:Quay:103008",
+      "stopIds": [
+        "NSR:Quay:103008"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 4,
+      "platformCount": 4,
+      "led": 23
+    },
+    {
+      "id": "byasen-skole-nsr-quay-75529",
+      "stationId": "byasen-skole",
       "name": "Byåsen skole",
       "lat": 63.39839,
       "lon": 10.357495,
+      "quayId": "NSR:Quay:75529",
       "stopIds": [
         "NSR:Quay:75529"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 11
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 24
     },
     {
-      "id": "casper-lundes-veg",
+      "id": "byasen-skole-nsr-quay-75528",
+      "stationId": "byasen-skole",
+      "name": "Byåsen skole",
+      "lat": 63.399431,
+      "lon": 10.358369,
+      "quayId": "NSR:Quay:75528",
+      "stopIds": [
+        "NSR:Quay:75528"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 25
+    },
+    {
+      "id": "casper-lundes-veg-nsr-quay-75581",
+      "stationId": "casper-lundes-veg",
       "name": "Casper Lundes veg",
       "lat": 63.367877,
       "lon": 10.358316,
+      "quayId": "NSR:Quay:75581",
       "stopIds": [
         "NSR:Quay:75581"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 12
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 26
     },
     {
-      "id": "city-syd",
+      "id": "casper-lundes-veg-nsr-quay-75580",
+      "stationId": "casper-lundes-veg",
+      "name": "Casper Lundes veg",
+      "lat": 63.367789,
+      "lon": 10.357026,
+      "quayId": "NSR:Quay:75580",
+      "stopIds": [
+        "NSR:Quay:75580"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 27
+    },
+    {
+      "id": "city-syd-nsr-quay-75611",
+      "stationId": "city-syd",
       "name": "City Syd",
       "lat": 63.360978,
       "lon": 10.379237,
+      "quayId": "NSR:Quay:75611",
       "stopIds": [
         "NSR:Quay:75611"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 13
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 28
     },
     {
-      "id": "dalen-hageby",
+      "id": "city-syd-nsr-quay-75612",
+      "stationId": "city-syd",
+      "name": "City Syd",
+      "lat": 63.361239,
+      "lon": 10.380157,
+      "quayId": "NSR:Quay:75612",
+      "stopIds": [
+        "NSR:Quay:75612"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 29
+    },
+    {
+      "id": "dalen-hageby-nsr-quay-74497",
+      "stationId": "dalen-hageby",
       "name": "Dalen Hageby",
       "lat": 63.437512,
       "lon": 10.448049,
+      "quayId": "NSR:Quay:74497",
       "stopIds": [
         "NSR:Quay:74497"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 14
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 30
     },
     {
-      "id": "dragvoll",
+      "id": "dalen-hageby-nsr-quay-74498",
+      "stationId": "dalen-hageby",
+      "name": "Dalen Hageby",
+      "lat": 63.43723,
+      "lon": 10.450101,
+      "quayId": "NSR:Quay:74498",
+      "stopIds": [
+        "NSR:Quay:74498"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 31
+    },
+    {
+      "id": "dragvoll-nsr-quay-74610",
+      "stationId": "dragvoll",
       "name": "Dragvoll",
       "lat": 63.407917,
       "lon": 10.471679,
+      "quayId": "NSR:Quay:74610",
       "stopIds": [
         "NSR:Quay:74610"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 15
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 32
     },
     {
-      "id": "dyre-halses-gate",
+      "id": "dragvoll-nsr-quay-74609",
+      "stationId": "dragvoll",
+      "name": "Dragvoll",
+      "lat": 63.40771,
+      "lon": 10.471403,
+      "quayId": "NSR:Quay:74609",
+      "stopIds": [
+        "NSR:Quay:74609"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 33
+    },
+    {
+      "id": "dyre-halses-gate-nsr-quay-102714",
+      "stationId": "dyre-halses-gate",
       "name": "Dyre Halses gate",
       "lat": 63.437025,
       "lon": 10.413972,
+      "quayId": "NSR:Quay:102714",
       "stopIds": [
         "NSR:Quay:102714"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 16
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 34
     },
     {
-      "id": "edvard-bulls-veg",
+      "id": "dyre-halses-gate-nsr-quay-102713",
+      "stationId": "dyre-halses-gate",
+      "name": "Dyre Halses gate",
+      "lat": 63.436929,
+      "lon": 10.414409,
+      "quayId": "NSR:Quay:102713",
+      "stopIds": [
+        "NSR:Quay:102713"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 35
+    },
+    {
+      "id": "edvard-bulls-veg-nsr-quay-73723",
+      "stationId": "edvard-bulls-veg",
       "name": "Edvard Bulls veg",
       "lat": 63.410581,
       "lon": 10.469652,
+      "quayId": "NSR:Quay:73723",
       "stopIds": [
         "NSR:Quay:73723"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 17
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 36
     },
     {
-      "id": "gildheim",
+      "id": "edvard-bulls-veg-nsr-quay-73724",
+      "stationId": "edvard-bulls-veg",
+      "name": "Edvard Bulls veg",
+      "lat": 63.410445,
+      "lon": 10.470303,
+      "quayId": "NSR:Quay:73724",
+      "stopIds": [
+        "NSR:Quay:73724"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 37
+    },
+    {
+      "id": "gildheim-nsr-quay-75657",
+      "stationId": "gildheim",
       "name": "Gildheim",
       "lat": 63.434481,
       "lon": 10.460567,
+      "quayId": "NSR:Quay:75657",
       "stopIds": [
         "NSR:Quay:75657"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 18
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 38
     },
     {
-      "id": "glshaugen",
+      "id": "gildheim-nsr-quay-75658",
+      "stationId": "gildheim",
+      "name": "Gildheim",
+      "lat": 63.43391,
+      "lon": 10.461425,
+      "quayId": "NSR:Quay:75658",
+      "stopIds": [
+        "NSR:Quay:75658"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 39
+    },
+    {
+      "id": "glshaugen-nsr-quay-75708",
+      "stationId": "glshaugen",
       "name": "Gløshaugen",
       "lat": 63.416835,
       "lon": 10.407556,
+      "quayId": "NSR:Quay:75708",
       "stopIds": [
         "NSR:Quay:75708"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 19
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 40
     },
     {
-      "id": "grilstadkleiva",
+      "id": "glshaugen-nsr-quay-75707",
+      "stationId": "glshaugen",
+      "name": "Gløshaugen",
+      "lat": 63.416499,
+      "lon": 10.407687,
+      "quayId": "NSR:Quay:75707",
+      "stopIds": [
+        "NSR:Quay:75707"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 41
+    },
+    {
+      "id": "grilstadkleiva-nsr-quay-72172",
+      "stationId": "grilstadkleiva",
       "name": "Grilstadkleiva",
       "lat": 63.433808,
       "lon": 10.502053,
+      "quayId": "NSR:Quay:72172",
       "stopIds": [
         "NSR:Quay:72172"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 20
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 42
     },
     {
-      "id": "haakon-vii-gate-25",
+      "id": "grilstadkleiva-nsr-quay-72171",
+      "stationId": "grilstadkleiva",
+      "name": "Grilstadkleiva",
+      "lat": 63.433553,
+      "lon": 10.500019,
+      "quayId": "NSR:Quay:72171",
+      "stopIds": [
+        "NSR:Quay:72171"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 43
+    },
+    {
+      "id": "haakon-vii-gate-25-nsr-quay-72455",
+      "stationId": "haakon-vii-gate-25",
       "name": "Haakon VII gate 25",
       "lat": 63.44059,
       "lon": 10.459623,
+      "quayId": "NSR:Quay:72455",
       "stopIds": [
         "NSR:Quay:72455"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 21
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 44
     },
     {
-      "id": "hallset",
+      "id": "haakon-vii-gate-25-nsr-quay-72453",
+      "stationId": "haakon-vii-gate-25",
+      "name": "Haakon VII gate 25",
+      "lat": 63.439849,
+      "lon": 10.461495,
+      "quayId": "NSR:Quay:72453",
+      "stopIds": [
+        "NSR:Quay:72453"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 45
+    },
+    {
+      "id": "hallset-nsr-quay-73032",
+      "stationId": "hallset",
       "name": "Hallset",
       "lat": 63.393917,
       "lon": 10.368884,
+      "quayId": "NSR:Quay:73032",
       "stopIds": [
         "NSR:Quay:73032"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 22
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 46
     },
     {
-      "id": "havstadsenteret",
+      "id": "hallset-nsr-quay-102729",
+      "stationId": "hallset",
+      "name": "Hallset",
+      "lat": 63.39409,
+      "lon": 10.367062,
+      "quayId": "NSR:Quay:102729",
+      "stopIds": [
+        "NSR:Quay:102729"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 47
+    },
+    {
+      "id": "havstadsenteret-nsr-quay-72855",
+      "stationId": "havstadsenteret",
       "name": "Havstadsenteret",
       "lat": 63.407559,
       "lon": 10.35945,
+      "quayId": "NSR:Quay:72855",
       "stopIds": [
         "NSR:Quay:72855"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 23
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 48
     },
     {
-      "id": "heimdal-stasjon",
+      "id": "havstadsenteret-nsr-quay-72856",
+      "stationId": "havstadsenteret",
+      "name": "Havstadsenteret",
+      "lat": 63.407758,
+      "lon": 10.359896,
+      "quayId": "NSR:Quay:72856",
+      "stopIds": [
+        "NSR:Quay:72856"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 49
+    },
+    {
+      "id": "heimdal-stasjon-nsr-quay-72946",
+      "stationId": "heimdal-stasjon",
       "name": "Heimdal stasjon",
       "lat": 63.351546,
       "lon": 10.356846,
+      "quayId": "NSR:Quay:72946",
       "stopIds": [
         "NSR:Quay:72946"
       ],
@@ -342,157 +1612,820 @@
         "atb-bus-1-live",
         "atb-bus-2-live"
       ],
-      "led": 24
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad"
+          ],
+          "destinationMatches": [
+            "Lund"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 50
     },
     {
-      "id": "hesthagen",
-      "name": "Hesthagen",
-      "lat": 63.416799,
-      "lon": 10.3972,
+      "id": "heimdal-stasjon-nsr-quay-72955",
+      "stationId": "heimdal-stasjon",
+      "name": "Heimdal stasjon",
+      "lat": 63.352173,
+      "lon": 10.357519,
+      "quayId": "NSR:Quay:72955",
       "stopIds": [
-        "NSR:Quay:102719"
+        "NSR:Quay:72955"
       ],
       "routes": [
         "atb-bus-1-live",
         "atb-bus-2-live"
       ],
-      "led": 25
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 51
     },
     {
-      "id": "husebytunet",
+      "id": "hesthagen-nsr-quay-102719",
+      "stationId": "hesthagen",
+      "name": "Hesthagen",
+      "lat": 63.416799,
+      "lon": 10.3972,
+      "quayId": "NSR:Quay:102719",
+      "stopIds": [
+        "NSR:Quay:102719"
+      ],
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        },
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 52
+    },
+    {
+      "id": "hesthagen-nsr-quay-71204",
+      "stationId": "hesthagen",
+      "name": "Hesthagen",
+      "lat": 63.415486,
+      "lon": 10.398155,
+      "quayId": "NSR:Quay:71204",
+      "stopIds": [
+        "NSR:Quay:71204"
+      ],
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        },
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 53
+    },
+    {
+      "id": "husebytunet-nsr-quay-71825",
+      "stationId": "husebytunet",
       "name": "Husebytunet",
       "lat": 63.368725,
       "lon": 10.344952,
+      "quayId": "NSR:Quay:71825",
       "stopIds": [
         "NSR:Quay:71825"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 26
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 54
     },
     {
-      "id": "hgskoleringen",
+      "id": "husebytunet-nsr-quay-71824",
+      "stationId": "husebytunet",
+      "name": "Husebytunet",
+      "lat": 63.368876,
+      "lon": 10.345141,
+      "quayId": "NSR:Quay:71824",
+      "stopIds": [
+        "NSR:Quay:71824"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 55
+    },
+    {
+      "id": "hgskoleringen-nsr-quay-71939",
+      "stationId": "hgskoleringen",
       "name": "Høgskoleringen",
       "lat": 63.420867,
       "lon": 10.404181,
+      "quayId": "NSR:Quay:71939",
       "stopIds": [
         "NSR:Quay:71939"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 27
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 56
     },
     {
-      "id": "ila",
+      "id": "hgskoleringen-nsr-quay-71940",
+      "stationId": "hgskoleringen",
+      "name": "Høgskoleringen",
+      "lat": 63.420675,
+      "lon": 10.404345,
+      "quayId": "NSR:Quay:71940",
+      "stopIds": [
+        "NSR:Quay:71940"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 57
+    },
+    {
+      "id": "ila-nsr-quay-72051",
+      "stationId": "ila",
       "name": "Ila",
       "lat": 63.428721,
       "lon": 10.367065,
+      "quayId": "NSR:Quay:72051",
       "stopIds": [
         "NSR:Quay:72051"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 28
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 58
     },
     {
-      "id": "ingemann-torps-vei",
+      "id": "ila-nsr-quay-72052",
+      "stationId": "ila",
+      "name": "Ila",
+      "lat": 63.429273,
+      "lon": 10.368272,
+      "quayId": "NSR:Quay:72052",
+      "stopIds": [
+        "NSR:Quay:72052"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 59
+    },
+    {
+      "id": "ingemann-torps-vei-nsr-quay-72107",
+      "stationId": "ingemann-torps-vei",
       "name": "Ingemann Torps vei",
       "lat": 63.446144,
       "lon": 10.441357,
+      "quayId": "NSR:Quay:72107",
       "stopIds": [
         "NSR:Quay:72107"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 29
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 60
     },
     {
-      "id": "johan-falkbergets-vei",
+      "id": "ingemann-torps-vei-nsr-quay-72108",
+      "stationId": "ingemann-torps-vei",
+      "name": "Ingemann Torps vei",
+      "lat": 63.446181,
+      "lon": 10.442634,
+      "quayId": "NSR:Quay:72108",
+      "stopIds": [
+        "NSR:Quay:72108"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 61
+    },
+    {
+      "id": "johan-falkbergets-vei-nsr-quay-73845",
+      "stationId": "johan-falkbergets-vei",
       "name": "Johan Falkbergets vei",
       "lat": 63.4111,
       "lon": 10.36099,
+      "quayId": "NSR:Quay:73845",
       "stopIds": [
         "NSR:Quay:73845"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 30
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 62
     },
     {
-      "id": "kattemsenteret",
+      "id": "johan-falkbergets-vei-nsr-quay-73843",
+      "stationId": "johan-falkbergets-vei",
+      "name": "Johan Falkbergets vei",
+      "lat": 63.412306,
+      "lon": 10.362513,
+      "quayId": "NSR:Quay:73843",
+      "stopIds": [
+        "NSR:Quay:73843"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 63
+    },
+    {
+      "id": "kattemsenteret-nsr-quay-74026",
+      "stationId": "kattemsenteret",
       "name": "Kattemsenteret",
       "lat": 63.345819,
       "lon": 10.337876,
+      "quayId": "NSR:Quay:74026",
       "stopIds": [
         "NSR:Quay:74026"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 31
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 64
     },
     {
-      "id": "kongens-gate",
+      "id": "kattemsenteret-nsr-quay-74027",
+      "stationId": "kattemsenteret",
+      "name": "Kattemsenteret",
+      "lat": 63.346227,
+      "lon": 10.335597,
+      "quayId": "NSR:Quay:74027",
+      "stopIds": [
+        "NSR:Quay:74027"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 65
+    },
+    {
+      "id": "kongens-gate-nsr-quay-74265",
+      "stationId": "kongens-gate",
       "name": "Kongens gate",
       "lat": 63.43066,
       "lon": 10.39072,
+      "quayId": "NSR:Quay:74265",
       "stopIds": [
         "NSR:Quay:74265"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 32
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 66
     },
     {
-      "id": "lade-idrettsanlegg",
+      "id": "kongens-gate-nsr-quay-74264",
+      "stationId": "kongens-gate",
+      "name": "Kongens gate",
+      "lat": 63.430542,
+      "lon": 10.391548,
+      "quayId": "NSR:Quay:74264",
+      "stopIds": [
+        "NSR:Quay:74264"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 67
+    },
+    {
+      "id": "lade-idrettsanlegg-nsr-quay-72461",
+      "stationId": "lade-idrettsanlegg",
       "name": "Lade idrettsanlegg",
       "lat": 63.444119,
       "lon": 10.449015,
+      "quayId": "NSR:Quay:72461",
       "stopIds": [
         "NSR:Quay:72461"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 33
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 68
     },
     {
-      "id": "ladeveien",
+      "id": "lade-idrettsanlegg-nsr-quay-72460",
+      "stationId": "lade-idrettsanlegg",
+      "name": "Lade idrettsanlegg",
+      "lat": 63.443994,
+      "lon": 10.448999,
+      "quayId": "NSR:Quay:72460",
+      "stopIds": [
+        "NSR:Quay:72460"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 69
+    },
+    {
+      "id": "ladeveien-nsr-quay-73154",
+      "stationId": "ladeveien",
       "name": "Ladeveien",
       "lat": 63.443452,
       "lon": 10.434992,
+      "quayId": "NSR:Quay:73154",
       "stopIds": [
         "NSR:Quay:73154"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 34
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 70
     },
     {
-      "id": "leangen",
+      "id": "ladeveien-nsr-quay-73152",
+      "stationId": "ladeveien",
+      "name": "Ladeveien",
+      "lat": 63.443473,
+      "lon": 10.435319,
+      "quayId": "NSR:Quay:73152",
+      "stopIds": [
+        "NSR:Quay:73152"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 71
+    },
+    {
+      "id": "leangen-nsr-quay-71365",
+      "stationId": "leangen",
       "name": "Leangen",
       "lat": 63.431851,
       "lon": 10.476167,
+      "quayId": "NSR:Quay:71365",
       "stopIds": [
         "NSR:Quay:71365"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 35
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 72
     },
     {
-      "id": "lerkendal",
+      "id": "leangen-nsr-quay-71363",
+      "stationId": "leangen",
+      "name": "Leangen",
+      "lat": 63.431489,
+      "lon": 10.477073,
+      "quayId": "NSR:Quay:71363",
+      "stopIds": [
+        "NSR:Quay:71363"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 73
+    },
+    {
+      "id": "lerkendal-nsr-quay-102720",
+      "stationId": "lerkendal",
       "name": "Lerkendal",
       "lat": 63.41174,
       "lon": 10.399045,
+      "quayId": "NSR:Quay:102720",
       "stopIds": [
         "NSR:Quay:102720"
       ],
@@ -500,80 +2433,516 @@
         "atb-bus-1-live",
         "atb-bus-2-live"
       ],
-      "led": 36
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 4,
+      "led": 74
     },
     {
-      "id": "loholtbakken",
+      "id": "lerkendal-nsr-quay-73729",
+      "stationId": "lerkendal",
+      "name": "Lerkendal",
+      "lat": 63.411853,
+      "lon": 10.399434,
+      "quayId": "NSR:Quay:73729",
+      "stopIds": [
+        "NSR:Quay:73729"
+      ],
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 4,
+      "led": 75
+    },
+    {
+      "id": "lerkendal-nsr-quay-73421",
+      "stationId": "lerkendal",
+      "name": "Lerkendal",
+      "lat": 63.412654,
+      "lon": 10.399831,
+      "quayId": "NSR:Quay:73421",
+      "stopIds": [
+        "NSR:Quay:73421"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 3,
+      "platformCount": 4,
+      "led": 76
+    },
+    {
+      "id": "lerkendal-nsr-quay-73420",
+      "stationId": "lerkendal",
+      "name": "Lerkendal",
+      "lat": 63.412515,
+      "lon": 10.400432,
+      "quayId": "NSR:Quay:73420",
+      "stopIds": [
+        "NSR:Quay:73420"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 4,
+      "platformCount": 4,
+      "led": 77
+    },
+    {
+      "id": "loholtbakken-nsr-quay-73593",
+      "stationId": "loholtbakken",
       "name": "Loholtbakken",
       "lat": 63.40492,
       "lon": 10.459607,
+      "quayId": "NSR:Quay:73593",
       "stopIds": [
         "NSR:Quay:73593"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 37
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 78
     },
     {
-      "id": "lyngvegen",
+      "id": "loholtbakken-nsr-quay-73581",
+      "stationId": "loholtbakken",
+      "name": "Loholtbakken",
+      "lat": 63.405085,
+      "lon": 10.459751,
+      "quayId": "NSR:Quay:73581",
+      "stopIds": [
+        "NSR:Quay:73581"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 79
+    },
+    {
+      "id": "lyngvegen-nsr-quay-73684",
+      "stationId": "lyngvegen",
       "name": "Lyngvegen",
       "lat": 63.357497,
       "lon": 10.355049,
+      "quayId": "NSR:Quay:73684",
       "stopIds": [
         "NSR:Quay:73684"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 38
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad"
+          ],
+          "destinationMatches": [
+            "Lund"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 80
     },
     {
-      "id": "martin-linges-veg",
+      "id": "lyngvegen-nsr-quay-73683",
+      "stationId": "lyngvegen",
+      "name": "Lyngvegen",
+      "lat": 63.357199,
+      "lon": 10.355459,
+      "quayId": "NSR:Quay:73683",
+      "stopIds": [
+        "NSR:Quay:73683"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 81
+    },
+    {
+      "id": "martin-linges-veg-nsr-quay-72719",
+      "stationId": "martin-linges-veg",
       "name": "Martin Linges veg",
       "lat": 63.359841,
       "lon": 10.368315,
+      "quayId": "NSR:Quay:72719",
       "stopIds": [
         "NSR:Quay:72719"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 39
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 82
     },
     {
-      "id": "midteggen",
+      "id": "martin-linges-veg-nsr-quay-72720",
+      "stationId": "martin-linges-veg",
+      "name": "Martin Linges veg",
+      "lat": 63.359444,
+      "lon": 10.368189,
+      "quayId": "NSR:Quay:72720",
+      "stopIds": [
+        "NSR:Quay:72720"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 83
+    },
+    {
+      "id": "midteggen-nsr-quay-73008",
+      "stationId": "midteggen",
       "name": "Midteggen",
       "lat": 63.362544,
       "lon": 10.357679,
+      "quayId": "NSR:Quay:73008",
       "stopIds": [
         "NSR:Quay:73008"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 40
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 84
     },
     {
-      "id": "moholt-studentby",
+      "id": "midteggen-nsr-quay-73009",
+      "stationId": "midteggen",
+      "name": "Midteggen",
+      "lat": 63.362142,
+      "lon": 10.356613,
+      "quayId": "NSR:Quay:73009",
+      "stopIds": [
+        "NSR:Quay:73009"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 85
+    },
+    {
+      "id": "moholt-studentby-nsr-quay-73260",
+      "stationId": "moholt-studentby",
       "name": "Moholt studentby",
       "lat": 63.412254,
       "lon": 10.433627,
+      "quayId": "NSR:Quay:73260",
       "stopIds": [
         "NSR:Quay:73260"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 41
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 86
     },
     {
-      "id": "nidarosdomen",
+      "id": "moholt-studentby-nsr-quay-73261",
+      "stationId": "moholt-studentby",
+      "name": "Moholt studentby",
+      "lat": 63.411162,
+      "lon": 10.434673,
+      "quayId": "NSR:Quay:73261",
+      "stopIds": [
+        "NSR:Quay:73261"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 87
+    },
+    {
+      "id": "nidarosdomen-nsr-quay-71174",
+      "stationId": "nidarosdomen",
       "name": "Nidarosdomen",
       "lat": 63.425815,
       "lon": 10.393372,
+      "quayId": "NSR:Quay:71174",
       "stopIds": [
-        "NSR:Quay:71174",
+        "NSR:Quay:71174"
+      ],
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        },
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 88
+    },
+    {
+      "id": "nidarosdomen-nsr-quay-71175",
+      "stationId": "nidarosdomen",
+      "name": "Nidarosdomen",
+      "lat": 63.426072,
+      "lon": 10.393608,
+      "quayId": "NSR:Quay:71175",
+      "stopIds": [
         "NSR:Quay:71175"
       ],
       "routes": [
@@ -581,26 +2950,115 @@
         "atb-bus-2-live",
         "atb-bus-3-live"
       ],
-      "led": 42
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        },
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 89
     },
     {
-      "id": "nyveibakken",
+      "id": "nyveibakken-nsr-quay-74329",
+      "stationId": "nyveibakken",
       "name": "Nyveibakken",
       "lat": 63.423966,
       "lon": 10.371359,
+      "quayId": "NSR:Quay:74329",
       "stopIds": [
         "NSR:Quay:74329"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 43
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 90
     },
     {
-      "id": "olav-tryggvasons-gate",
+      "id": "nyveibakken-nsr-quay-74330",
+      "stationId": "nyveibakken",
+      "name": "Nyveibakken",
+      "lat": 63.424582,
+      "lon": 10.370732,
+      "quayId": "NSR:Quay:74330",
+      "stopIds": [
+        "NSR:Quay:74330"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 91
+    },
+    {
+      "id": "olav-tryggvasons-gate-nsr-quay-101521",
+      "stationId": "olav-tryggvasons-gate",
       "name": "Olav Tryggvasons gate",
       "lat": 63.433292,
       "lon": 10.397798,
+      "quayId": "NSR:Quay:101521",
       "stopIds": [
         "NSR:Quay:101521"
       ],
@@ -608,26 +3066,139 @@
         "atb-bus-1-live",
         "atb-bus-2-live"
       ],
-      "led": 44
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 92
     },
     {
-      "id": "peder-morsets-veg",
+      "id": "olav-tryggvasons-gate-nsr-quay-74205",
+      "stationId": "olav-tryggvasons-gate",
+      "name": "Olav Tryggvasons gate",
+      "lat": 63.433295,
+      "lon": 10.401813,
+      "quayId": "NSR:Quay:74205",
+      "stopIds": [
+        "NSR:Quay:74205"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 93
+    },
+    {
+      "id": "peder-morsets-veg-nsr-quay-74972",
+      "stationId": "peder-morsets-veg",
       "name": "Peder Morsets veg",
       "lat": 63.356477,
       "lon": 10.361958,
+      "quayId": "NSR:Quay:74972",
       "stopIds": [
         "NSR:Quay:74972"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 45
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 94
     },
     {
-      "id": "prinsens-gate",
+      "id": "peder-morsets-veg-nsr-quay-74973",
+      "stationId": "peder-morsets-veg",
+      "name": "Peder Morsets veg",
+      "lat": 63.356167,
+      "lon": 10.361486,
+      "quayId": "NSR:Quay:74973",
+      "stopIds": [
+        "NSR:Quay:74973"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 95
+    },
+    {
+      "id": "prinsens-gate-nsr-quay-71184",
+      "stationId": "prinsens-gate",
       "name": "Prinsens gate",
       "lat": 63.430874,
       "lon": 10.391899,
+      "quayId": "NSR:Quay:71184",
       "stopIds": [
         "NSR:Quay:71184"
       ],
@@ -635,117 +3206,583 @@
         "atb-bus-1-live",
         "atb-bus-2-live"
       ],
-      "led": 46
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 96
     },
     {
-      "id": "ranheim",
+      "id": "prinsens-gate-nsr-quay-71181",
+      "stationId": "prinsens-gate",
+      "name": "Prinsens gate",
+      "lat": 63.431194,
+      "lon": 10.392115,
+      "quayId": "NSR:Quay:71181",
+      "stopIds": [
+        "NSR:Quay:71181"
+      ],
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 97
+    },
+    {
+      "id": "ranheim-nsr-quay-74983",
+      "stationId": "ranheim",
       "name": "Ranheim",
       "lat": 63.425209,
       "lon": 10.533367,
+      "quayId": "NSR:Quay:74983",
       "stopIds": [
         "NSR:Quay:74983"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 47
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 98
     },
     {
-      "id": "ranheim-idrettsplass",
+      "id": "ranheim-nsr-quay-74982",
+      "stationId": "ranheim",
+      "name": "Ranheim",
+      "lat": 63.424913,
+      "lon": 10.534196,
+      "quayId": "NSR:Quay:74982",
+      "stopIds": [
+        "NSR:Quay:74982"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 99
+    },
+    {
+      "id": "ranheim-idrettsplass-nsr-quay-71249",
+      "stationId": "ranheim-idrettsplass",
       "name": "Ranheim idrettsplass",
       "lat": 63.427952,
       "lon": 10.522386,
+      "quayId": "NSR:Quay:71249",
       "stopIds": [
         "NSR:Quay:71249"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 48
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 100
     },
     {
-      "id": "rostengrenda",
+      "id": "ranheim-idrettsplass-nsr-quay-71250",
+      "stationId": "ranheim-idrettsplass",
+      "name": "Ranheim idrettsplass",
+      "lat": 63.427672,
+      "lon": 10.52388,
+      "quayId": "NSR:Quay:71250",
+      "stopIds": [
+        "NSR:Quay:71250"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 101
+    },
+    {
+      "id": "rostengrenda-nsr-quay-71517",
+      "stationId": "rostengrenda",
       "name": "Rostengrenda",
       "lat": 63.365978,
       "lon": 10.381981,
+      "quayId": "NSR:Quay:71517",
       "stopIds": [
         "NSR:Quay:71517"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 49
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 102
     },
     {
-      "id": "rnningsbakken",
+      "id": "rostengrenda-nsr-quay-71518",
+      "stationId": "rostengrenda",
+      "name": "Rostengrenda",
+      "lat": 63.365245,
+      "lon": 10.382018,
+      "quayId": "NSR:Quay:71518",
+      "stopIds": [
+        "NSR:Quay:71518"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 103
+    },
+    {
+      "id": "rnningsbakken-nsr-quay-71687",
+      "stationId": "rnningsbakken",
       "name": "Rønningsbakken",
       "lat": 63.437178,
       "lon": 10.43725,
+      "quayId": "NSR:Quay:71687",
       "stopIds": [
         "NSR:Quay:71687"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 50
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 104
     },
     {
-      "id": "saupstadsenteret",
+      "id": "rnningsbakken-nsr-quay-71686",
+      "stationId": "rnningsbakken",
+      "name": "Rønningsbakken",
+      "lat": 63.43738,
+      "lon": 10.43893,
+      "quayId": "NSR:Quay:71686",
+      "stopIds": [
+        "NSR:Quay:71686"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 105
+    },
+    {
+      "id": "saupstadsenteret-nsr-quay-71912",
+      "stationId": "saupstadsenteret",
       "name": "Saupstadsenteret",
       "lat": 63.366987,
       "lon": 10.348705,
+      "quayId": "NSR:Quay:71912",
       "stopIds": [
         "NSR:Quay:71912"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 51
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 106
     },
     {
-      "id": "skansen",
+      "id": "saupstadsenteret-nsr-quay-71913",
+      "stationId": "saupstadsenteret",
+      "name": "Saupstadsenteret",
+      "lat": 63.3671,
+      "lon": 10.348083,
+      "quayId": "NSR:Quay:71913",
+      "stopIds": [
+        "NSR:Quay:71913"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 107
+    },
+    {
+      "id": "skansen-nsr-quay-72210",
+      "stationId": "skansen",
       "name": "Skansen",
       "lat": 63.430071,
       "lon": 10.373602,
+      "quayId": "NSR:Quay:72210",
       "stopIds": [
         "NSR:Quay:72210"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 52
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 108
     },
     {
-      "id": "skovgard",
+      "id": "skansen-nsr-quay-72212",
+      "stationId": "skansen",
+      "name": "Skansen",
+      "lat": 63.429731,
+      "lon": 10.371861,
+      "quayId": "NSR:Quay:72212",
+      "stopIds": [
+        "NSR:Quay:72212"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 109
+    },
+    {
+      "id": "skovgard-nsr-quay-102732",
+      "stationId": "skovgard",
       "name": "Skovgård",
       "lat": 63.429671,
       "lon": 10.493327,
+      "quayId": "NSR:Quay:102732",
       "stopIds": [
         "NSR:Quay:102732"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 53
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 110
     },
     {
-      "id": "skyttervegen",
+      "id": "skovgard-nsr-quay-102731",
+      "stationId": "skovgard",
+      "name": "Skovgård",
+      "lat": 63.429427,
+      "lon": 10.495908,
+      "quayId": "NSR:Quay:102731",
+      "stopIds": [
+        "NSR:Quay:102731"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 111
+    },
+    {
+      "id": "skyttervegen-nsr-quay-72490",
+      "stationId": "skyttervegen",
       "name": "Skyttervegen",
       "lat": 63.361651,
       "lon": 10.349942,
+      "quayId": "NSR:Quay:72490",
       "stopIds": [
         "NSR:Quay:72490"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 54
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad"
+          ],
+          "destinationMatches": [
+            "Lund"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 112
     },
     {
-      "id": "sluppen",
+      "id": "skyttervegen-nsr-quay-72489",
+      "stationId": "skyttervegen",
+      "name": "Skyttervegen",
+      "lat": 63.360841,
+      "lon": 10.350832,
+      "quayId": "NSR:Quay:72489",
+      "stopIds": [
+        "NSR:Quay:72489"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 113
+    },
+    {
+      "id": "sluppen-nsr-quay-107264",
+      "stationId": "sluppen",
       "name": "Sluppen",
       "lat": 63.40095,
       "lon": 10.39504,
+      "quayId": "NSR:Quay:107264",
       "stopIds": [
         "NSR:Quay:107264"
       ],
@@ -753,124 +3790,795 @@
         "atb-bus-1-live",
         "atb-bus-2-live"
       ],
-      "led": 55
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 114
     },
     {
-      "id": "solsiden",
+      "id": "sluppen-nsr-quay-103404",
+      "stationId": "sluppen",
+      "name": "Sluppen",
+      "lat": 63.401921,
+      "lon": 10.395796,
+      "quayId": "NSR:Quay:103404",
+      "stopIds": [
+        "NSR:Quay:103404"
+      ],
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 115
+    },
+    {
+      "id": "solsiden-nsr-quay-73975",
+      "stationId": "solsiden",
       "name": "Solsiden",
       "lat": 63.433946,
       "lon": 10.412788,
+      "quayId": "NSR:Quay:73975",
       "stopIds": [
         "NSR:Quay:73975"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 56
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 116
     },
     {
-      "id": "stabells-veg",
+      "id": "solsiden-nsr-quay-73976",
+      "stationId": "solsiden",
+      "name": "Solsiden",
+      "lat": 63.434093,
+      "lon": 10.413705,
+      "quayId": "NSR:Quay:73976",
+      "stopIds": [
+        "NSR:Quay:73976"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 117
+    },
+    {
+      "id": "stabells-veg-nsr-quay-74072",
+      "stationId": "stabells-veg",
       "name": "Stabells veg",
       "lat": 63.402788,
       "lon": 10.357793,
+      "quayId": "NSR:Quay:74072",
       "stopIds": [
         "NSR:Quay:74072"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 57
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 118
     },
     {
-      "id": "strindheim",
+      "id": "stabells-veg-nsr-quay-74073",
+      "stationId": "stabells-veg",
+      "name": "Stabells veg",
+      "lat": 63.404619,
+      "lon": 10.358739,
+      "quayId": "NSR:Quay:74073",
+      "stopIds": [
+        "NSR:Quay:74073"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 119
+    },
+    {
+      "id": "strindheim-nsr-quay-73034",
+      "stationId": "strindheim",
       "name": "Strindheim",
       "lat": 63.435506,
       "lon": 10.45548,
+      "quayId": "NSR:Quay:73034",
       "stopIds": [
-        "NSR:Quay:73034",
+        "NSR:Quay:73034"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 4,
+      "led": 120
+    },
+    {
+      "id": "strindheim-nsr-quay-73033",
+      "stationId": "strindheim",
+      "name": "Strindheim",
+      "lat": 63.435185,
+      "lon": 10.456301,
+      "quayId": "NSR:Quay:73033",
+      "stopIds": [
+        "NSR:Quay:73033"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 4,
+      "led": 121
+    },
+    {
+      "id": "strindheim-nsr-quay-73036",
+      "stationId": "strindheim",
+      "name": "Strindheim",
+      "lat": 63.435672,
+      "lon": 10.45818,
+      "quayId": "NSR:Quay:73036",
+      "stopIds": [
         "NSR:Quay:73036"
       ],
       "routes": [
-        "atb-bus-1-live",
         "atb-bus-2-live"
       ],
-      "led": 58
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 3,
+      "platformCount": 4,
+      "led": 122
     },
     {
-      "id": "studentersamfundet",
+      "id": "strindheim-nsr-quay-73038",
+      "stationId": "strindheim",
+      "name": "Strindheim",
+      "lat": 63.43541,
+      "lon": 10.457176,
+      "quayId": "NSR:Quay:73038",
+      "stopIds": [
+        "NSR:Quay:73038"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 4,
+      "platformCount": 4,
+      "led": 123
+    },
+    {
+      "id": "studentersamfundet-nsr-quay-73103",
+      "stationId": "studentersamfundet",
       "name": "Studentersamfundet",
       "lat": 63.422222,
       "lon": 10.394384,
+      "quayId": "NSR:Quay:73103",
       "stopIds": [
-        "NSR:Quay:73103",
-        "NSR:Quay:73100"
+        "NSR:Quay:73103"
       ],
       "routes": [
         "atb-bus-1-live",
         "atb-bus-2-live",
         "atb-bus-3-live"
       ],
-      "led": 59
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        },
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 4,
+      "led": 124
     },
     {
-      "id": "tillerterminalen",
+      "id": "studentersamfundet-nsr-quay-73101",
+      "stationId": "studentersamfundet",
+      "name": "Studentersamfundet",
+      "lat": 63.422596,
+      "lon": 10.394623,
+      "quayId": "NSR:Quay:73101",
+      "stopIds": [
+        "NSR:Quay:73101"
+      ],
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        },
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 4,
+      "led": 125
+    },
+    {
+      "id": "studentersamfundet-nsr-quay-73100",
+      "stationId": "studentersamfundet",
+      "name": "Studentersamfundet",
+      "lat": 63.42279,
+      "lon": 10.395173,
+      "quayId": "NSR:Quay:73100",
+      "stopIds": [
+        "NSR:Quay:73100"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 3,
+      "platformCount": 4,
+      "led": 126
+    },
+    {
+      "id": "studentersamfundet-nsr-quay-73102",
+      "stationId": "studentersamfundet",
+      "name": "Studentersamfundet",
+      "lat": 63.422665,
+      "lon": 10.395227,
+      "quayId": "NSR:Quay:73102",
+      "stopIds": [
+        "NSR:Quay:73102"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 4,
+      "platformCount": 4,
+      "led": 127
+    },
+    {
+      "id": "tillerterminalen-nsr-quay-75607",
+      "stationId": "tillerterminalen",
       "name": "Tillerterminalen",
       "lat": 63.360163,
       "lon": 10.374465,
+      "quayId": "NSR:Quay:75607",
       "stopIds": [
         "NSR:Quay:75607"
       ],
       "routes": [
         "atb-bus-1-live"
       ],
-      "led": 60
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 128
     },
     {
-      "id": "tonstadkrysset",
+      "id": "tillerterminalen-nsr-quay-75606",
+      "stationId": "tillerterminalen",
+      "name": "Tillerterminalen",
+      "lat": 63.360065,
+      "lon": 10.376227,
+      "quayId": "NSR:Quay:75606",
+      "stopIds": [
+        "NSR:Quay:75606"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 129
+    },
+    {
+      "id": "tonstadkrysset-nsr-quay-102733",
+      "stationId": "tonstadkrysset",
       "name": "Tonstadkrysset",
       "lat": 63.370705,
       "lon": 10.382118,
+      "quayId": "NSR:Quay:102733",
       "stopIds": [
-        "NSR:Quay:102733",
-        "NSR:Quay:71209"
+        "NSR:Quay:102733"
       ],
       "routes": [
         "atb-bus-1-live",
         "atb-bus-2-live"
       ],
-      "led": 61
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0",
+            "1"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Ranheim",
+            "Strindheim",
+            "Tillerterminalen"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 130
     },
     {
-      "id": "trondheim-s",
+      "id": "tonstadkrysset-nsr-quay-71209",
+      "stationId": "tonstadkrysset",
+      "name": "Tonstadkrysset",
+      "lat": 63.370393,
+      "lon": 10.37405,
+      "quayId": "NSR:Quay:71209",
+      "stopIds": [
+        "NSR:Quay:71209"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 131
+    },
+    {
+      "id": "trondheim-s-nsr-quay-71418",
+      "stationId": "trondheim-s",
       "name": "Trondheim S",
       "lat": 63.435996,
       "lon": 10.400609,
+      "quayId": "NSR:Quay:71418",
       "stopIds": [
         "NSR:Quay:71418"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 62
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 132
     },
     {
-      "id": "tvetestien",
+      "id": "trondheim-s-nsr-quay-71416",
+      "stationId": "trondheim-s",
+      "name": "Trondheim S",
+      "lat": 63.435855,
+      "lon": 10.401263,
+      "quayId": "NSR:Quay:71416",
+      "stopIds": [
+        "NSR:Quay:71416"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 133
+    },
+    {
+      "id": "tvetestien-nsr-quay-71633",
+      "stationId": "tvetestien",
       "name": "Tvetestien",
       "lat": 63.417785,
       "lon": 10.372038,
+      "quayId": "NSR:Quay:71633",
       "stopIds": [
         "NSR:Quay:71633"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 63
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 134
     },
     {
-      "id": "valyvegen",
+      "id": "tvetestien-nsr-quay-71634",
+      "stationId": "tvetestien",
+      "name": "Tvetestien",
+      "lat": 63.418174,
+      "lon": 10.372813,
+      "quayId": "NSR:Quay:71634",
+      "stopIds": [
+        "NSR:Quay:71634"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 135
+    },
+    {
+      "id": "valyvegen-nsr-quay-71982",
+      "stationId": "valyvegen",
       "name": "Valøyvegen",
       "lat": 63.407852,
       "lon": 10.398032,
+      "quayId": "NSR:Quay:71982",
       "stopIds": [
         "NSR:Quay:71982"
       ],
@@ -878,65 +4586,332 @@
         "atb-bus-1-live",
         "atb-bus-2-live"
       ],
-      "led": 64
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Midteggen via sentrum",
+            "Husebytunet via sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Midteggen",
+            "Husebytunet"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 136
     },
     {
-      "id": "voll-studentby",
+      "id": "valyvegen-nsr-quay-71981",
+      "stationId": "valyvegen",
+      "name": "Valøyvegen",
+      "lat": 63.409505,
+      "lon": 10.399195,
+      "quayId": "NSR:Quay:71981",
+      "stopIds": [
+        "NSR:Quay:71981"
+      ],
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum",
+            "Strindheim via sentrum-Lade"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 137
+    },
+    {
+      "id": "voll-studentby-nsr-quay-72401",
+      "stationId": "voll-studentby",
       "name": "Voll studentby",
       "lat": 63.40927,
       "lon": 10.443923,
+      "quayId": "NSR:Quay:72401",
       "stopIds": [
         "NSR:Quay:72401"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 65
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 138
     },
     {
-      "id": "asheim-skole",
+      "id": "voll-studentby-nsr-quay-72402",
+      "stationId": "voll-studentby",
+      "name": "Voll studentby",
+      "lat": 63.409515,
+      "lon": 10.444656,
+      "quayId": "NSR:Quay:72402",
+      "stopIds": [
+        "NSR:Quay:72402"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 139
+    },
+    {
+      "id": "asheim-skole-nsr-quay-72755",
+      "stationId": "asheim-skole",
       "name": "Åsheim skole",
       "lat": 63.351158,
       "lon": 10.343566,
+      "quayId": "NSR:Quay:72755",
       "stopIds": [
         "NSR:Quay:72755"
       ],
       "routes": [
         "atb-bus-2-live"
       ],
-      "led": 66
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad"
+          ],
+          "destinationMatches": [
+            "Lund"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 140
     },
     {
-      "id": "asveien-skole",
+      "id": "asheim-skole-nsr-quay-72756",
+      "stationId": "asheim-skole",
+      "name": "Åsheim skole",
+      "lat": 63.3511,
+      "lon": 10.344111,
+      "quayId": "NSR:Quay:72756",
+      "stopIds": [
+        "NSR:Quay:72756"
+      ],
+      "routes": [
+        "atb-bus-2-live"
+      ],
+      "routeDirections": {
+        "atb-bus-2-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Strindheim via Kolstad-sentrum"
+          ],
+          "destinationMatches": [
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 141
+    },
+    {
+      "id": "asveien-skole-nsr-quay-72801",
+      "stationId": "asveien-skole",
       "name": "Åsveien skole",
       "lat": 63.414482,
       "lon": 10.365735,
+      "quayId": "NSR:Quay:72801",
       "stopIds": [
         "NSR:Quay:72801"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 67
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 142
     },
     {
-      "id": "stre-berg",
+      "id": "asveien-skole-nsr-quay-72800",
+      "stationId": "asveien-skole",
+      "name": "Åsveien skole",
+      "lat": 63.415273,
+      "lon": 10.368237,
+      "quayId": "NSR:Quay:72800",
+      "stopIds": [
+        "NSR:Quay:72800"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 143
+    },
+    {
+      "id": "stre-berg-nsr-quay-72852",
+      "stationId": "stre-berg",
       "name": "Østre Berg",
       "lat": 63.416009,
       "lon": 10.430124,
+      "quayId": "NSR:Quay:72852",
       "stopIds": [
         "NSR:Quay:72852"
       ],
       "routes": [
         "atb-bus-3-live"
       ],
-      "led": 68
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Hallset via sentrum"
+          ],
+          "destinationMatches": [
+            "Hallset"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 144
     },
     {
-      "id": "stre-lund",
+      "id": "stre-berg-nsr-quay-102730",
+      "stationId": "stre-berg",
+      "name": "Østre Berg",
+      "lat": 63.41512,
+      "lon": 10.431328,
+      "quayId": "NSR:Quay:102730",
+      "stopIds": [
+        "NSR:Quay:102730"
+      ],
+      "routes": [
+        "atb-bus-3-live"
+      ],
+      "routeDirections": {
+        "atb-bus-3-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Lohove via sentrum"
+          ],
+          "destinationMatches": [
+            "Lohove"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 145
+    },
+    {
+      "id": "stre-lund-nsr-quay-102721",
+      "stationId": "stre-lund",
       "name": "Østre Lund",
       "lat": 63.350453,
       "lon": 10.331402,
+      "quayId": "NSR:Quay:102721",
       "stopIds": [
         "NSR:Quay:102721"
       ],
@@ -944,7 +4919,39 @@
         "atb-bus-1-live",
         "atb-bus-2-live"
       ],
-      "led": 69
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0",
+            "1"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Ranheim via Tiller-sentrum"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Ranheim"
+          ]
+        },
+        "atb-bus-2-live": {
+          "directionIds": [
+            "0",
+            "1"
+          ],
+          "headsigns": [
+            "Lund via Lade-sentrum-Kolstad",
+            "Strindheim via Kolstad-sentrum"
+          ],
+          "destinationMatches": [
+            "Lund",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 1,
+      "led": 146
     }
   ],
   "render": {
@@ -954,6 +4961,6 @@
     "approachRadiusMeters": 250,
     "freshnessSeconds": 120
   },
-  "status": "logical-map-ready-hardware-order-pending"
+  "status": "directional-logical-map-ready-hardware-order-pending"
 }
 
