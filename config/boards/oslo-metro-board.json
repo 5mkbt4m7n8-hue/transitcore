@@ -1,0 +1,1247 @@
+{
+  "schemaVersion": 1,
+  "id": "oslo-metro-board",
+  "name": "Oslo T-bane",
+  "layout": "station-network",
+  "routes": [
+    "rut-metro-1-live",
+    "rut-metro-2-live",
+    "rut-metro-3-live",
+    "rut-metro-4-live",
+    "rut-metro-5-live"
+  ],
+  "leds": {
+    "count": 95,
+    "dataPin": null,
+    "brightnessLimit": 32
+  },
+  "nodes": [
+    {
+      "id": "ammerud",
+      "name": "Ammerud",
+      "led": 0,
+      "stopIds": [
+        "NSR:Quay:10692",
+        "NSR:Quay:10693"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "avlos",
+      "name": "Avløs",
+      "led": 1,
+      "stopIds": [
+        "NSR:Quay:7131",
+        "NSR:Quay:7132"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "bekkestua",
+      "name": "Bekkestua",
+      "led": 2,
+      "stopIds": [
+        "NSR:Quay:6823",
+        "NSR:Quay:6824"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "bergkrystallen",
+      "name": "Bergkrystallen",
+      "led": 3,
+      "stopIds": [
+        "NSR:Quay:10681",
+        "NSR:Quay:10682"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ]
+    },
+    {
+      "id": "besserud",
+      "name": "Besserud",
+      "led": 4,
+      "stopIds": [
+        "NSR:Quay:11593",
+        "NSR:Quay:11594"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "bjornsletta",
+      "name": "Bjørnsletta",
+      "led": 5,
+      "stopIds": [
+        "NSR:Quay:12037",
+        "NSR:Quay:12038"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "blindern",
+      "name": "Blindern",
+      "led": 6,
+      "stopIds": [
+        "NSR:Quay:11635",
+        "NSR:Quay:11636"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "bogerud",
+      "name": "Bogerud",
+      "led": 7,
+      "stopIds": [
+        "NSR:Quay:10768",
+        "NSR:Quay:10769"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ]
+    },
+    {
+      "id": "borgen",
+      "name": "Borgen",
+      "led": 8,
+      "stopIds": [
+        "NSR:Quay:11932",
+        "NSR:Quay:11933"
+      ],
+      "routes": [
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "brattlikollen",
+      "name": "Brattlikollen",
+      "led": 9,
+      "stopIds": [
+        "NSR:Quay:12292",
+        "NSR:Quay:12293"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ]
+    },
+    {
+      "id": "brynseng",
+      "name": "Brynseng",
+      "led": 10,
+      "stopIds": [
+        "NSR:Quay:11176",
+        "NSR:Quay:11177",
+        "NSR:Quay:11178",
+        "NSR:Quay:11179"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live"
+      ]
+    },
+    {
+      "id": "boler",
+      "name": "Bøler",
+      "led": 11,
+      "stopIds": [
+        "NSR:Quay:10749",
+        "NSR:Quay:10750"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ]
+    },
+    {
+      "id": "carl-berners-plass",
+      "name": "Carl Berners plass",
+      "led": 12,
+      "stopIds": [
+        "NSR:Quay:11026",
+        "NSR:Quay:11027"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "eiksmarka",
+      "name": "Eiksmarka",
+      "led": 13,
+      "stopIds": [
+        "NSR:Quay:6590",
+        "NSR:Quay:6591"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "ekraveien",
+      "name": "Ekraveien",
+      "led": 14,
+      "stopIds": [
+        "NSR:Quay:11749",
+        "NSR:Quay:11750"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "ellingsrudasen",
+      "name": "Ellingsrudåsen",
+      "led": 15,
+      "stopIds": [
+        "NSR:Quay:10330",
+        "NSR:Quay:10331"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "ensjo",
+      "name": "Ensjø",
+      "led": 16,
+      "stopIds": [
+        "NSR:Quay:11106",
+        "NSR:Quay:11107"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live"
+      ]
+    },
+    {
+      "id": "forskningsparken",
+      "name": "Forskningsparken",
+      "led": 17,
+      "stopIds": [
+        "NSR:Quay:11654",
+        "NSR:Quay:11655"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "frognerseteren",
+      "name": "Frognerseteren",
+      "led": 18,
+      "stopIds": [
+        "NSR:Quay:12150",
+        "NSR:Quay:12151"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "froen",
+      "name": "Frøen",
+      "led": 19,
+      "stopIds": [
+        "NSR:Quay:11439",
+        "NSR:Quay:11441"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "furuset",
+      "name": "Furuset",
+      "led": 20,
+      "stopIds": [
+        "NSR:Quay:10304",
+        "NSR:Quay:10305"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "gaustad",
+      "name": "Gaustad",
+      "led": 21,
+      "stopIds": [
+        "NSR:Quay:11478",
+        "NSR:Quay:11479"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "gjettum",
+      "name": "Gjettum",
+      "led": 22,
+      "stopIds": [
+        "NSR:Quay:7213",
+        "NSR:Quay:7217"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ]
+    },
+    {
+      "id": "gjonnes",
+      "name": "Gjønnes",
+      "led": 23,
+      "stopIds": [
+        "NSR:Quay:6928",
+        "NSR:Quay:6929"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "godlia",
+      "name": "Godlia",
+      "led": 24,
+      "stopIds": [
+        "NSR:Quay:10948",
+        "NSR:Quay:10949"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ]
+    },
+    {
+      "id": "grorud",
+      "name": "Grorud",
+      "led": 25,
+      "stopIds": [
+        "NSR:Quay:10718",
+        "NSR:Quay:10719"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "grakammen",
+      "name": "Gråkammen",
+      "led": 26,
+      "stopIds": [
+        "NSR:Quay:11552",
+        "NSR:Quay:11553"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "gronland",
+      "name": "Grønland",
+      "led": 27,
+      "stopIds": [
+        "NSR:Quay:11928",
+        "NSR:Quay:11929"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "gullerasen",
+      "name": "Gulleråsen",
+      "led": 28,
+      "stopIds": [
+        "NSR:Quay:11561"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "hasle",
+      "name": "Hasle",
+      "led": 29,
+      "stopIds": [
+        "NSR:Quay:11065",
+        "NSR:Quay:11066"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "haslum",
+      "name": "Haslum",
+      "led": 30,
+      "stopIds": [
+        "NSR:Quay:7021",
+        "NSR:Quay:7022"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "hauger",
+      "name": "Hauger",
+      "led": 31,
+      "stopIds": [
+        "NSR:Quay:7304",
+        "NSR:Quay:7305"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ]
+    },
+    {
+      "id": "haugerud",
+      "name": "Haugerud",
+      "led": 32,
+      "stopIds": [
+        "NSR:Quay:11340",
+        "NSR:Quay:11342"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "hellerud",
+      "name": "Hellerud",
+      "led": 33,
+      "stopIds": [
+        "NSR:Quay:11273",
+        "NSR:Quay:11274"
+      ],
+      "routes": [
+        "rut-metro-2-live",
+        "rut-metro-3-live"
+      ]
+    },
+    {
+      "id": "helsfyr",
+      "name": "Helsfyr",
+      "led": 34,
+      "stopIds": [
+        "NSR:Quay:11134",
+        "NSR:Quay:11135"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live"
+      ]
+    },
+    {
+      "id": "holmen",
+      "name": "Holmen",
+      "led": 35,
+      "stopIds": [
+        "NSR:Quay:11669",
+        "NSR:Quay:11670"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "holmenkollen",
+      "name": "Holmenkollen",
+      "led": 36,
+      "stopIds": [
+        "NSR:Quay:11605",
+        "NSR:Quay:11606"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "hovseter",
+      "name": "Hovseter",
+      "led": 37,
+      "stopIds": [
+        "NSR:Quay:11686",
+        "NSR:Quay:11687"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "hoyenhall",
+      "name": "Høyenhall",
+      "led": 38,
+      "stopIds": [
+        "NSR:Quay:10882",
+        "NSR:Quay:10883"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ]
+    },
+    {
+      "id": "jar",
+      "name": "Jar",
+      "led": 39,
+      "stopIds": [
+        "NSR:Quay:6521",
+        "NSR:Quay:6522"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "jernbanetorget",
+      "name": "Jernbanetorget",
+      "led": 40,
+      "stopIds": [
+        "NSR:Quay:7183",
+        "NSR:Quay:7184"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "kalbakken",
+      "name": "Kalbakken",
+      "led": 41,
+      "stopIds": [
+        "NSR:Quay:10651",
+        "NSR:Quay:10652"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "karlsrud",
+      "name": "Karlsrud",
+      "led": 42,
+      "stopIds": [
+        "NSR:Quay:12285",
+        "NSR:Quay:12286"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ]
+    },
+    {
+      "id": "kolsas",
+      "name": "Kolsås",
+      "led": 43,
+      "stopIds": [
+        "NSR:Quay:7319",
+        "NSR:Quay:7320"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ]
+    },
+    {
+      "id": "lambertseter",
+      "name": "Lambertseter",
+      "led": 44,
+      "stopIds": [
+        "NSR:Quay:10629",
+        "NSR:Quay:10630"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ]
+    },
+    {
+      "id": "lijordet",
+      "name": "Lijordet",
+      "led": 45,
+      "stopIds": [
+        "NSR:Quay:6606",
+        "NSR:Quay:6607"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "lillevann",
+      "name": "Lillevann",
+      "led": 46,
+      "stopIds": [
+        "NSR:Quay:11617",
+        "NSR:Quay:11619"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "lindeberg",
+      "name": "Lindeberg",
+      "led": 47,
+      "stopIds": [
+        "NSR:Quay:10269",
+        "NSR:Quay:10270"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "linderud",
+      "name": "Linderud",
+      "led": 48,
+      "stopIds": [
+        "NSR:Quay:10905",
+        "NSR:Quay:10906"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "loren",
+      "name": "Løren",
+      "led": 49,
+      "stopIds": [
+        "NSR:Quay:102017",
+        "NSR:Quay:102018"
+      ],
+      "routes": [
+        "rut-metro-4-live"
+      ]
+    },
+    {
+      "id": "majorstuen",
+      "name": "Majorstuen",
+      "led": 50,
+      "stopIds": [
+        "NSR:Quay:8027",
+        "NSR:Quay:8028"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "makrellbekken",
+      "name": "Makrellbekken",
+      "led": 51,
+      "stopIds": [
+        "NSR:Quay:11643",
+        "NSR:Quay:11644"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "manglerud",
+      "name": "Manglerud",
+      "led": 52,
+      "stopIds": [
+        "NSR:Quay:10850",
+        "NSR:Quay:10851"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ]
+    },
+    {
+      "id": "midtstuen",
+      "name": "Midtstuen",
+      "led": 53,
+      "stopIds": [
+        "NSR:Quay:11576",
+        "NSR:Quay:11577"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "montebello",
+      "name": "Montebello",
+      "led": 54,
+      "stopIds": [
+        "NSR:Quay:11964",
+        "NSR:Quay:11965"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "mortensrud",
+      "name": "Mortensrud",
+      "led": 55,
+      "stopIds": [
+        "NSR:Quay:10421",
+        "NSR:Quay:10423"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ]
+    },
+    {
+      "id": "munkelia",
+      "name": "Munkelia",
+      "led": 56,
+      "stopIds": [
+        "NSR:Quay:10666",
+        "NSR:Quay:10667"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ]
+    },
+    {
+      "id": "nationaltheatret",
+      "name": "Nationaltheatret",
+      "led": 57,
+      "stopIds": [
+        "NSR:Quay:7333",
+        "NSR:Quay:7334"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "nydalen",
+      "name": "Nydalen",
+      "led": 58,
+      "stopIds": [
+        "NSR:Quay:11151",
+        "NSR:Quay:11153"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "oppsal",
+      "name": "Oppsal",
+      "led": 59,
+      "stopIds": [
+        "NSR:Quay:10995",
+        "NSR:Quay:10998"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ]
+    },
+    {
+      "id": "ringstabekk",
+      "name": "Ringstabekk",
+      "led": 60,
+      "stopIds": [
+        "NSR:Quay:6764",
+        "NSR:Quay:6765"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "ris",
+      "name": "Ris",
+      "led": 61,
+      "stopIds": [
+        "NSR:Quay:11505",
+        "NSR:Quay:11506"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "rislokka",
+      "name": "Risløkka",
+      "led": 62,
+      "stopIds": [
+        "NSR:Quay:10861",
+        "NSR:Quay:10863"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "rommen",
+      "name": "Rommen",
+      "led": 63,
+      "stopIds": [
+        "NSR:Quay:10461",
+        "NSR:Quay:10462"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "romsas",
+      "name": "Romsås",
+      "led": 64,
+      "stopIds": [
+        "NSR:Quay:10602",
+        "NSR:Quay:10603"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "ryen",
+      "name": "Ryen",
+      "led": 65,
+      "stopIds": [
+        "NSR:Quay:10818",
+        "NSR:Quay:10819"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ]
+    },
+    {
+      "id": "roa",
+      "name": "Røa",
+      "led": 66,
+      "stopIds": [
+        "NSR:Quay:11726",
+        "NSR:Quay:11729"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "rodtvet",
+      "name": "Rødtvet",
+      "led": 67,
+      "stopIds": [
+        "NSR:Quay:10639",
+        "NSR:Quay:10640"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "sinsen",
+      "name": "Sinsen",
+      "led": 68,
+      "stopIds": [
+        "NSR:Quay:11077",
+        "NSR:Quay:11078"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "skogen",
+      "name": "Skogen",
+      "led": 69,
+      "stopIds": [
+        "NSR:Quay:11611",
+        "NSR:Quay:11612"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "skullerud",
+      "name": "Skullerud",
+      "led": 70,
+      "stopIds": [
+        "NSR:Quay:10787",
+        "NSR:Quay:10788"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ]
+    },
+    {
+      "id": "skadalen",
+      "name": "Skådalen",
+      "led": 71,
+      "stopIds": [
+        "NSR:Quay:11570",
+        "NSR:Quay:11571"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "skoyenasen",
+      "name": "Skøyenåsen",
+      "led": 72,
+      "stopIds": [
+        "NSR:Quay:10953",
+        "NSR:Quay:10954"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ]
+    },
+    {
+      "id": "slemdal",
+      "name": "Slemdal",
+      "led": 73,
+      "stopIds": [
+        "NSR:Quay:11517",
+        "NSR:Quay:11518"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "smestad",
+      "name": "Smestad",
+      "led": 74,
+      "stopIds": [
+        "NSR:Quay:11944",
+        "NSR:Quay:11945"
+      ],
+      "routes": [
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "steinerud",
+      "name": "Steinerud",
+      "led": 75,
+      "stopIds": [
+        "NSR:Quay:11447",
+        "NSR:Quay:11449"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "storo",
+      "name": "Storo",
+      "led": 76,
+      "stopIds": [
+        "NSR:Quay:11115",
+        "NSR:Quay:11117"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "stortinget",
+      "name": "Stortinget",
+      "led": 77,
+      "stopIds": [
+        "NSR:Quay:7255",
+        "NSR:Quay:7256",
+        "NSR:Quay:7257",
+        "NSR:Quay:7258"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "stovner",
+      "name": "Stovner",
+      "led": 78,
+      "stopIds": [
+        "NSR:Quay:10488",
+        "NSR:Quay:10489"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "trosterud",
+      "name": "Trosterud",
+      "led": 79,
+      "stopIds": [
+        "NSR:Quay:11373",
+        "NSR:Quay:11374"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "tveita",
+      "name": "Tveita",
+      "led": 80,
+      "stopIds": [
+        "NSR:Quay:11309",
+        "NSR:Quay:11310"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    },
+    {
+      "id": "toyen",
+      "name": "Tøyen",
+      "led": 81,
+      "stopIds": [
+        "NSR:Quay:11895",
+        "NSR:Quay:11897",
+        "NSR:Quay:11898"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "ullernasen",
+      "name": "Ullernåsen",
+      "led": 82,
+      "stopIds": [
+        "NSR:Quay:12011",
+        "NSR:Quay:12012"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "ulleval-stadion",
+      "name": "Ullevål stadion",
+      "led": 83,
+      "stopIds": [
+        "NSR:Quay:11287",
+        "NSR:Quay:11289"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "ulsrud",
+      "name": "Ulsrud",
+      "led": 84,
+      "stopIds": [
+        "NSR:Quay:10716",
+        "NSR:Quay:10717"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ]
+    },
+    {
+      "id": "veitvet",
+      "name": "Veitvet",
+      "led": 85,
+      "stopIds": [
+        "NSR:Quay:10938",
+        "NSR:Quay:10939"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "vestli",
+      "name": "Vestli",
+      "led": 86,
+      "stopIds": [
+        "NSR:Quay:10508",
+        "NSR:Quay:10509"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "vettakollen",
+      "name": "Vettakollen",
+      "led": 87,
+      "stopIds": [
+        "NSR:Quay:11567",
+        "NSR:Quay:11569"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "vinderen",
+      "name": "Vinderen",
+      "led": 88,
+      "stopIds": [
+        "NSR:Quay:11460",
+        "NSR:Quay:11461"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "voksenkollen",
+      "name": "Voksenkollen",
+      "led": 89,
+      "stopIds": [
+        "NSR:Quay:11637",
+        "NSR:Quay:11638"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "voksenlia",
+      "name": "Voksenlia",
+      "led": 90,
+      "stopIds": [
+        "NSR:Quay:11609",
+        "NSR:Quay:11610"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ]
+    },
+    {
+      "id": "vollebekk",
+      "name": "Vollebekk",
+      "led": 91,
+      "stopIds": [
+        "NSR:Quay:10884",
+        "NSR:Quay:10885"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "asjordet",
+      "name": "Åsjordet",
+      "led": 92,
+      "stopIds": [
+        "NSR:Quay:12025",
+        "NSR:Quay:12026"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "okern",
+      "name": "Økern",
+      "led": 93,
+      "stopIds": [
+        "NSR:Quay:10825",
+        "NSR:Quay:10827"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "osteras",
+      "name": "Østerås",
+      "led": 94,
+      "stopIds": [
+        "NSR:Quay:6658",
+        "NSR:Quay:6659"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ]
+    }
+  ],
+  "render": {
+    "collisionMode": "alternate",
+    "routePriority": [],
+    "arrivalHoldSeconds": 45,
+    "freshnessSeconds": 120
+  },
+  "status": "logical-map-ready-hardware-order-pending"
+}
+
