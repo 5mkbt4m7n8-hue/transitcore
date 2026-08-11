@@ -1,0 +1,542 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-2-live",
+  "name": "AtB buss 2",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_2",
+    "publicCode": "2",
+    "mode": "bus",
+    "longName": "Strindheim - Lade - sentrum - Lund"
+  },
+  "directions": [
+    {
+      "id": "lund",
+      "label": "mot Lund/Midteggen",
+      "destinationMatches": [
+        "Lund",
+        "Midteggen"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    },
+    {
+      "id": "strindheim",
+      "label": "mot Strindheim",
+      "destinationMatches": [
+        "Strindheim"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": true
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:73036",
+      "name": "Strindheim",
+      "lat": 63.435672,
+      "lon": 10.45818,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:72455",
+      "name": "Haakon VII gate 25",
+      "lat": 63.44059,
+      "lon": 10.459623,
+      "shapeDistanceMeters": 769.0
+    },
+    {
+      "id": "NSR:Quay:72461",
+      "name": "Lade idrettsanlegg",
+      "lat": 63.444119,
+      "lon": 10.449015,
+      "shapeDistanceMeters": 1429.0
+    },
+    {
+      "id": "NSR:Quay:72107",
+      "name": "Ingemann Torps vei",
+      "lat": 63.446144,
+      "lon": 10.441357,
+      "shapeDistanceMeters": 1926.0
+    },
+    {
+      "id": "NSR:Quay:73154",
+      "name": "Ladeveien",
+      "lat": 63.443452,
+      "lon": 10.434992,
+      "shapeDistanceMeters": 2382.0
+    },
+    {
+      "id": "NSR:Quay:74588",
+      "name": "Anders Buens gate",
+      "lat": 63.438403,
+      "lon": 10.429582,
+      "shapeDistanceMeters": 3016.0
+    },
+    {
+      "id": "NSR:Quay:108948",
+      "name": "Buran",
+      "lat": 63.43669,
+      "lon": 10.42571,
+      "shapeDistanceMeters": 3287.0
+    },
+    {
+      "id": "NSR:Quay:102714",
+      "name": "Dyre Halses gate",
+      "lat": 63.437025,
+      "lon": 10.413972,
+      "shapeDistanceMeters": 3965.0
+    },
+    {
+      "id": "NSR:Quay:71418",
+      "name": "Trondheim S",
+      "lat": 63.435996,
+      "lon": 10.400609,
+      "shapeDistanceMeters": 4690.0
+    },
+    {
+      "id": "NSR:Quay:101521",
+      "name": "Olav Tryggvasons gate",
+      "lat": 63.433292,
+      "lon": 10.397798,
+      "shapeDistanceMeters": 5129.0
+    },
+    {
+      "id": "NSR:Quay:71184",
+      "name": "Prinsens gate",
+      "lat": 63.430874,
+      "lon": 10.391899,
+      "shapeDistanceMeters": 5682.0
+    },
+    {
+      "id": "NSR:Quay:71174",
+      "name": "Nidarosdomen",
+      "lat": 63.425815,
+      "lon": 10.393372,
+      "shapeDistanceMeters": 6252.0
+    },
+    {
+      "id": "NSR:Quay:73103",
+      "name": "Studentersamfundet",
+      "lat": 63.422222,
+      "lon": 10.394384,
+      "shapeDistanceMeters": 6658.0
+    },
+    {
+      "id": "NSR:Quay:102719",
+      "name": "Hesthagen",
+      "lat": 63.416799,
+      "lon": 10.3972,
+      "shapeDistanceMeters": 7283.0
+    },
+    {
+      "id": "NSR:Quay:102720",
+      "name": "Lerkendal",
+      "lat": 63.41174,
+      "lon": 10.399045,
+      "shapeDistanceMeters": 7857.0
+    },
+    {
+      "id": "NSR:Quay:71982",
+      "name": "Valøyvegen",
+      "lat": 63.407852,
+      "lon": 10.398032,
+      "shapeDistanceMeters": 8295.0
+    },
+    {
+      "id": "NSR:Quay:75301",
+      "name": "Bratsbergvegen",
+      "lat": 63.403358,
+      "lon": 10.395995,
+      "shapeDistanceMeters": 8806.0
+    },
+    {
+      "id": "NSR:Quay:107264",
+      "name": "Sluppen",
+      "lat": 63.40095,
+      "lon": 10.39504,
+      "shapeDistanceMeters": 9088.0
+    },
+    {
+      "id": "NSR:Quay:71209",
+      "name": "Tonstadkrysset",
+      "lat": 63.370393,
+      "lon": 10.37405,
+      "shapeDistanceMeters": 12930.0
+    },
+    {
+      "id": "NSR:Quay:75175",
+      "name": "Bjørndalsbrua",
+      "lat": 63.370956,
+      "lon": 10.363111,
+      "shapeDistanceMeters": 13480.0
+    },
+    {
+      "id": "NSR:Quay:75178",
+      "name": "Bjørndalstoppen",
+      "lat": 63.370558,
+      "lon": 10.353316,
+      "shapeDistanceMeters": 13971.0
+    },
+    {
+      "id": "NSR:Quay:71825",
+      "name": "Husebytunet",
+      "lat": 63.368725,
+      "lon": 10.344952,
+      "shapeDistanceMeters": 14718.0
+    },
+    {
+      "id": "NSR:Quay:71912",
+      "name": "Saupstadsenteret",
+      "lat": 63.366987,
+      "lon": 10.348705,
+      "shapeDistanceMeters": 15129.0
+    },
+    {
+      "id": "NSR:Quay:75581",
+      "name": "Casper Lundes veg",
+      "lat": 63.367877,
+      "lon": 10.358316,
+      "shapeDistanceMeters": 15623.0
+    },
+    {
+      "id": "NSR:Quay:73008",
+      "name": "Midteggen",
+      "lat": 63.362544,
+      "lon": 10.357679,
+      "shapeDistanceMeters": 16354.0
+    },
+    {
+      "id": "NSR:Quay:72490",
+      "name": "Skyttervegen",
+      "lat": 63.361651,
+      "lon": 10.349942,
+      "shapeDistanceMeters": 16836.0
+    },
+    {
+      "id": "NSR:Quay:73684",
+      "name": "Lyngvegen",
+      "lat": 63.357497,
+      "lon": 10.355049,
+      "shapeDistanceMeters": 17369.0
+    },
+    {
+      "id": "NSR:Quay:72946",
+      "name": "Heimdal stasjon",
+      "lat": 63.351546,
+      "lon": 10.356846,
+      "shapeDistanceMeters": 18129.0
+    },
+    {
+      "id": "NSR:Quay:72755",
+      "name": "Åsheim skole",
+      "lat": 63.351158,
+      "lon": 10.343566,
+      "shapeDistanceMeters": 18845.0
+    },
+    {
+      "id": "NSR:Quay:102721",
+      "name": "Østre Lund",
+      "lat": 63.350453,
+      "lon": 10.331402,
+      "shapeDistanceMeters": 19520.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.435694,
+      "lon": 10.458082
+    },
+    {
+      "lat": 63.436754,
+      "lon": 10.459108
+    },
+    {
+      "lat": 63.439428,
+      "lon": 10.463658
+    },
+    {
+      "lat": 63.439815,
+      "lon": 10.461824
+    },
+    {
+      "lat": 63.444939,
+      "lon": 10.446345
+    },
+    {
+      "lat": 63.445792,
+      "lon": 10.443886
+    },
+    {
+      "lat": 63.44638,
+      "lon": 10.443393
+    },
+    {
+      "lat": 63.445947,
+      "lon": 10.439473
+    },
+    {
+      "lat": 63.442484,
+      "lon": 10.433496
+    },
+    {
+      "lat": 63.440475,
+      "lon": 10.431363
+    },
+    {
+      "lat": 63.43865,
+      "lon": 10.430204
+    },
+    {
+      "lat": 63.43644,
+      "lon": 10.425144
+    },
+    {
+      "lat": 63.435884,
+      "lon": 10.418107
+    },
+    {
+      "lat": 63.436046,
+      "lon": 10.417333
+    },
+    {
+      "lat": 63.436778,
+      "lon": 10.416751
+    },
+    {
+      "lat": 63.437018,
+      "lon": 10.415781
+    },
+    {
+      "lat": 63.436868,
+      "lon": 10.405395
+    },
+    {
+      "lat": 63.436611,
+      "lon": 10.40425
+    },
+    {
+      "lat": 63.435912,
+      "lon": 10.403435
+    },
+    {
+      "lat": 63.43591,
+      "lon": 10.400034
+    },
+    {
+      "lat": 63.43332,
+      "lon": 10.400204
+    },
+    {
+      "lat": 63.433021,
+      "lon": 10.391594
+    },
+    {
+      "lat": 63.422668,
+      "lon": 10.394307
+    },
+    {
+      "lat": 63.412924,
+      "lon": 10.39898
+    },
+    {
+      "lat": 63.40994,
+      "lon": 10.398908
+    },
+    {
+      "lat": 63.399869,
+      "lon": 10.394556
+    },
+    {
+      "lat": 63.397737,
+      "lon": 10.392999
+    },
+    {
+      "lat": 63.396009,
+      "lon": 10.390998
+    },
+    {
+      "lat": 63.390582,
+      "lon": 10.38245
+    },
+    {
+      "lat": 63.389229,
+      "lon": 10.380707
+    },
+    {
+      "lat": 63.385936,
+      "lon": 10.37754
+    },
+    {
+      "lat": 63.382105,
+      "lon": 10.374996
+    },
+    {
+      "lat": 63.379786,
+      "lon": 10.37453
+    },
+    {
+      "lat": 63.378361,
+      "lon": 10.374797
+    },
+    {
+      "lat": 63.376463,
+      "lon": 10.375836
+    },
+    {
+      "lat": 63.373906,
+      "lon": 10.378056
+    },
+    {
+      "lat": 63.372874,
+      "lon": 10.378638
+    },
+    {
+      "lat": 63.372221,
+      "lon": 10.378475
+    },
+    {
+      "lat": 63.371206,
+      "lon": 10.376819
+    },
+    {
+      "lat": 63.370461,
+      "lon": 10.376473
+    },
+    {
+      "lat": 63.370312,
+      "lon": 10.375656
+    },
+    {
+      "lat": 63.370881,
+      "lon": 10.363695
+    },
+    {
+      "lat": 63.37039,
+      "lon": 10.35007
+    },
+    {
+      "lat": 63.370664,
+      "lon": 10.347926
+    },
+    {
+      "lat": 63.371176,
+      "lon": 10.346449
+    },
+    {
+      "lat": 63.371446,
+      "lon": 10.34625
+    },
+    {
+      "lat": 63.371434,
+      "lon": 10.345684
+    },
+    {
+      "lat": 63.36703,
+      "lon": 10.344318
+    },
+    {
+      "lat": 63.367081,
+      "lon": 10.351683
+    },
+    {
+      "lat": 63.367941,
+      "lon": 10.358834
+    },
+    {
+      "lat": 63.367667,
+      "lon": 10.360359
+    },
+    {
+      "lat": 63.367177,
+      "lon": 10.361038
+    },
+    {
+      "lat": 63.366621,
+      "lon": 10.361065
+    },
+    {
+      "lat": 63.363472,
+      "lon": 10.359108
+    },
+    {
+      "lat": 63.36246,
+      "lon": 10.357607
+    },
+    {
+      "lat": 63.36202,
+      "lon": 10.355045
+    },
+    {
+      "lat": 63.362349,
+      "lon": 10.350026
+    },
+    {
+      "lat": 63.36165,
+      "lon": 10.34994
+    },
+    {
+      "lat": 63.356972,
+      "lon": 10.3556
+    },
+    {
+      "lat": 63.353108,
+      "lon": 10.356071
+    },
+    {
+      "lat": 63.353123,
+      "lon": 10.357654
+    },
+    {
+      "lat": 63.351531,
+      "lon": 10.356974
+    },
+    {
+      "lat": 63.351194,
+      "lon": 10.356622
+    },
+    {
+      "lat": 63.351773,
+      "lon": 10.3496
+    },
+    {
+      "lat": 63.351621,
+      "lon": 10.347733
+    },
+    {
+      "lat": 63.35115,
+      "lon": 10.345342
+    },
+    {
+      "lat": 63.351224,
+      "lon": 10.334911
+    },
+    {
+      "lat": 63.350833,
+      "lon": 10.331356
+    },
+    {
+      "lat": 63.350686,
+      "lon": 10.331026
+    },
+    {
+      "lat": 63.35044,
+      "lon": 10.331341
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_2",
+    "shapeId": "ATB:JourneyPattern:2_Outbound_251215112494140_251215112489847",
+    "checkedDate": "2026-08-11"
+  }
+}
+
