@@ -9,8 +9,8 @@
 :root{color-scheme:dark;--bg:#101010;--panel:#191919;--line:#303030;--muted:#999;--accent:#ffd54a}
 *{box-sizing:border-box} body{margin:0;background:var(--bg);color:#fff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;padding:16px}
 main{max-width:760px;margin:auto} h1{font-size:23px;margin:0 0 4px}.sub{color:var(--muted);font-size:13px;margin-bottom:18px}
-.toolbar{display:grid;grid-template-columns:1fr auto auto;gap:10px;background:var(--panel);padding:12px;border:1px solid var(--line);border-radius:12px}
-select,button{font:inherit;color:#fff;background:#252525;border:1px solid #444;border-radius:8px;padding:10px}button{cursor:pointer}button:hover{border-color:#777}
+.toolbar{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;background:var(--panel);padding:12px;border:1px solid var(--line);border-radius:12px}
+select,button,.toolbar-link{font:inherit;color:#fff;background:#252525;border:1px solid #444;border-radius:8px;padding:10px}button{cursor:pointer}button:hover,.toolbar-link:hover{border-color:#777}.toolbar-link{text-decoration:none;text-align:center}
 #status{font-size:12px;color:#bbb;margin:10px 3px;min-height:18px}.ok{color:#9fdaa9!important}.error{color:#ff8585!important}
 .summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.pill{background:#222;border:1px solid #333;border-radius:999px;padding:5px 9px;font-size:12px;color:#ccc}
 .route,.cards{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
@@ -30,7 +30,7 @@ body.embedded{padding:8px}body.embedded main{max-width:none}body.embedded h1,bod
 <body><main>
 <h1>TransitCore Multi-Line Lab</h1>
 <div class="sub">Route Profile v1 · samme live-motor, flere linjer</div>
-<div class="toolbar"><select id="profile"></select><button id="refresh">Oppdater nå</button><button id="showAll">Vis alle samtidig</button></div>
+<div class="toolbar"><select id="profile"></select><button id="refresh">Oppdater nå</button><button id="showAll">Vis alle samtidig</button><a class="toolbar-link" href="../board/">LED-tavle</a></div>
 <div id="status">Laster profiler…</div><div id="summary" class="summary"></div><section id="view"></section><section id="multiView" class="multi-grid" hidden></section>
 <section id="routePicker" class="route-picker" hidden><h2>Velg ruter på tavlen</h2><div class="quick-picks" id="quickPicks"></div><div class="route-checks" id="routeChecks"></div></section>
 <p class="note">Buss 3 og Gråkallbanen bruker Enturs autoritative GTFS-traseer. T-banen bruker forventede stasjonsankomster fra Entur og vises derfor som beregnet, ikke GPS. For trikken oversettes traseposisjonen til den eksisterende 47-VLED-kartleggingen; GPIO-, segment- og diodenummer er uendret.</p>
