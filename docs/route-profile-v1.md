@@ -29,7 +29,7 @@ Hardware fields are optional for software-only profiles. When `display.showVled`
 - every stop except the final stop must have `segmentToNext.vledStart` and a positive `vledCount`
 - all station and segment VLED numbers must be unique and within `hardwareMapping.totalVleds`
 
-GrÃ¥kallbanen is the reference hardware profile. Its existing 47 VLED numbers, GPIO values, segment starts and segment counts must remain unchanged unless a separate hardware migration is explicitly approved.
+Gråkallbanen is the reference hardware profile. Its existing 47 VLED numbers, GPIO values, segment starts and segment counts must remain unchanged unless a separate hardware migration is explicitly approved.
 
 ## Multiple simultaneous routes
 
