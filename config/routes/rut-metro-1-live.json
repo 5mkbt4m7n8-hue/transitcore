@@ -18,7 +18,8 @@
     "id": "RUT:Line:1",
     "publicCode": "1",
     "mode": "metro",
-    "longName": "Frognerseteren - Bergkrystallen"
+    "longName": "Frognerseteren - Bergkrystallen",
+    "color": "#7CB342"
   },
   "directions": [
     {
@@ -49,245 +50,389 @@
       "name": "Bergkrystallen",
       "lat": 59.867035,
       "lon": 10.821702,
-      "shapeDistanceMeters": 0.0
+      "shapeDistanceMeters": 0.0,
+      "quayIds": [
+        "NSR:Quay:10681",
+        "NSR:Quay:10682"
+      ]
     },
     {
       "id": "NSR:Quay:10667",
       "name": "Munkelia",
       "lat": 59.868879,
       "lon": 10.812746,
-      "shapeDistanceMeters": 556.0
+      "shapeDistanceMeters": 556.0,
+      "quayIds": [
+        "NSR:Quay:10666",
+        "NSR:Quay:10667"
+      ]
     },
     {
       "id": "NSR:Quay:10630",
       "name": "Lambertseter",
       "lat": 59.873562,
       "lon": 10.810324,
-      "shapeDistanceMeters": 1064.0
+      "shapeDistanceMeters": 1064.0,
+      "quayIds": [
+        "NSR:Quay:10629",
+        "NSR:Quay:10630"
+      ]
     },
     {
       "id": "NSR:Quay:12286",
       "name": "Karlsrud",
       "lat": 59.880459,
       "lon": 10.805456,
-      "shapeDistanceMeters": 1931.0
+      "shapeDistanceMeters": 1931.0,
+      "quayIds": [
+        "NSR:Quay:12285",
+        "NSR:Quay:12286"
+      ]
     },
     {
       "id": "NSR:Quay:12292",
       "name": "Brattlikollen",
       "lat": 59.887367,
       "lon": 10.80114,
-      "shapeDistanceMeters": 2750.0
+      "shapeDistanceMeters": 2750.0,
+      "quayIds": [
+        "NSR:Quay:12292",
+        "NSR:Quay:12293"
+      ]
     },
     {
       "id": "NSR:Quay:10819",
       "name": "Ryen",
       "lat": 59.895653,
       "lon": 10.804898,
-      "shapeDistanceMeters": 3792.0
+      "shapeDistanceMeters": 3792.0,
+      "quayIds": [
+        "NSR:Quay:10818",
+        "NSR:Quay:10819"
+      ]
     },
     {
       "id": "NSR:Quay:10851",
       "name": "Manglerud",
       "lat": 59.89799,
       "lon": 10.81284,
-      "shapeDistanceMeters": 4323.0
+      "shapeDistanceMeters": 4323.0,
+      "quayIds": [
+        "NSR:Quay:10850",
+        "NSR:Quay:10851"
+      ]
     },
     {
       "id": "NSR:Quay:10883",
       "name": "Høyenhall",
       "lat": 59.906187,
       "lon": 10.819613,
-      "shapeDistanceMeters": 5331.0
+      "shapeDistanceMeters": 5331.0,
+      "quayIds": [
+        "NSR:Quay:10882",
+        "NSR:Quay:10883"
+      ]
     },
     {
       "id": "NSR:Quay:11176",
       "name": "Brynseng",
       "lat": 59.90921,
       "lon": 10.812089,
-      "shapeDistanceMeters": 5942.0
+      "shapeDistanceMeters": 5942.0,
+      "quayIds": [
+        "NSR:Quay:11176",
+        "NSR:Quay:11177",
+        "NSR:Quay:11178",
+        "NSR:Quay:11179"
+      ]
     },
     {
       "id": "NSR:Quay:11135",
       "name": "Helsfyr",
       "lat": 59.912697,
       "lon": 10.801446,
-      "shapeDistanceMeters": 6715.0
+      "shapeDistanceMeters": 6715.0,
+      "quayIds": [
+        "NSR:Quay:11134",
+        "NSR:Quay:11135"
+      ]
     },
     {
       "id": "NSR:Quay:11107",
       "name": "Ensjø",
       "lat": 59.913797,
       "lon": 10.78777,
-      "shapeDistanceMeters": 7487.0
+      "shapeDistanceMeters": 7487.0,
+      "quayIds": [
+        "NSR:Quay:11106",
+        "NSR:Quay:11107"
+      ]
     },
     {
       "id": "NSR:Quay:11895",
       "name": "Tøyen",
       "lat": 59.915679,
       "lon": 10.775828,
-      "shapeDistanceMeters": 8456.0
+      "shapeDistanceMeters": 8456.0,
+      "quayIds": [
+        "NSR:Quay:11895",
+        "NSR:Quay:11897",
+        "NSR:Quay:11898"
+      ]
     },
     {
       "id": "NSR:Quay:11929",
       "name": "Grønland",
       "lat": 59.91283,
       "lon": 10.76018,
-      "shapeDistanceMeters": 9508.0
+      "shapeDistanceMeters": 9508.0,
+      "quayIds": [
+        "NSR:Quay:11928",
+        "NSR:Quay:11929"
+      ]
     },
     {
       "id": "NSR:Quay:7184",
       "name": "Jernbanetorget",
       "lat": 59.912268,
       "lon": 10.751326,
-      "shapeDistanceMeters": 9996.0
+      "shapeDistanceMeters": 9996.0,
+      "quayIds": [
+        "NSR:Quay:7183",
+        "NSR:Quay:7184"
+      ]
     },
     {
       "id": "NSR:Quay:7255",
       "name": "Stortinget",
       "lat": 59.913478,
       "lon": 10.743221,
-      "shapeDistanceMeters": 10506.0
+      "shapeDistanceMeters": 10506.0,
+      "quayIds": [
+        "NSR:Quay:7255",
+        "NSR:Quay:7256",
+        "NSR:Quay:7257",
+        "NSR:Quay:7258"
+      ]
     },
     {
       "id": "NSR:Quay:7334",
       "name": "Nationaltheatret",
       "lat": 59.91535,
       "lon": 10.73233,
-      "shapeDistanceMeters": 11143.0
+      "shapeDistanceMeters": 11143.0,
+      "quayIds": [
+        "NSR:Quay:7333",
+        "NSR:Quay:7334"
+      ]
     },
     {
       "id": "NSR:Quay:8028",
       "name": "Majorstuen",
       "lat": 59.930279,
       "lon": 10.714647,
-      "shapeDistanceMeters": 13118.0
+      "shapeDistanceMeters": 13118.0,
+      "quayIds": [
+        "NSR:Quay:8027",
+        "NSR:Quay:8028"
+      ]
     },
     {
       "id": "NSR:Quay:11441",
       "name": "Frøen",
       "lat": 59.934594,
       "lon": 10.709318,
-      "shapeDistanceMeters": 13671.0
+      "shapeDistanceMeters": 13671.0,
+      "quayIds": [
+        "NSR:Quay:11439",
+        "NSR:Quay:11441"
+      ]
     },
     {
       "id": "NSR:Quay:11447",
       "name": "Steinerud",
       "lat": 59.939153,
       "lon": 10.70438,
-      "shapeDistanceMeters": 14258.0
+      "shapeDistanceMeters": 14258.0,
+      "quayIds": [
+        "NSR:Quay:11447",
+        "NSR:Quay:11449"
+      ]
     },
     {
       "id": "NSR:Quay:11461",
       "name": "Vinderen",
       "lat": 59.9422,
       "lon": 10.704586,
-      "shapeDistanceMeters": 14603.0
+      "shapeDistanceMeters": 14603.0,
+      "quayIds": [
+        "NSR:Quay:11460",
+        "NSR:Quay:11461"
+      ]
     },
     {
       "id": "NSR:Quay:11479",
       "name": "Gaustad",
       "lat": 59.9457,
       "lon": 10.71005,
-      "shapeDistanceMeters": 15119.0
+      "shapeDistanceMeters": 15119.0,
+      "quayIds": [
+        "NSR:Quay:11478",
+        "NSR:Quay:11479"
+      ]
     },
     {
       "id": "NSR:Quay:11506",
       "name": "Ris",
       "lat": 59.948016,
       "lon": 10.704774,
-      "shapeDistanceMeters": 15612.0
+      "shapeDistanceMeters": 15612.0,
+      "quayIds": [
+        "NSR:Quay:11505",
+        "NSR:Quay:11506"
+      ]
     },
     {
       "id": "NSR:Quay:11517",
       "name": "Slemdal",
       "lat": 59.950938,
       "lon": 10.694447,
-      "shapeDistanceMeters": 16338.0
+      "shapeDistanceMeters": 16338.0,
+      "quayIds": [
+        "NSR:Quay:11517",
+        "NSR:Quay:11518"
+      ]
     },
     {
       "id": "NSR:Quay:11553",
       "name": "Gråkammen",
       "lat": 59.955042,
       "lon": 10.701711,
-      "shapeDistanceMeters": 17031.0
+      "shapeDistanceMeters": 17031.0,
+      "quayIds": [
+        "NSR:Quay:11552",
+        "NSR:Quay:11553"
+      ]
     },
     {
       "id": "NSR:Quay:11561",
       "name": "Gulleråsen",
       "lat": 59.955796,
       "lon": 10.696797,
-      "shapeDistanceMeters": 17411.0
+      "shapeDistanceMeters": 17411.0,
+      "quayIds": [
+        "NSR:Quay:11561"
+      ]
     },
     {
       "id": "NSR:Quay:11569",
       "name": "Vettakollen",
       "lat": 59.959784,
       "lon": 10.695834,
-      "shapeDistanceMeters": 17888.0
+      "shapeDistanceMeters": 17888.0,
+      "quayIds": [
+        "NSR:Quay:11567",
+        "NSR:Quay:11569"
+      ]
     },
     {
       "id": "NSR:Quay:11570",
       "name": "Skådalen",
       "lat": 59.961867,
       "lon": 10.690778,
-      "shapeDistanceMeters": 18274.0
+      "shapeDistanceMeters": 18274.0,
+      "quayIds": [
+        "NSR:Quay:11570",
+        "NSR:Quay:11571"
+      ]
     },
     {
       "id": "NSR:Quay:11576",
       "name": "Midtstuen",
       "lat": 59.961366,
       "lon": 10.683024,
-      "shapeDistanceMeters": 18802.0
+      "shapeDistanceMeters": 18802.0,
+      "quayIds": [
+        "NSR:Quay:11576",
+        "NSR:Quay:11577"
+      ]
     },
     {
       "id": "NSR:Quay:11593",
       "name": "Besserud",
       "lat": 59.957981,
       "lon": 10.67417,
-      "shapeDistanceMeters": 19436.0
+      "shapeDistanceMeters": 19436.0,
+      "quayIds": [
+        "NSR:Quay:11593",
+        "NSR:Quay:11594"
+      ]
     },
     {
       "id": "NSR:Quay:11606",
       "name": "Holmenkollen",
       "lat": 59.960247,
       "lon": 10.663143,
-      "shapeDistanceMeters": 20223.0
+      "shapeDistanceMeters": 20223.0,
+      "quayIds": [
+        "NSR:Quay:11605",
+        "NSR:Quay:11606"
+      ]
     },
     {
       "id": "NSR:Quay:11609",
       "name": "Voksenlia",
       "lat": 59.966968,
       "lon": 10.654778,
-      "shapeDistanceMeters": 21267.0
+      "shapeDistanceMeters": 21267.0,
+      "quayIds": [
+        "NSR:Quay:11609",
+        "NSR:Quay:11610"
+      ]
     },
     {
       "id": "NSR:Quay:11612",
       "name": "Skogen",
       "lat": 59.975365,
       "lon": 10.647528,
-      "shapeDistanceMeters": 22316.0
+      "shapeDistanceMeters": 22316.0,
+      "quayIds": [
+        "NSR:Quay:11611",
+        "NSR:Quay:11612"
+      ]
     },
     {
       "id": "NSR:Quay:11617",
       "name": "Lillevann",
       "lat": 59.980434,
       "lon": 10.653182,
-      "shapeDistanceMeters": 23115.0
+      "shapeDistanceMeters": 23115.0,
+      "quayIds": [
+        "NSR:Quay:11617",
+        "NSR:Quay:11619"
+      ]
     },
     {
       "id": "NSR:Quay:11638",
       "name": "Voksenkollen",
       "lat": 59.980036,
       "lon": 10.665104,
-      "shapeDistanceMeters": 24080.0
+      "shapeDistanceMeters": 24080.0,
+      "quayIds": [
+        "NSR:Quay:11637",
+        "NSR:Quay:11638"
+      ]
     },
     {
       "id": "NSR:Quay:12151",
       "name": "Frognerseteren",
       "lat": 59.979037,
       "lon": 10.676023,
-      "shapeDistanceMeters": 24678.0
+      "shapeDistanceMeters": 24678.0,
+      "quayIds": [
+        "NSR:Quay:12150",
+        "NSR:Quay:12151"
+      ]
     }
   ],
   "shape": [

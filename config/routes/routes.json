@@ -16,6 +16,22 @@
     {
       "profile": "rut-metro-1-live.json",
       "enabled": true
+    },
+    {
+      "profile": "rut-metro-2-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "rut-metro-3-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "rut-metro-4-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "rut-metro-5-live.json",
+      "enabled": true
     }
   ]
 }
