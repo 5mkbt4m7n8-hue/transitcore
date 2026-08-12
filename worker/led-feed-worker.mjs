@@ -217,7 +217,7 @@ async function configuration(boardId, now) {
     Promise.all(board.routes.map(id => fetchJson(`${REPOSITORY}/config/routes/${id}.json`))),
     fetchJson(`${REPOSITORY}/config/hardware/${boardId}-hardware.json`).catch(() => null)
   ]);
-  board = addNodeCoordinates(board, profiles);
+  // Linear route boards derive segment positions from the ordered route profile.\n  // Only station-network boards need coordinates copied onto every board node.\n  if (board.layout !== "linear-route-vled") board = addNodeCoordinates(board, profiles);
   const resolvedHardware = hardware || defaultHardware(board);
   validateConfiguration(board, profiles, resolvedHardware);
   const value = { board, profiles, hardware: resolvedHardware };
