@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { buildFrame, buildLinearRouteFrame, validateConfiguration } from "../worker/led-feed-worker.mjs";
+import { buildFrame, buildLinearRouteFrame, matchesDirection, validateConfiguration } from "../worker/led-feed-worker.mjs";
 
 const now = Date.parse("2026-08-11T12:00:00Z");
 const board = { id: "trondheim-bus-board", leds: { count: 2 }, routes: ["route-1"], render: { freshnessSeconds: 120, approachRadiusMeters: 250, arrivalRadiusMeters: 85 }, nodes: [
@@ -19,6 +19,18 @@ assert.equal(frame.ttlSeconds, 30);
 assert.deepEqual(frame.leds, [{ id: 1, rgb: [0, 255, 80], brightness: 20, state: "AT_STOP" }]);
 assert.throws(() => validateConfiguration(board, profiles, { ...hardware, assignments: [{ logicalLed: 10, physicalLed: 0 }, { logicalLed: 11, physicalLed: 0 }] }), /Invalid physical LED/);
 console.log("LED feed worker tests OK");
+
+const reversedCanonicalProfile = { id: "metro-3", directions: [
+  { reverseShape: false, destinationMatches: ["Mortensrud"] },
+  { reverseShape: true, destinationMatches: ["Kolsås"] }
+] };
+const gtfsDirectionOneNode = { routeDirections: { "metro-3": {
+  directionIds: ["1"], destinationMatches: ["Mortensrud", "Ryen", "Tøyen"]
+} } };
+assert.equal(matchesDirection(gtfsDirectionOneNode, reversedCanonicalProfile, "Mortensrud"), true);
+assert.equal(matchesDirection(gtfsDirectionOneNode, reversedCanonicalProfile, "Ryen"), true);
+assert.equal(matchesDirection(gtfsDirectionOneNode, reversedCanonicalProfile, "Kolsås"), false);
+console.log("GTFS quay direction matching tests OK");
 
 const tramProfile = { id: "tram-9", provider: {}, line: { publicCode: "9", color: "#ffffff" }, directions: [
   { reverseShape: true, color: "#00ff50", destinationMatches: ["Lian"] },

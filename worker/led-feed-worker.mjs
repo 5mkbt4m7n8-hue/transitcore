@@ -1,5 +1,8 @@
 const REPOSITORY = "https://raw.githubusercontent.com/5mkbt4m7n8-hue/transitcore/main";
-const BOARD_IDS = new Set(["trondheim-bus-board", "oslo-metro-board", "grakallbanen-board"]);
+const BOARD_IDS = new Set([
+  "trondheim-bus-board", "oslo-metro-board", "oslo-metro-board-direction-a",
+  "oslo-metro-board-direction-b", "grakallbanen-board"
+]);
 const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
 const configCache = new Map();
@@ -30,15 +33,20 @@ function profileDirectionId(profile, destination) {
   return direction ? (direction.reverseShape ? "1" : "0") : null;
 }
 
-function matchesDirection(node, profile, destination) {
+export function matchesDirection(node, profile, destination) {
   const routeDirection = node.routeDirections?.[profile.id];
-  const id = profileDirectionId(profile, destination);
-  if (id != null) return routeDirection?.directionIds?.includes(id);
   const text = destination.toLowerCase();
-  return (routeDirection?.destinationMatches || []).some(value => {
+  const destinations = routeDirection?.destinationMatches || [];
+  if (destinations.some(value => {
     const match = value.toLowerCase();
     return text.includes(match) || match.includes(text);
-  });
+  })) return true;
+  // GTFS destination evidence on the quay is stronger than shape orientation.
+  // This matters on ring services and on profiles whose canonical shape is reversed.
+  if (text && destinations.length) return false;
+  const id = profileDirectionId(profile, destination);
+  if (id != null) return routeDirection?.directionIds?.includes(id);
+  return false;
 }
 
 export function validateConfiguration(board, profiles, hardware) {
@@ -268,11 +276,13 @@ async function liveStationArrivals(board, profiles, now) {
       const line = call.serviceJourney?.journeyPattern?.line;
       const profile = byPublicCode.get(String(line?.publicCode || "")) || byLineId.get(String(line?.id || ""));
       if (!profile || !target.node.routes.includes(profile.id)) continue;
+      const destination = call.destinationDisplay?.frontText || "";
+      if (target.node.routeDirections && !matchesDirection(target.node, profile, destination)) continue;
       const when = Date.parse(call.expectedArrivalTime || call.aimedArrivalTime || call.expectedDepartureTime || call.aimedDepartureTime || "");
       const deltaSeconds = (when - now) / 1000;
       if (!Number.isFinite(when) || Math.abs(deltaSeconds) > stationWindow) continue;
       const id = physical.get(target.node.led);
-      const candidate = { id, profile, destination: call.destinationDisplay?.frontText || "", state: "AT_STOP", deltaSeconds };
+      const candidate = { id, profile, destination, state: "AT_STOP", deltaSeconds };
       const previous = strongest.get(id);
       if (!previous || Math.abs(deltaSeconds) < Math.abs(previous.deltaSeconds)) strongest.set(id, candidate);
     }

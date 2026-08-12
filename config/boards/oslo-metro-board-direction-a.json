@@ -1,0 +1,3910 @@
+{
+  "schemaVersion": 1,
+  "id": "oslo-metro-board-direction-a",
+  "name": "Oslo T-bane – retning A",
+  "layout": "station-network",
+  "directionMode": {
+    "source": "GTFS direction_id",
+    "value": "0"
+  },
+  "routes": [
+    "rut-metro-1-live",
+    "rut-metro-2-live",
+    "rut-metro-3-live",
+    "rut-metro-4-live",
+    "rut-metro-5-live"
+  ],
+  "leds": {
+    "count": 95,
+    "dataPin": null,
+    "brightnessLimit": 32
+  },
+  "nodes": [
+    {
+      "id": "ammerud",
+      "name": "Ammerud",
+      "led": 0,
+      "stopIds": [
+        "NSR:Quay:10692",
+        "NSR:Quay:10693"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "avlos",
+      "name": "Avløs",
+      "led": 1,
+      "stopIds": [
+        "NSR:Quay:7131",
+        "NSR:Quay:7132"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Ringen via Tøyen"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Ringen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "bekkestua",
+      "name": "Bekkestua",
+      "led": 2,
+      "stopIds": [
+        "NSR:Quay:6823"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Ringen via Tøyen"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Ringen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "bergkrystallen",
+      "name": "Bergkrystallen",
+      "led": 3,
+      "stopIds": [
+        "NSR:Quay:10681",
+        "NSR:Quay:10682"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "besserud",
+      "name": "Besserud",
+      "led": 4,
+      "stopIds": [
+        "NSR:Quay:11593"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "bjornsletta",
+      "name": "Bjørnsletta",
+      "led": 5,
+      "stopIds": [
+        "NSR:Quay:12038"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Ringen via Tøyen"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Ringen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "blindern",
+      "name": "Blindern",
+      "led": 6,
+      "stopIds": [
+        "NSR:Quay:11635"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Carl Berners plass",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Storo"
+          ],
+          "destinationMatches": [
+            "Carl Berners plass",
+            "Ringen",
+            "Sognsvann",
+            "Storo"
+          ]
+        }
+      }
+    },
+    {
+      "id": "bogerud",
+      "name": "Bogerud",
+      "led": 7,
+      "stopIds": [
+        "NSR:Quay:10769"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "borgen",
+      "name": "Borgen",
+      "led": 8,
+      "stopIds": [
+        "NSR:Quay:11932"
+      ],
+      "routes": [
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Østerås"
+          ]
+        },
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Ringen via Tøyen"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Ringen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "brattlikollen",
+      "name": "Brattlikollen",
+      "led": 9,
+      "stopIds": [
+        "NSR:Quay:12292"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "brynseng",
+      "name": "Brynseng",
+      "led": 10,
+      "stopIds": [
+        "NSR:Quay:11176",
+        "NSR:Quay:11177"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ]
+        },
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "boler",
+      "name": "Bøler",
+      "led": 11,
+      "stopIds": [
+        "NSR:Quay:10750"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "carl-berners-plass",
+      "name": "Carl Berners plass",
+      "led": 12,
+      "stopIds": [
+        "NSR:Quay:11027"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "eiksmarka",
+      "name": "Eiksmarka",
+      "led": 13,
+      "stopIds": [
+        "NSR:Quay:6591"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ekraveien",
+      "name": "Ekraveien",
+      "led": 14,
+      "stopIds": [
+        "NSR:Quay:11750"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ellingsrudasen",
+      "name": "Ellingsrudåsen",
+      "led": 15,
+      "stopIds": [
+        "NSR:Quay:10330",
+        "NSR:Quay:10331"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ensjo",
+      "name": "Ensjø",
+      "led": 16,
+      "stopIds": [
+        "NSR:Quay:11107"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Stortinget",
+            "Østerås"
+          ]
+        },
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås",
+            "Stortinget"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Stortinget",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "forskningsparken",
+      "name": "Forskningsparken",
+      "led": 17,
+      "stopIds": [
+        "NSR:Quay:11654"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Carl Berners plass",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Storo"
+          ],
+          "destinationMatches": [
+            "Carl Berners plass",
+            "Ringen",
+            "Sognsvann",
+            "Storo"
+          ]
+        }
+      }
+    },
+    {
+      "id": "frognerseteren",
+      "name": "Frognerseteren",
+      "led": 18,
+      "stopIds": [
+        "NSR:Quay:12151"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren"
+          ],
+          "destinationMatches": [
+            "Frognerseteren"
+          ]
+        }
+      }
+    },
+    {
+      "id": "froen",
+      "name": "Frøen",
+      "led": 19,
+      "stopIds": [
+        "NSR:Quay:11441"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "furuset",
+      "name": "Furuset",
+      "led": 20,
+      "stopIds": [
+        "NSR:Quay:10305"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "gaustad",
+      "name": "Gaustad",
+      "led": 21,
+      "stopIds": [
+        "NSR:Quay:11479"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "gjettum",
+      "name": "Gjettum",
+      "led": 22,
+      "stopIds": [
+        "NSR:Quay:7217"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Kolsås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "gjonnes",
+      "name": "Gjønnes",
+      "led": 23,
+      "stopIds": [
+        "NSR:Quay:6929"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Ringen via Tøyen"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Ringen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "godlia",
+      "name": "Godlia",
+      "led": 24,
+      "stopIds": [
+        "NSR:Quay:10948",
+        "NSR:Quay:10949"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Hellerud",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Hellerud",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "grorud",
+      "name": "Grorud",
+      "led": 25,
+      "stopIds": [
+        "NSR:Quay:10718",
+        "NSR:Quay:10719"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "grakammen",
+      "name": "Gråkammen",
+      "led": 26,
+      "stopIds": [
+        "NSR:Quay:11553"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "gronland",
+      "name": "Grønland",
+      "led": 27,
+      "stopIds": [
+        "NSR:Quay:11929"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Stortinget",
+            "Østerås"
+          ]
+        },
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås",
+            "Stortinget"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Stortinget",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Stortinget",
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Majorstuen",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "gullerasen",
+      "name": "Gulleråsen",
+      "led": 28,
+      "stopIds": [
+        "NSR:Quay:11561"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hasle",
+      "name": "Hasle",
+      "led": 29,
+      "stopIds": [
+        "NSR:Quay:11065"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "haslum",
+      "name": "Haslum",
+      "led": 30,
+      "stopIds": [
+        "NSR:Quay:7021"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Ringen via Tøyen"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Ringen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hauger",
+      "name": "Hauger",
+      "led": 31,
+      "stopIds": [
+        "NSR:Quay:7304"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Kolsås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "haugerud",
+      "name": "Haugerud",
+      "led": 32,
+      "stopIds": [
+        "NSR:Quay:11340"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hellerud",
+      "name": "Hellerud",
+      "led": 33,
+      "stopIds": [
+        "NSR:Quay:11273",
+        "NSR:Quay:11274"
+      ],
+      "routes": [
+        "rut-metro-2-live",
+        "rut-metro-3-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ]
+        },
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Hellerud",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Hellerud",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "helsfyr",
+      "name": "Helsfyr",
+      "led": 34,
+      "stopIds": [
+        "NSR:Quay:11135"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Stortinget",
+            "Østerås"
+          ]
+        },
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås",
+            "Stortinget"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Stortinget",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "holmen",
+      "name": "Holmen",
+      "led": 35,
+      "stopIds": [
+        "NSR:Quay:11669"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "holmenkollen",
+      "name": "Holmenkollen",
+      "led": 36,
+      "stopIds": [
+        "NSR:Quay:11606"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hovseter",
+      "name": "Hovseter",
+      "led": 37,
+      "stopIds": [
+        "NSR:Quay:11686"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hoyenhall",
+      "name": "Høyenhall",
+      "led": 38,
+      "stopIds": [
+        "NSR:Quay:10883"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "jar",
+      "name": "Jar",
+      "led": 39,
+      "stopIds": [
+        "NSR:Quay:6522"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Ringen via Tøyen"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Ringen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "jernbanetorget",
+      "name": "Jernbanetorget",
+      "led": 40,
+      "stopIds": [
+        "NSR:Quay:7184"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Stortinget",
+            "Østerås"
+          ]
+        },
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås",
+            "Stortinget"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Stortinget",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Stortinget",
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Majorstuen",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "kalbakken",
+      "name": "Kalbakken",
+      "led": 41,
+      "stopIds": [
+        "NSR:Quay:10651",
+        "NSR:Quay:10652"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "karlsrud",
+      "name": "Karlsrud",
+      "led": 42,
+      "stopIds": [
+        "NSR:Quay:12286"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "kolsas",
+      "name": "Kolsås",
+      "led": 43,
+      "stopIds": [
+        "NSR:Quay:7319",
+        "NSR:Quay:7320"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Kolsås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "lambertseter",
+      "name": "Lambertseter",
+      "led": 44,
+      "stopIds": [
+        "NSR:Quay:10630"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "lijordet",
+      "name": "Lijordet",
+      "led": 45,
+      "stopIds": [
+        "NSR:Quay:6606"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "lillevann",
+      "name": "Lillevann",
+      "led": 46,
+      "stopIds": [
+        "NSR:Quay:11617"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren"
+          ],
+          "destinationMatches": [
+            "Frognerseteren"
+          ]
+        }
+      }
+    },
+    {
+      "id": "lindeberg",
+      "name": "Lindeberg",
+      "led": 47,
+      "stopIds": [
+        "NSR:Quay:10269"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "linderud",
+      "name": "Linderud",
+      "led": 48,
+      "stopIds": [
+        "NSR:Quay:10905",
+        "NSR:Quay:10906"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "loren",
+      "name": "Løren",
+      "led": 49,
+      "stopIds": [
+        "NSR:Quay:102017"
+      ],
+      "routes": [
+        "rut-metro-4-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "majorstuen",
+      "name": "Majorstuen",
+      "led": 50,
+      "stopIds": [
+        "NSR:Quay:8028"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Østerås"
+          ]
+        },
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Storo"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Storo"
+          ]
+        }
+      }
+    },
+    {
+      "id": "makrellbekken",
+      "name": "Makrellbekken",
+      "led": 51,
+      "stopIds": [
+        "NSR:Quay:11643"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "manglerud",
+      "name": "Manglerud",
+      "led": 52,
+      "stopIds": [
+        "NSR:Quay:10851"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "midtstuen",
+      "name": "Midtstuen",
+      "led": 53,
+      "stopIds": [
+        "NSR:Quay:11576"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "montebello",
+      "name": "Montebello",
+      "led": 54,
+      "stopIds": [
+        "NSR:Quay:11964"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Ringen via Tøyen"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Ringen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "mortensrud",
+      "name": "Mortensrud",
+      "led": 55,
+      "stopIds": [
+        "NSR:Quay:10421",
+        "NSR:Quay:10423"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "munkelia",
+      "name": "Munkelia",
+      "led": 56,
+      "stopIds": [
+        "NSR:Quay:10667"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "nationaltheatret",
+      "name": "Nationaltheatret",
+      "led": 57,
+      "stopIds": [
+        "NSR:Quay:7334"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Østerås"
+          ]
+        },
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Storo"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Storo"
+          ]
+        }
+      }
+    },
+    {
+      "id": "nydalen",
+      "name": "Nydalen",
+      "led": 58,
+      "stopIds": [
+        "NSR:Quay:11151",
+        "NSR:Quay:11153"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Storo",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Storo",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "oppsal",
+      "name": "Oppsal",
+      "led": 59,
+      "stopIds": [
+        "NSR:Quay:10995"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ringstabekk",
+      "name": "Ringstabekk",
+      "led": 60,
+      "stopIds": [
+        "NSR:Quay:6765"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Ringen via Tøyen"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Ringen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ris",
+      "name": "Ris",
+      "led": 61,
+      "stopIds": [
+        "NSR:Quay:11506"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "rislokka",
+      "name": "Risløkka",
+      "led": 62,
+      "stopIds": [
+        "NSR:Quay:10861",
+        "NSR:Quay:10863"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "rommen",
+      "name": "Rommen",
+      "led": 63,
+      "stopIds": [
+        "NSR:Quay:10461",
+        "NSR:Quay:10462"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "romsas",
+      "name": "Romsås",
+      "led": 64,
+      "stopIds": [
+        "NSR:Quay:10602",
+        "NSR:Quay:10603"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ryen",
+      "name": "Ryen",
+      "led": 65,
+      "stopIds": [
+        "NSR:Quay:10818",
+        "NSR:Quay:10819"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Brynseng",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "roa",
+      "name": "Røa",
+      "led": 66,
+      "stopIds": [
+        "NSR:Quay:11726"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "rodtvet",
+      "name": "Rødtvet",
+      "led": 67,
+      "stopIds": [
+        "NSR:Quay:10639",
+        "NSR:Quay:10640"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "sinsen",
+      "name": "Sinsen",
+      "led": 68,
+      "stopIds": [
+        "NSR:Quay:11078"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "skogen",
+      "name": "Skogen",
+      "led": 69,
+      "stopIds": [
+        "NSR:Quay:11612"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "skullerud",
+      "name": "Skullerud",
+      "led": 70,
+      "stopIds": [
+        "NSR:Quay:10787"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "skadalen",
+      "name": "Skådalen",
+      "led": 71,
+      "stopIds": [
+        "NSR:Quay:11570"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "skoyenasen",
+      "name": "Skøyenåsen",
+      "led": 72,
+      "stopIds": [
+        "NSR:Quay:10953"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Hellerud",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Hellerud",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "slemdal",
+      "name": "Slemdal",
+      "led": 73,
+      "stopIds": [
+        "NSR:Quay:11517"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "smestad",
+      "name": "Smestad",
+      "led": 74,
+      "stopIds": [
+        "NSR:Quay:11945"
+      ],
+      "routes": [
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Østerås"
+          ]
+        },
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Ringen via Tøyen"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Ringen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "steinerud",
+      "name": "Steinerud",
+      "led": 75,
+      "stopIds": [
+        "NSR:Quay:11447"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "storo",
+      "name": "Storo",
+      "led": 76,
+      "stopIds": [
+        "NSR:Quay:11115",
+        "NSR:Quay:11117"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Storo",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Storo",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "stortinget",
+      "name": "Stortinget",
+      "led": 77,
+      "stopIds": [
+        "NSR:Quay:7255",
+        "NSR:Quay:7256",
+        "NSR:Quay:7258"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Stortinget",
+            "Østerås"
+          ]
+        },
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås",
+            "Stortinget"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Stortinget",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Stortinget",
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Storo",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Storo",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "stovner",
+      "name": "Stovner",
+      "led": 78,
+      "stopIds": [
+        "NSR:Quay:10488",
+        "NSR:Quay:10489"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "trosterud",
+      "name": "Trosterud",
+      "led": 79,
+      "stopIds": [
+        "NSR:Quay:11374"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "tveita",
+      "name": "Tveita",
+      "led": 80,
+      "stopIds": [
+        "NSR:Quay:11309"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Jernbanetorget",
+            "Stortinget",
+            "Østerås"
+          ]
+        }
+      }
+    },
+    {
+      "id": "toyen",
+      "name": "Tøyen",
+      "led": 81,
+      "stopIds": [
+        "NSR:Quay:11895",
+        "NSR:Quay:11898"
+      ],
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        },
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Stortinget",
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Stortinget",
+            "Østerås"
+          ]
+        },
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås",
+            "Stortinget"
+          ]
+        },
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Stortinget",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Stortinget",
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Majorstuen",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ullernasen",
+      "name": "Ullernåsen",
+      "led": 82,
+      "stopIds": [
+        "NSR:Quay:12011"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Ringen via Tøyen"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Ringen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ulleval-stadion",
+      "name": "Ullevål stadion",
+      "led": 83,
+      "stopIds": [
+        "NSR:Quay:11289"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Carl Berners plass",
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Storo"
+          ],
+          "destinationMatches": [
+            "Carl Berners plass",
+            "Ringen",
+            "Sognsvann",
+            "Storo"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ulsrud",
+      "name": "Ulsrud",
+      "led": 84,
+      "stopIds": [
+        "NSR:Quay:10717"
+      ],
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Helsfyr",
+            "Jernbanetorget",
+            "Kolsås",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "veitvet",
+      "name": "Veitvet",
+      "led": 85,
+      "stopIds": [
+        "NSR:Quay:10938",
+        "NSR:Quay:10939"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "vestli",
+      "name": "Vestli",
+      "led": 86,
+      "stopIds": [
+        "NSR:Quay:10508",
+        "NSR:Quay:10509"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "vettakollen",
+      "name": "Vettakollen",
+      "led": 87,
+      "stopIds": [
+        "NSR:Quay:11569"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "vinderen",
+      "name": "Vinderen",
+      "led": 88,
+      "stopIds": [
+        "NSR:Quay:11461"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "voksenkollen",
+      "name": "Voksenkollen",
+      "led": 89,
+      "stopIds": [
+        "NSR:Quay:11638"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren"
+          ],
+          "destinationMatches": [
+            "Frognerseteren"
+          ]
+        }
+      }
+    },
+    {
+      "id": "voksenlia",
+      "name": "Voksenlia",
+      "led": 90,
+      "stopIds": [
+        "NSR:Quay:11609"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "vollebekk",
+      "name": "Vollebekk",
+      "led": 91,
+      "stopIds": [
+        "NSR:Quay:10884",
+        "NSR:Quay:10885"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "asjordet",
+      "name": "Åsjordet",
+      "led": 92,
+      "stopIds": [
+        "NSR:Quay:12025"
+      ],
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-3-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Kolsås"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Kolsås"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Ringen via Tøyen"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Ringen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "okern",
+      "name": "Økern",
+      "led": 93,
+      "stopIds": [
+        "NSR:Quay:10825",
+        "NSR:Quay:10827"
+      ],
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-4-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Vestli"
+          ]
+        },
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen",
+            "Stortinget"
+          ],
+          "destinationMatches": [
+            "Avløs",
+            "Carl Berners plass",
+            "Majorstuen",
+            "Ringen",
+            "Sognsvann",
+            "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "osteras",
+      "name": "Østerås",
+      "led": 94,
+      "stopIds": [
+        "NSR:Quay:6658",
+        "NSR:Quay:6659"
+      ],
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "routeDirections": {
+        "rut-metro-2-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Østerås"
+          ],
+          "destinationMatches": [
+            "Østerås"
+          ]
+        }
+      }
+    }
+  ],
+  "render": {
+    "collisionMode": "alternate",
+    "routePriority": [],
+    "arrivalHoldSeconds": 45,
+    "freshnessSeconds": 120
+  },
+  "status": "direction-filtered-logical-map-ready-hardware-order-pending"
+}

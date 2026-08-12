@@ -12,6 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 ARCHIVE = Path(sys.argv[1]).resolve()
 ROUTE_DIR = ROOT / "config" / "routes"
 BOARD_FILE = ROOT / "config" / "boards" / "oslo-metro-board.json"
+BOARD_DIRECTION_FILES = {
+    "0": ROOT / "config" / "boards" / "oslo-metro-board-direction-a.json",
+    "1": ROOT / "config" / "boards" / "oslo-metro-board-direction-b.json",
+}
 LINES = {"2", "3", "4", "5"}
 FALLBACK_COLORS = {"1": "7CB342", "2": "F9A825", "3": "7E57C2", "4": "1976D2", "5": "43A047"}
 
@@ -32,6 +36,10 @@ def haversine(a, b):
 def slug(value):
     value = value.lower().replace("å", "a").replace("ø", "o").replace("æ", "ae")
     return re.sub(r"[^a-z0-9]+", "-", value).strip("-")
+
+
+def terminal_match(headsign):
+    return re.split(r"\s+via\s+", headsign, maxsplit=1, flags=re.IGNORECASE)[0].strip()
 
 
 def write_json(path, value):
@@ -194,5 +202,63 @@ board = {
     "status": "logical-map-ready-hardware-order-pending",
 }
 write_json(BOARD_FILE, board)
-print(f"Generated lines 2-5 and Oslo board with {len(nodes)} shared station LEDs")
+
+profile_by_route_id = {profile["line"]["id"]: profile for profile in all_profiles}
+profile_stop_names = {profile["id"]: {stop["name"] for stop in profile["stops"]} for profile in all_profiles}
+direction_nodes = {"0": {}, "1": {}}
+for trip in trip_rows:
+    profile = profile_by_route_id.get(trip["route_id"])
+    direction_id = trip.get("direction_id", "")
+    if not profile or direction_id not in direction_nodes:
+        continue
+    headsign = trip.get("trip_headsign", "").strip()
+    for stop_time in trip_stops[trip["trip_id"]]:
+        stop = stops_by_id.get(stop_time["stop_id"])
+        if not stop or stop["stop_name"] not in profile_stop_names[profile["id"]]:
+            continue
+        node = direction_nodes[direction_id].setdefault(stop["stop_name"], {
+            "id": slug(stop["stop_name"]), "name": stop["stop_name"],
+            "stopIds": set(), "routes": set(), "routeDirections": {},
+        })
+        node["stopIds"].add(stop["stop_id"])
+        node["routes"].add(profile["id"])
+        route_direction = node["routeDirections"].setdefault(profile["id"], {
+            "directionIds": [direction_id], "headsigns": set(), "destinationMatches": set(),
+        })
+        if headsign:
+            route_direction["headsigns"].add(headsign)
+            route_direction["destinationMatches"].add(terminal_match(headsign))
+
+for direction_id, target in BOARD_DIRECTION_FILES.items():
+    directional = []
+    for led, value in enumerate(sorted(direction_nodes[direction_id].values(), key=lambda item: item["name"])):
+        route_directions = {
+            route: {
+                "directionIds": details["directionIds"],
+                "headsigns": sorted(details["headsigns"]),
+                "destinationMatches": sorted(details["destinationMatches"]),
+            }
+            for route, details in sorted(value["routeDirections"].items())
+        }
+        directional.append({
+            "id": value["id"], "name": value["name"], "led": led,
+            "stopIds": sorted(value["stopIds"]), "routes": sorted(value["routes"]),
+            "routeDirections": route_directions,
+        })
+    direction_board = {
+        "schemaVersion": 1,
+        "id": f"oslo-metro-board-direction-{'a' if direction_id == '0' else 'b'}",
+        "name": f"Oslo T-bane – retning {'A' if direction_id == '0' else 'B'}",
+        "layout": "station-network",
+        "directionMode": {"source": "GTFS direction_id", "value": direction_id},
+        "routes": [profile["id"] for profile in all_profiles],
+        "leds": {"count": len(directional), "dataPin": None, "brightnessLimit": 32},
+        "nodes": directional,
+        "render": {"collisionMode": "alternate", "routePriority": [], "arrivalHoldSeconds": 45, "freshnessSeconds": 120},
+        "status": "direction-filtered-logical-map-ready-hardware-order-pending",
+    }
+    write_json(target, direction_board)
+
+print(f"Generated lines 2-5, shared Oslo board ({len(nodes)} LEDs) and direction boards "
+      f"({len(direction_nodes['0'])}/{len(direction_nodes['1'])} LEDs)")
 
