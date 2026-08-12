@@ -1,8 +1,8 @@
 const REPOSITORY = "https://raw.githubusercontent.com/5mkbt4m7n8-hue/transitcore/main";
-const BOARD_ID = "trondheim-bus-board";
+const BOARD_IDS = new Set(["trondheim-bus-board", "oslo-metro-board"]);
 const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
-let configCache;
+const configCache = new Map();
 
 const rad = value => value * Math.PI / 180;
 function distance(a, b) {
@@ -42,7 +42,7 @@ function matchesDirection(node, profile, destination) {
 }
 
 export function validateConfiguration(board, profiles, hardware) {
-  if (board.id !== BOARD_ID || hardware.schemaVersion !== 1 || hardware.boardProfile !== board.id) throw Error("Board/hardware profile mismatch");
+  if (!BOARD_IDS.has(board.id) || hardware.schemaVersion !== 1 || hardware.boardProfile !== board.id) throw Error("Board/hardware profile mismatch");
   if (board.nodes.length !== board.leds.count || hardware.assignments?.length !== board.nodes.length) throw Error("LED count mismatch");
   const logical = new Set(), physical = new Set();
   for (const assignment of hardware.assignments) {
@@ -75,8 +75,10 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
       const value = distance(vehicle, candidate);
       if (value < meters) { node = candidate; meters = value; }
     }
-    if (!node || meters > board.render.approachRadiusMeters) continue;
-    const state = meters <= board.render.arrivalRadiusMeters ? "AT_STOP" : "APPROACHING";
+    const approachRadius = board.render.approachRadiusMeters ?? 250;
+    const arrivalRadius = board.render.arrivalRadiusMeters ?? 85;
+    if (!node || meters > approachRadius) continue;
+    const state = meters <= arrivalRadius ? "AT_STOP" : "APPROACHING";
     const id = physical.get(node.led), previous = strongest.get(id);
     if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" || meters < previous.meters) strongest.set(id, { id, profile: vehicle.profile, destination: vehicle.destination, state, meters });
   }
@@ -102,20 +104,59 @@ async function fetchJson(url, options) {
   return response.json();
 }
 
-async function configuration(now) {
-  if (configCache && now - configCache.loadedAt < CONFIG_TTL_MS) return configCache.value;
-  const board = await fetchJson(`${REPOSITORY}/config/boards/${BOARD_ID}.json`);
-  const [profiles, hardware] = await Promise.all([
-    Promise.all(board.routes.map(id => fetchJson(`${REPOSITORY}/config/routes/${id}.json`))),
-    fetchJson(`${REPOSITORY}/config/hardware/${BOARD_ID}-hardware.json`)
-  ]);
-  validateConfiguration(board, profiles, hardware);
-  configCache = { loadedAt: now, value: { board, profiles, hardware } };
-  return configCache.value;
+function defaultHardware(board) {
+  return {
+    schemaVersion: 1,
+    boardProfile: board.id,
+    leds: {
+      count: board.leds.count,
+      brightnessLimit: board.leds.brightnessLimit ?? 32
+    },
+    assignments: board.nodes.map(node => ({
+      logicalLed: node.led,
+      physicalLed: node.led
+    }))
+  };
 }
 
-async function liveVehicles(endpoint) {
-  const query = `{vehicles(codespaceId:"ATB"){vehicleId lastUpdated destinationName line{publicCode} location{latitude longitude}}}`;
+function addNodeCoordinates(board, profiles) {
+  const stops = new Map();
+  for (const profile of profiles) {
+    for (const stop of profile.stops || []) {
+      for (const id of [stop.id, ...(stop.quayIds || [])]) {
+        if (!stops.has(id)) stops.set(id, stop);
+      }
+    }
+  }
+  return {
+    ...board,
+    nodes: board.nodes.map(node => {
+      if (Number.isFinite(node.lat) && Number.isFinite(node.lon)) return node;
+      const stop = node.stopIds.map(id => stops.get(id)).find(Boolean);
+      if (!stop) throw Error(`Coordinates missing for board node ${node.id}`);
+      return { ...node, lat: Number(stop.lat), lon: Number(stop.lon) };
+    })
+  };
+}
+
+async function configuration(boardId, now) {
+  const cached = configCache.get(boardId);
+  if (cached && now - cached.loadedAt < CONFIG_TTL_MS) return cached.value;
+  let board = await fetchJson(`${REPOSITORY}/config/boards/${boardId}.json`);
+  const [profiles, hardware] = await Promise.all([
+    Promise.all(board.routes.map(id => fetchJson(`${REPOSITORY}/config/routes/${id}.json`))),
+    fetchJson(`${REPOSITORY}/config/hardware/${boardId}-hardware.json`).catch(() => null)
+  ]);
+  board = addNodeCoordinates(board, profiles);
+  const resolvedHardware = hardware || defaultHardware(board);
+  validateConfiguration(board, profiles, resolvedHardware);
+  const value = { board, profiles, hardware: resolvedHardware };
+  configCache.set(boardId, { loadedAt: now, value });
+  return value;
+}
+
+async function liveVehicles(endpoint, codespaceId) {
+  const query = `{vehicles(codespaceId:"${codespaceId}"){vehicleId lastUpdated destinationName line{publicCode} location{latitude longitude}}}`;
   const data = await fetchJson(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "ET-Client-Name": CLIENT_NAME }, body: JSON.stringify({ query }) });
   if (data.errors?.length) throw Error(data.errors[0].message);
   return data.data?.vehicles || [];
@@ -128,11 +169,16 @@ export default {
   async fetch(request) {
     const url = new URL(request.url);
     if (request.method !== "GET") return response({ error: "method_not_allowed" }, 405);
-    if (url.pathname === "/" || url.pathname === "/health") return response({ service: "TransitCore LED feed", status: "ok", boardProfile: BOARD_ID, endpoint: `/v1/boards/${BOARD_ID}/frame` });
-    if (url.pathname !== `/v1/boards/${BOARD_ID}/frame`) return response({ error: "not_found" }, 404);
+    if (url.pathname === "/" || url.pathname === "/health") return response({ service: "TransitCore LED feed", status: "ok", boardProfiles: [...BOARD_IDS] });
+    const match = url.pathname.match(/^\/v1\/boards\/([^/]+)\/frame$/);
+    const boardId = match?.[1];
+    if (!boardId || !BOARD_IDS.has(boardId)) return response({ error: "not_found" }, 404);
     try {
-      const now = Date.now(), { board, profiles, hardware } = await configuration(now);
-      const vehicles = await liveVehicles(profiles[0].provider.vehicleEndpoint);
+      const now = Date.now(), { board, profiles, hardware } = await configuration(boardId, now);
+      const vehicles = await liveVehicles(
+        profiles[0].provider.vehicleEndpoint,
+        profiles[0].provider.codespaceId
+      );
       return response(buildFrame({ board, profiles, hardware, vehicles, now }));
     } catch (error) {
       console.error(error);
@@ -140,4 +186,3 @@ export default {
     }
   }
 };
-
