@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "boardProfile": "grakallbanen-board",
+  "leds": {
+    "count": 47,
+    "dataPin": 2,
+    "brightnessLimit": 32
+  },
+  "assignments": [
+    {
+      "logicalLed": 0,
+      "physicalLed": 0
+    },
+    {
+      "logicalLed": 1,
+      "physicalLed": 1
+    },
+    {
+      "logicalLed": 2,
+      "physicalLed": 2
+    },
+    {
+      "logicalLed": 3,
+      "physicalLed": 3
+    },
+    {
+      "logicalLed": 4,
+      "physicalLed": 4
+    },
+    {
+      "logicalLed": 5,
+      "physicalLed": 5
+    },
+    {
+      "logicalLed": 6,
+      "physicalLed": 6
+    },
+    {
+      "logicalLed": 7,
+      "physicalLed": 7
+    },
+    {
+      "logicalLed": 8,
+      "physicalLed": 8
+    },
+    {
+      "logicalLed": 9,
+      "physicalLed": 9
+    },
+    {
+      "logicalLed": 10,
+      "physicalLed": 10
+    },
+    {
+      "logicalLed": 11,
+      "physicalLed": 11
+    },
+    {
+      "logicalLed": 12,
+      "physicalLed": 12
+    },
+    {
+      "logicalLed": 13,
+      "physicalLed": 13
+    },
+    {
+      "logicalLed": 14,
+      "physicalLed": 14
+    },
+    {
+      "logicalLed": 15,
+      "physicalLed": 15
+    },
+    {
+      "logicalLed": 16,
+      "physicalLed": 16
+    },
+    {
+      "logicalLed": 17,
+      "physicalLed": 17
+    },
+    {
+      "logicalLed": 18,
+      "physicalLed": 18
+    },
+    {
+      "logicalLed": 19,
+      "physicalLed": 19
+    },
+    {
+      "logicalLed": 20,
+      "physicalLed": 20
+    },
+    {
+      "logicalLed": 21,
+      "physicalLed": 21
+    },
+    {
+      "logicalLed": 22,
+      "physicalLed": 22
+    },
+    {
+      "logicalLed": 23,
+      "physicalLed": 23
+    },
+    {
+      "logicalLed": 24,
+      "physicalLed": 24
+    },
+    {
+      "logicalLed": 25,
+      "physicalLed": 25
+    },
+    {
+      "logicalLed": 26,
+      "physicalLed": 26
+    },
+    {
+      "logicalLed": 27,
+      "physicalLed": 27
+    },
+    {
+      "logicalLed": 28,
+      "physicalLed": 28
+    },
+    {
+      "logicalLed": 29,
+      "physicalLed": 29
+    },
+    {
+      "logicalLed": 30,
+      "physicalLed": 30
+    },
+    {
+      "logicalLed": 31,
+      "physicalLed": 31
+    },
+    {
+      "logicalLed": 32,
+      "physicalLed": 32
+    },
+    {
+      "logicalLed": 33,
+      "physicalLed": 33
+    },
+    {
+      "logicalLed": 34,
+      "physicalLed": 34
+    },
+    {
+      "logicalLed": 35,
+      "physicalLed": 35
+    },
+    {
+      "logicalLed": 36,
+      "physicalLed": 36
+    },
+    {
+      "logicalLed": 37,
+      "physicalLed": 37
+    },
+    {
+      "logicalLed": 38,
+      "physicalLed": 38
+    },
+    {
+      "logicalLed": 39,
+      "physicalLed": 39
+    },
+    {
+      "logicalLed": 40,
+      "physicalLed": 40
+    },
+    {
+      "logicalLed": 41,
+      "physicalLed": 41
+    },
+    {
+      "logicalLed": 42,
+      "physicalLed": 42
+    },
+    {
+      "logicalLed": 43,
+      "physicalLed": 43
+    },
+    {
+      "logicalLed": 44,
+      "physicalLed": 44
+    },
+    {
+      "logicalLed": 45,
+      "physicalLed": 45
+    },
+    {
+      "logicalLed": 46,
+      "physicalLed": 46
+    }
+  ]
+}
+
