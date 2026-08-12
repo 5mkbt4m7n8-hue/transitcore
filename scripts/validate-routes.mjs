@@ -51,7 +51,7 @@ if(fs.existsSync(boardDir)){
   for(const file of boardFiles){
     const board=JSON.parse(fs.readFileSync(path.join(boardDir,file),"utf8"));
     if(![1,2].includes(board.schemaVersion))throw new Error(`${file}: schemaVersion must be 1 or 2`);
-    if(!["station-network","route-segments"].includes(board.layout))throw new Error(`${file}: invalid layout`);
+    if(!["station-network","route-segments","linear-route-vled"].includes(board.layout))throw new Error(`${file}: invalid layout`);
     if(!Array.isArray(board.routes)||!board.routes.length)throw new Error(`${file}: routes must be non-empty`);
     for(const route of board.routes)if(!seenIds.has(route))throw new Error(`${file}: unknown route profile ${route}`);
     if(!Number.isInteger(board.leds?.count)||board.leds.count<1)throw new Error(`${file}: invalid LED count`);
@@ -59,7 +59,12 @@ if(fs.existsSync(boardDir)){
     for(const node of board.nodes||[]){
       if(nodeIds.has(node.id))throw new Error(`${file}: duplicate node ${node.id}`);nodeIds.add(node.id);
       if(!Number.isInteger(node.led)||node.led<0||node.led>=board.leds.count)throw new Error(`${file}: node ${node.id} has invalid LED`);
-      if(!Array.isArray(node.stopIds)||!node.stopIds.length)throw new Error(`${file}: node ${node.id} has no stop IDs`);
+      if(board.layout!=="linear-route-vled"&&(!Array.isArray(node.stopIds)||!node.stopIds.length))throw new Error(`${file}: node ${node.id} has no stop IDs`);
+      for(const [routeId,direction] of Object.entries(node.routeDirections||{})){
+        if(!node.routes.includes(routeId))throw new Error(`${file}: node ${node.id} has direction data for unknown route ${routeId}`);
+        if(!Array.isArray(direction.directionIds)||!direction.directionIds.length)throw new Error(`${file}: node ${node.id} route ${routeId} has no direction IDs`);
+        if(!Array.isArray(direction.destinationMatches)||!direction.destinationMatches.length)throw new Error(`${file}: node ${node.id} route ${routeId} has no destination matches`);
+      }
       if(board.schemaVersion===2){
         if(!board.directionalPlatforms)throw new Error(`${file}: v2 board must enable directionalPlatforms`);
         if(!node.quayId||!node.stationId)throw new Error(`${file}: v2 node ${node.id} needs quayId and stationId`);

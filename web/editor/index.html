@@ -14,7 +14,7 @@
 <h1>TransitCore tavleredigerer</h1>
 <p class="sub">Koble logiske stasjoner og plattformer til den faktiske LED-rekkefølgen på tavlen. Live-data, ruter, retninger og kildeprofilene endres ikke.</p>
 <div class="toolbar">
-  <select id="boardSelect" aria-label="Velg tavle"><option value="trondheim-bus-board">Trondheim buss</option><option value="oslo-metro-board">Oslo T-bane</option><option value="grakallbanen-board">Gråkallbanen</option></select>
+  <select id="boardSelect" aria-label="Velg tavle"><option value="trondheim-bus-board">Trondheim buss</option><option value="oslo-metro-board">Oslo T-bane – begge retninger / felles LED</option><option value="oslo-metro-board-direction-a">Oslo T-bane – retning A</option><option value="oslo-metro-board-direction-b">Oslo T-bane – retning B</option><option value="grakallbanen-board">Gråkallbanen</option></select>
   <button id="sortRoute">Sorter valgt linje etter faktisk rute</button><button id="auto">Nummerer alle etter linje</button><button id="reset">Tilbakestill</button>
   <span class="spacer"></span><button id="importButton">Importer JSON</button><button id="exportButton">Last ned hardwareprofil</button><button id="boardConfigButton" class="primary">Last ned board_config.h</button>
   <input id="importFile" class="hidden" type="file" accept="application/json,.json">
@@ -27,7 +27,7 @@
 </main>
 <script>
 "use strict";
-const $=id=>document.getElementById(id),ROUTE_BASE="../../config/routes/",BOARD_FILES={"trondheim-bus-board":"../../config/boards/trondheim-bus-board.json","oslo-metro-board":"../../config/boards/oslo-metro-board.json","grakallbanen-board":"../../config/boards/grakallbanen-board.json"};
+const $=id=>document.getElementById(id),ROUTE_BASE="../../config/routes/",BOARD_FILES={"trondheim-bus-board":"../../config/boards/trondheim-bus-board.json","oslo-metro-board":"../../config/boards/oslo-metro-board.json","oslo-metro-board-direction-a":"../../config/boards/oslo-metro-board-direction-a.json","oslo-metro-board-direction-b":"../../config/boards/oslo-metro-board-direction-b.json","grakallbanen-board":"../../config/boards/grakallbanen-board.json"};
 let board,profiles=[],assignments=[],visible=[];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 async function json(path){const r=await fetch(path,{cache:"no-store"});if(!r.ok)throw Error(`${path}: HTTP ${r.status}`);return r.json()}
