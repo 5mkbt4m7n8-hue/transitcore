@@ -1,5 +1,5 @@
 const REPOSITORY = "https://raw.githubusercontent.com/5mkbt4m7n8-hue/transitcore/main";
-const BOARD_IDS = new Set(["trondheim-bus-board", "oslo-metro-board"]);
+const BOARD_IDS = new Set(["trondheim-bus-board", "oslo-metro-board", "grakallbanen-board"]);
 const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
 const configCache = new Map();
@@ -94,6 +94,76 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
       rgb: rgb(color(item.profile, item.destination)),
       brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32),
       state: item.state
+    }))
+  };
+}
+
+function nearestRoutePosition(profile, vehicle) {
+  let best = null;
+  for (let index = 0; index < profile.stops.length - 1; index++) {
+    const a = profile.stops[index], b = profile.stops[index + 1];
+    const refLat = rad((vehicle.lat + a.lat + b.lat) / 3);
+    const metersPerLon = 111320 * Math.cos(refLat), metersPerLat = 111320;
+    const ax = a.lon * metersPerLon, ay = a.lat * metersPerLat;
+    const bx = b.lon * metersPerLon, by = b.lat * metersPerLat;
+    const px = vehicle.lon * metersPerLon, py = vehicle.lat * metersPerLat;
+    const vx = bx - ax, vy = by - ay, lengthSquared = vx * vx + vy * vy;
+    if (lengthSquared <= 0.001) continue;
+    const progress = Math.max(0, Math.min(1, ((px - ax) * vx + (py - ay) * vy) / lengthSquared));
+    const qx = ax + progress * vx, qy = ay + progress * vy;
+    const meters = Math.hypot(px - qx, py - qy);
+    if (!best || meters < best.meters) best = { index, progress, meters };
+  }
+  return best;
+}
+
+export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now = Date.now() }) {
+  validateConfiguration(board, profiles, hardware);
+  const profile = profiles[0];
+  const physical = new Map(hardware.assignments.map(item => [item.logicalLed, item.physicalLed]));
+  const dedupe = new Map();
+  for (const raw of vehicles) {
+    const updated = Date.parse(raw.lastUpdated || "");
+    if (String(raw.line?.publicCode || "") !== String(profile.line.publicCode) || raw.location?.latitude == null ||
+        !Number.isFinite(updated) || (now - updated) / 1000 > board.render.freshnessSeconds) continue;
+    const previous = dedupe.get(raw.vehicleId);
+    if (!previous || updated > previous.updated) dedupe.set(raw.vehicleId, {
+      updated, destination: raw.destinationName || "", lat: Number(raw.location.latitude), lon: Number(raw.location.longitude)
+    });
+  }
+  const strongest = new Map();
+  for (const vehicle of dedupe.values()) {
+    let nearestStopIndex = -1, stopMeters = Infinity;
+    profile.stops.forEach((stop, index) => {
+      const meters = distance(vehicle, stop);
+      if (meters < stopMeters) { nearestStopIndex = index; stopMeters = meters; }
+    });
+    let logicalLed, state, meters;
+    if (nearestStopIndex >= 0 && stopMeters <= board.render.arrivalRadiusMeters) {
+      logicalLed = profile.stops[nearestStopIndex].vled;
+      state = "AT_STOP";
+      meters = stopMeters;
+    } else {
+      const route = nearestRoutePosition(profile, vehicle);
+      if (!route || route.meters > board.render.maximumTrackDistanceMeters) continue;
+      const segment = profile.stops[route.index].segmentToNext;
+      if (!segment?.vledCount) continue;
+      const offset = Math.min(segment.vledCount - 1, Math.floor(route.progress * segment.vledCount));
+      logicalLed = segment.vledStart + offset;
+      state = "APPROACHING";
+      meters = route.meters;
+    }
+    const id = physical.get(logicalLed), previous = strongest.get(id);
+    if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" || meters < previous.meters) {
+      strongest.set(id, { id, state, meters, destination: vehicle.destination });
+    }
+  }
+  return {
+    schemaVersion: 1, boardProfile: board.id, generatedAt: new Date(now).toISOString(),
+    sequence: Math.floor(now / 1000), ttlSeconds: 30, ledCount: hardware.leds?.count ?? board.leds.count,
+    leds: [...strongest.values()].sort((a, b) => a.id - b.id).map(item => ({
+      id: item.id, rgb: rgb(color(profile, item.destination)),
+      brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32), state: item.state
     }))
   };
 }
@@ -249,6 +319,9 @@ export default {
         profiles[0].provider.vehicleEndpoint,
         profiles[0].provider.codespaceId
       );
+      if (board.layout === "linear-route-vled") {
+        return response(buildLinearRouteFrame({ board, profiles, hardware, vehicles, now }));
+      }
       return response(buildFrame({ board, profiles, hardware, vehicles, now }));
     } catch (error) {
       console.error(error);
@@ -256,3 +329,4 @@ export default {
     }
   }
 };
+
