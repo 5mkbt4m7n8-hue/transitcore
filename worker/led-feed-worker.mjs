@@ -162,6 +162,71 @@ async function liveVehicles(endpoint, codespaceId) {
   return data.data?.vehicles || [];
 }
 
+async function liveStationArrivals(board, profiles, now) {
+  const endpoint = profiles[0].positioning.endpoint;
+  const lookBehind = Math.max(...profiles.map(profile => profile.positioning.lookBehindSeconds || 75));
+  const lookAhead = Math.max(...profiles.map(profile => profile.positioning.lookAheadSeconds || 600));
+  const stationWindow = Math.max(...profiles.map(profile => profile.positioning.stationWindowSeconds || 45));
+  const start = new Date(now - lookBehind * 1000).toISOString();
+  const timeRange = lookBehind + lookAhead;
+  const targets = [];
+  const seenQuays = new Set();
+  for (const node of board.nodes) {
+    for (const quayId of node.stopIds || []) {
+      if (seenQuays.has(quayId)) continue;
+      seenQuays.add(quayId);
+      targets.push({ node, quayId });
+    }
+  }
+  const fields = "aimedArrivalTime expectedArrivalTime aimedDepartureTime expectedDepartureTime destinationDisplay{frontText} serviceJourney{id journeyPattern{line{id publicCode}}}";
+  const aliases = targets.map((target, index) =>
+    `q${index}:quay(id:"${target.quayId}"){estimatedCalls(startTime:"${start}",timeRange:${timeRange},numberOfDepartures:6){${fields}}}`
+  ).join("\n");
+  const data = await fetchJson(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "ET-Client-Name": CLIENT_NAME },
+    body: JSON.stringify({ query: `{${aliases}}` })
+  });
+  if (data.errors?.length) throw Error(data.errors[0].message);
+
+  const byPublicCode = new Map(profiles.map(profile => [String(profile.line.publicCode), profile]));
+  const byLineId = new Map(profiles.map(profile => [String(profile.line.id), profile]));
+  const physical = new Map(board.hardware.assignments.map(item => [item.logicalLed, item.physicalLed]));
+  const strongest = new Map();
+  targets.forEach((target, index) => {
+    for (const call of data.data?.[`q${index}`]?.estimatedCalls || []) {
+      const line = call.serviceJourney?.journeyPattern?.line;
+      const profile = byPublicCode.get(String(line?.publicCode || "")) || byLineId.get(String(line?.id || ""));
+      if (!profile || !target.node.routes.includes(profile.id)) continue;
+      const when = Date.parse(call.expectedArrivalTime || call.aimedArrivalTime || call.expectedDepartureTime || call.aimedDepartureTime || "");
+      const deltaSeconds = (when - now) / 1000;
+      if (!Number.isFinite(when) || Math.abs(deltaSeconds) > stationWindow) continue;
+      const id = physical.get(target.node.led);
+      const candidate = { id, profile, destination: call.destinationDisplay?.frontText || "", state: "AT_STOP", deltaSeconds };
+      const previous = strongest.get(id);
+      if (!previous || Math.abs(deltaSeconds) < Math.abs(previous.deltaSeconds)) strongest.set(id, candidate);
+    }
+  });
+  return [...strongest.values()];
+}
+
+function frameFromStationArrivals(board, hardware, arrivals, now) {
+  return {
+    schemaVersion: 1,
+    boardProfile: board.id,
+    generatedAt: new Date(now).toISOString(),
+    sequence: Math.floor(now / 1000),
+    ttlSeconds: 30,
+    ledCount: hardware.leds?.count ?? board.leds.count,
+    leds: arrivals.sort((a, b) => a.id - b.id).map(item => ({
+      id: item.id,
+      rgb: rgb(color(item.profile, item.destination)),
+      brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32),
+      state: item.state
+    }))
+  };
+}
+
 const headers = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" };
 const response = (body, status = 200) => new Response(JSON.stringify(body, null, 2) + "\n", { status, headers });
 
@@ -175,6 +240,11 @@ export default {
     if (!boardId || !BOARD_IDS.has(boardId)) return response({ error: "not_found" }, 404);
     try {
       const now = Date.now(), { board, profiles, hardware } = await configuration(boardId, now);
+      if (board.positioning !== "vehicle-proximity") {
+        board.hardware = hardware;
+        const arrivals = await liveStationArrivals(board, profiles, now);
+        return response(frameFromStationArrivals(board, hardware, arrivals, now));
+      }
       const vehicles = await liveVehicles(
         profiles[0].provider.vehicleEndpoint,
         profiles[0].provider.codespaceId
