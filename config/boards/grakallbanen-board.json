@@ -1,0 +1,527 @@
+{
+  "schemaVersion": 1,
+  "id": "grakallbanen-board",
+  "name": "GrÃ¥kallbanen",
+  "layout": "linear-route-vled",
+  "positioning": "vehicle-proximity",
+  "routes": [
+    "atb-line-9-grakallbanen"
+  ],
+  "leds": {
+    "count": 47,
+    "dataPin": 2,
+    "brightnessLimit": 32
+  },
+  "nodes": [
+    {
+      "id": "vled-0",
+      "name": "Lian",
+      "led": 0,
+      "stopIds": [
+        "NSR:Quay:73481"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-1",
+      "name": "Lian â€“ HerlofsonlÃ¸ypa 1/2",
+      "led": 1,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-2",
+      "name": "Lian â€“ HerlofsonlÃ¸ypa 2/2",
+      "led": 2,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-3",
+      "name": "HerlofsonlÃ¸ypa",
+      "led": 3,
+      "stopIds": [
+        "NSR:Quay:71253"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-4",
+      "name": "HerlofsonlÃ¸ypa â€“ Vestmarka 1/1",
+      "led": 4,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-5",
+      "name": "Vestmarka",
+      "led": 5,
+      "stopIds": [
+        "NSR:Quay:72110"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-6",
+      "name": "Vestmarka â€“ Kyvannet 1/3",
+      "led": 6,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-7",
+      "name": "Vestmarka â€“ Kyvannet 2/3",
+      "led": 7,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-8",
+      "name": "Vestmarka â€“ Kyvannet 3/3",
+      "led": 8,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-9",
+      "name": "Kyvannet",
+      "led": 9,
+      "stopIds": [
+        "NSR:Quay:73099"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-10",
+      "name": "Kyvannet â€“ Ugla 1/2",
+      "led": 10,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-11",
+      "name": "Kyvannet â€“ Ugla 2/2",
+      "led": 11,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-12",
+      "name": "Ugla",
+      "led": 12,
+      "stopIds": [
+        "NSR:Quay:71779"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-13",
+      "name": "Ugla â€“ Ferstad 1/1",
+      "led": 13,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-14",
+      "name": "Ferstad",
+      "led": 14,
+      "stopIds": [
+        "NSR:Quay:75148"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-15",
+      "name": "Ferstad â€“ Munkvoll 1/3",
+      "led": 15,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-16",
+      "name": "Ferstad â€“ Munkvoll 2/3",
+      "led": 16,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-17",
+      "name": "Ferstad â€“ Munkvoll 3/3",
+      "led": 17,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-18",
+      "name": "Munkvoll",
+      "led": 18,
+      "stopIds": [
+        "NSR:Quay:73442"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-19",
+      "name": "Munkvoll â€“ Rognheim 1/3",
+      "led": 19,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-20",
+      "name": "Munkvoll â€“ Rognheim 2/3",
+      "led": 20,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-21",
+      "name": "Munkvoll â€“ Rognheim 3/3",
+      "led": 21,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-22",
+      "name": "Rognheim",
+      "led": 22,
+      "stopIds": [
+        "NSR:Quay:71448"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-23",
+      "name": "Rognheim â€“ SÃ¸ndre Hoem 1/3",
+      "led": 23,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-24",
+      "name": "Rognheim â€“ SÃ¸ndre Hoem 2/3",
+      "led": 24,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-25",
+      "name": "Rognheim â€“ SÃ¸ndre Hoem 3/3",
+      "led": 25,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-26",
+      "name": "SÃ¸ndre Hoem",
+      "led": 26,
+      "stopIds": [
+        "NSR:Quay:73562"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-27",
+      "name": "SÃ¸ndre Hoem â€“ Nordre Hoem 1/1",
+      "led": 27,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-28",
+      "name": "Nordre Hoem",
+      "led": 28,
+      "stopIds": [
+        "NSR:Quay:74088"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-29",
+      "name": "Nordre Hoem â€“ Breidablikk 1/3",
+      "led": 29,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-30",
+      "name": "Nordre Hoem â€“ Breidablikk 2/3",
+      "led": 30,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-31",
+      "name": "Nordre Hoem â€“ Breidablikk 3/3",
+      "led": 31,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-32",
+      "name": "Breidablikk",
+      "led": 32,
+      "stopIds": [
+        "NSR:Quay:75322"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-33",
+      "name": "Breidablikk â€“ Belvedere 1/2",
+      "led": 33,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-34",
+      "name": "Breidablikk â€“ Belvedere 2/2",
+      "led": 34,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-35",
+      "name": "Belvedere",
+      "led": 35,
+      "stopIds": [
+        "NSR:Quay:74896"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-36",
+      "name": "Belvedere â€“ Bygrensen 1/1",
+      "led": 36,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-37",
+      "name": "Bygrensen",
+      "led": 37,
+      "stopIds": [
+        "NSR:Quay:75517"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-38",
+      "name": "Bygrensen â€“ Nyveibakken 1/3",
+      "led": 38,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-39",
+      "name": "Bygrensen â€“ Nyveibakken 2/3",
+      "led": 39,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-40",
+      "name": "Bygrensen â€“ Nyveibakken 3/3",
+      "led": 40,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-41",
+      "name": "Nyveibakken",
+      "led": 41,
+      "stopIds": [
+        "NSR:Quay:74338"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-42",
+      "name": "Nyveibakken â€“ Bergsli gate 1/2",
+      "led": 42,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-43",
+      "name": "Nyveibakken â€“ Bergsli gate 2/2",
+      "led": 43,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-44",
+      "name": "Bergsli gate",
+      "led": 44,
+      "stopIds": [
+        "NSR:Quay:75008"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "vled-45",
+      "name": "Bergsli gate â€“ Ila 1/1",
+      "led": 45,
+      "stopIds": [],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "segment"
+    },
+    {
+      "id": "vled-46",
+      "name": "Ila",
+      "led": 46,
+      "stopIds": [
+        "NSR:Quay:104110"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    }
+  ],
+  "render": {
+    "collisionMode": "unknown-direction",
+    "freshnessSeconds": 120,
+    "arrivalRadiusMeters": 65,
+    "maximumTrackDistanceMeters": 250
+  },
+  "status": "worker-boardclient-test-ready"
+}
+
