@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d11"><title>TransitCore prosjektveiviser</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0d11;--panel:#151922;--line:#2b3340;--text:#f4f7fb;--muted:#929dac;--accent:#60a5fa;--ok:#65d99a;--bad:#ff7b7b}*{box-sizing:border-box}body{margin:0;padding:18px;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:920px;margin:auto}h1{margin:0;font-size:26px}.sub{color:var(--muted);font-size:13px;line-height:1.5;margin:6px 0 18px}.steps{display:grid;gap:12px}.card{padding:15px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}h2{font-size:16px;margin:0 0 12px}.choices{display:flex;flex-wrap:wrap;gap:9px}.choice{display:flex;gap:8px;align-items:center;padding:10px 12px;border:1px solid #3b4656;border-radius:10px;background:#202733}.choice:has(input:checked){border-color:var(--accent);background:#172b48}.choice input{accent-color:var(--accent)}select,button{font:inherit;color:var(--text);background:#222936;border:1px solid #3b4656;border-radius:9px;padding:10px 12px}select{width:min(100%,360px)}button{cursor:pointer}.primary{background:#1a4b7d;border-color:#438fd6}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{padding:12px;border:1px solid var(--line);border-radius:10px;background:#10141b;color:var(--muted);font-size:12px}.metric b{display:block;color:var(--text);font-size:22px;margin-bottom:2px}#status{margin-top:12px;min-height:20px;color:var(--muted);font-size:13px}.ok{color:var(--ok)!important}.error{color:var(--bad)!important}.rule{padding:11px;border-left:3px solid var(--ok);background:#101a18;color:#ccebdd;font-size:13px;line-height:1.45}.hidden{display:none}@media(max-width:620px){body{padding:12px}.summary{grid-template-columns:1fr}.choice{width:100%}.actions button{width:100%}}
+</style>
+</head>
+<body><main>
+<h1>TransitCore prosjektveiviser</h1>
+<p class="sub">Lag et automatisk førsteutkast til en fysisk kollektivtavle. Etterpå kan du flytte stasjoner og endre LED-numre manuelt i tavleredigereren.</p>
+<div class="steps">
+  <section class="card"><h2>1. Område og transport</h2><select disabled><option>Oslo · T-bane</option></select></section>
+  <section class="card"><h2>2. Velg linjer</h2><div id="lines" class="choices"></div></section>
+  <section class="card"><h2>3. Velg retningsvisning</h2><div class="choices">
+    <label class="choice"><input type="radio" name="mode" value="both" checked>Begge retninger · felles stasjoner</label>
+    <label class="choice"><input type="radio" name="mode" value="a">Bare retning A</label>
+    <label class="choice"><input type="radio" name="mode" value="b">Bare retning B</label>
+  </div></section>
+  <section class="card"><div class="rule"><b>Regel for begge retninger:</b> En stasjon som finnes i begge retninger blir alltid slått sammen til ett LED-punkt. Veiviseren lager aldri to kopier av en felles stasjon.</div></section>
+  <section class="card"><h2>4. Kontroller utkastet</h2><div class="summary"><div class="metric"><b id="stations">–</b>LED-punkter</div><div class="metric"><b id="shared">–</b>felles stasjoner slått sammen</div><div class="metric"><b id="unique">–</b>stasjoner i bare én retning</div></div><div id="status">Laster rutedata…</div><div class="actions"><button id="editor" class="primary">Åpne i tavleredigereren</button><button id="download">Last ned tavleutkast</button></div></section>
+</div>
+</main><script>
+"use strict";
+const $=id=>document.getElementById(id),BASE="../../config/",STORE="transitcore-wizard-board-v1";
+const ROUTES=[1,2,3,4,5].map(line=>({line,id:`rut-metro-${line}-live`}));
+let boards={},draft=null;
+async function json(path){const response=await fetch(path,{cache:"no-store"});if(!response.ok)throw Error(`${path}: HTTP ${response.status}`);return response.json()}
+const union=(a=[],b=[])=>[...new Set([...a,...b])].sort();
+function mergeDirectionDetails(a={},b={}){return {directionIds:union(a.directionIds,b.directionIds),headsigns:union(a.headsigns,b.headsigns),destinationMatches:union(a.destinationMatches,b.destinationMatches)}}
+function mergeNode(target,node,routes){target.name=target.name||node.name;target.stopIds=union(target.stopIds,node.stopIds);target.routes=union(target.routes,node.routes.filter(route=>routes.has(route)));target.routeDirections=target.routeDirections||{};for(const [route,details] of Object.entries(node.routeDirections||{})){if(!routes.has(route))continue;target.routeDirections[route]=mergeDirectionDetails(target.routeDirections[route],details)}return target}
+function selectedRoutes(){return new Set([...document.querySelectorAll('#lines input:checked')].map(input=>input.value))}
+function selectedMode(){return document.querySelector('input[name="mode"]:checked').value}
+function relevant(node,routes){return node.routes.some(route=>routes.has(route))}
+function build(){
+  const routes=selectedRoutes(),mode=selectedMode();
+  if(!routes.size){draft=null;showError("Velg minst én linje.");return}
+  const aNodes=boards.a.nodes.filter(node=>relevant(node,routes)),bNodes=boards.b.nodes.filter(node=>relevant(node,routes));
+  const aIds=new Set(aNodes.map(node=>node.id)),bIds=new Set(bNodes.map(node=>node.id));
+  const sources=mode==="a"?aNodes:mode==="b"?bNodes:[...aNodes,...bNodes],merged=new Map();
+  for(const node of sources){if(!merged.has(node.id))merged.set(node.id,{id:node.id,name:node.name,stopIds:[],routes:[],routeDirections:{}});mergeNode(merged.get(node.id),node,routes)}
+  const nodes=[...merged.values()].filter(node=>node.routes.length).sort((a,b)=>a.name.localeCompare(b.name,"no")).map((node,led)=>({...node,led}));
+  const shared=[...aIds].filter(id=>bIds.has(id)).length,onlyOne=new Set([...aIds,...bIds]).size-shared;
+  draft={schemaVersion:1,id:`oslo-metro-wizard-${mode}`,name:`Oslo T-bane · ${mode==="both"?"begge retninger / felles LED":`retning ${mode.toUpperCase()}`}`,layout:"station-network",generatedByWizard:true,directionMode:mode,routes:[...routes].sort(),leds:{count:nodes.length,dataPin:null,brightnessLimit:32},nodes,render:{collisionMode:"alternate",routePriority:[],arrivalHoldSeconds:45,freshnessSeconds:120},status:"wizard-draft-hardware-order-pending"};
+  const duplicates=nodes.length-new Set(nodes.map(node=>node.id)).size;
+  if(duplicates)throw Error("Intern feil: en felles stasjon ble duplisert");
+  $("stations").textContent=nodes.length;$("shared").textContent=mode==="both"?shared:0;$("unique").textContent=mode==="both"?onlyOne:nodes.length;$("status").className="ok";$("status").textContent=`Utkast klart · linje ${[...routes].map(id=>id.match(/\d+/g).at(-1)).join(", ")} · ${nodes.length} LED-punkter.`;
+}
+function showError(message){$("stations").textContent=$("shared").textContent=$("unique").textContent="–";$("status").className="error";$("status").textContent=message}
+function download(){if(!draft)return;const blob=new Blob([JSON.stringify(draft,null,2)+"\n"],{type:"application/json"}),link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download=`${draft.id}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000)}
+async function init(){try{$("lines").innerHTML=ROUTES.map(route=>`<label class="choice"><input type="checkbox" value="${route.id}" checked>Linje ${route.line}</label>`).join("");[boards.a,boards.b]=await Promise.all([json(`${BASE}boards/oslo-metro-board-direction-a.json`),json(`${BASE}boards/oslo-metro-board-direction-b.json`)]);document.querySelectorAll("input").forEach(input=>input.onchange=build);build()}catch(error){console.error(error);showError(`Oppstartsfeil: ${error.message}`)}}
+$("editor").onclick=()=>{if(!draft)return;localStorage.setItem(STORE,JSON.stringify(draft));location.href="../editor/?wizard=1"};$("download").onclick=download;init();
+</script></body></html>
