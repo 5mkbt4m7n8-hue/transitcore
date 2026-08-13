@@ -1,7 +1,8 @@
 const REPOSITORY = "https://raw.githubusercontent.com/5mkbt4m7n8-hue/transitcore/main";
 const BOARD_IDS = new Set([
   "trondheim-bus-board", "oslo-metro-board", "oslo-metro-board-direction-a",
-  "oslo-metro-board-direction-b", "grakallbanen-board"
+  "oslo-metro-board-direction-b", "oslo-metro-wizard-separate",
+  "grakallbanen-board"
 ]);
 const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
