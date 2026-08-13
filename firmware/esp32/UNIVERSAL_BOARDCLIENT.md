@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_0_3.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_0_4.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -33,5 +33,10 @@ Version 1.0.3 adds a local five-minute health report with uptime, Wi-Fi outages
 and recoveries, successful and failed feed polls, frame freshness, current free
 heap and minimum observed free heap. It sends no telemetry and does not change
 network recovery, feed validation, TTL handling or LED rendering.
+
+Version 1.0.4 sends the same health summary to the authenticated Worker status
+endpoint every five minutes. Add `TRANSITCORE_STATUS_TOKEN` to `secrets.h` and
+configure the matching encrypted Worker secret `STATUS_INGEST_TOKEN`. No Wi-Fi
+credentials, vehicle data or LED frame contents are included in telemetry.
 
 
