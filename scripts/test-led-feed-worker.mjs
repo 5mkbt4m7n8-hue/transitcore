@@ -17,19 +17,25 @@ assert.equal(frame.boardProfile, "trondheim-bus-board");
 assert.equal(frame.ledCount, 2);
 assert.equal(frame.ttlSeconds, 30);
 assert.deepEqual(frame.leds, [{ id: 1, rgb: [0, 255, 80], brightness: 20, state: "AT_STOP" }]);
+const unknownDirectionFrame = buildFrame({
+  board, profiles, hardware,
+  vehicles: [{ ...vehicles[0], destinationName: "Ukjent endeholdeplass", location: { latitude: 63.4310, longitude: 10.3951 } }],
+  now
+});
+assert.deepEqual(unknownDirectionFrame.leds, [], "Unknown destinations must not activate the opposite track");
 assert.throws(() => validateConfiguration(board, profiles, { ...hardware, assignments: [{ logicalLed: 10, physicalLed: 0 }, { logicalLed: 11, physicalLed: 0 }] }), /Invalid physical LED/);
 console.log("LED feed worker tests OK");
 
 const reversedCanonicalProfile = { id: "metro-3", directions: [
   { reverseShape: false, destinationMatches: ["Mortensrud"] },
-  { reverseShape: true, destinationMatches: ["Kolsås"] }
+  { reverseShape: true, destinationMatches: ["KolsÃ¥s"] }
 ] };
 const gtfsDirectionOneNode = { routeDirections: { "metro-3": {
-  directionIds: ["1"], destinationMatches: ["Mortensrud", "Ryen", "Tøyen"]
+  directionIds: ["1"], destinationMatches: ["Mortensrud", "Ryen", "TÃ¸yen"]
 } } };
 assert.equal(matchesDirection(gtfsDirectionOneNode, reversedCanonicalProfile, "Mortensrud"), true);
 assert.equal(matchesDirection(gtfsDirectionOneNode, reversedCanonicalProfile, "Ryen"), true);
-assert.equal(matchesDirection(gtfsDirectionOneNode, reversedCanonicalProfile, "Kolsås"), false);
+assert.equal(matchesDirection(gtfsDirectionOneNode, reversedCanonicalProfile, "KolsÃ¥s"), false);
 console.log("GTFS quay direction matching tests OK");
 
 const tramProfile = { id: "tram-9", provider: {}, line: { publicCode: "9", color: "#ffffff" }, directions: [
@@ -46,6 +52,7 @@ const tramHardware = { schemaVersion: 1, boardProfile: "grakallbanen-board", led
 const tramVehicles = [{ vehicleId: "tram-1", lastUpdated: new Date(now - 5000).toISOString(), destinationName: "Lian", line: { publicCode: "9" }, location: { latitude: 63.40, longitude: 10.3075 } }];
 const tramFrame = buildLinearRouteFrame({ board: tramBoard, profiles: [tramProfile], hardware: tramHardware, vehicles: tramVehicles, now });
 assert.deepEqual(tramFrame.leds, [{ id: 2, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING" }]);
-console.log("GrÃ¥kallbanen linear VLED worker test OK");
+console.log("GrÃƒÂ¥kallbanen linear VLED worker test OK");
+
 
 
