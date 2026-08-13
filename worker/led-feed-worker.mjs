@@ -376,6 +376,13 @@ export default {
     }
     if (url.pathname === "/v1/status" && request.method === "GET") {
       const deviceIds = ["trondheim-bus-board", "oslo-metro-board", "grakallbanen-board"];
+      if (!env.DEVICE_STATUS) {
+        return statusJson({
+          generatedAt: new Date().toISOString(),
+          devices: deviceIds.map(deviceId => ({ deviceId, latest: null })),
+          statusStorage: "disabled_in_preview"
+        });
+      }
       const devices = await Promise.all(deviceIds.map(async deviceId => {
         const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(deviceId));
         const stored = await stub.fetch("https://status.internal/").then(response => response.json());
@@ -387,6 +394,7 @@ export default {
     if (statusMatch) {
       const deviceId = statusMatch[1];
       if (!BOARD_IDS.has(deviceId)) return statusJson({ error: "not_found" }, 404);
+      if (!env.DEVICE_STATUS) return statusJson({ error: "status_storage_unavailable" }, 503);
       const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(deviceId));
       if (request.method === "GET") return stub.fetch("https://status.internal/");
       if (request.method !== "POST") return statusJson({ error: "method_not_allowed" }, 405);
@@ -425,5 +433,4 @@ export default {
     }
   }
 };
-
 
