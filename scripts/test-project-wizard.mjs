@@ -29,6 +29,13 @@ function merge(routes) {
   return merged;
 }
 
+function separate(routes) {
+  return [
+    ...a.nodes.filter(node => node.routes.some(route => routes.has(route))).map(node => ({ ...node, id: `${node.id}-direction-a`, stationId: node.id, directionSide: "A" })),
+    ...b.nodes.filter(node => node.routes.some(route => routes.has(route))).map(node => ({ ...node, id: `${node.id}-direction-b`, stationId: node.id, directionSide: "B" })),
+  ];
+}
+
 const allRoutes = a.routes;
 for (let mask = 1; mask < 1 << allRoutes.length; mask++) {
   const routes = new Set(allRoutes.filter((_, index) => mask & (1 << index)));
@@ -37,6 +44,13 @@ for (let mask = 1; mask < 1 << allRoutes.length; mask++) {
   const bIds = new Set(b.nodes.filter(node => node.routes.some(route => routes.has(route))).map(node => node.id));
   assert.equal(merged.size, new Set([...aIds, ...bIds]).size);
   assert.equal([...merged.keys()].length, new Set(merged.keys()).size);
+  const separateNodes = separate(routes);
+  assert.equal(separateNodes.length, aIds.size + bIds.size);
+  assert.equal(new Set(separateNodes.map(node => node.id)).size, separateNodes.length);
+  for (const id of [...aIds].filter(value => bIds.has(value))) {
+    assert(separateNodes.some(node => node.id === `${id}-direction-a`));
+    assert(separateNodes.some(node => node.id === `${id}-direction-b`));
+  }
 }
 
 const routes = new Set(allRoutes), merged = merge(routes);
@@ -55,4 +69,4 @@ for (const id of common) {
   for (const direction of sourceDirections) assert(mergedDirections.includes(direction), `${id} lost direction ${direction}`);
 }
 
-console.log(`Project wizard merge OK: ${common.length} common stations share one LED point; ${merged.size} unique stations total.`);
+console.log(`Project wizard layouts OK: ${common.length} common stations become one shared LED or two directional LEDs; ${merged.size}/${separate(routes).length} points.`);

@@ -13,13 +13,12 @@
 <div class="steps">
   <section class="card"><h2>1. Område og transport</h2><select disabled><option>Oslo · T-bane</option></select></section>
   <section class="card"><h2>2. Velg linjer</h2><div id="lines" class="choices"></div></section>
-  <section class="card"><h2>3. Velg retningsvisning</h2><div class="choices">
-    <label class="choice"><input type="radio" name="mode" value="both" checked>Begge retninger · felles stasjoner</label>
-    <label class="choice"><input type="radio" name="mode" value="a">Bare retning A</label>
-    <label class="choice"><input type="radio" name="mode" value="b">Bare retning B</label>
+  <section class="card"><h2>3. Velg hvordan begge retninger skal vises</h2><div class="choices">
+    <label class="choice"><input type="radio" name="mode" value="shared" checked>Én felles LED per stasjon</label>
+    <label class="choice"><input type="radio" name="mode" value="separate">To LED-er · én for hver retning</label>
   </div></section>
-  <section class="card"><div class="rule"><b>Regel for begge retninger:</b> En stasjon som finnes i begge retninger blir alltid slått sammen til ett LED-punkt. Veiviseren lager aldri to kopier av en felles stasjon.</div></section>
-  <section class="card"><h2>4. Kontroller utkastet</h2><div class="summary"><div class="metric"><b id="stations">–</b>LED-punkter</div><div class="metric"><b id="shared">–</b>felles stasjoner slått sammen</div><div class="metric"><b id="unique">–</b>stasjoner i bare én retning</div></div><div id="status">Laster rutedata…</div><div class="actions"><button id="editor" class="primary">Åpne i tavleredigereren</button><button id="download">Last ned tavleutkast</button></div></section>
+  <section class="card"><div id="rule" class="rule"><b>Felles visning:</b> En stasjon som finnes i begge retninger får nøyaktig ett LED-punkt som lyser for tog i begge retninger.</div></section>
+  <section class="card"><h2>4. Kontroller utkastet</h2><div class="summary"><div class="metric"><b id="stations">–</b>LED-punkter</div><div class="metric"><b id="shared">–</b>stasjoner med begge retninger</div><div class="metric"><b id="unique">–</b>stasjoner i bare én retning</div></div><div id="status">Laster rutedata…</div><div class="actions"><button id="editor" class="primary">Åpne i tavleredigereren</button><button id="download">Last ned tavleutkast</button></div></section>
 </div>
 </main><script>
 "use strict";
@@ -33,19 +32,24 @@ function mergeNode(target,node,routes){target.name=target.name||node.name;target
 function selectedRoutes(){return new Set([...document.querySelectorAll('#lines input:checked')].map(input=>input.value))}
 function selectedMode(){return document.querySelector('input[name="mode"]:checked').value}
 function relevant(node,routes){return node.routes.some(route=>routes.has(route))}
+function directionalNode(node,side,routes){const routeDirections={};for(const [route,details] of Object.entries(node.routeDirections||{}))if(routes.has(route))routeDirections[route]=details;return {...node,id:`${node.id}-direction-${side}`,stationId:node.id,directionSide:side.toUpperCase(),routes:node.routes.filter(route=>routes.has(route)),routeDirections}}
 function build(){
   const routes=selectedRoutes(),mode=selectedMode();
   if(!routes.size){draft=null;showError("Velg minst én linje.");return}
   const aNodes=boards.a.nodes.filter(node=>relevant(node,routes)),bNodes=boards.b.nodes.filter(node=>relevant(node,routes));
   const aIds=new Set(aNodes.map(node=>node.id)),bIds=new Set(bNodes.map(node=>node.id));
-  const sources=mode==="a"?aNodes:mode==="b"?bNodes:[...aNodes,...bNodes],merged=new Map();
-  for(const node of sources){if(!merged.has(node.id))merged.set(node.id,{id:node.id,name:node.name,stopIds:[],routes:[],routeDirections:{}});mergeNode(merged.get(node.id),node,routes)}
-  const nodes=[...merged.values()].filter(node=>node.routes.length).sort((a,b)=>a.name.localeCompare(b.name,"no")).map((node,led)=>({...node,led}));
+  let nodes;
+  if(mode==="shared"){
+    const merged=new Map();for(const node of [...aNodes,...bNodes]){if(!merged.has(node.id))merged.set(node.id,{id:node.id,stationId:node.id,name:node.name,stopIds:[],routes:[],routeDirections:{}});mergeNode(merged.get(node.id),node,routes)}
+    nodes=[...merged.values()].filter(node=>node.routes.length).sort((a,b)=>a.name.localeCompare(b.name,"no")).map((node,led)=>({...node,led}));
+  }else{
+    nodes=[...aNodes.map(node=>directionalNode(node,"a",routes)),...bNodes.map(node=>directionalNode(node,"b",routes))].filter(node=>node.routes.length).sort((a,b)=>a.name.localeCompare(b.name,"no")||a.directionSide.localeCompare(b.directionSide)).map((node,led)=>({...node,led}));
+  }
   const shared=[...aIds].filter(id=>bIds.has(id)).length,onlyOne=new Set([...aIds,...bIds]).size-shared;
-  draft={schemaVersion:1,id:`oslo-metro-wizard-${mode}`,name:`Oslo T-bane · ${mode==="both"?"begge retninger / felles LED":`retning ${mode.toUpperCase()}`}`,layout:"station-network",generatedByWizard:true,directionMode:mode,routes:[...routes].sort(),leds:{count:nodes.length,dataPin:null,brightnessLimit:32},nodes,render:{collisionMode:"alternate",routePriority:[],arrivalHoldSeconds:45,freshnessSeconds:120},status:"wizard-draft-hardware-order-pending"};
+  draft={schemaVersion:1,id:`oslo-metro-wizard-${mode}`,name:`Oslo T-bane · begge retninger / ${mode==="shared"?"felles LED":"separate LED-er"}`,layout:"station-network",generatedByWizard:true,directionMode:mode,routes:[...routes].sort(),leds:{count:nodes.length,dataPin:null,brightnessLimit:32},nodes,render:{collisionMode:"alternate",routePriority:[],arrivalHoldSeconds:45,freshnessSeconds:120},status:"wizard-draft-hardware-order-pending"};
   const duplicates=nodes.length-new Set(nodes.map(node=>node.id)).size;
   if(duplicates)throw Error("Intern feil: en felles stasjon ble duplisert");
-  $("stations").textContent=nodes.length;$("shared").textContent=mode==="both"?shared:0;$("unique").textContent=mode==="both"?onlyOne:nodes.length;$("status").className="ok";$("status").textContent=`Utkast klart · linje ${[...routes].map(id=>id.match(/\d+/g).at(-1)).join(", ")} · ${nodes.length} LED-punkter.`;
+  $("stations").textContent=nodes.length;$("shared").textContent=shared;$("unique").textContent=onlyOne;$("rule").innerHTML=mode==="shared"?"<b>Felles visning:</b> En stasjon som finnes i begge retninger får nøyaktig ett LED-punkt som lyser for tog i begge retninger.":"<b>Separat visning:</b> En stasjon som finnes i begge retninger får to LED-punkter, merket retning A og retning B. Stasjoner som bare finnes i én retning får ett punkt.";$("status").className="ok";$("status").textContent=`Utkast klart · linje ${[...routes].map(id=>id.match(/\d+/g).at(-1)).join(", ")} · ${nodes.length} LED-punkter.`;
 }
 function showError(message){$("stations").textContent=$("shared").textContent=$("unique").textContent="–";$("status").className="error";$("status").textContent=message}
 function download(){if(!draft)return;const blob=new Blob([JSON.stringify(draft,null,2)+"\n"],{type:"application/json"}),link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download=`${draft.id}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000)}
