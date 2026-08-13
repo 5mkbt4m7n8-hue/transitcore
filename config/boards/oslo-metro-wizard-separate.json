@@ -1,0 +1,2084 @@
+{
+  "schemaVersion": 1,
+  "id": "oslo-metro-wizard-separate",
+  "name": "Oslo T-bane · begge retninger / separate LED-er",
+  "layout": "station-network",
+  "generatedByWizard": true,
+  "directionMode": "separate",
+  "routes": [
+    "rut-metro-1-live"
+  ],
+  "leds": {
+    "count": 69,
+    "dataPin": null,
+    "brightnessLimit": 32
+  },
+  "nodes": [
+    {
+      "id": "bergkrystallen-direction-a",
+      "name": "Bergkrystallen",
+      "led": 0,
+      "stopIds": [
+        "NSR:Quay:10681",
+        "NSR:Quay:10682"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "bergkrystallen",
+      "directionSide": "A"
+    },
+    {
+      "id": "bergkrystallen-direction-b",
+      "name": "Bergkrystallen",
+      "led": 1,
+      "stopIds": [
+        "NSR:Quay:10681",
+        "NSR:Quay:10682"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen"
+          ]
+        }
+      },
+      "stationId": "bergkrystallen",
+      "directionSide": "B"
+    },
+    {
+      "id": "besserud-direction-a",
+      "name": "Besserud",
+      "led": 2,
+      "stopIds": [
+        "NSR:Quay:11593"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "besserud",
+      "directionSide": "A"
+    },
+    {
+      "id": "besserud-direction-b",
+      "name": "Besserud",
+      "led": 3,
+      "stopIds": [
+        "NSR:Quay:11594"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "besserud",
+      "directionSide": "B"
+    },
+    {
+      "id": "brattlikollen-direction-a",
+      "name": "Brattlikollen",
+      "led": 4,
+      "stopIds": [
+        "NSR:Quay:12292"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "brattlikollen",
+      "directionSide": "A"
+    },
+    {
+      "id": "brattlikollen-direction-b",
+      "name": "Brattlikollen",
+      "led": 5,
+      "stopIds": [
+        "NSR:Quay:12293"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen"
+          ]
+        }
+      },
+      "stationId": "brattlikollen",
+      "directionSide": "B"
+    },
+    {
+      "id": "brynseng-direction-a",
+      "name": "Brynseng",
+      "led": 6,
+      "stopIds": [
+        "NSR:Quay:11176",
+        "NSR:Quay:11177"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "brynseng",
+      "directionSide": "A"
+    },
+    {
+      "id": "brynseng-direction-b",
+      "name": "Brynseng",
+      "led": 7,
+      "stopIds": [
+        "NSR:Quay:11178",
+        "NSR:Quay:11179"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Ryen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Ryen"
+          ]
+        }
+      },
+      "stationId": "brynseng",
+      "directionSide": "B"
+    },
+    {
+      "id": "ensjo-direction-a",
+      "name": "Ensjø",
+      "led": 8,
+      "stopIds": [
+        "NSR:Quay:11107"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "ensjo",
+      "directionSide": "A"
+    },
+    {
+      "id": "ensjo-direction-b",
+      "name": "Ensjø",
+      "led": 9,
+      "stopIds": [
+        "NSR:Quay:11106"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen"
+          ]
+        }
+      },
+      "stationId": "ensjo",
+      "directionSide": "B"
+    },
+    {
+      "id": "frognerseteren-direction-a",
+      "name": "Frognerseteren",
+      "led": 10,
+      "stopIds": [
+        "NSR:Quay:12151"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren"
+          ],
+          "destinationMatches": [
+            "Frognerseteren"
+          ]
+        }
+      },
+      "stationId": "frognerseteren",
+      "directionSide": "A"
+    },
+    {
+      "id": "frognerseteren-direction-b",
+      "name": "Frognerseteren",
+      "led": 11,
+      "stopIds": [
+        "NSR:Quay:12150"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "frognerseteren",
+      "directionSide": "B"
+    },
+    {
+      "id": "froen-direction-a",
+      "name": "Frøen",
+      "led": 12,
+      "stopIds": [
+        "NSR:Quay:11441"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "froen",
+      "directionSide": "A"
+    },
+    {
+      "id": "froen-direction-b",
+      "name": "Frøen",
+      "led": 13,
+      "stopIds": [
+        "NSR:Quay:11439",
+        "NSR:Quay:11441"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "froen",
+      "directionSide": "B"
+    },
+    {
+      "id": "gaustad-direction-a",
+      "name": "Gaustad",
+      "led": 14,
+      "stopIds": [
+        "NSR:Quay:11479"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "gaustad",
+      "directionSide": "A"
+    },
+    {
+      "id": "gaustad-direction-b",
+      "name": "Gaustad",
+      "led": 15,
+      "stopIds": [
+        "NSR:Quay:11478"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "gaustad",
+      "directionSide": "B"
+    },
+    {
+      "id": "gronland-direction-a",
+      "name": "Grønland",
+      "led": 16,
+      "stopIds": [
+        "NSR:Quay:11929"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "gronland",
+      "directionSide": "A"
+    },
+    {
+      "id": "gronland-direction-b",
+      "name": "Grønland",
+      "led": 17,
+      "stopIds": [
+        "NSR:Quay:11928"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "gronland",
+      "directionSide": "B"
+    },
+    {
+      "id": "grakammen-direction-a",
+      "name": "Gråkammen",
+      "led": 18,
+      "stopIds": [
+        "NSR:Quay:11553"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "grakammen",
+      "directionSide": "A"
+    },
+    {
+      "id": "grakammen-direction-b",
+      "name": "Gråkammen",
+      "led": 19,
+      "stopIds": [
+        "NSR:Quay:11552"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "grakammen",
+      "directionSide": "B"
+    },
+    {
+      "id": "gullerasen-direction-a",
+      "name": "Gulleråsen",
+      "led": 20,
+      "stopIds": [
+        "NSR:Quay:11561"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "gullerasen",
+      "directionSide": "A"
+    },
+    {
+      "id": "helsfyr-direction-a",
+      "name": "Helsfyr",
+      "led": 21,
+      "stopIds": [
+        "NSR:Quay:11135"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "helsfyr",
+      "directionSide": "A"
+    },
+    {
+      "id": "helsfyr-direction-b",
+      "name": "Helsfyr",
+      "led": 22,
+      "stopIds": [
+        "NSR:Quay:11134"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen"
+          ]
+        }
+      },
+      "stationId": "helsfyr",
+      "directionSide": "B"
+    },
+    {
+      "id": "holmenkollen-direction-a",
+      "name": "Holmenkollen",
+      "led": 23,
+      "stopIds": [
+        "NSR:Quay:11606"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "holmenkollen",
+      "directionSide": "A"
+    },
+    {
+      "id": "holmenkollen-direction-b",
+      "name": "Holmenkollen",
+      "led": 24,
+      "stopIds": [
+        "NSR:Quay:11605"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "holmenkollen",
+      "directionSide": "B"
+    },
+    {
+      "id": "hoyenhall-direction-a",
+      "name": "Høyenhall",
+      "led": 25,
+      "stopIds": [
+        "NSR:Quay:10883"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "hoyenhall",
+      "directionSide": "A"
+    },
+    {
+      "id": "hoyenhall-direction-b",
+      "name": "Høyenhall",
+      "led": 26,
+      "stopIds": [
+        "NSR:Quay:10882"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Ryen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Ryen"
+          ]
+        }
+      },
+      "stationId": "hoyenhall",
+      "directionSide": "B"
+    },
+    {
+      "id": "jernbanetorget-direction-a",
+      "name": "Jernbanetorget",
+      "led": 27,
+      "stopIds": [
+        "NSR:Quay:7184"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "jernbanetorget",
+      "directionSide": "A"
+    },
+    {
+      "id": "jernbanetorget-direction-b",
+      "name": "Jernbanetorget",
+      "led": 28,
+      "stopIds": [
+        "NSR:Quay:7183"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "jernbanetorget",
+      "directionSide": "B"
+    },
+    {
+      "id": "karlsrud-direction-a",
+      "name": "Karlsrud",
+      "led": 29,
+      "stopIds": [
+        "NSR:Quay:12286"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "karlsrud",
+      "directionSide": "A"
+    },
+    {
+      "id": "karlsrud-direction-b",
+      "name": "Karlsrud",
+      "led": 30,
+      "stopIds": [
+        "NSR:Quay:12285"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen"
+          ]
+        }
+      },
+      "stationId": "karlsrud",
+      "directionSide": "B"
+    },
+    {
+      "id": "lambertseter-direction-a",
+      "name": "Lambertseter",
+      "led": 31,
+      "stopIds": [
+        "NSR:Quay:10630"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "lambertseter",
+      "directionSide": "A"
+    },
+    {
+      "id": "lambertseter-direction-b",
+      "name": "Lambertseter",
+      "led": 32,
+      "stopIds": [
+        "NSR:Quay:10629"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen"
+          ]
+        }
+      },
+      "stationId": "lambertseter",
+      "directionSide": "B"
+    },
+    {
+      "id": "lillevann-direction-a",
+      "name": "Lillevann",
+      "led": 33,
+      "stopIds": [
+        "NSR:Quay:11617"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren"
+          ],
+          "destinationMatches": [
+            "Frognerseteren"
+          ]
+        }
+      },
+      "stationId": "lillevann",
+      "directionSide": "A"
+    },
+    {
+      "id": "lillevann-direction-b",
+      "name": "Lillevann",
+      "led": 34,
+      "stopIds": [
+        "NSR:Quay:11619"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "lillevann",
+      "directionSide": "B"
+    },
+    {
+      "id": "majorstuen-direction-a",
+      "name": "Majorstuen",
+      "led": 35,
+      "stopIds": [
+        "NSR:Quay:8028"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "majorstuen",
+      "directionSide": "A"
+    },
+    {
+      "id": "majorstuen-direction-b",
+      "name": "Majorstuen",
+      "led": 36,
+      "stopIds": [
+        "NSR:Quay:8027"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "majorstuen",
+      "directionSide": "B"
+    },
+    {
+      "id": "manglerud-direction-a",
+      "name": "Manglerud",
+      "led": 37,
+      "stopIds": [
+        "NSR:Quay:10851"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "manglerud",
+      "directionSide": "A"
+    },
+    {
+      "id": "manglerud-direction-b",
+      "name": "Manglerud",
+      "led": 38,
+      "stopIds": [
+        "NSR:Quay:10850",
+        "NSR:Quay:10851"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Ryen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Ryen"
+          ]
+        }
+      },
+      "stationId": "manglerud",
+      "directionSide": "B"
+    },
+    {
+      "id": "midtstuen-direction-a",
+      "name": "Midtstuen",
+      "led": 39,
+      "stopIds": [
+        "NSR:Quay:11576"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "midtstuen",
+      "directionSide": "A"
+    },
+    {
+      "id": "midtstuen-direction-b",
+      "name": "Midtstuen",
+      "led": 40,
+      "stopIds": [
+        "NSR:Quay:11577"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "midtstuen",
+      "directionSide": "B"
+    },
+    {
+      "id": "munkelia-direction-a",
+      "name": "Munkelia",
+      "led": 41,
+      "stopIds": [
+        "NSR:Quay:10667"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "munkelia",
+      "directionSide": "A"
+    },
+    {
+      "id": "munkelia-direction-b",
+      "name": "Munkelia",
+      "led": 42,
+      "stopIds": [
+        "NSR:Quay:10666"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen"
+          ]
+        }
+      },
+      "stationId": "munkelia",
+      "directionSide": "B"
+    },
+    {
+      "id": "nationaltheatret-direction-a",
+      "name": "Nationaltheatret",
+      "led": 43,
+      "stopIds": [
+        "NSR:Quay:7334"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "nationaltheatret",
+      "directionSide": "A"
+    },
+    {
+      "id": "nationaltheatret-direction-b",
+      "name": "Nationaltheatret",
+      "led": 44,
+      "stopIds": [
+        "NSR:Quay:7333"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "nationaltheatret",
+      "directionSide": "B"
+    },
+    {
+      "id": "ris-direction-a",
+      "name": "Ris",
+      "led": 45,
+      "stopIds": [
+        "NSR:Quay:11506"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "ris",
+      "directionSide": "A"
+    },
+    {
+      "id": "ris-direction-b",
+      "name": "Ris",
+      "led": 46,
+      "stopIds": [
+        "NSR:Quay:11505"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "ris",
+      "directionSide": "B"
+    },
+    {
+      "id": "ryen-direction-a",
+      "name": "Ryen",
+      "led": 47,
+      "stopIds": [
+        "NSR:Quay:10818",
+        "NSR:Quay:10819"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "ryen",
+      "directionSide": "A"
+    },
+    {
+      "id": "ryen-direction-b",
+      "name": "Ryen",
+      "led": 48,
+      "stopIds": [
+        "NSR:Quay:10818",
+        "NSR:Quay:10819"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Ryen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Ryen"
+          ]
+        }
+      },
+      "stationId": "ryen",
+      "directionSide": "B"
+    },
+    {
+      "id": "skogen-direction-a",
+      "name": "Skogen",
+      "led": 49,
+      "stopIds": [
+        "NSR:Quay:11612"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "skogen",
+      "directionSide": "A"
+    },
+    {
+      "id": "skogen-direction-b",
+      "name": "Skogen",
+      "led": 50,
+      "stopIds": [
+        "NSR:Quay:11611"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "skogen",
+      "directionSide": "B"
+    },
+    {
+      "id": "skadalen-direction-a",
+      "name": "Skådalen",
+      "led": 51,
+      "stopIds": [
+        "NSR:Quay:11570"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "skadalen",
+      "directionSide": "A"
+    },
+    {
+      "id": "skadalen-direction-b",
+      "name": "Skådalen",
+      "led": 52,
+      "stopIds": [
+        "NSR:Quay:11571"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "skadalen",
+      "directionSide": "B"
+    },
+    {
+      "id": "slemdal-direction-a",
+      "name": "Slemdal",
+      "led": 53,
+      "stopIds": [
+        "NSR:Quay:11517"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "slemdal",
+      "directionSide": "A"
+    },
+    {
+      "id": "slemdal-direction-b",
+      "name": "Slemdal",
+      "led": 54,
+      "stopIds": [
+        "NSR:Quay:11518"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "slemdal",
+      "directionSide": "B"
+    },
+    {
+      "id": "steinerud-direction-a",
+      "name": "Steinerud",
+      "led": 55,
+      "stopIds": [
+        "NSR:Quay:11447"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "steinerud",
+      "directionSide": "A"
+    },
+    {
+      "id": "steinerud-direction-b",
+      "name": "Steinerud",
+      "led": 56,
+      "stopIds": [
+        "NSR:Quay:11449"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "steinerud",
+      "directionSide": "B"
+    },
+    {
+      "id": "stortinget-direction-a",
+      "name": "Stortinget",
+      "led": 57,
+      "stopIds": [
+        "NSR:Quay:7255",
+        "NSR:Quay:7256",
+        "NSR:Quay:7258"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "stortinget",
+      "directionSide": "A"
+    },
+    {
+      "id": "stortinget-direction-b",
+      "name": "Stortinget",
+      "led": 58,
+      "stopIds": [
+        "NSR:Quay:7255",
+        "NSR:Quay:7256",
+        "NSR:Quay:7257"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "stortinget",
+      "directionSide": "B"
+    },
+    {
+      "id": "toyen-direction-a",
+      "name": "Tøyen",
+      "led": 59,
+      "stopIds": [
+        "NSR:Quay:11895",
+        "NSR:Quay:11898"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "toyen",
+      "directionSide": "A"
+    },
+    {
+      "id": "toyen-direction-b",
+      "name": "Tøyen",
+      "led": 60,
+      "stopIds": [
+        "NSR:Quay:11897"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "toyen",
+      "directionSide": "B"
+    },
+    {
+      "id": "vettakollen-direction-a",
+      "name": "Vettakollen",
+      "led": 61,
+      "stopIds": [
+        "NSR:Quay:11569"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "vettakollen",
+      "directionSide": "A"
+    },
+    {
+      "id": "vettakollen-direction-b",
+      "name": "Vettakollen",
+      "led": 62,
+      "stopIds": [
+        "NSR:Quay:11567"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "vettakollen",
+      "directionSide": "B"
+    },
+    {
+      "id": "vinderen-direction-a",
+      "name": "Vinderen",
+      "led": 63,
+      "stopIds": [
+        "NSR:Quay:11461"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "vinderen",
+      "directionSide": "A"
+    },
+    {
+      "id": "vinderen-direction-b",
+      "name": "Vinderen",
+      "led": 64,
+      "stopIds": [
+        "NSR:Quay:11460"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "vinderen",
+      "directionSide": "B"
+    },
+    {
+      "id": "voksenkollen-direction-a",
+      "name": "Voksenkollen",
+      "led": 65,
+      "stopIds": [
+        "NSR:Quay:11638"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren"
+          ],
+          "destinationMatches": [
+            "Frognerseteren"
+          ]
+        }
+      },
+      "stationId": "voksenkollen",
+      "directionSide": "A"
+    },
+    {
+      "id": "voksenkollen-direction-b",
+      "name": "Voksenkollen",
+      "led": 66,
+      "stopIds": [
+        "NSR:Quay:11637"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "voksenkollen",
+      "directionSide": "B"
+    },
+    {
+      "id": "voksenlia-direction-a",
+      "name": "Voksenlia",
+      "led": 67,
+      "stopIds": [
+        "NSR:Quay:11609"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Frognerseteren",
+            "Skogen"
+          ],
+          "destinationMatches": [
+            "Frognerseteren",
+            "Skogen"
+          ]
+        }
+      },
+      "stationId": "voksenlia",
+      "directionSide": "A"
+    },
+    {
+      "id": "voksenlia-direction-b",
+      "name": "Voksenlia",
+      "led": 68,
+      "stopIds": [
+        "NSR:Quay:11610"
+      ],
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "routeDirections": {
+        "rut-metro-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ],
+          "destinationMatches": [
+            "Bergkrystallen",
+            "Frøen",
+            "Helsfyr",
+            "Ryen",
+            "Tøyen"
+          ]
+        }
+      },
+      "stationId": "voksenlia",
+      "directionSide": "B"
+    }
+  ],
+  "render": {
+    "collisionMode": "alternate",
+    "routePriority": [],
+    "arrivalHoldSeconds": 45,
+    "freshnessSeconds": 120
+  },
+  "status": "wizard-draft-hardware-order-pending"
+}
