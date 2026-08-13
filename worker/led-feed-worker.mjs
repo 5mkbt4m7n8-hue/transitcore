@@ -1,8 +1,7 @@
 const REPOSITORY = "https://raw.githubusercontent.com/5mkbt4m7n8-hue/transitcore/main";
 const BOARD_IDS = new Set([
   "trondheim-bus-board", "oslo-metro-board", "oslo-metro-board-direction-a",
-  "oslo-metro-board-direction-b", "oslo-metro-wizard-separate",
-  "grakallbanen-board"
+  "oslo-metro-board-direction-b", "grakallbanen-board"
 ]);
 const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
@@ -78,6 +77,10 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
   for (const vehicle of dedupe.values()) {
     const routeNodes = board.nodes.filter(node => node.routes.includes(vehicle.profile.id));
     const directionNodes = routeNodes.filter(node => matchesDirection(node, vehicle.profile, vehicle.destination));
+    const hasDirectionMetadata = routeNodes.some(node => node.routeDirections?.[vehicle.profile.id]);
+    // A nearest-node fallback is unsafe on double-track boards: an unknown
+    // destination can otherwise activate the opposite direction's LED.
+    if (hasDirectionMetadata && !directionNodes.length) continue;
     const candidates = directionNodes.length ? directionNodes : routeNodes;
     let node, meters = Infinity;
     for (const candidate of candidates) {
@@ -340,4 +343,5 @@ export default {
     }
   }
 };
+
 
