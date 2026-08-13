@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_0_1.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_0_2.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -23,4 +23,10 @@ Version 1.0.1 keeps the polling, retry, TTL and LED behavior from 1.0.0. When an
 HTTP request fails, it additionally logs the HTTP error text, elapsed request
 time, Wi-Fi status/RSSI, local network configuration, a diagnostic DNS lookup
 and the latest TLS client error.
+
+Version 1.0.2 makes Wi-Fi recovery deterministic. The client owns reconnect
+timing, increases the delay between failed attempts, resets the Wi-Fi radio
+after repeated failures and restarts the ESP32 after ten continuous minutes
+offline. Feed validation, TTL handling and LED rendering are unchanged.
+
 
