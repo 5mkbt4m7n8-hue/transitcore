@@ -7,6 +7,60 @@ const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
 const configCache = new Map();
 
+const statusJson = (body, status = 200) => new Response(
+  JSON.stringify(body, null, 2) + "\n",
+  { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" } }
+);
+
+export class DeviceStatus {
+  constructor(state) {
+    this.state = state;
+  }
+
+  async fetch(request) {
+    if (request.method === "POST") {
+      const sample = await request.json();
+      const history = (await this.state.storage.get("history")) || [];
+      history.push(sample);
+      while (history.length > 288) history.shift();
+      await this.state.storage.put({ latest: sample, history });
+      return statusJson({ ok: true });
+    }
+    const latest = await this.state.storage.get("latest");
+    const history = await this.state.storage.get("history") || [];
+    return statusJson({ latest: latest || null, history });
+  }
+}
+
+export function cleanStatusPayload(value, deviceId, receivedAt) {
+  if (!value || value.schemaVersion !== 1 || value.boardProfile !== deviceId || value.firmware !== "1.0.4") {
+    throw Error("invalid status payload");
+  }
+  const number = (name, max = 0xffffffff) => {
+    const result = Number(value[name]);
+    if (!Number.isFinite(result) || result < 0 || result > max) throw Error(`invalid ${name}`);
+    return Math.floor(result);
+  };
+  return {
+    schemaVersion: 1,
+    deviceId,
+    boardProfile: deviceId,
+    firmware: "1.0.4",
+    receivedAt: new Date(receivedAt).toISOString(),
+    uptimeSeconds: number("uptimeSeconds"),
+    wifiOutages: number("wifiOutages"),
+    wifiRecoveries: number("wifiRecoveries"),
+    feedSuccesses: number("feedSuccesses"),
+    feedFailures: number("feedFailures"),
+    frameAgeSeconds: number("frameAgeSeconds"),
+    frameValid: Boolean(value.frameValid),
+    freeHeap: number("freeHeap", 1000000),
+    minimumFreeHeap: number("minimumFreeHeap", 1000000)
+  };
+}
+
+const statusPage = `<!doctype html><html lang="no"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TransitCore status</title><style>body{font:16px system-ui;background:#0b1220;color:#e5edf8;margin:0;padding:24px}.wrap{max-width:720px;margin:auto}h1{margin:0 0 6px}.sub{color:#9fb0c8;margin-bottom:22px}.card{background:#131d2e;border:1px solid #26344b;border-radius:16px;padding:18px;margin:12px 0}.row{display:flex;justify-content:space-between;gap:16px;margin:8px 0}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:8px}.ok{background:#22c55e}.warn{background:#f59e0b}.off{background:#ef4444}.muted{color:#9fb0c8}code{color:#cfe3ff}</style><div class="wrap"><h1>TransitCore status</h1><div class="sub">Oppdateres automatisk hvert 30. sekund</div><div id="cards">Lasterâ€¦</div></div><script>const names={'trondheim-bus-board':'Trondheim buss','oslo-metro-board':'Oslo T-bane','grakallbanen-board':'GrÃ¥kallbanen'};function esc(x){return String(x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}async function load(){const data=await fetch('/v1/status',{cache:'no-store'}).then(r=>r.json());cards.innerHTML=data.devices.map(d=>{if(!d.latest)return '<div class="card"><div><span class="dot off"></span>'+esc(names[d.deviceId]||d.deviceId)+'</div><p class="muted">Ingen status mottatt</p></div>';const s=d.latest,age=Math.max(0,Math.floor((Date.now()-Date.parse(s.receivedAt))/1000)),state=age<=420&&s.frameValid?'ok':age<=900?'warn':'off',label=state==='ok'?'Online':state==='warn'?'Varsel':'Frakoblet';return '<div class="card"><div><span class="dot '+state+'"></span><b>'+esc(names[d.deviceId]||d.deviceId)+'</b> Â· '+label+'</div><div class="row"><span>Sist sett</span><span>'+age+' s siden</span></div><div class="row"><span>Firmware</span><code>'+esc(s.firmware)+'</code></div><div class="row"><span>Oppetid</span><span>'+Math.floor(s.uptimeSeconds/60)+' min</span></div><div class="row"><span>Wiâ€‘Fi brudd / tilbake</span><span>'+s.wifiOutages+' / '+s.wifiRecoveries+'</span></div><div class="row"><span>Feed OK / feil</span><span>'+s.feedSuccesses+' / '+s.feedFailures+'</span></div><div class="row"><span>Heap / minimum</span><span>'+s.freeHeap+' / '+s.minimumFreeHeap+'</span></div></div>'}).join('')}load().catch(e=>cards.textContent='Status kunne ikke lastes: '+e.message);setInterval(load,30000)</script></html>`;
+
 const rad = value => value * Math.PI / 180;
 function distance(a, b) {
   const radius = 6371000;
@@ -315,8 +369,36 @@ const headers = { "content-type": "application/json; charset=utf-8", "cache-cont
 const response = (body, status = 200) => new Response(JSON.stringify(body, null, 2) + "\n", { status, headers });
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/status" && request.method === "GET") {
+      return new Response(statusPage, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+    }
+    if (url.pathname === "/v1/status" && request.method === "GET") {
+      const deviceIds = ["trondheim-bus-board", "oslo-metro-board", "grakallbanen-board"];
+      const devices = await Promise.all(deviceIds.map(async deviceId => {
+        const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(deviceId));
+        const stored = await stub.fetch("https://status.internal/").then(response => response.json());
+        return { deviceId, latest: stored.latest };
+      }));
+      return statusJson({ generatedAt: new Date().toISOString(), devices });
+    }
+    const statusMatch = url.pathname.match(/^\/v1\/devices\/([^/]+)\/status$/);
+    if (statusMatch) {
+      const deviceId = statusMatch[1];
+      if (!BOARD_IDS.has(deviceId)) return statusJson({ error: "not_found" }, 404);
+      const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(deviceId));
+      if (request.method === "GET") return stub.fetch("https://status.internal/");
+      if (request.method !== "POST") return statusJson({ error: "method_not_allowed" }, 405);
+      if (!env.STATUS_INGEST_TOKEN) return statusJson({ error: "status_not_configured" }, 503);
+      if (request.headers.get("authorization") !== `Bearer ${env.STATUS_INGEST_TOKEN}`) return statusJson({ error: "unauthorized" }, 401);
+      try {
+        const sample = cleanStatusPayload(await request.json(), deviceId, Date.now());
+        return stub.fetch("https://status.internal/", { method: "POST", body: JSON.stringify(sample) });
+      } catch (error) {
+        return statusJson({ error: "invalid_status", message: error.message }, 400);
+      }
+    }
     if (request.method !== "GET") return response({ error: "method_not_allowed" }, 405);
     if (url.pathname === "/" || url.pathname === "/health") return response({ service: "TransitCore LED feed", status: "ok", boardProfiles: [...BOARD_IDS] });
     const match = url.pathname.match(/^\/v1\/boards\/([^/]+)\/frame$/);
