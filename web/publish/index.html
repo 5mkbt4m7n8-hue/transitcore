@@ -26,16 +26,40 @@ let loaded=null;
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function unzipStored(buffer){const bytes=new Uint8Array(buffer),view=new DataView(buffer),files={};let offset=0;while(offset+30<=bytes.length&&view.getUint32(offset,true)===0x04034b50){const method=view.getUint16(offset+8,true),size=view.getUint32(offset+18,true),nameLength=view.getUint16(offset+26,true),extraLength=view.getUint16(offset+28,true),name=decoder.decode(bytes.slice(offset+30,offset+30+nameLength)),start=offset+30+nameLength+extraLength;if(method!==0)throw Error("ZIP-pakken bruker komprimering som denne versjonen ikke støtter");files[name]=bytes.slice(start,start+size);offset=start+size}return files}
 function continuous(values,count){const sorted=[...values].sort((a,b)=>a-b);return sorted.length===count&&sorted.every((value,index)=>value===index)}
-function validate(files){const missing=required.filter(name=>!files[name]);if(missing.length)throw Error(`Mangler ${missing.join(", ")}`);let board,hardware;try{board=JSON.parse(decoder.decode(files["board-profile.json"]));hardware=JSON.parse(decoder.decode(files["hardware-profile.json"]))}catch{throw Error("En av JSON-profilene er ugyldig")};const nodes=Array.isArray(board.nodes)?board.nodes:[],assignments=Array.isArray(hardware.assignments)?hardware.assignments:[],logical=new Set(nodes.map(n=>n.led)),physical=new Set(assignments.map(a=>a.physicalLed)),sources=new Set(assignments.map(a=>a.sourceNodeId));const checks=[
-["Tavle-ID finnes",typeof board.id==="string"&&/^[a-z0-9-]+$/.test(board.id)],
-["Tavle- og hardwareprofil samsvarer",hardware.boardProfile===board.id],
-["Oppgitt LED-antall samsvarer",board.leds?.count===nodes.length&&hardware.leds?.count===nodes.length&&assignments.length===nodes.length],
-["Logiske LED-numre er unike",logical.size===nodes.length],
-["Fysiske LED-numre er sammenhengende",continuous(physical,nodes.length)],
-["Alle tavlepunkter har hardwaretilordning",nodes.every(n=>sources.has(n.id))],
-["Alle tavlepunkter har stopp-ID",nodes.every(n=>Array.isArray(n.stopIds)&&n.stopIds.length)],
-["Minst én rute er valgt",Array.isArray(board.routes)&&board.routes.length>0]
-];return{board,hardware,checks,valid:checks.every(([,ok])=>ok)}}
+function validate(files){
+ const missing=required.filter(name=>!files[name]);if(missing.length)throw Error(`Mangler ${missing.join(", ")}`);
+ let board,hardware;try{board=JSON.parse(decoder.decode(files["board-profile.json"]));hardware=JSON.parse(decoder.decode(files["hardware-profile.json"]))}catch{throw Error("En av JSON-profilene er ugyldig")}
+ const nodes=Array.isArray(board.nodes)?board.nodes:[],assignments=Array.isArray(hardware.assignments)?hardware.assignments:[],routes=Array.isArray(board.routes)?board.routes:[],routeSet=new Set(routes);
+ const nodeIds=new Set(nodes.map(n=>n.id)),logical=new Set(nodes.map(n=>n.led)),physical=new Set(assignments.map(a=>a.physicalLed)),sources=new Set(assignments.map(a=>a.sourceNodeId)),assignmentLogical=new Set(assignments.map(a=>a.logicalLed));
+ const nodeById=new Map(nodes.map(n=>[n.id,n])),stationGroups=new Map;
+ nodes.forEach(n=>{const id=n.stationId||n.id,list=stationGroups.get(id)||[];list.push(n);stationGroups.set(id,list)});
+ const mappingExact=assignments.every(a=>{const n=nodeById.get(a.sourceNodeId);return n&&n.led===a.logicalLed});
+ const nodeRoutesValid=nodes.every(n=>Array.isArray(n.routes)&&n.routes.length>0&&n.routes.every(route=>routeSet.has(route)));
+ const directionMetadataValid=nodes.every(n=>n.routes.every(route=>{const d=n.routeDirections?.[route];return d&&Array.isArray(d.destinationMatches)&&d.destinationMatches.length>0}));
+ const modeValid=board.directionMode==="shared"
+  ?[...stationGroups.values()].every(group=>group.length===1)
+  :board.directionMode==="separate"
+   ?[...stationGroups.values()].every(group=>group.length<=2&&new Set(group.map(n=>n.directionSide).filter(Boolean)).size===group.length)
+   :true;
+ const checks=[
+  ["Støttet profilformat",board.schemaVersion===1&&hardware.schemaVersion===1],
+  ["Tavle-ID er gyldig",typeof board.id==="string"&&/^[a-z0-9-]+$/.test(board.id)],
+  ["Tavle- og hardwareprofil samsvarer",hardware.boardProfile===board.id],
+  ["Oppgitt LED-antall samsvarer",Number.isInteger(board.leds?.count)&&board.leds.count>0&&board.leds.count===nodes.length&&hardware.leds?.count===nodes.length&&assignments.length===nodes.length],
+  ["Tavlepunkt-ID-er er unike",nodeIds.size===nodes.length],
+  ["Logiske LED-numre er unike og sammenhengende",logical.size===nodes.length&&continuous(logical,nodes.length)],
+  ["Fysiske LED-numre er unike og sammenhengende",physical.size===nodes.length&&continuous(physical,nodes.length)],
+  ["Hardwarekilder er unike",sources.size===assignments.length],
+  ["Hver hardwarekobling peker til riktig logisk LED",mappingExact&&assignmentLogical.size===nodes.length],
+  ["Alle tavlepunkter har stopp-ID",nodes.every(n=>Array.isArray(n.stopIds)&&n.stopIds.length>0)],
+  ["Minst én rute er valgt",routes.length>0],
+  ["Alle tavlepunkter bruker valgte ruter",nodeRoutesValid],
+  ["Alle retninger har destinasjonsbevis",directionMetadataValid],
+  ["Felles/separate retninger følger valgt modus",modeValid],
+  ["Profilen er markert klar for hardware",!String(board.status||"").includes("pending")]
+ ];
+ return{board,hardware,checks,valid:checks.every(([,ok])=>ok)}
+}
 function metric(label,value){return `<div class="metric"><span class="muted">${esc(label)}</span><strong>${esc(value)}</strong></div>`}
 function download(name,bytes,type){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([bytes],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 async function loadFile(file){try{$("status").className="status";$("status").textContent="Kontrollerer prosjektpakken …";const files=unzipStored(await file.arrayBuffer()),data=validate(files);loaded={files,...data};$("result").classList.remove("hidden");$("title").textContent=data.board.name||data.board.id;const stationCount=new Set(data.board.nodes.map(n=>n.stationId||n.name)).size;$("metrics").innerHTML=metric("Tavle-ID",data.board.id)+metric("Ruter",data.board.routes.length)+metric("Stasjoner",stationCount)+metric("LED-punkter",data.board.nodes.length)+metric("Retningsmodus",data.board.directionMode||"felles");$("checks").innerHTML=data.checks.map(([label,ok])=>`<li class="${ok?"ok":"bad"}">${ok?"✓":"✕"} ${esc(label)}</li>`).join("");const bySource=new Map(data.board.nodes.map(n=>[n.id,n]));$("rows").innerHTML=[...data.hardware.assignments].sort((a,b)=>a.physicalLed-b.physicalLed).map(a=>{const n=bySource.get(a.sourceNodeId)||{};return `<tr><td>${esc(a.physicalLed)}</td><td>${esc(a.name||n.name)}</td><td>${esc(a.direction||n.directionSide||"Felles")}</td><td>${esc(a.logicalLed)}</td></tr>`}).join("");$("boardPath").textContent=`config/boards/${data.board.id}.json`;$("hardwarePath").textContent=`config/hardware/${data.board.id}-hardware.json`;$("simulator").href=`../board/?board=${encodeURIComponent(data.board.id)}`;$("simulator").setAttribute("aria-disabled",String(!data.valid));$("downloadProfiles").disabled=!data.valid;$("status").className=`status ${data.valid?"ok":"bad"}`;$("status").textContent=data.valid?"Prosjektpakken er gyldig og klar for publisering.":"Pakken har feil som må rettes før publisering."}catch(error){loaded=null;$("result").classList.add("hidden");$("status").className="status bad";$("status").textContent=`Kan ikke bruke pakken: ${error.message}`}}
