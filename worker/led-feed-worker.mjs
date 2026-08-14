@@ -32,7 +32,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now()) {
     if (departing) {
       const expiresAt = before.state === "PASSED" ? before.expiresAt : now + afterglowMs;
       if (expiresAt > now) {
-        const passed = { ...led, state: "PASSED", brightness: Math.min(8, led.brightness) };
+        const passed = { ...led, state: "AT_STOP", lifecycle: "PASSED", brightness: Math.min(8, led.brightness) };
         leds.push(passed);
         next[id] = { vehicleId, state: "PASSED", distance, expiresAt, led: passed };
       }
@@ -47,7 +47,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now()) {
     if (seen.has(id)) continue;
     const expiresAt = before.state === "PASSED" ? before.expiresAt : now + afterglowMs;
     if (expiresAt <= now) continue;
-    const passed = { ...before.led, state: "PASSED", brightness: Math.min(8, before.led.brightness) };
+    const passed = { ...before.led, state: "AT_STOP", lifecycle: "PASSED", brightness: Math.min(8, before.led.brightness) };
     leds.push(passed);
     next[id] = { ...before, state: "PASSED", expiresAt, led: passed };
   }
