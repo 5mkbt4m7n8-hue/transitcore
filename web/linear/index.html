@@ -13,7 +13,8 @@
     .board{border:1px solid #252b34;background:var(--panel);border-radius:12px;padding:12px 8px 18px;overflow:hidden}.head,.row{display:grid;grid-template-columns:minmax(130px,1fr) 94px 94px;align-items:center}
     .head{position:sticky;top:0;z-index:4;background:var(--panel);padding:9px 0;color:var(--muted);font-size:12px}.head span{text-align:center}.station{text-align:right;padding-right:18px;font-weight:600}
     .cell{height:42px;position:relative;display:grid;place-items:center}.cell:before{content:"";position:absolute;inset:0 auto 0 50%;width:4px;transform:translateX(-50%);background:var(--line)}.row.first .cell:before{top:50%}.row.last .cell:before{bottom:50%}
-    .led{position:relative;z-index:2;width:16px;height:16px;border-radius:50%;background:#30363e;border:2px solid #505966;cursor:pointer}.led.on{background:currentColor;border-color:#fff;box-shadow:0 0 10px 3px currentColor}.led.approaching{opacity:.7}.led.empty{opacity:.14;cursor:default}
+    .led{position:relative;z-index:2;width:16px;height:16px;border-radius:50%;background:#30363e;border:2px solid #505966;cursor:pointer}.led.on{background:currentColor;border-color:#fff;box-shadow:0 0 10px 3px currentColor}.led.approaching{animation:approachPulse 2.4s ease-in-out infinite}.led.departed{background:currentColor;border-color:currentColor;opacity:.22;box-shadow:0 0 5px 1px currentColor;transition:opacity 20s linear,box-shadow 20s linear}.led.empty{opacity:.14;cursor:default}
+    @keyframes approachPulse{0%,100%{opacity:.38;box-shadow:0 0 4px 1px currentColor}50%{opacity:.9;box-shadow:0 0 12px 4px currentColor}}
     .ledno{position:absolute;left:22px;top:-3px;color:#778292;font:10px ui-monospace,monospace;white-space:nowrap}.info{display:none;position:fixed;z-index:20;left:50%;bottom:18px;transform:translateX(-50%);width:min(94vw,520px);background:#18202a;border:1px solid #465467;border-radius:13px;padding:14px;box-shadow:0 18px 50px #000b}.info.show{display:block}.info h2{font-size:17px;margin:0 0 8px}.info p{margin:5px 0;color:#c8d1dc}.info strong{color:#fff}.close{float:right;padding:4px 8px}
     @media(max-width:560px){main{padding:10px}.head,.row{grid-template-columns:minmax(105px,1fr) 72px 72px}.station{font-size:12px;padding-right:9px}.ledno{display:none}.status{width:100%;margin-left:0}}
   </style>
@@ -29,7 +30,7 @@
 <script>
 "use strict";
 const $=id=>document.getElementById(id),BASE="../../config/",FEED="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/trondheim-bus-board/frame";
-let board,hardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null;
+let board,hardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,activeIds=new Set,afterglowTimers=new Map;
 async function json(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error(`HTTP ${response.status}`);return response.json()}
 function esc(value){return String(value??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 function directionId(direction){return direction.reverseShape?"1":"0"}
@@ -54,8 +55,11 @@ function build(){
   $("stationCount").textContent=ordered.length;document.querySelectorAll(".led:not(.empty)").forEach(led=>led.onclick=()=>showInfo(led));if(lastFrame)paint(lastFrame);
 }
 function paint(frame){
-  lastFrame=frame;document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching");delete led.dataset.state;delete led.dataset.vehicle});
-  for(const item of frame.leds||[]){for(const led of document.querySelectorAll(`.led[data-id="${item.id}"]`)){led.style.color=`rgb(${item.rgb.join(",")})`;led.classList.add("on");if(item.state==="APPROACHING")led.classList.add("approaching");led.dataset.state=item.state;led.dataset.vehicle=JSON.stringify(item.vehicle||{})}}
+  lastFrame=frame;const nextIds=new Set((frame.leds||[]).map(item=>String(item.id)));
+  document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching");if(!activeIds.has(led.dataset.id)||nextIds.has(led.dataset.id))led.classList.remove("departed");delete led.dataset.state;delete led.dataset.vehicle});
+  for(const oldId of activeIds)if(!nextIds.has(oldId)){for(const led of document.querySelectorAll(`.led[data-id="${oldId}"]`))led.classList.add("departed");clearTimeout(afterglowTimers.get(oldId));afterglowTimers.set(oldId,setTimeout(()=>{document.querySelectorAll(`.led[data-id="${oldId}"]`).forEach(led=>led.classList.remove("departed"));afterglowTimers.delete(oldId)},20000))}
+  for(const item of frame.leds||[]){const id=String(item.id);clearTimeout(afterglowTimers.get(id));afterglowTimers.delete(id);for(const led of document.querySelectorAll(`.led[data-id="${id}"]`)){led.classList.remove("departed");led.style.color=`rgb(${item.rgb.join(",")})`;led.classList.add("on");if(item.state==="APPROACHING")led.classList.add("approaching");led.dataset.state=item.state;led.dataset.vehicle=JSON.stringify(item.vehicle||{})}}
+  activeIds=nextIds;
   const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30);$("activeCount").textContent=(frame.leds||[]).length;$("quality").textContent=fresh?`LIVE Â· ${age} s`:`UTDATERT Â· ${age} s`;$("quality").style.color=fresh?"var(--ok)":"var(--bad)";$("status").textContent=`Oppdatert ${new Date().toLocaleTimeString()}`;
 }
 function showInfo(led){
