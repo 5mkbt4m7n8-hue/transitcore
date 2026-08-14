@@ -178,7 +178,7 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
     const previous = dedupe.get(vehicle.vehicleId);
     if (!previous || updated > previous.updated) dedupe.set(vehicle.vehicleId, { vehicleId: String(vehicle.vehicleId || ""), profile, updated, destination: vehicle.destinationName || "", lat: Number(vehicle.location.latitude), lon: Number(vehicle.location.longitude) });
   }
-  const strongest = new Map();
+  const strongest = new Map(), occupantsByLed = new Map();
   for (const vehicle of dedupe.values()) {
     const routeNodes = board.nodes.filter(node => node.routes.includes(vehicle.profile.id));
     const directionNodes = routeNodes.filter(node => matchesDirection(node, vehicle.profile, vehicle.destination));
@@ -196,9 +196,23 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
     const arrivalRadius = board.render.arrivalRadiusMeters ?? 85;
     if (!node || meters > approachRadius) continue;
     const state = meters <= arrivalRadius ? "AT_STOP" : "APPROACHING";
-    const id = physical.get(node.led), previous = strongest.get(id);
-    if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" || meters < previous.meters) strongest.set(id, { id, profile: vehicle.profile, vehicleId: vehicle.vehicleId, updated: vehicle.updated, destination: vehicle.destination, state, meters });
+    const id = physical.get(node.led);
+    const candidate = { id, profile: vehicle.profile, vehicleId: vehicle.vehicleId, updated: vehicle.updated, destination: vehicle.destination, state, meters };
+    const occupants = occupantsByLed.get(id) || [];
+    occupants.push(candidate);
+    occupantsByLed.set(id, occupants);
+    const previous = strongest.get(id);
+    if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" || state === previous.state && meters < previous.meters) strongest.set(id, candidate);
   }
+  const occupantJson = item => ({
+    id: item.vehicleId,
+    line: String(item.profile.line.publicCode),
+    destination: item.destination,
+    rgb: rgb(item.profile.line.color || color(item.profile, item.destination)),
+    state: item.state,
+    ageSeconds: Math.max(0, Math.floor((now - item.updated) / 1000)),
+    distanceMeters: Math.round(item.meters)
+  });
   return {
     schemaVersion: 1,
     boardProfile: board.id,
@@ -206,19 +220,26 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
     sequence: Math.floor(now / 1000),
     ttlSeconds: 30,
     ledCount: hardware.leds?.count ?? board.leds.count,
-    leds: [...strongest.values()].sort((a, b) => a.id - b.id).map(item => ({
-      id: item.id,
-      rgb: rgb(color(item.profile, item.destination)),
-      brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32),
-      state: item.state,
-      vehicle: {
-        id: item.vehicleId,
-        line: String(item.profile.line.publicCode),
-        destination: item.destination,
-        ageSeconds: Math.max(0, Math.floor((now - item.updated) / 1000)),
-        distanceMeters: Math.round(item.meters)
-      }
-    }))
+    leds: [...strongest.values()].sort((a, b) => a.id - b.id).map(item => {
+      const occupants = (occupantsByLed.get(item.id) || []).sort((a, b) => {
+        const priority = value => value.state === "AT_STOP" ? 2 : value.state === "APPROACHING" ? 1 : 0;
+        return priority(b) - priority(a) || a.meters - b.meters;
+      }).map(occupantJson);
+      return {
+        id: item.id,
+        rgb: rgb(color(item.profile, item.destination)),
+        brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32),
+        state: item.state,
+        vehicle: {
+          id: item.vehicleId,
+          line: String(item.profile.line.publicCode),
+          destination: item.destination,
+          ageSeconds: Math.max(0, Math.floor((now - item.updated) / 1000)),
+          distanceMeters: Math.round(item.meters)
+        },
+        occupants
+      };
+    })
   };
 }
 
