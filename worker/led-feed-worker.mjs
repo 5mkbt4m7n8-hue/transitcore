@@ -12,12 +12,63 @@ const statusJson = (body, status = 200) => new Response(
   { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" } }
 );
 
+export function applyMotionLifecycle(frame, previous = {}, now = Date.now()) {
+  const afterglowMs = 20000;
+  const next = {};
+  const leds = [];
+  const seen = new Set();
+
+  for (const led of frame.leds || []) {
+    const id = String(led.id);
+    const vehicleId = String(led.vehicle?.id || "");
+    const distance = Number(led.vehicle?.distanceMeters);
+    const before = previous[id];
+    const sameVehicle = before && before.vehicleId === vehicleId;
+    const departing = led.state === "APPROACHING" && sameVehicle &&
+      (before.state === "AT_STOP" || before.state === "PASSED" ||
+       Number.isFinite(distance) && Number.isFinite(before.distance) && distance > before.distance + 10);
+    seen.add(id);
+
+    if (departing) {
+      const expiresAt = before.state === "PASSED" ? before.expiresAt : now + afterglowMs;
+      if (expiresAt > now) {
+        const passed = { ...led, state: "AT_STOP", lifecycle: "PASSED", brightness: Math.min(8, led.brightness) };
+        leds.push(passed);
+        next[id] = { vehicleId, state: "PASSED", distance, expiresAt, led: passed };
+      }
+      continue;
+    }
+
+    leds.push(led);
+    next[id] = { vehicleId, state: led.state, distance, expiresAt: 0, led };
+  }
+
+  for (const [id, before] of Object.entries(previous)) {
+    if (seen.has(id)) continue;
+    const expiresAt = before.state === "PASSED" ? before.expiresAt : now + afterglowMs;
+    if (expiresAt <= now) continue;
+    const passed = { ...before.led, state: "AT_STOP", lifecycle: "PASSED", brightness: Math.min(8, before.led.brightness) };
+    leds.push(passed);
+    next[id] = { ...before, state: "PASSED", expiresAt, led: passed };
+  }
+
+  return { frame: { ...frame, leds: leds.sort((a, b) => a.id - b.id) }, state: next };
+}
+
 export class DeviceStatus {
   constructor(state) {
     this.state = state;
   }
 
   async fetch(request) {
+    const url = new URL(request.url);
+    if (url.pathname === "/motion" && request.method === "POST") {
+      const { frame, now } = await request.json();
+      const previous = (await this.state.storage.get("motion")) || {};
+      const result = applyMotionLifecycle(frame, previous, Number(now) || Date.now());
+      await this.state.storage.put("motion", result.state);
+      return statusJson(result.frame);
+    }
     if (request.method === "POST") {
       const sample = await request.json();
       const history = (await this.state.storage.get("history")) || [];
@@ -375,6 +426,17 @@ function frameFromStationArrivals(board, hardware, arrivals, now) {
 const headers = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" };
 const response = (body, status = 200) => new Response(JSON.stringify(body, null, 2) + "\n", { status, headers });
 
+async function stabilizeMotionFrame(env, boardId, frame, now) {
+  if (boardId !== "trondheim-bus-board" || !env.DEVICE_STATUS) return frame;
+  const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(boardId));
+  const result = await stub.fetch("https://status.internal/motion", {
+    method: "POST",
+    body: JSON.stringify({ frame, now })
+  });
+  if (!result.ok) throw Error(`motion state: HTTP ${result.status}`);
+  return result.json();
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -433,7 +495,8 @@ export default {
       if (board.layout === "linear-route-vled") {
         return response(buildLinearRouteFrame({ board, profiles, hardware, vehicles, now }));
       }
-      return response(buildFrame({ board, profiles, hardware, vehicles, now }));
+      const rawFrame = buildFrame({ board, profiles, hardware, vehicles, now });
+      return response(await stabilizeMotionFrame(env, boardId, rawFrame, now));
     } catch (error) {
       console.error(error);
       return response({ error: "feed_unavailable", message: error.message, generatedAt: new Date().toISOString() }, 503);
