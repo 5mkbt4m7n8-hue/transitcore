@@ -1,98 +1,66 @@
-<!doctype html>
-<html lang="no">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TransitCore diagnostikk</title>
-<style>
+<!doctype html><html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TransitCore automatisk kontroll</title><style>
 :root{color-scheme:dark;--bg:#090d12;--panel:#121821;--line:#2d3947;--text:#f5f7fa;--muted:#9ca9b8;--ok:#39d98a;--warn:#ffb020;--bad:#ff5c5c}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,sans-serif}main{max-width:1500px;margin:auto;padding:16px}
-h1{margin:0;font-size:26px}.sub{color:var(--muted);margin:5px 0 14px}.tools,.stats{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:10px 0}
-button,select,input{font:inherit;color:var(--text);background:#18212c;border:1px solid #3b4858;border-radius:9px;padding:8px 10px}button{cursor:pointer}.status{margin-left:auto;color:var(--muted)}
-.badge{border:1px solid #2b3542;background:var(--panel);border-radius:999px;padding:6px 10px}.badge b{color:#fff}.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
-.tablewrap{overflow:auto;border:1px solid #26303d;border-radius:13px;background:var(--panel)}table{width:100%;border-collapse:collapse;min-width:1120px}th,td{padding:10px 9px;text-align:left;border-bottom:1px solid #25303c;vertical-align:top}th{position:sticky;top:0;background:#17202b;color:#b9c6d5;z-index:1}tr:hover{background:#17202b}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px}.state{font-weight:750}.reason{max-width:290px;color:#c8d2de}.muted{color:var(--muted)}details summary{cursor:pointer;color:#a9c8ee}pre{white-space:pre-wrap;word-break:break-word;font-size:11px;color:#b8c5d3}
-.empty{padding:35px;text-align:center;color:var(--muted)}@media(max-width:700px){main{padding:9px}.status{width:100%;margin:0}h1{font-size:22px}}
-</style>
-</head>
-<body><main>
-<h1>🔎 TransitCore bussdiagnostikk</h1>
-<p class="sub">Viser hva feeden faktisk sender til tavlen – én rad per bussignal, med valgt holdeplass, retning og fysisk LED.</p>
-<div class="tools">
-<button id="refresh">Oppdater nå</button>
-<select id="lineFilter"><option value="">Alle linjer</option><option>1</option><option>2</option><option>3</option></select>
-<select id="stateFilter"><option value="">Alle tilstander</option><option>AT_STOP</option><option>APPROACHING</option><option>PASSED</option></select>
-<input id="search" type="search" placeholder="Søk stopp, destinasjon, buss …">
-<span class="status" id="status">Starter …</span>
-</div>
-<div class="stats">
-<span class="badge">Bussignaler <b id="vehicleCount">-</b></span>
-<span class="badge">Aktive LED-er <b id="ledCount">-</b></span>
-<span class="badge">Flere busser samme LED <b id="sharedCount">-</b></span>
-<span class="badge">Ukjent mapping <b id="unknownCount">-</b></span>
-<span class="badge">Frame <b id="quality">-</b></span>
-</div>
-<div class="tablewrap"><table>
-<thead><tr><th>Linje / buss</th><th>Tilstand</th><th>Destinasjon</th><th>Valgt holdeplass</th><th>Retning / plattform</th><th>LED</th><th>Datakvalitet</th><th>Hvorfor dette signalet?</th><th>Rådata</th></tr></thead>
-<tbody id="rows"></tbody>
-</table><div class="empty" id="empty" hidden>Ingen signaler passer filteret.</div></div>
-</main>
-<script>
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,sans-serif}main{max-width:1250px;margin:auto;padding:16px}h1{margin:0;font-size:27px}.sub{color:var(--muted)}
+.hero{border:2px solid var(--line);background:var(--panel);border-radius:16px;padding:18px;margin:16px 0}.hero.ok{border-color:#24794f}.hero.warn{border-color:#9b6b14}.hero.bad{border-color:#9e3535}.hero h2{margin:0 0 6px;font-size:25px}.hero p{margin:4px 0;color:#c8d2de}
+.stats,.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}.card{flex:1;min-width:145px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px}.card b{display:block;font-size:25px}.green{color:var(--ok)}.yellow{color:var(--warn)}.red{color:var(--bad)}
+button,select{font:inherit;color:var(--text);background:#18212c;border:1px solid #3b4858;border-radius:9px;padding:8px 11px;cursor:pointer}.status{margin-left:auto;color:var(--muted)}
+.alerts{display:grid;gap:9px}.alert{background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--warn);border-radius:10px;padding:12px}.alert.red{border-left-color:var(--bad);color:var(--text)}.alert h3{margin:0 0 5px;font-size:16px}.alert p{margin:3px 0;color:#c8d2de}.empty{padding:28px;text-align:center;background:var(--panel);border-radius:12px;color:var(--ok)}
+details{margin-top:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px}summary{cursor:pointer;font-weight:700}.tablewrap{overflow:auto;margin-top:10px}table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:8px;border-bottom:1px solid #25303c;text-align:left}.pill{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:2px 7px;font-weight:750}
+@media(max-width:650px){main{padding:9px}.status{width:100%;margin:0}.card{min-width:105px}.hero h2{font-size:21px}}
+</style></head><body><main>
+<h1>🛡️ TransitCore automatisk kontroll</h1><p class="sub">Kontrollerer bussignaler automatisk hvert 10. sekund. Du trenger bare å følge opp gule og røde varsler.</p>
+<section class="hero" id="hero"><h2 id="heroTitle">Starter kontroll …</h2><p id="heroText">Henter tavleprofil og live-data.</p><p id="lastGood"></p></section>
+<div class="stats"><div class="card"><b class="green" id="okCount">-</b>OK</div><div class="card"><b class="yellow" id="warnCount">-</b>Bør kontrolleres</div><div class="card"><b class="red" id="errorCount">-</b>Sannsynlige feil</div><div class="card"><b id="vehicleCount">-</b>Busser kontrollert</div></div>
+<div class="tools"><button id="refresh">Kontroller nå</button><select id="lineFilter"><option value="">Alle linjer</option><option>1</option><option>2</option><option>3</option></select><button id="sound">Varsellyd: AV</button><span class="status" id="status">Starter …</span></div>
+<section class="alerts" id="alerts"></section><div class="empty" id="empty" hidden>✓ Ingen avvik oppdaget i siste kontroll.</div>
+<details><summary>Vis alle kontrollerte bussignaler</summary><div class="tablewrap"><table><thead><tr><th>Resultat</th><th>Linje / buss</th><th>Destinasjon</th><th>Holdeplass / retning</th><th>LED</th><th>Tilstand</th></tr></thead><tbody id="allRows"></tbody></table></div></details>
+</main><script>
 "use strict";
 const $=id=>document.getElementById(id),BASE="../../config/",FEED="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/trondheim-bus-board/frame";
-let board,hardware,lastFrame=null,timer=null,assignmentByPhysical=new Map,nodeById=new Map;
-async function json(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error("HTTP "+response.status);return response.json()}
-function esc(value){return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
-function stateRank(state){return state==="AT_STOP"?3:state==="APPROACHING"?2:state==="PASSED"?1:0}
-function quality(vehicle,frameAge){
- const age=Number(vehicle.ageSeconds);if(Number.isFinite(age))return age<=30?{label:age+" s gammel",cls:"ok"}:age<=90?{label:age+" s gammel",cls:"warn"}:{label:age+" s gammel",cls:"bad"};
- return {label:frameAge+" s siden frame",cls:frameAge<=30?"ok":"bad"};
-}
-function reason(item,vehicle,assignment){
- const parts=[];
- if(item.lifecycle==="PASSED")parts.push("Passert stopp beholdes som svakt etterlys");
- else if(vehicle.state==="AT_STOP"||item.state==="AT_STOP")parts.push("Innenfor ankomstgrensen – har høyeste prioritet");
- else if(vehicle.state==="APPROACHING"||item.state==="APPROACHING")parts.push("Nærmer seg valgt holdeplass – pulserer");
- else parts.push("Tilstanden kommer direkte fra LED-framen");
- if((item.occupants||[]).length>1)parts.push((item.occupants||[]).length+" busser deler LED; sterkeste tilstand vinner");
- if(assignment)parts.push("Fysisk LED er koblet til "+assignment.name+" i hardwareprofilen");
- else parts.push("Ingen fysisk mapping funnet");
- return parts.join(". ")+".";
-}
-function rowsFrom(frame){
- const generated=Date.parse(frame.generatedAt),frameAge=Math.max(0,Math.floor((Date.now()-generated)/1000)),rows=[];
- for(const item of frame.leds||[]){
-  const assignment=assignmentByPhysical.get(String(item.id)),node=assignment?nodeById.get(assignment.sourceNodeId):null;
-  const occupants=item.occupants?.length?item.occupants:[{...(item.vehicle||{}),state:item.state,rgb:item.rgb}];
-  occupants.forEach((vehicle,index)=>rows.push({item,vehicle,assignment,node,frameAge,index}));
+let board,hardware,profiles=[],lastFrame=null,timer=null,sound=false,assignmentByPhysical=new Map,nodeById=new Map,routeByLine=new Map,history=new Map,lastGoodAt=null;
+async function json(url){const r=await fetch(url,{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);return r.json()}
+function esc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function norm(v){return String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")}
+function km(a,b){if(!a||!b)return 0;const R=6371,p=Math.PI/180,dLat=(b.lat-a.lat)*p,dLon=(b.lon-a.lon)*p,x=Math.sin(dLat/2)**2+Math.cos(a.lat*p)*Math.cos(b.lat*p)*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
+function classify(item,v,a,node,frameAge){
+ const issues=[],line=String(v.line||""),route=routeByLine.get(line),age=Number.isFinite(Number(v.ageSeconds))?Number(v.ageSeconds):frameAge;
+ if(!a)issues.push({level:"red",text:"Fysisk LED "+item.id+" finnes ikke i hardwareprofilen."});
+ if(!v.id)issues.push({level:"yellow",text:"Kjøretøy-ID mangler; bevegelsen kan ikke følges mellom oppdateringer."});
+ if(!line)issues.push({level:"yellow",text:"Linjenummer mangler."});
+ if(a&&route&&!a.routes.includes(route.id))issues.push({level:"red",text:"Linje "+line+" er sendt til en plattform som ikke er konfigurert for denne linjen."});
+ if(age>90)issues.push({level:"red",text:"Posisjonen er "+age+" sekunder gammel."});else if(age>40)issues.push({level:"yellow",text:"Posisjonen er "+age+" sekunder gammel."});
+ if(!v.destination)issues.push({level:"yellow",text:"Destinasjon mangler, derfor kan retningen ikke bekreftes."});
+ if(node&&route&&v.destination){
+  const expected=node.routeDirections?.[route.id]?.destinationMatches||[],dest=norm(v.destination);
+  if(expected.length&&!expected.some(x=>dest.includes(norm(x))||norm(x).includes(dest)))issues.push({level:"red",text:"Destinasjon «"+v.destination+"» passer ikke med plattformens forventede retning ("+expected.join(" / ")+")."});
  }
- return rows.sort((a,b)=>String(a.vehicle.line||"").localeCompare(String(b.vehicle.line||""),undefined,{numeric:true})||stateRank(b.vehicle.state)-stateRank(a.vehicle.state)||String(a.assignment?.name||"").localeCompare(String(b.assignment?.name||"")));
+ if(v.id&&node){
+  const prev=history.get(String(v.id)),now=Date.now();
+  if(prev){const seconds=(now-prev.time)/1000,distance=km(prev.node,node);if(seconds<35&&distance>2)issues.push({level:"red",text:"Bussen hoppet "+distance.toFixed(1)+" km på "+Math.round(seconds)+" sekunder."})}
+  history.set(String(v.id),{node,time:now});
+ }
+ return {level:issues.some(x=>x.level==="red")?"red":issues.length?"yellow":"green",issues,age};
+}
+function analyze(frame){
+ const frameAge=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),results=[];
+ for(const item of frame.leds||[]){const a=assignmentByPhysical.get(String(item.id)),node=a?nodeById.get(a.sourceNodeId):null,occupants=item.occupants?.length?item.occupants:[{...(item.vehicle||{}),state:item.state,rgb:item.rgb}];occupants.forEach(v=>results.push({item,v,a,node,...classify(item,v,a,node,frameAge)}))}
+ return {results,frameAge};
 }
 function render(){
- if(!lastFrame)return;
- const line=$("lineFilter").value,state=$("stateFilter").value,query=$("search").value.trim().toLowerCase(),all=rowsFrom(lastFrame);
- const shown=all.filter(row=>{
-  const v=row.vehicle,a=row.assignment,actualState=row.item.lifecycle==="PASSED"?"PASSED":v.state||row.item.state||"UNKNOWN";
-  const hay=[v.id,v.line,v.destination,a?.name,a?.direction,a?.quayId,row.item.id].join(" ").toLowerCase();
-  return(!line||String(v.line)===line)&&(!state||actualState===state)&&(!query||hay.includes(query));
- });
- $("rows").innerHTML=shown.map(row=>{
-  const {item,vehicle:v,assignment:a,node,frameAge}=row,actualState=item.lifecycle==="PASSED"?"PASSED":v.state||item.state||"UNKNOWN",q=quality(v,frameAge),rgb=v.rgb||item.rgb||[100,110,120];
-  const raw={physicalLed:item.id,lifecycle:item.lifecycle||null,frameState:item.state||null,occupant:v};
-  return '<tr><td><span class="dot" style="background:rgb('+esc(rgb.join(","))+')"></span><strong>Linje '+esc(v.line||"?")+'</strong><br><span class="muted">'+esc(v.id||"ukjent kjøretøy")+'</span></td>'+
-   '<td><span class="state '+(actualState==="AT_STOP"?"ok":actualState==="APPROACHING"?"warn":"muted")+'">'+esc(actualState)+'</span><br><span class="muted">'+esc(v.distanceMeters??"?")+' m</span></td>'+
-   '<td>'+esc(v.destination||"Ukjent")+'</td><td><strong>'+esc(a?.name||"IKKE MAPPET")+'</strong><br><span class="muted">'+esc(a?.quayId||node?.quayId||"")+'</span></td>'+
-   '<td>'+esc(a?.direction||"Ukjent")+'<br><span class="muted">'+esc((node?.routeDirections&&Object.values(node.routeDirections).flatMap(x=>x.headsigns||[]).slice(0,2).join(" / "))||"")+'</span></td>'+
-   '<td><strong>'+esc(item.id)+'</strong><br><span class="muted">logisk '+esc(a?.logicalLed??"?")+'</span></td>'+
-   '<td class="'+q.cls+'">'+esc(q.label)+'</td><td class="reason">'+esc(reason(item,v,a))+'</td><td><details><summary>Vis</summary><pre>'+esc(JSON.stringify(raw,null,2))+'</pre></details></td></tr>';
- }).join("");
- $("empty").hidden=shown.length>0;
- const shared=(lastFrame.leds||[]).filter(item=>(item.occupants||[]).length>1).length,unknown=(lastFrame.leds||[]).filter(item=>!assignmentByPhysical.has(String(item.id))).length,age=Math.max(0,Math.floor((Date.now()-Date.parse(lastFrame.generatedAt))/1000)),fresh=age<=Number(lastFrame.ttlSeconds||30);
- $("vehicleCount").textContent=all.length;$("ledCount").textContent=(lastFrame.leds||[]).length;$("sharedCount").textContent=shared;$("unknownCount").textContent=unknown;$("quality").textContent=fresh?"LIVE – "+age+" s":"UTDATERT – "+age+" s";$("quality").className=fresh?"ok":"bad";$("status").textContent="Oppdatert "+new Date().toLocaleTimeString();
+ if(!lastFrame)return;const {results,frameAge}=analyze(lastFrame),line=$("lineFilter").value,filtered=results.filter(r=>!line||String(r.v.line)===line),bad=filtered.filter(r=>r.level==="red"),warn=filtered.filter(r=>r.level==="yellow"),ok=filtered.filter(r=>r.level==="green");
+ $("okCount").textContent=ok.length;$("warnCount").textContent=warn.length;$("errorCount").textContent=bad.length;$("vehicleCount").textContent=filtered.length;
+ const hero=$("hero");hero.className="hero "+(bad.length?"bad":warn.length?"warn":"ok");$("heroTitle").textContent=bad.length?bad.length+" sannsynlige feil funnet":warn.length?warn.length+" signaler bør kontrolleres":"Alt ser normalt ut";
+ $("heroText").textContent=bad.length?"Røde funn kan gi feil holdeplass, retning eller LED.":"Kontrollen omfatter mapping, linje, destinasjon, datakvalitet og unaturlige posisjonshopp.";
+ if(!bad.length&&!warn.length)lastGoodAt=new Date();$("lastGood").textContent=lastGoodAt?"Sist helt feilfri: "+lastGoodAt.toLocaleTimeString():"";
+ const alerts=[...bad,...warn];$("alerts").innerHTML=alerts.map(r=>'<article class="alert '+r.level+'"><h3>'+(r.level==="red"?"🔴":"🟡")+' Linje '+esc(r.v.line||"?")+' – '+esc(r.a?.name||"ukjent holdeplass")+'</h3><p><strong>Destinasjon:</strong> '+esc(r.v.destination||"mangler")+' · <strong>Retning:</strong> '+esc(r.a?.direction||"ukjent")+' · <strong>LED:</strong> '+esc(r.item.id)+'</p>'+r.issues.map(x=>'<p>'+esc(x.text)+'</p>').join("")+'</article>').join("");
+ $("empty").hidden=alerts.length>0;
+ $("allRows").innerHTML=filtered.map(r=>'<tr><td><span class="pill '+r.level+'">'+(r.level==="green"?"OK":r.level==="yellow"?"SJEKK":"FEIL")+'</span></td><td><strong>Linje '+esc(r.v.line||"?")+'</strong><br>'+esc(r.v.id||"ukjent")+'</td><td>'+esc(r.v.destination||"mangler")+'</td><td>'+esc(r.a?.name||"ikke mappet")+'<br>'+esc(r.a?.direction||"")+'</td><td>'+esc(r.item.id)+'</td><td>'+esc(r.item.lifecycle==="PASSED"?"PASSED":r.v.state||r.item.state||"?")+' · '+esc(r.v.distanceMeters??"?")+' m</td></tr>').join("");
+ const fresh=frameAge<=Number(lastFrame.ttlSeconds||30);$("status").textContent=(fresh?"LIVE":"UTDATERT")+" · "+new Date().toLocaleTimeString();
+ if(sound&&bad.length)beep();
 }
-async function refresh(){clearTimeout(timer);try{lastFrame=await json(FEED);render()}catch(error){$("status").textContent="Feedfeil: "+error.message;$("status").className="status bad"}timer=setTimeout(refresh,10000)}
-$("refresh").onclick=refresh;["lineFilter","stateFilter","search"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",render));
-Promise.all([json(BASE+"boards/trondheim-bus-board.json"),json(BASE+"hardware/trondheim-bus-board-hardware.json")]).then(values=>{
- [board,hardware]=values;nodeById=new Map(board.nodes.map(node=>[node.id,node]));assignmentByPhysical=new Map(hardware.assignments.map(item=>[String(item.physicalLed),item]));refresh();
-}).catch(error=>$("status").textContent="Oppstartsfeil: "+error.message);
-</script>
-</body></html>
+function beep(){try{const c=new AudioContext,o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);g.gain.value=.04;o.frequency.value=660;o.start();o.stop(c.currentTime+.12)}catch(_){}}
+async function refresh(){clearTimeout(timer);try{lastFrame=await json(FEED);render()}catch(e){$("hero").className="hero bad";$("heroTitle").textContent="Kan ikke kontrollere feeden";$("heroText").textContent=e.message;$("status").textContent="Feedfeil"}timer=setTimeout(refresh,10000)}
+$("refresh").onclick=refresh;$("lineFilter").onchange=render;$("sound").onclick=()=>{sound=!sound;$("sound").textContent="Varsellyd: "+(sound?"PÅ":"AV")};
+Promise.all([json(BASE+"boards/trondheim-bus-board.json"),json(BASE+"hardware/trondheim-bus-board-hardware.json")]).then(async x=>{[board,hardware]=x;profiles=await Promise.all(board.routes.map(id=>json(BASE+"routes/"+id+".json")));routeByLine=new Map(profiles.map(p=>[String(p.line.publicCode),p]));nodeById=new Map(board.nodes.map(n=>[n.id,n]));assignmentByPhysical=new Map(hardware.assignments.map(a=>[String(a.physicalLed),a]));refresh()}).catch(e=>{$("heroTitle").textContent="Oppstartsfeil";$("heroText").textContent=e.message});
+</script></body></html>
