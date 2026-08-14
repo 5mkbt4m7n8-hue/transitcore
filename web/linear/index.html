@@ -16,6 +16,7 @@
     .led{position:relative;z-index:2;width:16px;height:16px;border-radius:50%;background:#30363e;border:2px solid #505966;cursor:pointer}.led.on{background:currentColor;border-color:#fff;box-shadow:0 0 10px 3px currentColor}.led.approaching{animation:approachPulse 2.4s ease-in-out infinite}.led.departed{background:currentColor;border-color:currentColor;opacity:.22;box-shadow:0 0 5px 1px currentColor;transition:opacity 20s linear,box-shadow 20s linear}.led.empty{opacity:.14;cursor:default}
     @keyframes approachPulse{0%,100%{opacity:.38;box-shadow:0 0 4px 1px currentColor}50%{opacity:.9;box-shadow:0 0 12px 4px currentColor}}
     .ledno{position:absolute;left:22px;top:-3px;color:#778292;font:10px ui-monospace,monospace;white-space:nowrap}.info{display:none;position:fixed;z-index:20;left:50%;bottom:18px;transform:translateX(-50%);width:min(94vw,520px);background:#18202a;border:1px solid #465467;border-radius:13px;padding:14px;box-shadow:0 18px 50px #000b}.info.show{display:block}.info h2{font-size:17px;margin:0 0 8px}.info p{margin:5px 0;color:#c8d1dc}.info strong{color:#fff}.close{float:right;padding:4px 8px}
+    .diagnostics{margin:12px 0;border:1px solid #2c3541;background:#10151c;border-radius:12px}.diagnostics summary{cursor:pointer;padding:12px 14px;font-weight:700}.diagbody{padding:0 14px 14px}.diaggrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px}.diagitem{background:#171d25;border:1px solid #2c3541;border-radius:9px;padding:9px}.diagitem span{display:block;color:var(--muted);font-size:11px}.diagitem b{display:block;margin-top:3px;font-size:18px}.diagok{color:var(--ok)}.diagwarn{color:var(--warn)}.diagbad{color:var(--bad)}.diagnote{margin:10px 0 0;color:var(--muted);font-size:12px}
     @media(max-width:560px){main{padding:10px}.head,.row{grid-template-columns:minmax(105px,1fr) 72px 72px}.station{font-size:12px;padding-right:9px}.ledno{display:none}.status{width:100%;margin-left:0}}
   </style>
 </head>
@@ -24,13 +25,25 @@
   <div class="tools"><label>Linje <select id="route"></select></label><button id="refresh">Oppdater</button><button id="test">LED-test</button><span class="status" id="status">Starter ...</span></div>
   <div class="summary"><span class="badge">Holdeplasser <b id="stationCount">-</b></span><span class="badge">Aktive LED-er <b id="activeCount">-</b></span><span class="badge">Frame <b id="quality">-</b></span></div>
   <div class="legend" id="legend"></div>
+  <details class="diagnostics" id="diagnostics"><summary>Diagnose og datakvalitet</summary><div class="diagbody"><div class="diaggrid">
+    <div class="diagitem"><span>N&aelig;rmer seg</span><b id="diagApproaching">0</b></div>
+    <div class="diagitem"><span>P&aring; stopp</span><b id="diagAtStop">0</b></div>
+    <div class="diagitem"><span>Passert / etterlys</span><b id="diagPassed">0</b></div>
+    <div class="diagitem"><span id="diagDirALabel">Retning A</span><b id="diagDirA">0</b></div>
+    <div class="diagitem"><span id="diagDirBLabel">Retning B</span><b id="diagDirB">0</b></div>
+    <div class="diagitem"><span>Felles diode</span><b id="diagShared">0</b></div>
+    <div class="diagitem"><span>Gamle posisjoner</span><b id="diagStale">0</b></div>
+    <div class="diagitem"><span>Manglende data</span><b id="diagMissing">0</b></div>
+    <div class="diagitem"><span>Raske overtakelser</span><b id="diagTakeovers">0</b></div>
+  </div><p class="diagnote" id="diagNote">Venter p&aring; f&oslash;rste frame.</p></div></details>
+
   <section class="board"><div class="head"><b>Holdeplass</b><span id="dirA">Retning A</span><span id="dirB">Retning B</span></div><div id="rows"></div></section>
 </main>
 <aside class="info" id="info"><button class="close" id="close">Lukk</button><h2 id="infoTitle"></h2><div id="infoBody"></div></aside>
 <script>
 "use strict";
 const $=id=>document.getElementById(id),BASE="../../config/",FEED="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/trondheim-bus-board/frame";
-let board,hardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null;
+let board,hardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,diagnosticTakeovers=0,diagnosticVehicles=new Map;
 async function json(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error(`HTTP ${response.status}`);return response.json()}
 function esc(value){return String(value??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 function directionId(direction){return direction.reverseShape?"1":"0"}
@@ -75,6 +88,30 @@ function paint(frame){
   $("quality").textContent=fresh?`LIVE - ${age} s`:`UTDATERT - ${age} s`;
   $("quality").style.color=fresh?"var(--ok)":"var(--bad)";
   $("status").textContent=`Linje ${profile.line.publicCode} - ${new Date().toLocaleTimeString()}`;
+  updateDiagnostics(visibleItems,age,fresh);
+}
+function updateDiagnostics(items,frameAge,fresh){
+  const counts={approaching:0,atStop:0,passed:0,dirA:0,dirB:0,shared:0,stale:0,missing:0},now=Date.now(),directions=profile.directions.slice(0,2);
+  for(const item of items){
+    if(item.lifecycle==="PASSED")counts.passed++;else if(item.state==="APPROACHING")counts.approaching++;else if(item.state==="AT_STOP")counts.atStop++;
+    const vehicle=item.vehicle||{},age=Number(vehicle.ageSeconds);
+    if(Number.isFinite(age)&&age>20)counts.stale++;
+    if(!vehicle.id||!vehicle.destination)counts.missing++;
+    const leds=[...document.querySelectorAll(`.led[data-id="${String(item.id)}"]`)],labels=new Set(leds.map(led=>led.dataset.direction).filter(Boolean));
+    if(labels.has("Begge retninger"))counts.shared++;
+    else if(labels.has(directions[0]?.label))counts.dirA++;
+    else if(labels.has(directions[1]?.label))counts.dirB++;
+    const key=`${profile.id}:${item.id}`,vehicleId=String(vehicle.id||""),previous=diagnosticVehicles.get(key);
+    if(vehicleId&&previous&&previous.id!==vehicleId&&now-previous.seenAt<=35000)diagnosticTakeovers++;
+    if(vehicleId)diagnosticVehicles.set(key,{id:vehicleId,seenAt:now});
+  }
+  $("diagApproaching").textContent=counts.approaching;$("diagAtStop").textContent=counts.atStop;$("diagPassed").textContent=counts.passed;
+  $("diagDirALabel").textContent=directions[0]?.label||"Retning A";$("diagDirBLabel").textContent=directions[1]?.label||"Retning B";
+  $("diagDirA").textContent=counts.dirA;$("diagDirB").textContent=counts.dirB;$("diagShared").textContent=counts.shared;
+  $("diagStale").textContent=counts.stale;$("diagMissing").textContent=counts.missing;$("diagTakeovers").textContent=diagnosticTakeovers;
+  $("diagStale").className=counts.stale?"diagwarn":"diagok";$("diagMissing").className=counts.missing?"diagwarn":"diagok";
+  $("diagNote").textContent=fresh?`Frame er live (${frameAge} s). Overtakelse telles når en ny buss tar samme diode innen 35 sekunder.`:`Frame er utdatert (${frameAge} s). Diagnoseverdiene kan være gamle.`;
+  $("diagNote").className=`diagnote ${fresh?"diagok":"diagbad"}`;
 }
 function showInfo(led){
   const item=(lastFrame?.leds||[]).find(value=>String(value.id)===led.dataset.id),vehicle=item?.vehicle||{},displayState=led.classList.contains("departed")?"PASSED":item?.state||"AV";$("infoTitle").textContent=`${led.dataset.name} - LED ${led.dataset.id}`;
