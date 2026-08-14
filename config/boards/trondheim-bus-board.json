@@ -100,10 +100,12 @@
             "0"
           ],
           "headsigns": [
-            "Kattem via Strindheim-sentrum"
+            "Kattem via Strindheim-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
-            "Kattem"
+            "Kattem",
+            "Østre Lund"
           ]
         }
       },
@@ -190,10 +192,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -221,11 +225,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         }
       },
@@ -284,10 +290,12 @@
             "0"
           ],
           "headsigns": [
-            "Kattem via Strindheim-sentrum"
+            "Kattem via Strindheim-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
-            "Kattem"
+            "Kattem",
+            "Østre Lund"
           ]
         }
       },
@@ -374,10 +382,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -434,10 +444,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -596,11 +608,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         },
         "atb-bus-2-live": {
@@ -688,11 +702,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         }
       },
@@ -846,10 +862,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -940,11 +958,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         }
       },
@@ -1004,11 +1024,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         }
       },
@@ -1097,10 +1119,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -1222,10 +1246,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -1252,10 +1278,12 @@
             "0"
           ],
           "headsigns": [
-            "Kattem via Strindheim-sentrum"
+            "Kattem via Strindheim-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
-            "Kattem"
+            "Kattem",
+            "Østre Lund"
           ]
         }
       },
@@ -1342,10 +1370,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -1372,10 +1402,12 @@
             "0"
           ],
           "headsigns": [
-            "Kattem via Strindheim-sentrum"
+            "Kattem via Strindheim-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
-            "Kattem"
+            "Kattem",
+            "Østre Lund"
           ]
         }
       },
@@ -1527,10 +1559,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -1587,10 +1621,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -1618,10 +1654,12 @@
             "0"
           ],
           "headsigns": [
-            "Kattem via Strindheim-sentrum"
+            "Kattem via Strindheim-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
-            "Kattem"
+            "Kattem",
+            "Østre Lund"
           ]
         },
         "atb-bus-2-live": {
@@ -1704,11 +1742,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         },
         "atb-bus-2-live": {
@@ -1731,10 +1771,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -1913,10 +1955,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -1973,10 +2017,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -2098,10 +2144,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -2128,10 +2176,12 @@
             "0"
           ],
           "headsigns": [
-            "Kattem via Strindheim-sentrum"
+            "Kattem via Strindheim-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
-            "Kattem"
+            "Kattem",
+            "Østre Lund"
           ]
         }
       },
@@ -2218,10 +2268,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -2378,10 +2430,12 @@
             "0"
           ],
           "headsigns": [
-            "Kattem via Strindheim-sentrum"
+            "Kattem via Strindheim-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
-            "Kattem"
+            "Kattem",
+            "Østre Lund"
           ]
         }
       },
@@ -2440,11 +2494,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         },
         "atb-bus-2-live": {
@@ -2561,10 +2617,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -2621,10 +2679,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -2711,10 +2771,12 @@
             "0"
           ],
           "headsigns": [
-            "Kattem via Strindheim-sentrum"
+            "Kattem via Strindheim-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
-            "Kattem"
+            "Kattem",
+            "Østre Lund"
           ]
         }
       },
@@ -2864,10 +2926,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -2897,11 +2961,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         },
         "atb-bus-2-live": {
@@ -2924,10 +2990,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -3041,10 +3109,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -3073,11 +3143,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         },
         "atb-bus-2-live": {
@@ -3151,10 +3223,12 @@
             "0"
           ],
           "headsigns": [
-            "Kattem via Strindheim-sentrum"
+            "Kattem via Strindheim-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
-            "Kattem"
+            "Kattem",
+            "Østre Lund"
           ]
         }
       },
@@ -3213,11 +3287,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         },
         "atb-bus-2-live": {
@@ -3304,10 +3380,12 @@
             "0"
           ],
           "headsigns": [
-            "Kattem via Strindheim-sentrum"
+            "Kattem via Strindheim-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
-            "Kattem"
+            "Kattem",
+            "Østre Lund"
           ]
         }
       },
@@ -3364,10 +3442,12 @@
             "0"
           ],
           "headsigns": [
-            "Kattem via Strindheim-sentrum"
+            "Kattem via Strindheim-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
-            "Kattem"
+            "Kattem",
+            "Østre Lund"
           ]
         }
       },
@@ -3425,11 +3505,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         }
       },
@@ -3489,11 +3571,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         }
       },
@@ -3645,10 +3729,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -3675,10 +3761,12 @@
             "0"
           ],
           "headsigns": [
-            "Kattem via Strindheim-sentrum"
+            "Kattem via Strindheim-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
-            "Kattem"
+            "Kattem",
+            "Østre Lund"
           ]
         }
       },
@@ -3797,11 +3885,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         },
         "atb-bus-2-live": {
@@ -3889,11 +3979,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         }
       },
@@ -3982,10 +4074,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -4013,11 +4107,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         }
       },
@@ -4144,11 +4240,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         },
         "atb-bus-2-live": {
@@ -4171,10 +4269,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -4288,10 +4388,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -4319,11 +4421,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         }
       },
@@ -4387,13 +4491,15 @@
             "Kattem via Strindheim-sentrum",
             "Ranheim via Tiller-sentrum",
             "Strindheim via sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
             "Ranheim",
             "Strindheim",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         },
         "atb-bus-2-live": {
@@ -4561,10 +4667,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -4593,11 +4701,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Tillerterminalen"
+            "Tillerterminalen",
+            "Østre Lund"
           ]
         },
         "atb-bus-2-live": {
@@ -4714,10 +4824,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -4834,10 +4946,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -4894,10 +5008,12 @@
             "1"
           ],
           "headsigns": [
-            "Lohove via sentrum"
+            "Lohove via sentrum",
+            "Loholtbakken"
           ],
           "destinationMatches": [
-            "Lohove"
+            "Lohove",
+            "Loholtbakken"
           ]
         }
       },
@@ -4927,11 +5043,13 @@
           ],
           "headsigns": [
             "Kattem via Strindheim-sentrum",
-            "Ranheim via Tiller-sentrum"
+            "Ranheim via Tiller-sentrum",
+            "Østre Lund"
           ],
           "destinationMatches": [
             "Kattem",
-            "Ranheim"
+            "Ranheim",
+            "Østre Lund"
           ]
         },
         "atb-bus-2-live": {
@@ -4963,4 +5081,3 @@
   },
   "status": "directional-logical-map-ready-hardware-order-pending"
 }
-
