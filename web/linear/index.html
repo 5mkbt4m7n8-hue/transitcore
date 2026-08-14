@@ -30,7 +30,7 @@
 <script>
 "use strict";
 const $=id=>document.getElementById(id),BASE="../../config/",FEED="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/trondheim-bus-board/frame";
-let board,hardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,activeIds=new Set,afterglowTimers=new Map,vehicleObservations=new Map,passedKeys=new Set;
+let board,hardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null;
 async function json(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error(`HTTP ${response.status}`);return response.json()}
 function esc(value){return String(value??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 function directionId(direction){return direction.reverseShape?"1":"0"}
@@ -48,7 +48,7 @@ function stationRows(){
   return ordered;
 }
 function build(){
-  activeIds=new Set;vehicleObservations.clear();passedKeys.clear();for(const handle of afterglowTimers.values())clearTimeout(handle);afterglowTimers.clear();document.querySelectorAll(".led").forEach(led=>led.classList.remove("on","approaching","departed"));
+  document.querySelectorAll(".led").forEach(led=>led.classList.remove("on","approaching","departed"));
   profile=profiles.find(item=>item.id===$("route").value)||profiles[0];const directions=profile.directions.slice(0,2),physical=new Map(hardware.assignments.map(a=>[a.logicalLed,a.physicalLed]));stationRows();
   $("dirA").textContent=directions[0]?.label||"Retning A";$("dirB").textContent=directions[1]?.label||"Retning B";
   $("legend").innerHTML=directions.map(direction=>`<span><i class="dot" style="background:${esc(direction.color)}"></i>${esc(direction.label)}</span>`).join("");
@@ -56,12 +56,25 @@ function build(){
   $("stationCount").textContent=ordered.length;document.querySelectorAll(".led:not(.empty)").forEach(led=>led.onclick=()=>showInfo(led));if(lastFrame)paint(lastFrame);
 }
 function paint(frame){
-  lastFrame=frame;const routeItems=(frame.leds||[]).filter(item=>!item.vehicle?.line||String(item.vehicle.line)===String(profile.line.publicCode)),visibleItems=routeItems.filter(item=>{const vehicle=item.vehicle||{},key=`${vehicle.id||"unknown"}:${item.id}`,previous=vehicleObservations.get(key),distance=Number(vehicle.distanceMeters),movingAway=item.state==="APPROACHING"&&(passedKeys.has(key)||(Number.isFinite(distance)&&Number.isFinite(previous?.distance)&&distance>previous.distance+10));if(item.state==="AT_STOP")passedKeys.add(key);vehicleObservations.set(key,{distance,seenAt:Date.now()});return !movingAway}),nextIds=new Set(visibleItems.map(item=>String(item.id)));
-  document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching");if(!activeIds.has(led.dataset.id)||nextIds.has(led.dataset.id))led.classList.remove("departed");delete led.dataset.state;delete led.dataset.vehicle});
-  for(const oldId of activeIds)if(!nextIds.has(oldId)){for(const led of document.querySelectorAll(`.led[data-id="${oldId}"]`))led.classList.add("departed");clearTimeout(afterglowTimers.get(oldId));afterglowTimers.set(oldId,setTimeout(()=>{document.querySelectorAll(`.led[data-id="${oldId}"]`).forEach(led=>led.classList.remove("departed"));afterglowTimers.delete(oldId)},20000))}
-  for(const item of visibleItems){const id=String(item.id);clearTimeout(afterglowTimers.get(id));afterglowTimers.delete(id);for(const led of document.querySelectorAll(`.led[data-id="${id}"]`)){led.classList.remove("departed");led.style.color=`rgb(${item.rgb.join(",")})`;led.classList.add("on");if(item.state==="APPROACHING")led.classList.add("approaching");led.dataset.state=item.state;led.dataset.vehicle=JSON.stringify(item.vehicle||{})}}
-  activeIds=nextIds;
-  const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30);$("activeCount").textContent=visibleItems.length;$("quality").textContent=fresh?`LIVE - ${age} s`:`UTDATERT - ${age} s`;$("quality").style.color=fresh?"var(--ok)":"var(--bad)";$("status").textContent=`Linje ${profile.line.publicCode} - ${new Date().toLocaleTimeString()}`;
+  lastFrame=frame;
+  const visibleItems=(frame.leds||[]).filter(item=>!item.vehicle?.line||String(item.vehicle.line)===String(profile.line.publicCode));
+  document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching","departed");delete led.dataset.state;delete led.dataset.vehicle});
+  for(const item of visibleItems){
+    const id=String(item.id);
+    for(const led of document.querySelectorAll(`.led[data-id="${id}"]`)){
+      led.style.color=`rgb(${item.rgb.join(",")})`;
+      if(item.state==="PASSED")led.classList.add("departed");
+      else led.classList.add("on");
+      if(item.state==="APPROACHING")led.classList.add("approaching");
+      led.dataset.state=item.state;
+      led.dataset.vehicle=JSON.stringify(item.vehicle||{});
+    }
+  }
+  const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30),active=visibleItems.filter(item=>item.state!=="PASSED").length;
+  $("activeCount").textContent=active;
+  $("quality").textContent=fresh?`LIVE - ${age} s`:`UTDATERT - ${age} s`;
+  $("quality").style.color=fresh?"var(--ok)":"var(--bad)";
+  $("status").textContent=`Linje ${profile.line.publicCode} - ${new Date().toLocaleTimeString()}`;
 }
 function showInfo(led){
   const item=(lastFrame?.leds||[]).find(value=>String(value.id)===led.dataset.id),vehicle=item?.vehicle||{},displayState=led.classList.contains("departed")?"PASSED":item?.state||"AV";$("infoTitle").textContent=`${led.dataset.name} - LED ${led.dataset.id}`;
