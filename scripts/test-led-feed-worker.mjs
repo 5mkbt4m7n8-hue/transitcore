@@ -16,7 +16,7 @@ assert.equal(frame.schemaVersion, 1);
 assert.equal(frame.boardProfile, "trondheim-bus-board");
 assert.equal(frame.ledCount, 2);
 assert.equal(frame.ttlSeconds, 30);
-assert.deepEqual(frame.leds, [{ id: 1, rgb: [0, 255, 80], brightness: 20, state: "AT_STOP" }]);
+assert.deepEqual(frame.leds, [{ id: 1, rgb: [0, 255, 80], brightness: 20, state: "AT_STOP", vehicle: { id: "bus-1", line: "1", destination: "Kattem", ageSeconds: 5, distanceMeters: 0 } }]);
 const unknownDirectionFrame = buildFrame({
   board, profiles, hardware,
   vehicles: [{ ...vehicles[0], destinationName: "Ukjent endeholdeplass", location: { latitude: 63.4310, longitude: 10.3951 } }],
