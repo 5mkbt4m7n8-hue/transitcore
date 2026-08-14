@@ -11,9 +11,7 @@
     button,.toggle{background:#18212c;color:var(--text);border:1px solid #3b4858;border-radius:9px;padding:8px 11px;cursor:pointer;font:inherit}.toggle input{margin-right:6px}.status{margin-left:auto;color:var(--muted)}
     .badge{border:1px solid #2b3542;background:#121821;border-radius:999px;padding:6px 10px}.badge b{color:#fff}.swatch{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
     .mapwrap{background:#0e141c;border:1px solid #26303d;border-radius:14px;overflow:hidden;position:relative}svg{display:block;width:100%;height:auto;min-height:560px}
-    .route{fill:none;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;opacity:.82}.route.off{display:none}.station-core{fill:#202a36;stroke:#657386;stroke-width:2}
-    .station-label{fill:#dce4ee;font-size:11px;font-weight:600;paint-order:stroke;stroke:#0e141c;stroke-width:4px;stroke-linejoin:round}.station-label.minor{font-size:10px;opacity:.78}
-    .led{fill:#2a3440;stroke:#637083;stroke-width:2;cursor:pointer}.led.on{fill:currentColor;stroke:#fff;filter:url(#glow)}.led.approaching{animation:pulse 2.4s ease-in-out infinite}.led.departed{fill:currentColor;stroke:currentColor;opacity:.24}.led.hidden-route{display:none}
+    .route{fill:none;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;opacity:.82}.route.off{display:none}.station{cursor:pointer}.station-core{fill:#202a36;stroke:#657386;stroke-width:3;transition:opacity .2s}.station-core.on{fill:currentColor;stroke:#fff;filter:url(#glow)}.station-core.approaching{animation:pulse 2.4s ease-in-out infinite}.station-core.departed{fill:currentColor;stroke:currentColor;opacity:.24}.station-core.hidden-route{display:none}\n    .station-label{fill:#dce4ee;font-size:12px;font-weight:700;paint-order:stroke;stroke:#0e141c;stroke-width:5px;stroke-linejoin:round;pointer-events:none}.station-label.minor{font-size:10px;opacity:0;transition:opacity .15s}.station:hover .station-label.minor,.station:focus .station-label.minor{opacity:1}
     @keyframes pulse{0%,100%{opacity:.38}50%{opacity:1}}.info{display:none;position:absolute;left:12px;bottom:12px;width:min(420px,calc(100% - 24px));background:#17202b;border:1px solid #48576a;border-radius:12px;padding:12px;box-shadow:0 15px 40px #000a}.info.show{display:block}.info h2{font-size:16px;margin:0 0 7px}.info p{margin:5px 0;color:#ccd5df}.close{float:right;padding:4px 8px}
     @media(max-width:650px){main{padding:9px}.status{width:100%;margin:0}svg{min-height:440px}.station-label{font-size:9px}.station-label.minor{display:none}.route{stroke-width:11}}
   </style>
@@ -23,7 +21,7 @@
   <p class="sub">Linje 1, 2 og 3 samlet som et skjematisk metro-kart</p>
   <div class="tools" id="filters"></div>
   <div class="tools"><button id="refresh">Oppdater live</button><button id="simulate">Simuler tre linjer på samme LED</button><span class="status" id="status">Starter ...</span></div>
-  <div class="stats"><span class="badge">Aktive LED-er <b id="activeCount">-</b></span><span class="badge">Busser <b id="vehicleCount">-</b></span><span class="badge">Flerlinje-LED-er <b id="collisionCount">-</b></span><span class="badge">Frame <b id="quality">-</b></span></div>
+  <div class="stats"><span class="badge">Aktive stasjoner <b id="activeCount">-</b></span><span class="badge">Busser <b id="vehicleCount">-</b></span><span class="badge">Flerlinjestasjoner <b id="collisionCount">-</b></span><span class="badge">Frame <b id="quality">-</b></span></div>
   <div class="legend" id="legend"></div>
   <section class="mapwrap">
     <svg id="map" viewBox="0 0 1200 920" role="img" aria-labelledby="mapTitle mapDesc"><title id="mapTitle">Trondheim busslinje 1, 2 og 3</title><desc id="mapDesc">Skjematisk nettverkskart med live LED-signaler og forgreninger.</desc><defs><filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g id="routes"></g><g id="stations"></g></svg>
@@ -33,7 +31,7 @@
 <script>
 "use strict";
 const $=id=>document.getElementById(id),BASE="../../config/",FEED="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/trondheim-bus-board/frame";
-let board,hardware,profiles=[],stationMap=new Map,physicalByLogical=new Map,lastFrame=null,timer=null,cycleTimer=null,simulation=false;
+let board,hardware,profiles=[],stationMap=new Map,physicalByLogical=new Map,physicalStation=new Map,lastFrame=null,timer=null,cycleTimer=null,simulation=false;
 const svgNS="http://www.w3.org/2000/svg";
 async function json(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error("HTTP "+response.status);return response.json()}
 function esc(value){return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
@@ -62,23 +60,35 @@ function projectStations(){
   stations.forEach(station=>{station.x=90+Math.round(((station.lon*cos-minX)/(maxX-minX||1))*1020/10)*10;station.y=80+Math.round(((maxY-station.lat)/(maxY-minY||1))*760/10)*10});
 }
 function el(name,attrs={}){const node=document.createElementNS(svgNS,name);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,value);return node}
+function schematicPath(ids,index){
+  const points=ids.map(id=>stationMap.get(id)).filter(Boolean),offset=(index-1)*7;
+  if(!points.length)return "";
+  let d="M "+(points[0].x+offset)+" "+(points[0].y+offset);
+  for(let i=1;i<points.length;i++){
+    const a=points[i-1],b=points[i],ax=a.x+offset,ay=a.y+offset,bx=b.x+offset,by=b.y+offset,dx=bx-ax,dy=by-ay;
+    if(Math.abs(dx)>=Math.abs(dy)){const mx=ax+Math.sign(dx||1)*Math.abs(dy);d+=" L "+mx+" "+by+" L "+bx+" "+by}
+    else{const my=ay+Math.sign(dy||1)*Math.abs(dx);d+=" L "+bx+" "+my+" L "+bx+" "+by}
+  }
+  return d;
+}
 function buildMap(){
-  projectStations();physicalByLogical=new Map(hardware.assignments.map(item=>[item.logicalLed,item.physicalLed]));
+  projectStations();physicalByLogical=new Map(hardware.assignments.map(item=>[item.logicalLed,item.physicalLed]));physicalStation=new Map;
   $("routes").innerHTML="";$("stations").innerHTML="";
+  const orderedByRoute=new Map,major=new Set;
   profiles.forEach((profile,index)=>{
-    const ids=orderedStations(profile),points=ids.map(id=>stationMap.get(id)).filter(Boolean).map(s=>(s.x+(index-1)*5)+","+(s.y+(index-1)*3)).join(" ");
-    const path=el("polyline",{points,class:"route","data-route":profile.id,stroke:routeColor(profile)});$("routes").append(path);
+    const ids=orderedStations(profile);orderedByRoute.set(profile.id,ids);if(ids.length){major.add(ids[0]);major.add(ids[ids.length-1])}
+    const path=el("path",{d:schematicPath(ids,index),class:"route","data-route":profile.id,stroke:routeColor(profile)});$("routes").append(path);
   });
   for(const station of stationMap.values()){
-    const group=el("g",{"data-station":station.id,"data-routes":[...station.routes].join(",")});
-    group.append(el("circle",{cx:station.x,cy:station.y,r:7,class:"station-core"}));
-    const nodes=station.nodes,spread=Math.min(18,8+nodes.length*2);
-    nodes.forEach((node,index)=>{
-      const angle=nodes.length===1?0:(Math.PI*2*index/nodes.length)-Math.PI/2,id=physicalByLogical.get(node.led),cx=station.x+Math.cos(angle)*spread,cy=station.y+Math.sin(angle)*spread;
-      const led=el("circle",{cx,cy,r:6,class:"led","data-id":id,"data-name":station.name,"data-routes":node.routes.join(",")});
-      led.addEventListener("click",()=>showInfo(led));group.append(led);
-    });
-    const label=el("text",{x:station.x+12,y:station.y-11,class:"station-label"+(station.routes.size===1?" minor":"")});label.textContent=station.name;group.append(label);$("stations").append(group);
+    if(station.routes.size>1)major.add(station.id);
+    station.nodes.forEach(node=>physicalStation.set(String(physicalByLogical.get(node.led)),station.id));
+  }
+  for(const station of stationMap.values()){
+    const group=el("g",{class:"station",tabindex:"0","data-station":station.id,"data-name":station.name,"data-routes":[...station.routes].join(","),"data-leds":station.nodes.map(node=>physicalByLogical.get(node.led)).join(",")});
+    group.append(el("circle",{cx:station.x,cy:station.y,r:major.has(station.id)?10:7,class:"station-core"}));
+    const label=el("text",{x:station.x+14,y:station.y-12,class:"station-label"+(major.has(station.id)?"":" minor")});label.textContent=station.name;group.append(label);
+    group.addEventListener("click",()=>showStationInfo(group));group.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();showStationInfo(group)}});
+    $("stations").append(group);
   }
   applyFilters();
 }
@@ -95,31 +105,32 @@ function prioritized(item){
   return source.filter(value=>priority(value)===highest).sort((a,b)=>Number(a.distanceMeters||Infinity)-Number(b.distanceMeters||Infinity)).filter(value=>{const key=String(value.line)+"|"+JSON.stringify(value.rgb);if(seen.has(key))return false;seen.add(key);return true});
 }
 function paint(frame){
-  lastFrame=frame;document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching","departed");delete led.dataset.occupants;delete led.dataset.colors;delete led.dataset.colorIndex});
-  let vehicles=0,collisions=0,active=0;
-  for(const item of frame.leds||[]){
-    const winners=prioritized(item),occupants=item.occupants||[],lines=new Set(occupants.map(value=>String(value.line)).filter(Boolean));vehicles+=occupants.length||1;if(lines.size>1)collisions++;
-    const state=item.lifecycle==="PASSED"?"PASSED":winners[0]?.state||item.state,colors=winners.map(value=>value.rgb||item.rgb);
-    document.querySelectorAll('.led[data-id="'+String(item.id)+'"]').forEach(led=>{
-      led.style.color="rgb("+((colors[0]||item.rgb).join(","))+")";if(item.lifecycle==="PASSED")led.classList.add("departed");else{led.classList.add("on");active++}if(state==="APPROACHING")led.classList.add("approaching");
-      led.dataset.occupants=JSON.stringify(occupants);led.dataset.colors=JSON.stringify(colors);led.dataset.colorIndex="0";led.dataset.state=state;
-    });
+  lastFrame=frame;document.querySelectorAll(".station-core").forEach(core=>{core.classList.remove("on","approaching","departed");delete core.dataset.occupants;delete core.dataset.colors;delete core.dataset.colorIndex;delete core.dataset.state});
+  const grouped=new Map;let vehicles=0;
+  for(const item of frame.leds||[]){const stationId=physicalStation.get(String(item.id));if(!stationId)continue;const list=grouped.get(stationId)||[];list.push(item);grouped.set(stationId,list);vehicles+=(item.occupants||[]).length||1}
+  let collisions=0,active=0;
+  for(const [stationId,items] of grouped){
+    const group=document.querySelector('[data-station="'+stationId+'"]'),core=group?.querySelector(".station-core");if(!core)continue;
+    const allOccupants=items.flatMap(item=>item.occupants?.length?item.occupants:[{...(item.vehicle||{}),rgb:item.rgb,state:item.state}]);
+    const liveItems=items.filter(item=>item.lifecycle!=="PASSED"),source=liveItems.length?liveItems:items;
+    const candidates=source.flatMap(item=>prioritized(item)),highest=candidates.length?Math.max(...candidates.map(priority)):0,seen=new Set;
+    const winners=candidates.filter(value=>priority(value)===highest).filter(value=>{const key=String(value.line)+"|"+JSON.stringify(value.rgb);if(seen.has(key))return false;seen.add(key);return true});
+    const colors=winners.map(value=>value.rgb).filter(Boolean),lines=new Set(winners.map(value=>String(value.line)).filter(Boolean));
+    if(lines.size>1)collisions++;
+    const state=source.every(item=>item.lifecycle==="PASSED")?"PASSED":winners[0]?.state||source[0]?.state||"OFF";
+    core.style.color="rgb("+((colors[0]||source[0]?.rgb||[80,90,100]).join(","))+")";
+    if(state==="PASSED")core.classList.add("departed");else{core.classList.add("on");active++}
+    if(state==="APPROACHING")core.classList.add("approaching");
+    core.dataset.occupants=JSON.stringify(allOccupants);core.dataset.colors=JSON.stringify(colors);core.dataset.colorIndex="0";core.dataset.state=state;
   }
   const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30);
   $("activeCount").textContent=active;$("vehicleCount").textContent=vehicles;$("collisionCount").textContent=collisions;$("quality").textContent=fresh?"LIVE - "+age+" s":"UTDATERT - "+age+" s";$("quality").style.color=fresh?"var(--ok)":"#ff5c5c";$("status").textContent=simulation?"SIMULERING":"Oppdatert "+new Date().toLocaleTimeString();
 }
-function cycleColors(){document.querySelectorAll(".led.on[data-colors]").forEach(led=>{const colors=JSON.parse(led.dataset.colors||"[]");if(colors.length<2)return;const index=(Number(led.dataset.colorIndex||0)+1)%colors.length;led.dataset.colorIndex=String(index);led.style.color="rgb("+colors[index].join(",")+")"})}
-function showInfo(led){
-  const occupants=JSON.parse(led.dataset.occupants||"[]");$("infoTitle").textContent=led.dataset.name+" - LED "+led.dataset.id;
-  $("infoBody").innerHTML='<p><strong>Vist tilstand:</strong> '+esc(led.dataset.state||"AV")+'</p>'+(occupants.length?occupants.map(value=>'<p><i class="swatch" style="background:rgb('+esc((value.rgb||[]).join(","))+')"></i><strong>Linje '+esc(value.line)+'</strong> - '+esc(value.destination||"Ukjent")+' - '+esc(value.state||"?")+' ('+esc(value.distanceMeters??"?")+' m)</p>').join(""):"<p>Ingen aktiv buss på denne LED-en.</p>");$("info").classList.add("show");
-}
-async function refresh(){clearTimeout(timer);if(!simulation)try{paint(await json(FEED))}catch(error){$("status").textContent="Feedfeil: "+error.message}timer=setTimeout(refresh,10000)}
-function simulate(){
-  simulation=!simulation;$("simulate").textContent=simulation?"Tilbake til live":"Simuler tre linjer på samme LED";
-  if(!simulation)return refresh();
-  clearTimeout(timer);const shared=board.nodes.find(node=>["atb-bus-1-live","atb-bus-2-live","atb-bus-3-live"].every(route=>node.routes.includes(route)))||board.nodes.find(node=>node.routes.length>1),id=physicalByLogical.get(shared.led);
-  const occupants=profiles.map(profile=>({id:"test-"+profile.line.publicCode,line:String(profile.line.publicCode),destination:"Test",rgb:hexRgb(routeColor(profile)),state:"AT_STOP",ageSeconds:0,distanceMeters:0}));
-  paint({generatedAt:new Date().toISOString(),ttlSeconds:30,leds:[{id,rgb:occupants[0].rgb,state:"AT_STOP",vehicle:occupants[0],occupants}]});
+function cycleColors(){document.querySelectorAll(".station-core.on[data-colors]").forEach(core=>{const colors=JSON.parse(core.dataset.colors||"[]");if(colors.length<2)return;const index=(Number(core.dataset.colorIndex||0)+1)%colors.length;core.dataset.colorIndex=String(index);core.style.color="rgb("+colors[index].join(",")+")"})}
+function showStationInfo(group){
+  const core=group.querySelector(".station-core"),occupants=JSON.parse(core.dataset.occupants||"[]"),routes=(group.dataset.routes||"").split(",").map(id=>profiles.find(profile=>profile.id===id)?.line.publicCode||id);
+  $("infoTitle").textContent=group.dataset.name;
+  $("infoBody").innerHTML='<p><strong>Linjer:</strong> '+esc(routes.join(", "))+'</p><p><strong>Fysiske LED-er:</strong> '+esc(group.dataset.leds||"Ingen")+'</p><p><strong>Vist tilstand:</strong> '+esc(core.dataset.state||"AV")+'</p>'+(occupants.length?occupants.map(value=>'<p><i class="swatch" style="background:rgb('+esc((value.rgb||[]).join(","))+')"></i><strong>Linje '+esc(value.line)+'</strong> - '+esc(value.destination||"Ukjent")+' - '+esc(value.state||"?")+' ('+esc(value.distanceMeters??"?")+' m)</p>').join(""):"<p>Ingen aktive busser på stasjonen.</p>");$("info").classList.add("show");
 }
 function hexRgb(hex){const value=hex.replace("#","");return [0,2,4].map(i=>parseInt(value.slice(i,i+2),16))}
 $("refresh").onclick=()=>{simulation=false;$("simulate").textContent="Simuler tre linjer på samme LED";refresh()};$("simulate").onclick=simulate;$("close").onclick=()=>$("info").classList.remove("show");
