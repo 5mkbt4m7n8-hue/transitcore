@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>TransitCore lineÃ¦r tavlesimulator</title>
+  <title>TransitCore line&aelig;r tavlesimulator</title>
   <style>
     :root{color-scheme:dark;--bg:#0b0e12;--panel:#12161c;--line:#343b45;--text:#f5f7fa;--muted:#98a3b2;--ok:#39d98a;--warn:#ffb020;--bad:#ff5c5c}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,sans-serif}main{max-width:820px;margin:auto;padding:18px}
@@ -20,9 +20,9 @@
   </style>
 </head>
 <body><main>
-  <h1>ðŸšŒ TransitCore Live</h1><p class="sub">Samme LED-frame som sendes til den fysiske tavlen</p>
-  <div class="tools"><label>Linje <select id="route"></select></label><button id="refresh">Oppdater</button><button id="test">LED-test</button><span class="status" id="status">Starter â€¦</span></div>
-  <div class="summary"><span class="badge">Holdeplasser <b id="stationCount">â€“</b></span><span class="badge">Aktive LED-er <b id="activeCount">â€“</b></span><span class="badge">Frame <b id="quality">â€“</b></span></div>
+  <h1>&#128652; TransitCore Live</h1><p class="sub">Samme LED-frame som sendes til den fysiske tavlen</p>
+  <div class="tools"><label>Linje <select id="route"></select></label><button id="refresh">Oppdater</button><button id="test">LED-test</button><span class="status" id="status">Starter ...</span></div>
+  <div class="summary"><span class="badge">Holdeplasser <b id="stationCount">-</b></span><span class="badge">Aktive LED-er <b id="activeCount">-</b></span><span class="badge">Frame <b id="quality">-</b></span></div>
   <div class="legend" id="legend"></div>
   <section class="board"><div class="head"><b>Holdeplass</b><span id="dirA">Retning A</span><span id="dirB">Retning B</span></div><div id="rows"></div></section>
 </main>
@@ -61,7 +61,7 @@ function paint(frame){
   for(const oldId of activeIds)if(!nextIds.has(oldId)){for(const led of document.querySelectorAll(`.led[data-id="${oldId}"]`))led.classList.add("departed");clearTimeout(afterglowTimers.get(oldId));afterglowTimers.set(oldId,setTimeout(()=>{document.querySelectorAll(`.led[data-id="${oldId}"]`).forEach(led=>led.classList.remove("departed"));afterglowTimers.delete(oldId)},20000))}
   for(const item of visibleItems){const id=String(item.id);clearTimeout(afterglowTimers.get(id));afterglowTimers.delete(id);for(const led of document.querySelectorAll(`.led[data-id="${id}"]`)){led.classList.remove("departed");led.style.color=`rgb(${item.rgb.join(",")})`;led.classList.add("on");if(item.state==="APPROACHING")led.classList.add("approaching");led.dataset.state=item.state;led.dataset.vehicle=JSON.stringify(item.vehicle||{})}}
   activeIds=nextIds;
-  const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30);$("activeCount").textContent=visibleItems.length;$("quality").textContent=fresh?`LIVE Â· ${age} s`:`UTDATERT Â· ${age} s`;$("quality").style.color=fresh?"var(--ok)":"var(--bad)";$("status").textContent=`Linje ${profile.line.publicCode} Â· ${new Date().toLocaleTimeString()}`;
+  const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30);$("activeCount").textContent=visibleItems.length;$("quality").textContent=fresh?`LIVE - ${age} s`:`UTDATERT - ${age} s`;$("quality").style.color=fresh?"var(--ok)":"var(--bad)";$("status").textContent=`Linje ${profile.line.publicCode} - ${new Date().toLocaleTimeString()}`;
 }
 function showInfo(led){
   const item=(lastFrame?.leds||[]).find(value=>String(value.id)===led.dataset.id),vehicle=item?.vehicle||{},displayState=led.classList.contains("departed")?"PASSED":item?.state||"AV";$("infoTitle").textContent=`${led.dataset.name} - LED ${led.dataset.id}`;
@@ -70,6 +70,6 @@ function showInfo(led){
 async function refresh(){clearTimeout(timer);if(!testing)try{paint(await json(FEED))}catch(error){$("status").textContent=`Feedfeil: ${error.message}`;$("quality").textContent="FEIL"}timer=setTimeout(refresh,10000)}
 $("close").onclick=()=>$("info").classList.remove("show");$("refresh").onclick=refresh;$("route").onchange=build;
 $("test").onclick=()=>{testing=!testing;$("test").textContent=testing?"Stopp test":"LED-test";if(!testing)return refresh();const leds=[...document.querySelectorAll(".led:not(.empty)")];let index=0;const step=()=>{if(!testing)return;document.querySelectorAll(".led").forEach(led=>led.classList.remove("on"));leds[index++%leds.length].classList.add("on");$("status").textContent=`LED-test ${index}/${leds.length}`;setTimeout(step,250)};step()};
-Promise.all([json(`${BASE}boards/trondheim-bus-board.json`),json(`${BASE}hardware/trondheim-bus-board-hardware.json`)]).then(async values=>{[board,hardware]=values;profiles=await Promise.all(board.routes.map(id=>json(`${BASE}routes/${id}.json`)));$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} Â· ${esc(item.name)}</option>`).join("");build();refresh()}).catch(error=>$("status").textContent=error.message);
+Promise.all([json(`${BASE}boards/trondheim-bus-board.json`),json(`${BASE}hardware/trondheim-bus-board-hardware.json`)]).then(async values=>{[board,hardware]=values;profiles=await Promise.all(board.routes.map(id=>json(`${BASE}routes/${id}.json`)));$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");build();refresh()}).catch(error=>$("status").textContent=error.message);
 </script></body></html>
 
