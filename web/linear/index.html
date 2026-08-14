@@ -35,6 +35,8 @@
     <div class="diagitem"><span>Gamle posisjoner</span><b id="diagStale">0</b></div>
     <div class="diagitem"><span>Manglende data</span><b id="diagMissing">0</b></div>
     <div class="diagitem"><span>Raske overtakelser</span><b id="diagTakeovers">0</b></div>
+    <div class="diagitem"><span>Busser p&aring; viste LED-er</span><b id="diagVehicles">0</b></div>
+    <div class="diagitem"><span>Flerlinje-LED-er</span><b id="diagMultiLine">0</b></div>
     <div class="diagitem"><span>Retningsavvik</span><b id="diagDirectionMismatch">0</b></div>
     <div class="diagitem"><span>Ukjent destinasjon</span><b id="diagUnknownDestination">0</b></div>
     <div class="diagitem"><span>Ensidige oppdateringer</span><b id="diagOneSided">0</b></div>
@@ -47,7 +49,7 @@
 <script>
 "use strict";
 const $=id=>document.getElementById(id),BASE="../../config/",FEED="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/trondheim-bus-board/frame";
-let board,hardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,diagnosticTakeovers=0,diagnosticVehicles=new Map,diagnosticOneSided=new Map;
+let board,hardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,diagnosticTakeovers=0,diagnosticVehicles=new Map,diagnosticOneSided=new Map,colorCycleTimer=null;
 async function json(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error(`HTTP ${response.status}`);return response.json()}
 function esc(value){return String(value??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 function directionId(direction){return direction.reverseShape?"1":"0"}
@@ -80,21 +82,30 @@ function build(){
   }).join("");
   $("stationCount").textContent=ordered.length;document.querySelectorAll(".led:not(.empty)").forEach(led=>led.onclick=()=>showInfo(led));if(lastFrame)paint(lastFrame);
 }
+function occupantPriority(value){return value.state==="AT_STOP"?2:value.state==="APPROACHING"?1:0}
+function prioritizedOccupants(item){
+  if(item.lifecycle==="PASSED")return [];
+  const source=item.occupants?.length?item.occupants:[{...(item.vehicle||{}),rgb:item.rgb,state:item.state}];
+  const highest=Math.max(...source.map(occupantPriority)),seen=new Set;
+  return source.filter(value=>occupantPriority(value)===highest).sort((a,b)=>Number(a.distanceMeters||Infinity)-Number(b.distanceMeters||Infinity)).filter(value=>{const key=String(value.line||"")+"|"+JSON.stringify(value.rgb||item.rgb);if(seen.has(key))return false;seen.add(key);return true});
+}
+function cycleLedColors(){
+  document.querySelectorAll(".led.on[data-colors]").forEach(led=>{const colors=JSON.parse(led.dataset.colors||"[]");if(colors.length<2)return;const index=(Number(led.dataset.colorIndex||0)+1)%colors.length;led.dataset.colorIndex=String(index);led.style.color=`rgb(${colors[index].join(",")})`});
+}
 function paint(frame){
   lastFrame=frame;
-  const visibleItems=(frame.leds||[]).filter(item=>!item.vehicle?.line||String(item.vehicle.line)===String(profile.line.publicCode));
-  document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching","departed");delete led.dataset.state;delete led.dataset.vehicle});
+  const selectedLine=String(profile.line.publicCode),visibleItems=(frame.leds||[]).filter(item=>item.occupants?.length?item.occupants.some(value=>String(value.line)===selectedLine):!item.vehicle?.line||String(item.vehicle.line)===selectedLine);
+  document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching","departed");delete led.dataset.state;delete led.dataset.vehicle;delete led.dataset.occupants;delete led.dataset.colors;delete led.dataset.colorIndex});
   for(const item of visibleItems){
-    const id=String(item.id);
+    const id=String(item.id),prioritized=prioritizedOccupants(item),effective=prioritized[0]||item.vehicle||{},effectiveState=item.lifecycle==="PASSED"?"PASSED":effective.state||item.state,colors=prioritized.map(value=>value.rgb||item.rgb);
     for(const led of document.querySelectorAll(`.led[data-id="${id}"]`)){
-      led.style.color=`rgb(${item.rgb.join(",")})`;
-      if(item.lifecycle==="PASSED")led.classList.add("departed");
-      else led.classList.add("on");
-      if(item.state==="APPROACHING")led.classList.add("approaching");
-      led.dataset.state=item.state;
-      led.dataset.vehicle=JSON.stringify(item.vehicle||{});
+      led.style.color=`rgb(${(colors[0]||item.rgb).join(",")})`;
+      if(item.lifecycle==="PASSED")led.classList.add("departed");else led.classList.add("on");
+      if(effectiveState==="APPROACHING")led.classList.add("approaching");
+      led.dataset.state=effectiveState;led.dataset.vehicle=JSON.stringify(effective);led.dataset.occupants=JSON.stringify(item.occupants||[]);led.dataset.colors=JSON.stringify(colors);led.dataset.colorIndex="0";
     }
   }
+  if(!colorCycleTimer)colorCycleTimer=setInterval(cycleLedColors,1200);
   const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30),active=visibleItems.filter(item=>item.lifecycle!=="PASSED").length;
   $("activeCount").textContent=active;
   $("quality").textContent=fresh?`LIVE - ${age} s`:`UTDATERT - ${age} s`;
@@ -103,11 +114,13 @@ function paint(frame){
   updateDiagnostics(visibleItems,age,fresh);
 }
 function updateDiagnostics(items,frameAge,fresh){
-  const counts={approaching:0,atStop:0,passed:0,dirA:0,dirB:0,shared:0,stale:0,missing:0,mismatch:0,unknownDestination:0,unmapped:0},now=Date.now(),directions=profile.directions.slice(0,2);
+  const counts={approaching:0,atStop:0,passed:0,dirA:0,dirB:0,shared:0,stale:0,missing:0,mismatch:0,unknownDestination:0,unmapped:0,vehicles:0,multiLine:0},now=Date.now(),directions=profile.directions.slice(0,2);
   for(const item of items){
-    const active=item.lifecycle!=="PASSED";
+    const active=item.lifecycle!=="PASSED",occupants=item.occupants?.length?item.occupants:[item.vehicle||{}],lines=new Set(occupants.map(value=>String(value.line||"")).filter(Boolean));
+    counts.vehicles+=occupants.length;if(lines.size>1)counts.multiLine++;
+    const selectedOccupant=occupants.find(value=>String(value.line)===String(profile.line.publicCode))||item.vehicle||{};
     if(!active)counts.passed++;else if(item.state==="APPROACHING")counts.approaching++;else if(item.state==="AT_STOP")counts.atStop++;
-    const vehicle=item.vehicle||{},age=Number(vehicle.ageSeconds);
+    const vehicle=selectedOccupant,age=Number(vehicle.ageSeconds);
     if(Number.isFinite(age)&&age>20)counts.stale++;
     if(!vehicle.id||!vehicle.destination)counts.missing++;
     const leds=[...document.querySelectorAll(`.led[data-id="${String(item.id)}"]`)],labels=new Set(leds.map(led=>led.dataset.direction).filter(Boolean));
@@ -127,7 +140,7 @@ function updateDiagnostics(items,frameAge,fresh){
   $("diagApproaching").textContent=counts.approaching;$("diagAtStop").textContent=counts.atStop;$("diagPassed").textContent=counts.passed;
   $("diagDirALabel").textContent=directions[0]?.label||"Retning A";$("diagDirBLabel").textContent=directions[1]?.label||"Retning B";
   $("diagDirA").textContent=counts.dirA;$("diagDirB").textContent=counts.dirB;$("diagShared").textContent=counts.shared;
-  $("diagStale").textContent=counts.stale;$("diagMissing").textContent=counts.missing;$("diagTakeovers").textContent=diagnosticTakeovers;
+  $("diagStale").textContent=counts.stale;$("diagMissing").textContent=counts.missing;$("diagTakeovers").textContent=diagnosticTakeovers;$("diagVehicles").textContent=counts.vehicles;$("diagMultiLine").textContent=counts.multiLine;
   const activeA=counts.dirA>0,activeB=counts.dirB>0,oneSided=items.some(item=>item.lifecycle!=="PASSED")&&activeA!==activeB,oneSidedFrames=oneSided?(diagnosticOneSided.get(profile.id)||0)+1:0;diagnosticOneSided.set(profile.id,oneSidedFrames);
   $("diagDirectionMismatch").textContent=counts.mismatch;$("diagUnknownDestination").textContent=counts.unknownDestination;$("diagOneSided").textContent=oneSidedFrames;$("diagUnmapped").textContent=counts.unmapped;
   $("diagStale").className=counts.stale?"diagwarn":"diagok";$("diagMissing").className=counts.missing?"diagwarn":"diagok";
@@ -136,8 +149,9 @@ function updateDiagnostics(items,frameAge,fresh){
   $("diagNote").className=`diagnote ${fresh?"diagok":"diagbad"}`;
 }
 function showInfo(led){
-  const item=(lastFrame?.leds||[]).find(value=>String(value.id)===led.dataset.id),vehicle=item?.vehicle||{},displayState=led.classList.contains("departed")?"PASSED":item?.state||"AV";$("infoTitle").textContent=`${led.dataset.name} - LED ${led.dataset.id}`;
-  $("infoBody").innerHTML=`<p><strong>Retning:</strong> ${esc(led.dataset.direction)}</p><p><strong>Tilstand:</strong> ${esc(displayState)}</p>${item?`<p><strong>Linje/kj&oslash;ret&oslash;y:</strong> ${esc(vehicle.line||profile.line.publicCode)}${vehicle.id?` - ${esc(vehicle.id)}`:""}</p><p><strong>Destinasjon:</strong> ${esc(vehicle.destination||"Ikke oppgitt")}</p><p><strong>Datakvalitet:</strong> ${vehicle.ageSeconds!=null?`${esc(vehicle.ageSeconds)} s gammel posisjon`:"Live frame - kj&oslash;ret&oslash;ydetaljer kommer etter publisering"}</p>`:"<p>Ingen aktiv buss p&aring; denne dioden n&aring;.</p>"}`;$("info").classList.add("show");
+  const item=(lastFrame?.leds||[]).find(value=>String(value.id)===led.dataset.id),vehicle=JSON.parse(led.dataset.vehicle||"{}"),occupants=JSON.parse(led.dataset.occupants||"[]"),displayState=led.classList.contains("departed")?"PASSED":led.dataset.state||item?.state||"AV";$("infoTitle").textContent=`${led.dataset.name} - LED ${led.dataset.id}`;
+  const occupantHtml=occupants.length?`<p><strong>Busser på samme LED:</strong></p>${occupants.map(value=>`<p><i class="dot" style="background:rgb(${esc((value.rgb||[]).join(","))})"></i>Linje ${esc(value.line||"?")} - ${esc(value.destination||"Ukjent")} - ${esc(value.state||"?")} (${esc(value.distanceMeters??"?")} m)</p>`).join("")}`:"";
+  $("infoBody").innerHTML=`<p><strong>Retning:</strong> ${esc(led.dataset.direction)}</p><p><strong>Vist tilstand:</strong> ${esc(displayState)}</p>${item?`<p><strong>Prioritert linje/kjøretøy:</strong> ${esc(vehicle.line||profile.line.publicCode)}${vehicle.id?` - ${esc(vehicle.id)}`:""}</p><p><strong>Destinasjon:</strong> ${esc(vehicle.destination||"Ikke oppgitt")}</p>${occupantHtml}<p><strong>Datakvalitet:</strong> ${vehicle.ageSeconds!=null?`${esc(vehicle.ageSeconds)} s gammel posisjon`:"Live frame"}</p>`:"<p>Ingen aktiv buss på denne dioden nå.</p>"}`;$("info").classList.add("show");
 }
 async function refresh(){clearTimeout(timer);if(!testing)try{paint(await json(FEED))}catch(error){$("status").textContent=`Feedfeil: ${error.message}`;$("quality").textContent="FEIL"}timer=setTimeout(refresh,10000)}
 $("close").onclick=()=>$("info").classList.remove("show");$("refresh").onclick=refresh;$("route").onchange=build;
