@@ -48,6 +48,7 @@ function stationRows(){
   return ordered;
 }
 function build(){
+  activeIds=new Set;for(const handle of afterglowTimers.values())clearTimeout(handle);afterglowTimers.clear();document.querySelectorAll(".led").forEach(led=>led.classList.remove("on","approaching","departed"));
   profile=profiles.find(item=>item.id===$("route").value)||profiles[0];const directions=profile.directions.slice(0,2),physical=new Map(hardware.assignments.map(a=>[a.logicalLed,a.physicalLed]));stationRows();
   $("dirA").textContent=directions[0]?.label||"Retning A";$("dirB").textContent=directions[1]?.label||"Retning B";
   $("legend").innerHTML=directions.map(direction=>`<span><i class="dot" style="background:${esc(direction.color)}"></i>${esc(direction.label)}</span>`).join("");
@@ -55,12 +56,12 @@ function build(){
   $("stationCount").textContent=ordered.length;document.querySelectorAll(".led:not(.empty)").forEach(led=>led.onclick=()=>showInfo(led));if(lastFrame)paint(lastFrame);
 }
 function paint(frame){
-  lastFrame=frame;const nextIds=new Set((frame.leds||[]).map(item=>String(item.id)));
+  lastFrame=frame;const visibleItems=(frame.leds||[]).filter(item=>!item.vehicle?.line||String(item.vehicle.line)===String(profile.line.publicCode)),nextIds=new Set(visibleItems.map(item=>String(item.id)));
   document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching");if(!activeIds.has(led.dataset.id)||nextIds.has(led.dataset.id))led.classList.remove("departed");delete led.dataset.state;delete led.dataset.vehicle});
   for(const oldId of activeIds)if(!nextIds.has(oldId)){for(const led of document.querySelectorAll(`.led[data-id="${oldId}"]`))led.classList.add("departed");clearTimeout(afterglowTimers.get(oldId));afterglowTimers.set(oldId,setTimeout(()=>{document.querySelectorAll(`.led[data-id="${oldId}"]`).forEach(led=>led.classList.remove("departed"));afterglowTimers.delete(oldId)},20000))}
-  for(const item of frame.leds||[]){const id=String(item.id);clearTimeout(afterglowTimers.get(id));afterglowTimers.delete(id);for(const led of document.querySelectorAll(`.led[data-id="${id}"]`)){led.classList.remove("departed");led.style.color=`rgb(${item.rgb.join(",")})`;led.classList.add("on");if(item.state==="APPROACHING")led.classList.add("approaching");led.dataset.state=item.state;led.dataset.vehicle=JSON.stringify(item.vehicle||{})}}
+  for(const item of visibleItems){const id=String(item.id);clearTimeout(afterglowTimers.get(id));afterglowTimers.delete(id);for(const led of document.querySelectorAll(`.led[data-id="${id}"]`)){led.classList.remove("departed");led.style.color=`rgb(${item.rgb.join(",")})`;led.classList.add("on");if(item.state==="APPROACHING")led.classList.add("approaching");led.dataset.state=item.state;led.dataset.vehicle=JSON.stringify(item.vehicle||{})}}
   activeIds=nextIds;
-  const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30);$("activeCount").textContent=(frame.leds||[]).length;$("quality").textContent=fresh?`LIVE Â· ${age} s`:`UTDATERT Â· ${age} s`;$("quality").style.color=fresh?"var(--ok)":"var(--bad)";$("status").textContent=`Oppdatert ${new Date().toLocaleTimeString()}`;
+  const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30);$("activeCount").textContent=visibleItems.length;$("quality").textContent=fresh?`LIVE Â· ${age} s`:`UTDATERT Â· ${age} s`;$("quality").style.color=fresh?"var(--ok)":"var(--bad)";$("status").textContent=`Linje ${profile.line.publicCode} Â· ${new Date().toLocaleTimeString()}`;
 }
 function showInfo(led){
   const item=(lastFrame?.leds||[]).find(value=>String(value.id)===led.dataset.id),vehicle=item?.vehicle||{};$("infoTitle").textContent=`${led.dataset.name} Â· LED ${led.dataset.id}`;
