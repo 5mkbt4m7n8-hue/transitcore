@@ -35,6 +35,9 @@
     <div class="diagitem"><span>Gamle posisjoner</span><b id="diagStale">0</b></div>
     <div class="diagitem"><span>Manglende data</span><b id="diagMissing">0</b></div>
     <div class="diagitem"><span>Raske overtakelser</span><b id="diagTakeovers">0</b></div>
+    <div class="diagitem"><span>Retningsavvik</span><b id="diagDirectionMismatch">0</b></div>
+    <div class="diagitem"><span>Ukjent destinasjon</span><b id="diagUnknownDestination">0</b></div>
+    <div class="diagitem"><span>Ensidige oppdateringer</span><b id="diagOneSided">0</b></div>
   </div><p class="diagnote" id="diagNote">Venter p&aring; f&oslash;rste frame.</p></div></details>
 
   <section class="board"><div class="head"><b>Holdeplass</b><span id="dirA">Retning A</span><span id="dirB">Retning B</span></div><div id="rows"></div></section>
@@ -43,7 +46,7 @@
 <script>
 "use strict";
 const $=id=>document.getElementById(id),BASE="../../config/",FEED="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/trondheim-bus-board/frame";
-let board,hardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,diagnosticTakeovers=0,diagnosticVehicles=new Map;
+let board,hardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,diagnosticTakeovers=0,diagnosticVehicles=new Map,diagnosticOneSided=new Map;
 async function json(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error(`HTTP ${response.status}`);return response.json()}
 function esc(value){return String(value??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 function directionId(direction){return direction.reverseShape?"1":"0"}
@@ -91,7 +94,7 @@ function paint(frame){
   updateDiagnostics(visibleItems,age,fresh);
 }
 function updateDiagnostics(items,frameAge,fresh){
-  const counts={approaching:0,atStop:0,passed:0,dirA:0,dirB:0,shared:0,stale:0,missing:0},now=Date.now(),directions=profile.directions.slice(0,2);
+  const counts={approaching:0,atStop:0,passed:0,dirA:0,dirB:0,shared:0,stale:0,missing:0,mismatch:0,unknownDestination:0},now=Date.now(),directions=profile.directions.slice(0,2);
   for(const item of items){
     if(item.lifecycle==="PASSED")counts.passed++;else if(item.state==="APPROACHING")counts.approaching++;else if(item.state==="AT_STOP")counts.atStop++;
     const vehicle=item.vehicle||{},age=Number(vehicle.ageSeconds);
@@ -101,6 +104,9 @@ function updateDiagnostics(items,frameAge,fresh){
     if(labels.has("Begge retninger"))counts.shared++;
     else if(labels.has(directions[0]?.label))counts.dirA++;
     else if(labels.has(directions[1]?.label))counts.dirB++;
+    const destination=String(vehicle.destination||"").toLowerCase(),expected=directions.find(direction=>(direction.destinationMatches||[]).some(value=>destination.includes(String(value).toLowerCase())));
+    if(!expected)counts.unknownDestination++;
+    else if(!labels.has("Begge retninger")&&!labels.has(expected.label))counts.mismatch++;
     const key=`${profile.id}:${item.id}`,vehicleId=String(vehicle.id||""),previous=diagnosticVehicles.get(key);
     if(vehicleId&&previous&&previous.id!==vehicleId&&now-previous.seenAt<=35000)diagnosticTakeovers++;
     if(vehicleId)diagnosticVehicles.set(key,{id:vehicleId,seenAt:now});
@@ -109,8 +115,11 @@ function updateDiagnostics(items,frameAge,fresh){
   $("diagDirALabel").textContent=directions[0]?.label||"Retning A";$("diagDirBLabel").textContent=directions[1]?.label||"Retning B";
   $("diagDirA").textContent=counts.dirA;$("diagDirB").textContent=counts.dirB;$("diagShared").textContent=counts.shared;
   $("diagStale").textContent=counts.stale;$("diagMissing").textContent=counts.missing;$("diagTakeovers").textContent=diagnosticTakeovers;
+  const activeA=counts.dirA>0,activeB=counts.dirB>0,oneSided=items.some(item=>item.lifecycle!=="PASSED")&&activeA!==activeB,oneSidedFrames=oneSided?(diagnosticOneSided.get(profile.id)||0)+1:0;diagnosticOneSided.set(profile.id,oneSidedFrames);
+  $("diagDirectionMismatch").textContent=counts.mismatch;$("diagUnknownDestination").textContent=counts.unknownDestination;$("diagOneSided").textContent=oneSidedFrames;
   $("diagStale").className=counts.stale?"diagwarn":"diagok";$("diagMissing").className=counts.missing?"diagwarn":"diagok";
-  $("diagNote").textContent=fresh?`Frame er live (${frameAge} s). Overtakelse telles når en ny buss tar samme diode innen 35 sekunder.`:`Frame er utdatert (${frameAge} s). Diagnoseverdiene kan være gamle.`;
+  $("diagDirectionMismatch").className=counts.mismatch?"diagbad":"diagok";$("diagUnknownDestination").className=counts.unknownDestination?"diagwarn":"diagok";$("diagOneSided").className=oneSidedFrames>=3?"diagwarn":"diagok";
+  $("diagNote").textContent=fresh?(counts.mismatch?`ADVARSEL: ${counts.mismatch} signal er på feil retningsside.`:oneSidedFrames>=3?`Merk: bare ${activeA?directions[0]?.label:directions[1]?.label} har aktive busser i ${oneSidedFrames} oppdateringer. Dette kan være reell trafikk eller manglende kjøretøy i kilden.`:`Frame er live (${frameAge} s). Retningene samsvarer med kjøretøydestinasjonene.`):`Frame er utdatert (${frameAge} s). Diagnoseverdiene kan være gamle.`;
   $("diagNote").className=`diagnote ${fresh?"diagok":"diagbad"}`;
 }
 function showInfo(led){
