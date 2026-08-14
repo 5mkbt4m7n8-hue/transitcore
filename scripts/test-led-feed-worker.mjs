@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { buildFrame, buildLinearRouteFrame, matchesDirection, validateConfiguration } from "../worker/led-feed-worker.mjs";
+import { applyMotionLifecycle, buildFrame, buildLinearRouteFrame, matchesDirection, validateConfiguration } from "../worker/led-feed-worker.mjs";
 
 const now = Date.parse("2026-08-11T12:00:00Z");
 const board = { id: "trondheim-bus-board", leds: { count: 2 }, routes: ["route-1"], render: { freshnessSeconds: 120, approachRadiusMeters: 250, arrivalRadiusMeters: 85 }, nodes: [
@@ -56,3 +56,16 @@ console.log("GrÃƒÂ¥kallbanen linear VLED worker test OK");
 
 
 
+
+const motionBase = { schemaVersion: 1, boardProfile: "trondheim-bus-board", generatedAt: new Date(now).toISOString(), sequence: 1, ttlSeconds: 30, ledCount: 2 };
+const approachingLed = { id: 1, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING", vehicle: { id: "bus-motion", line: "1", destination: "Ranheim", ageSeconds: 1, distanceMeters: 120 } };
+let motion = applyMotionLifecycle({ ...motionBase, leds: [approachingLed] }, {}, now);
+assert.equal(motion.frame.leds[0].state, "APPROACHING");
+motion = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, state: "AT_STOP", vehicle: { ...approachingLed.vehicle, distanceMeters: 25 } }] }, motion.state, now + 10000);
+assert.equal(motion.frame.leds[0].state, "AT_STOP");
+motion = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, vehicle: { ...approachingLed.vehicle, distanceMeters: 95 } }] }, motion.state, now + 20000);
+assert.equal(motion.frame.leds[0].state, "PASSED");
+assert.equal(motion.frame.leds[0].brightness, 8);
+motion = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, vehicle: { ...approachingLed.vehicle, id: "following-bus", distanceMeters: 140 } }] }, motion.state, now + 25000);
+assert.equal(motion.frame.leds[0].state, "APPROACHING", "A following bus must replace the first bus after it leaves");
+console.log("Server motion lifecycle tests OK");
