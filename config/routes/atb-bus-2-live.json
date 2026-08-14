@@ -10,7 +10,8 @@
     "id": "ATB:Line:2_2",
     "publicCode": "2",
     "mode": "bus",
-    "longName": "Strindheim - Lade - sentrum - Lund"
+    "longName": "Strindheim - Lade - sentrum - Lund",
+    "color": "#42a5f5"
   },
   "directions": [
     {
@@ -39,210 +40,210 @@
       "name": "Strindheim",
       "lat": 63.435672,
       "lon": 10.45818,
-      "shapeDistanceMeters": 0.0
+      "shapeDistanceMeters": 0
     },
     {
       "id": "NSR:Quay:72455",
       "name": "Haakon VII gate 25",
       "lat": 63.44059,
       "lon": 10.459623,
-      "shapeDistanceMeters": 769.0
+      "shapeDistanceMeters": 769
     },
     {
       "id": "NSR:Quay:72461",
       "name": "Lade idrettsanlegg",
       "lat": 63.444119,
       "lon": 10.449015,
-      "shapeDistanceMeters": 1429.0
+      "shapeDistanceMeters": 1429
     },
     {
       "id": "NSR:Quay:72107",
       "name": "Ingemann Torps vei",
       "lat": 63.446144,
       "lon": 10.441357,
-      "shapeDistanceMeters": 1926.0
+      "shapeDistanceMeters": 1926
     },
     {
       "id": "NSR:Quay:73154",
       "name": "Ladeveien",
       "lat": 63.443452,
       "lon": 10.434992,
-      "shapeDistanceMeters": 2382.0
+      "shapeDistanceMeters": 2382
     },
     {
       "id": "NSR:Quay:74588",
       "name": "Anders Buens gate",
       "lat": 63.438403,
       "lon": 10.429582,
-      "shapeDistanceMeters": 3016.0
+      "shapeDistanceMeters": 3016
     },
     {
       "id": "NSR:Quay:108948",
       "name": "Buran",
       "lat": 63.43669,
       "lon": 10.42571,
-      "shapeDistanceMeters": 3287.0
+      "shapeDistanceMeters": 3287
     },
     {
       "id": "NSR:Quay:102714",
       "name": "Dyre Halses gate",
       "lat": 63.437025,
       "lon": 10.413972,
-      "shapeDistanceMeters": 3965.0
+      "shapeDistanceMeters": 3965
     },
     {
       "id": "NSR:Quay:71418",
       "name": "Trondheim S",
       "lat": 63.435996,
       "lon": 10.400609,
-      "shapeDistanceMeters": 4690.0
+      "shapeDistanceMeters": 4690
     },
     {
       "id": "NSR:Quay:101521",
       "name": "Olav Tryggvasons gate",
       "lat": 63.433292,
       "lon": 10.397798,
-      "shapeDistanceMeters": 5129.0
+      "shapeDistanceMeters": 5129
     },
     {
       "id": "NSR:Quay:71184",
       "name": "Prinsens gate",
       "lat": 63.430874,
       "lon": 10.391899,
-      "shapeDistanceMeters": 5682.0
+      "shapeDistanceMeters": 5682
     },
     {
       "id": "NSR:Quay:71174",
       "name": "Nidarosdomen",
       "lat": 63.425815,
       "lon": 10.393372,
-      "shapeDistanceMeters": 6252.0
+      "shapeDistanceMeters": 6252
     },
     {
       "id": "NSR:Quay:73103",
       "name": "Studentersamfundet",
       "lat": 63.422222,
       "lon": 10.394384,
-      "shapeDistanceMeters": 6658.0
+      "shapeDistanceMeters": 6658
     },
     {
       "id": "NSR:Quay:102719",
       "name": "Hesthagen",
       "lat": 63.416799,
       "lon": 10.3972,
-      "shapeDistanceMeters": 7283.0
+      "shapeDistanceMeters": 7283
     },
     {
       "id": "NSR:Quay:102720",
       "name": "Lerkendal",
       "lat": 63.41174,
       "lon": 10.399045,
-      "shapeDistanceMeters": 7857.0
+      "shapeDistanceMeters": 7857
     },
     {
       "id": "NSR:Quay:71982",
       "name": "Valøyvegen",
       "lat": 63.407852,
       "lon": 10.398032,
-      "shapeDistanceMeters": 8295.0
+      "shapeDistanceMeters": 8295
     },
     {
       "id": "NSR:Quay:75301",
       "name": "Bratsbergvegen",
       "lat": 63.403358,
       "lon": 10.395995,
-      "shapeDistanceMeters": 8806.0
+      "shapeDistanceMeters": 8806
     },
     {
       "id": "NSR:Quay:107264",
       "name": "Sluppen",
       "lat": 63.40095,
       "lon": 10.39504,
-      "shapeDistanceMeters": 9088.0
+      "shapeDistanceMeters": 9088
     },
     {
       "id": "NSR:Quay:71209",
       "name": "Tonstadkrysset",
       "lat": 63.370393,
       "lon": 10.37405,
-      "shapeDistanceMeters": 12930.0
+      "shapeDistanceMeters": 12930
     },
     {
       "id": "NSR:Quay:75175",
       "name": "Bjørndalsbrua",
       "lat": 63.370956,
       "lon": 10.363111,
-      "shapeDistanceMeters": 13480.0
+      "shapeDistanceMeters": 13480
     },
     {
       "id": "NSR:Quay:75178",
       "name": "Bjørndalstoppen",
       "lat": 63.370558,
       "lon": 10.353316,
-      "shapeDistanceMeters": 13971.0
+      "shapeDistanceMeters": 13971
     },
     {
       "id": "NSR:Quay:71825",
       "name": "Husebytunet",
       "lat": 63.368725,
       "lon": 10.344952,
-      "shapeDistanceMeters": 14718.0
+      "shapeDistanceMeters": 14718
     },
     {
       "id": "NSR:Quay:71912",
       "name": "Saupstadsenteret",
       "lat": 63.366987,
       "lon": 10.348705,
-      "shapeDistanceMeters": 15129.0
+      "shapeDistanceMeters": 15129
     },
     {
       "id": "NSR:Quay:75581",
       "name": "Casper Lundes veg",
       "lat": 63.367877,
       "lon": 10.358316,
-      "shapeDistanceMeters": 15623.0
+      "shapeDistanceMeters": 15623
     },
     {
       "id": "NSR:Quay:73008",
       "name": "Midteggen",
       "lat": 63.362544,
       "lon": 10.357679,
-      "shapeDistanceMeters": 16354.0
+      "shapeDistanceMeters": 16354
     },
     {
       "id": "NSR:Quay:72490",
       "name": "Skyttervegen",
       "lat": 63.361651,
       "lon": 10.349942,
-      "shapeDistanceMeters": 16836.0
+      "shapeDistanceMeters": 16836
     },
     {
       "id": "NSR:Quay:73684",
       "name": "Lyngvegen",
       "lat": 63.357497,
       "lon": 10.355049,
-      "shapeDistanceMeters": 17369.0
+      "shapeDistanceMeters": 17369
     },
     {
       "id": "NSR:Quay:72946",
       "name": "Heimdal stasjon",
       "lat": 63.351546,
       "lon": 10.356846,
-      "shapeDistanceMeters": 18129.0
+      "shapeDistanceMeters": 18129
     },
     {
       "id": "NSR:Quay:72755",
       "name": "Åsheim skole",
       "lat": 63.351158,
       "lon": 10.343566,
-      "shapeDistanceMeters": 18845.0
+      "shapeDistanceMeters": 18845
     },
     {
       "id": "NSR:Quay:102721",
       "name": "Østre Lund",
       "lat": 63.350453,
       "lon": 10.331402,
-      "shapeDistanceMeters": 19520.0
+      "shapeDistanceMeters": 19520
     }
   ],
   "shape": [
@@ -539,4 +540,3 @@
     "checkedDate": "2026-08-11"
   }
 }
-

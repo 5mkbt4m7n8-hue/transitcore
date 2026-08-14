@@ -10,7 +10,8 @@
     "id": "ATB:Line:2_1",
     "publicCode": "1",
     "mode": "bus",
-    "longName": "Ranheim - Strindheim - sentrum - Tiller - Heimdal - Kattem"
+    "longName": "Ranheim - Strindheim - sentrum - Tiller - Heimdal - Kattem",
+    "color": "#ef5350"
   },
   "directions": [
     {
@@ -41,224 +42,224 @@
       "name": "Ranheim",
       "lat": 63.425209,
       "lon": 10.533367,
-      "shapeDistanceMeters": 0.0
+      "shapeDistanceMeters": 0
     },
     {
       "id": "NSR:Quay:71249",
       "name": "Ranheim idrettsplass",
       "lat": 63.427952,
       "lon": 10.522386,
-      "shapeDistanceMeters": 802.0
+      "shapeDistanceMeters": 802
     },
     {
       "id": "NSR:Quay:102723",
       "name": "Anders Søyseths veg",
       "lat": 63.4326,
       "lon": 10.510365,
-      "shapeDistanceMeters": 1634.0
+      "shapeDistanceMeters": 1634
     },
     {
       "id": "NSR:Quay:72172",
       "name": "Grilstadkleiva",
       "lat": 63.433808,
       "lon": 10.502053,
-      "shapeDistanceMeters": 2084.0
+      "shapeDistanceMeters": 2084
     },
     {
       "id": "NSR:Quay:102732",
       "name": "Skovgård",
       "lat": 63.429671,
       "lon": 10.493327,
-      "shapeDistanceMeters": 2985.0
+      "shapeDistanceMeters": 2985
     },
     {
       "id": "NSR:Quay:71365",
       "name": "Leangen",
       "lat": 63.431851,
       "lon": 10.476167,
-      "shapeDistanceMeters": 3898.0
+      "shapeDistanceMeters": 3898
     },
     {
       "id": "NSR:Quay:75657",
       "name": "Gildheim",
       "lat": 63.434481,
       "lon": 10.460567,
-      "shapeDistanceMeters": 4738.0
+      "shapeDistanceMeters": 4738
     },
     {
       "id": "NSR:Quay:73034",
       "name": "Strindheim",
       "lat": 63.435506,
       "lon": 10.45548,
-      "shapeDistanceMeters": 5031.0
+      "shapeDistanceMeters": 5031
     },
     {
       "id": "NSR:Quay:74497",
       "name": "Dalen Hageby",
       "lat": 63.437512,
       "lon": 10.448049,
-      "shapeDistanceMeters": 5477.0
+      "shapeDistanceMeters": 5477
     },
     {
       "id": "NSR:Quay:71687",
       "name": "Rønningsbakken",
       "lat": 63.437178,
       "lon": 10.43725,
-      "shapeDistanceMeters": 6034.0
+      "shapeDistanceMeters": 6034
     },
     {
       "id": "NSR:Quay:103009",
       "name": "Buran",
       "lat": 63.436496,
       "lon": 10.425779,
-      "shapeDistanceMeters": 6614.0
+      "shapeDistanceMeters": 6614
     },
     {
       "id": "NSR:Quay:73975",
       "name": "Solsiden",
       "lat": 63.433946,
       "lon": 10.412788,
-      "shapeDistanceMeters": 7388.0
+      "shapeDistanceMeters": 7388
     },
     {
       "id": "NSR:Quay:74792",
       "name": "Bakkegata",
       "lat": 63.432418,
       "lon": 10.407192,
-      "shapeDistanceMeters": 7744.0
+      "shapeDistanceMeters": 7744
     },
     {
       "id": "NSR:Quay:101521",
       "name": "Olav Tryggvasons gate",
       "lat": 63.433292,
       "lon": 10.397798,
-      "shapeDistanceMeters": 8233.0
+      "shapeDistanceMeters": 8233
     },
     {
       "id": "NSR:Quay:71184",
       "name": "Prinsens gate",
       "lat": 63.430874,
       "lon": 10.391899,
-      "shapeDistanceMeters": 8785.0
+      "shapeDistanceMeters": 8785
     },
     {
       "id": "NSR:Quay:71174",
       "name": "Nidarosdomen",
       "lat": 63.425815,
       "lon": 10.393372,
-      "shapeDistanceMeters": 9356.0
+      "shapeDistanceMeters": 9356
     },
     {
       "id": "NSR:Quay:73103",
       "name": "Studentersamfundet",
       "lat": 63.422222,
       "lon": 10.394384,
-      "shapeDistanceMeters": 9762.0
+      "shapeDistanceMeters": 9762
     },
     {
       "id": "NSR:Quay:102719",
       "name": "Hesthagen",
       "lat": 63.416799,
       "lon": 10.3972,
-      "shapeDistanceMeters": 10387.0
+      "shapeDistanceMeters": 10387
     },
     {
       "id": "NSR:Quay:102720",
       "name": "Lerkendal",
       "lat": 63.41174,
       "lon": 10.399045,
-      "shapeDistanceMeters": 10961.0
+      "shapeDistanceMeters": 10961
     },
     {
       "id": "NSR:Quay:71982",
       "name": "Valøyvegen",
       "lat": 63.407852,
       "lon": 10.398032,
-      "shapeDistanceMeters": 11399.0
+      "shapeDistanceMeters": 11399
     },
     {
       "id": "NSR:Quay:75301",
       "name": "Bratsbergvegen",
       "lat": 63.403358,
       "lon": 10.395995,
-      "shapeDistanceMeters": 11910.0
+      "shapeDistanceMeters": 11910
     },
     {
       "id": "NSR:Quay:107264",
       "name": "Sluppen",
       "lat": 63.40095,
       "lon": 10.39504,
-      "shapeDistanceMeters": 12192.0
+      "shapeDistanceMeters": 12192
     },
     {
       "id": "NSR:Quay:102733",
       "name": "Tonstadkrysset",
       "lat": 63.370705,
       "lon": 10.382118,
-      "shapeDistanceMeters": 16217.0
+      "shapeDistanceMeters": 16217
     },
     {
       "id": "NSR:Quay:71517",
       "name": "Rostengrenda",
       "lat": 63.365978,
       "lon": 10.381981,
-      "shapeDistanceMeters": 16823.0
+      "shapeDistanceMeters": 16823
     },
     {
       "id": "NSR:Quay:75611",
       "name": "City Syd",
       "lat": 63.360978,
       "lon": 10.379237,
-      "shapeDistanceMeters": 17399.0
+      "shapeDistanceMeters": 17399
     },
     {
       "id": "NSR:Quay:75607",
       "name": "Tillerterminalen",
       "lat": 63.360163,
       "lon": 10.374465,
-      "shapeDistanceMeters": 17752.0
+      "shapeDistanceMeters": 17752
     },
     {
       "id": "NSR:Quay:72719",
       "name": "Martin Linges veg",
       "lat": 63.359841,
       "lon": 10.368315,
-      "shapeDistanceMeters": 18190.0
+      "shapeDistanceMeters": 18190
     },
     {
       "id": "NSR:Quay:74972",
       "name": "Peder Morsets veg",
       "lat": 63.356477,
       "lon": 10.361958,
-      "shapeDistanceMeters": 18696.0
+      "shapeDistanceMeters": 18696
     },
     {
       "id": "NSR:Quay:72946",
       "name": "Heimdal stasjon",
       "lat": 63.351546,
       "lon": 10.356846,
-      "shapeDistanceMeters": 19345.0
+      "shapeDistanceMeters": 19345
     },
     {
       "id": "NSR:Quay:74867",
       "name": "Bekkasinvegen",
       "lat": 63.346806,
       "lon": 10.345599,
-      "shapeDistanceMeters": 20300.0
+      "shapeDistanceMeters": 20300
     },
     {
       "id": "NSR:Quay:74026",
       "name": "Kattemsenteret",
       "lat": 63.345819,
       "lon": 10.337876,
-      "shapeDistanceMeters": 20806.0
+      "shapeDistanceMeters": 20806
     },
     {
       "id": "NSR:Quay:102721",
       "name": "Østre Lund",
       "lat": 63.350453,
       "lon": 10.331402,
-      "shapeDistanceMeters": 21614.0
+      "shapeDistanceMeters": 21614
     }
   ],
   "shape": [
@@ -673,4 +674,3 @@
     "checkedDate": "2026-08-10"
   }
 }
-
