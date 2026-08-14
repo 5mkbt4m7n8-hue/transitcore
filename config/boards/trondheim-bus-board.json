@@ -5077,7 +5077,7 @@
     "routePriority": [],
     "arrivalRadiusMeters": 85,
     "approachRadiusMeters": 250,
-    "freshnessSeconds": 120
+    "freshnessSeconds": 90
   },
   "status": "directional-logical-map-ready-hardware-order-pending"
 }
