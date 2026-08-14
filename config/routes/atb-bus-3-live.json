@@ -10,7 +10,8 @@
     "id": "ATB:Line:2_3",
     "publicCode": "3",
     "mode": "bus",
-    "longName": "Lohove - sentrum - Hallset"
+    "longName": "Lohove - sentrum - Hallset",
+    "color": "#66bb6a"
   },
   "directions": [
     {
@@ -39,168 +40,168 @@
       "name": "Loholtbakken",
       "lat": 63.40492,
       "lon": 10.459607,
-      "shapeDistanceMeters": 0.0
+      "shapeDistanceMeters": 0
     },
     {
       "id": "NSR:Quay:74610",
       "name": "Dragvoll",
       "lat": 63.407917,
       "lon": 10.471679,
-      "shapeDistanceMeters": 774.0
+      "shapeDistanceMeters": 774
     },
     {
       "id": "NSR:Quay:73723",
       "name": "Edvard Bulls veg",
       "lat": 63.410581,
       "lon": 10.469652,
-      "shapeDistanceMeters": 1197.0
+      "shapeDistanceMeters": 1197
     },
     {
       "id": "NSR:Quay:74980",
       "name": "Bergheim",
       "lat": 63.410465,
       "lon": 10.457547,
-      "shapeDistanceMeters": 1839.0
+      "shapeDistanceMeters": 1839
     },
     {
       "id": "NSR:Quay:72401",
       "name": "Voll studentby",
       "lat": 63.40927,
       "lon": 10.443923,
-      "shapeDistanceMeters": 2600.0
+      "shapeDistanceMeters": 2600
     },
     {
       "id": "NSR:Quay:73260",
       "name": "Moholt studentby",
       "lat": 63.412254,
       "lon": 10.433627,
-      "shapeDistanceMeters": 3321.0
+      "shapeDistanceMeters": 3321
     },
     {
       "id": "NSR:Quay:72852",
       "name": "Østre Berg",
       "lat": 63.416009,
       "lon": 10.430124,
-      "shapeDistanceMeters": 3822.0
+      "shapeDistanceMeters": 3822
     },
     {
       "id": "NSR:Quay:74954",
       "name": "Berg studentby",
       "lat": 63.413576,
       "lon": 10.414052,
-      "shapeDistanceMeters": 4724.0
+      "shapeDistanceMeters": 4724
     },
     {
       "id": "NSR:Quay:75708",
       "name": "Gløshaugen",
       "lat": 63.416835,
       "lon": 10.407556,
-      "shapeDistanceMeters": 5343.0
+      "shapeDistanceMeters": 5343
     },
     {
       "id": "NSR:Quay:71939",
       "name": "Høgskoleringen",
       "lat": 63.420867,
       "lon": 10.404181,
-      "shapeDistanceMeters": 5855.0
+      "shapeDistanceMeters": 5855
     },
     {
       "id": "NSR:Quay:73100",
       "name": "Studentersamfundet",
       "lat": 63.42279,
       "lon": 10.395173,
-      "shapeDistanceMeters": 6359.0
+      "shapeDistanceMeters": 6359
     },
     {
       "id": "NSR:Quay:71175",
       "name": "Nidarosdomen",
       "lat": 63.426072,
       "lon": 10.393608,
-      "shapeDistanceMeters": 6763.0
+      "shapeDistanceMeters": 6763
     },
     {
       "id": "NSR:Quay:74265",
       "name": "Kongens gate",
       "lat": 63.43066,
       "lon": 10.39072,
-      "shapeDistanceMeters": 7344.0
+      "shapeDistanceMeters": 7344
     },
     {
       "id": "NSR:Quay:72210",
       "name": "Skansen",
       "lat": 63.430071,
       "lon": 10.373602,
-      "shapeDistanceMeters": 8423.0
+      "shapeDistanceMeters": 8423
     },
     {
       "id": "NSR:Quay:72051",
       "name": "Ila",
       "lat": 63.428721,
       "lon": 10.367065,
-      "shapeDistanceMeters": 8814.0
+      "shapeDistanceMeters": 8814
     },
     {
       "id": "NSR:Quay:74329",
       "name": "Nyveibakken",
       "lat": 63.423966,
       "lon": 10.371359,
-      "shapeDistanceMeters": 9411.0
+      "shapeDistanceMeters": 9411
     },
     {
       "id": "NSR:Quay:71633",
       "name": "Tvetestien",
       "lat": 63.417785,
       "lon": 10.372038,
-      "shapeDistanceMeters": 10129.0
+      "shapeDistanceMeters": 10129
     },
     {
       "id": "NSR:Quay:72801",
       "name": "Åsveien skole",
       "lat": 63.414482,
       "lon": 10.365735,
-      "shapeDistanceMeters": 10620.0
+      "shapeDistanceMeters": 10620
     },
     {
       "id": "NSR:Quay:73845",
       "name": "Johan Falkbergets vei",
       "lat": 63.4111,
       "lon": 10.36099,
-      "shapeDistanceMeters": 11068.0
+      "shapeDistanceMeters": 11068
     },
     {
       "id": "NSR:Quay:72855",
       "name": "Havstadsenteret",
       "lat": 63.407559,
       "lon": 10.35945,
-      "shapeDistanceMeters": 11470.0
+      "shapeDistanceMeters": 11470
     },
     {
       "id": "NSR:Quay:74072",
       "name": "Stabells veg",
       "lat": 63.402788,
       "lon": 10.357793,
-      "shapeDistanceMeters": 12031.0
+      "shapeDistanceMeters": 12031
     },
     {
       "id": "NSR:Quay:75529",
       "name": "Byåsen skole",
       "lat": 63.39839,
       "lon": 10.357495,
-      "shapeDistanceMeters": 12548.0
+      "shapeDistanceMeters": 12548
     },
     {
       "id": "NSR:Quay:74357",
       "name": "Arnt Smistads veg",
       "lat": 63.395918,
       "lon": 10.355357,
-      "shapeDistanceMeters": 12956.0
+      "shapeDistanceMeters": 12956
     },
     {
       "id": "NSR:Quay:73032",
       "name": "Hallset",
       "lat": 63.393917,
       "lon": 10.368884,
-      "shapeDistanceMeters": 13706.0
+      "shapeDistanceMeters": 13706
     }
   ],
   "shape": [
@@ -501,4 +502,3 @@
     "checkedDate": "2026-08-10"
   }
 }
-
