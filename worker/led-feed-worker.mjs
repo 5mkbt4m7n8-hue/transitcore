@@ -125,7 +125,7 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
     const updated = Date.parse(vehicle.lastUpdated || "");
     if (!profile || vehicle.location?.latitude == null || !Number.isFinite(updated) || (now - updated) / 1000 > board.render.freshnessSeconds) continue;
     const previous = dedupe.get(vehicle.vehicleId);
-    if (!previous || updated > previous.updated) dedupe.set(vehicle.vehicleId, { profile, updated, destination: vehicle.destinationName || "", lat: Number(vehicle.location.latitude), lon: Number(vehicle.location.longitude) });
+    if (!previous || updated > previous.updated) dedupe.set(vehicle.vehicleId, { vehicleId: String(vehicle.vehicleId || ""), profile, updated, destination: vehicle.destinationName || "", lat: Number(vehicle.location.latitude), lon: Number(vehicle.location.longitude) });
   }
   const strongest = new Map();
   for (const vehicle of dedupe.values()) {
@@ -146,7 +146,7 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
     if (!node || meters > approachRadius) continue;
     const state = meters <= arrivalRadius ? "AT_STOP" : "APPROACHING";
     const id = physical.get(node.led), previous = strongest.get(id);
-    if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" || meters < previous.meters) strongest.set(id, { id, profile: vehicle.profile, destination: vehicle.destination, state, meters });
+    if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" || meters < previous.meters) strongest.set(id, { id, profile: vehicle.profile, vehicleId: vehicle.vehicleId, updated: vehicle.updated, destination: vehicle.destination, state, meters });
   }
   return {
     schemaVersion: 1,
@@ -159,7 +159,14 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
       id: item.id,
       rgb: rgb(color(item.profile, item.destination)),
       brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32),
-      state: item.state
+      state: item.state,
+      vehicle: {
+        id: item.vehicleId,
+        line: String(item.profile.line.publicCode),
+        destination: item.destination,
+        ageSeconds: Math.max(0, Math.floor((now - item.updated) / 1000)),
+        distanceMeters: Math.round(item.meters)
+      }
     }))
   };
 }
