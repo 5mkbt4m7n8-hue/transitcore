@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TransitCore nettverkskart</title>
+  <style>
+    :root{color-scheme:dark;--bg:#090d12;--panel:#121821;--line:#35404d;--text:#f5f7fa;--muted:#9ca9b8;--ok:#39d98a;--warn:#ffb020}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,sans-serif}main{max-width:1400px;margin:auto;padding:16px}
+    h1{font-size:26px;margin:0}.sub{color:var(--muted);margin:5px 0 12px}.tools,.legend,.stats{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
+    button,.toggle{background:#18212c;color:var(--text);border:1px solid #3b4858;border-radius:9px;padding:8px 11px;cursor:pointer;font:inherit}.toggle input{margin-right:6px}.status{margin-left:auto;color:var(--muted)}
+    .badge{border:1px solid #2b3542;background:#121821;border-radius:999px;padding:6px 10px}.badge b{color:#fff}.swatch{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+    .mapwrap{background:#0e141c;border:1px solid #26303d;border-radius:14px;overflow:hidden;position:relative}svg{display:block;width:100%;height:auto;min-height:560px}
+    .route{fill:none;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;opacity:.82}.route.off{display:none}.station-core{fill:#202a36;stroke:#657386;stroke-width:2}
+    .station-label{fill:#dce4ee;font-size:11px;font-weight:600;paint-order:stroke;stroke:#0e141c;stroke-width:4px;stroke-linejoin:round}.station-label.minor{display:none}
+    .led{fill:#2a3440;stroke:#637083;stroke-width:2;cursor:pointer}.led.on{fill:currentColor;stroke:#fff;filter:url(#glow)}.led.approaching{animation:pulse 2.4s ease-in-out infinite}.led.departed{fill:currentColor;stroke:currentColor;opacity:.24}.led.hidden-route{display:none}
+    @keyframes pulse{0%,100%{opacity:.38}50%{opacity:1}}.info{display:none;position:absolute;left:12px;bottom:12px;width:min(420px,calc(100% - 24px));background:#17202b;border:1px solid #48576a;border-radius:12px;padding:12px;box-shadow:0 15px 40px #000a}.info.show{display:block}.info h2{font-size:16px;margin:0 0 7px}.info p{margin:5px 0;color:#ccd5df}.close{float:right;padding:4px 8px}
+    @media(max-width:650px){main{padding:9px}.status{width:100%;margin:0}svg{min-height:440px}.station-label{font-size:9px}.station-label.minor{display:none}.route{stroke-width:11}}
+  </style>
+</head>
+<body><main>
+  <h1>&#128652; TransitCore nettverkskart</h1>
+  <p class="sub">Linje 1, 2 og 3 samlet som et skjematisk metro-kart</p>
+  <div class="tools" id="filters"></div>
+  <div class="tools"><button id="refresh">Oppdater live</button><button id="simulate">Simuler tre linjer på samme LED</button><span class="status" id="status">Starter ...</span></div>
+  <div class="stats"><span class="badge">Aktive LED-er <b id="activeCount">-</b></span><span class="badge">Busser <b id="vehicleCount">-</b></span><span class="badge">Flerlinje-LED-er <b id="collisionCount">-</b></span><span class="badge">Frame <b id="quality">-</b></span></div>
+  <div class="legend" id="legend"></div>
+  <section class="mapwrap">
+    <svg id="map" viewBox="0 0 1200 920" role="img" aria-labelledby="mapTitle mapDesc"><title id="mapTitle">Trondheim busslinje 1, 2 og 3</title><desc id="mapDesc">Skjematisk nettverkskart med live LED-signaler og forgreninger.</desc><defs><filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g id="routes"></g><g id="stations"></g></svg>
+    <aside class="info" id="info"><button class="close" id="close">Lukk</button><h2 id="infoTitle"></h2><div id="infoBody"></div></aside>
+  </section>
+</main>
+<script>
+"use strict";
+const $=id=>document.getElementById(id),BASE="../../config/",FEED="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/trondheim-bus-board/frame";
+let board,hardware,profiles=[],stationMap=new Map,physicalByLogical=new Map,lastFrame=null,timer=null,cycleTimer=null,simulation=false;
+const svgNS="http://www.w3.org/2000/svg";
+async function json(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error("HTTP "+response.status);return response.json()}
+function esc(value){return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function routeColor(profile){return profile.line.color||profile.directions[0]?.color||"#60a5fa"}
+function selectedRoutes(){return new Set([...document.querySelectorAll("[data-route-filter]:checked")].map(input=>input.value))}
+function orderedStations(profile){
+  const nodes=board.nodes.filter(node=>node.routes.includes(profile.id)),byStop=new Map;
+  nodes.forEach(node=>(node.stopIds||[]).forEach(id=>byStop.set(id,node)));
+  const result=[],seen=new Set;
+  for(const stop of profile.stops){
+    const nearest=nodes.reduce((best,node)=>{const d=Math.hypot(node.lat-stop.lat,node.lon-stop.lon);return !best||d<best.d?{node,d}:best},null)?.node;
+    const match=byStop.get(stop.id)||nearest;
+    if(match&&!seen.has(match.stationId)){seen.add(match.stationId);result.push(match.stationId)}
+  }
+  return result;
+}
+function projectStations(){
+  stationMap=new Map;
+  for(const node of board.nodes){
+    const station=stationMap.get(node.stationId)||{id:node.stationId,name:node.name,nodes:[],routes:new Set,lat:0,lon:0};
+    station.nodes.push(node);node.routes.forEach(route=>station.routes.add(route));station.lat+=Number(node.lat);station.lon+=Number(node.lon);stationMap.set(node.stationId,station);
+  }
+  const stations=[...stationMap.values()];stations.forEach(station=>{station.lat/=station.nodes.length;station.lon/=station.nodes.length});
+  const meanLat=stations.reduce((sum,s)=>sum+s.lat,0)/stations.length,cos=Math.cos(meanLat*Math.PI/180);
+  const xs=stations.map(s=>s.lon*cos),ys=stations.map(s=>s.lat),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  stations.forEach(station=>{station.x=90+Math.round(((station.lon*cos-minX)/(maxX-minX||1))*1020/10)*10;station.y=80+Math.round(((maxY-station.lat)/(maxY-minY||1))*760/10)*10});
+}
+function el(name,attrs={}){const node=document.createElementNS(svgNS,name);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,value);return node}
+function buildMap(){
+  projectStations();physicalByLogical=new Map(hardware.assignments.map(item=>[item.logicalLed,item.physicalLed]));
+  $("routes").innerHTML="";$("stations").innerHTML="";
+  profiles.forEach((profile,index)=>{
+    const ids=orderedStations(profile),points=ids.map(id=>stationMap.get(id)).filter(Boolean).map(s=>(s.x+(index-1)*5)+","+(s.y+(index-1)*3)).join(" ");
+    const path=el("polyline",{points,class:"route","data-route":profile.id,stroke:routeColor(profile)});$("routes").append(path);
+  });
+  for(const station of stationMap.values()){
+    const group=el("g",{"data-station":station.id,"data-routes":[...station.routes].join(",")});
+    group.append(el("circle",{cx:station.x,cy:station.y,r:7,class:"station-core"}));
+    const nodes=station.nodes,spread=Math.min(18,8+nodes.length*2);
+    nodes.forEach((node,index)=>{
+      const angle=nodes.length===1?0:(Math.PI*2*index/nodes.length)-Math.PI/2,id=physicalByLogical.get(node.led),cx=station.x+Math.cos(angle)*spread,cy=station.y+Math.sin(angle)*spread;
+      const led=el("circle",{cx,cy,r:6,class:"led","data-id":id,"data-name":station.name,"data-routes":node.routes.join(",")});
+      led.addEventListener("click",()=>showInfo(led));group.append(led);
+    });
+    const label=el("text",{x:station.x+12,y:station.y-11,class:"station-label"+(station.routes.size===1?" minor":"")});label.textContent=station.name;group.append(label);$("stations").append(group);
+  }
+  applyFilters();
+}
+function applyFilters(){
+  const selected=selectedRoutes();
+  document.querySelectorAll(".route").forEach(path=>path.classList.toggle("off",!selected.has(path.dataset.route)));
+  document.querySelectorAll(".led").forEach(led=>{const routes=(led.dataset.routes||"").split(",");led.classList.toggle("hidden-route",!routes.some(route=>selected.has(route)))});
+  document.querySelectorAll("[data-station]").forEach(group=>{const routes=(group.dataset.routes||"").split(",");group.style.display=routes.some(route=>selected.has(route))?"":"none"});
+}
+function priority(value){return value.state==="AT_STOP"?2:value.state==="APPROACHING"?1:0}
+function prioritized(item){
+  if(item.lifecycle==="PASSED")return [];
+  const source=item.occupants?.length?item.occupants:[{...(item.vehicle||{}),rgb:item.rgb,state:item.state}],highest=Math.max(...source.map(priority)),seen=new Set;
+  return source.filter(value=>priority(value)===highest).sort((a,b)=>Number(a.distanceMeters||Infinity)-Number(b.distanceMeters||Infinity)).filter(value=>{const key=String(value.line)+"|"+JSON.stringify(value.rgb);if(seen.has(key))return false;seen.add(key);return true});
+}
+function paint(frame){
+  lastFrame=frame;document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching","departed");delete led.dataset.occupants;delete led.dataset.colors;delete led.dataset.colorIndex});
+  let vehicles=0,collisions=0,active=0;
+  for(const item of frame.leds||[]){
+    const winners=prioritized(item),occupants=item.occupants||[],lines=new Set(occupants.map(value=>String(value.line)).filter(Boolean));vehicles+=occupants.length||1;if(lines.size>1)collisions++;
+    const state=item.lifecycle==="PASSED"?"PASSED":winners[0]?.state||item.state,colors=winners.map(value=>value.rgb||item.rgb);
+    document.querySelectorAll('.led[data-id="'+String(item.id)+'"]').forEach(led=>{
+      led.style.color="rgb("+((colors[0]||item.rgb).join(","))+")";if(item.lifecycle==="PASSED")led.classList.add("departed");else{led.classList.add("on");active++}if(state==="APPROACHING")led.classList.add("approaching");
+      led.dataset.occupants=JSON.stringify(occupants);led.dataset.colors=JSON.stringify(colors);led.dataset.colorIndex="0";led.dataset.state=state;
+    });
+  }
+  const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30);
+  $("activeCount").textContent=active;$("vehicleCount").textContent=vehicles;$("collisionCount").textContent=collisions;$("quality").textContent=fresh?"LIVE - "+age+" s":"UTDATERT - "+age+" s";$("quality").style.color=fresh?"var(--ok)":"#ff5c5c";$("status").textContent=simulation?"SIMULERING":"Oppdatert "+new Date().toLocaleTimeString();
+}
+function cycleColors(){document.querySelectorAll(".led.on[data-colors]").forEach(led=>{const colors=JSON.parse(led.dataset.colors||"[]");if(colors.length<2)return;const index=(Number(led.dataset.colorIndex||0)+1)%colors.length;led.dataset.colorIndex=String(index);led.style.color="rgb("+colors[index].join(",")+")"})}
+function showInfo(led){
+  const occupants=JSON.parse(led.dataset.occupants||"[]");$("infoTitle").textContent=led.dataset.name+" - LED "+led.dataset.id;
+  $("infoBody").innerHTML='<p><strong>Vist tilstand:</strong> '+esc(led.dataset.state||"AV")+'</p>'+(occupants.length?occupants.map(value=>'<p><i class="swatch" style="background:rgb('+esc((value.rgb||[]).join(","))+')"></i><strong>Linje '+esc(value.line)+'</strong> - '+esc(value.destination||"Ukjent")+' - '+esc(value.state||"?")+' ('+esc(value.distanceMeters??"?")+' m)</p>').join(""):"<p>Ingen aktiv buss på denne LED-en.</p>");$("info").classList.add("show");
+}
+async function refresh(){clearTimeout(timer);if(!simulation)try{paint(await json(FEED))}catch(error){$("status").textContent="Feedfeil: "+error.message}timer=setTimeout(refresh,10000)}
+function simulate(){
+  simulation=!simulation;$("simulate").textContent=simulation?"Tilbake til live":"Simuler tre linjer på samme LED";
+  if(!simulation)return refresh();
+  clearTimeout(timer);const shared=board.nodes.find(node=>["atb-bus-1-live","atb-bus-2-live","atb-bus-3-live"].every(route=>node.routes.includes(route)))||board.nodes.find(node=>node.routes.length>1),id=physicalByLogical.get(shared.led);
+  const occupants=profiles.map(profile=>({id:"test-"+profile.line.publicCode,line:String(profile.line.publicCode),destination:"Test",rgb:hexRgb(routeColor(profile)),state:"AT_STOP",ageSeconds:0,distanceMeters:0}));
+  paint({generatedAt:new Date().toISOString(),ttlSeconds:30,leds:[{id,rgb:occupants[0].rgb,state:"AT_STOP",vehicle:occupants[0],occupants}]});
+}
+function hexRgb(hex){const value=hex.replace("#","");return [0,2,4].map(i=>parseInt(value.slice(i,i+2),16))}
+$("refresh").onclick=()=>{simulation=false;$("simulate").textContent="Simuler tre linjer på samme LED";refresh()};$("simulate").onclick=simulate;$("close").onclick=()=>$("info").classList.remove("show");
+Promise.all([json(BASE+"boards/trondheim-bus-board.json"),json(BASE+"hardware/trondheim-bus-board-hardware.json")]).then(async values=>{[board,hardware]=values;profiles=await Promise.all(board.routes.map(id=>json(BASE+"routes/"+id+".json")));$("filters").innerHTML=profiles.map(profile=>'<label class="toggle"><input type="checkbox" data-route-filter value="'+esc(profile.id)+'" checked><i class="swatch" style="background:'+esc(routeColor(profile))+'"></i>Linje '+esc(profile.line.publicCode)+'</label>').join("");$("legend").innerHTML=profiles.map(profile=>'<span><i class="swatch" style="background:'+esc(routeColor(profile))+'"></i>Linje '+esc(profile.line.publicCode)+'</span>').join("");document.querySelectorAll("[data-route-filter]").forEach(input=>input.onchange=applyFilters);buildMap();cycleTimer=setInterval(cycleColors,1200);refresh()}).catch(error=>$("status").textContent=error.message);
+</script>
+</body>
+</html>
