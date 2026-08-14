@@ -63,14 +63,14 @@ function paint(frame){
     const id=String(item.id);
     for(const led of document.querySelectorAll(`.led[data-id="${id}"]`)){
       led.style.color=`rgb(${item.rgb.join(",")})`;
-      if(item.state==="PASSED")led.classList.add("departed");
+      if(item.lifecycle==="PASSED")led.classList.add("departed");
       else led.classList.add("on");
       if(item.state==="APPROACHING")led.classList.add("approaching");
       led.dataset.state=item.state;
       led.dataset.vehicle=JSON.stringify(item.vehicle||{});
     }
   }
-  const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30),active=visibleItems.filter(item=>item.state!=="PASSED").length;
+  const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30),active=visibleItems.filter(item=>item.lifecycle!=="PASSED").length;
   $("activeCount").textContent=active;
   $("quality").textContent=fresh?`LIVE - ${age} s`:`UTDATERT - ${age} s`;
   $("quality").style.color=fresh?"var(--ok)":"var(--bad)";
