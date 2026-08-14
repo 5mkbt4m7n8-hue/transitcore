@@ -62,6 +62,7 @@ export class DeviceStatus {
 
   async fetch(request) {
     const url = new URL(request.url);
+    if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
     if (url.pathname === "/motion" && request.method === "POST") {
       const { frame, now } = await request.json();
       const previous = (await this.state.storage.get("motion")) || {};
@@ -456,6 +457,44 @@ async function stabilizeMotionFrame(env, boardId, frame, now) {
   });
   if (!result.ok) throw Error(`motion state: HTTP ${result.status}`);
   return result.json();
+}
+
+const publishCors={"content-type":"application/json; charset=utf-8","cache-control":"no-store","access-control-allow-origin":"https://5mkbt4m7n8-hue.github.io","access-control-allow-headers":"authorization, content-type","access-control-allow-methods":"POST, OPTIONS"};
+const publishResponse=(body,status=200)=>new Response(JSON.stringify(body,null,2)+"\n",{status,headers:publishCors});
+function validatePublishProfiles(board,hardware){
+ if(!board||!hardware||![1,2].includes(board.schemaVersion)||hardware.schemaVersion!==1)throw Error("Unsupported profile format");
+ if(typeof board.id!=="string"||!/^[a-z0-9-]+$/.test(board.id))throw Error("Invalid board id");
+ if(hardware.boardProfile!==board.id)throw Error("Board/hardware profile mismatch");
+ const nodes=Array.isArray(board.nodes)?board.nodes:[],assignments=Array.isArray(hardware.assignments)?hardware.assignments:[];
+ if(!nodes.length||board.leds?.count!==nodes.length||hardware.leds?.count!==nodes.length||assignments.length!==nodes.length)throw Error("LED count mismatch");
+ const nodeById=new Map(nodes.map(n=>[n.id,n])),logical=new Set(),physical=new Set(),sources=new Set();
+ if(nodeById.size!==nodes.length)throw Error("Duplicate board node id");
+ for(const node of nodes){if(!Number.isInteger(node.led)||logical.has(node.led))throw Error("Duplicate or invalid logical LED");if(!Array.isArray(node.stopIds)||!node.stopIds.length||!Array.isArray(node.routes)||!node.routes.length)throw Error("Node is missing stop or route");logical.add(node.led)}
+ for(const a of assignments){const node=nodeById.get(a.sourceNodeId);if(!node||node.led!==a.logicalLed||sources.has(a.sourceNodeId))throw Error("Invalid hardware source mapping");if(!Number.isInteger(a.physicalLed)||a.physicalLed<0||a.physicalLed>=nodes.length||physical.has(a.physicalLed))throw Error("Duplicate or invalid physical LED");sources.add(a.sourceNodeId);physical.add(a.physicalLed)}
+ if([...physical].sort((a,b)=>a-b).some((value,index)=>value!==index))throw Error("Physical LEDs are not continuous");
+}
+function base64Utf8(value){const bytes=new TextEncoder().encode(value);let binary="";for(let offset=0;offset<bytes.length;offset+=0x8000)binary+=String.fromCharCode(...bytes.subarray(offset,offset+0x8000));return btoa(binary)}
+async function githubApi(env,path,options={}){
+ const result=await fetch("https://api.github.com"+path,{...options,headers:{"accept":"application/vnd.github+json","authorization":`Bearer ${env.GITHUB_PUBLISH_TOKEN}`,"x-github-api-version":"2022-11-28","user-agent":"TransitCore-Publisher",...(options.headers||{})}});
+ const body=await result.json().catch(()=>({}));if(!result.ok)throw Error(`GitHub ${result.status}: ${body.message||"request failed"}`);return body;
+}
+async function handlePublish(request,env){
+ if(request.method==="OPTIONS")return new Response(null,{status:204,headers:publishCors});
+ if(request.method!=="POST")return publishResponse({error:"method_not_allowed"},405);
+ if(!env.PUBLISH_ADMIN_TOKEN||!env.GITHUB_PUBLISH_TOKEN)return publishResponse({error:"publishing_not_configured"},503);
+ if(request.headers.get("authorization")!==`Bearer ${env.PUBLISH_ADMIN_TOKEN}`)return publishResponse({error:"unauthorized"},401);
+ try{
+  const payload=await request.json(),board=payload.board,hardware=payload.hardware;validatePublishProfiles(board,hardware);
+  const repository=env.GITHUB_REPOSITORY||"5mkbt4m7n8-hue/transitcore",base="main",baseRef=await githubApi(env,`/repos/${repository}/git/ref/heads/${base}`),branch=`publish/${board.id}-${Date.now()}`;
+  await githubApi(env,`/repos/${repository}/git/refs`,{method:"POST",body:JSON.stringify({ref:`refs/heads/${branch}`,sha:baseRef.object.sha})});
+  for(const file of [{path:`config/boards/${board.id}.json`,value:board},{path:`config/hardware/${board.id}-hardware.json`,value:hardware}]){
+   const inspect=await fetch(`https://api.github.com/repos/${repository}/contents/${file.path}?ref=${base}`,{headers:{"accept":"application/vnd.github+json","authorization":`Bearer ${env.GITHUB_PUBLISH_TOKEN}`,"x-github-api-version":"2022-11-28","user-agent":"TransitCore-Publisher"}});
+   const current=inspect.ok?await inspect.json():null;if(!inspect.ok&&inspect.status!==404)throw Error(`GitHub ${inspect.status}: cannot inspect ${file.path}`);
+   await githubApi(env,`/repos/${repository}/contents/${file.path}`,{method:"PUT",body:JSON.stringify({message:`Publish ${board.id}: ${file.path}`,content:base64Utf8(JSON.stringify(file.value,null,2)+"\n"),branch,...(current?.sha?{sha:current.sha}:{})})});
+  }
+  const pull=await githubApi(env,`/repos/${repository}/pulls`,{method:"POST",body:JSON.stringify({title:`Publiser tavleprofil: ${board.name||board.id}`,head:branch,base,draft:true,body:`## Automatisk tavlepublisering\n\n- Tavle-ID: \`${board.id}\`\n- Ruter: ${(board.routes||[]).join(", ")}\n- LED-punkter: ${board.nodes.length}\n\nProfilene er kontrollert i nettleseren og på Worker.`})});
+  return publishResponse({ok:true,pullRequestNumber:pull.number,pullRequestUrl:pull.html_url,branch});
+ }catch(error){console.error("publish failed",error);return publishResponse({error:"publish_failed",message:error.message},400)}
 }
 
 export default {
