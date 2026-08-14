@@ -42,7 +42,7 @@ function validate(files){
    ?[...stationGroups.values()].every(group=>group.length<=2&&new Set(group.map(n=>n.directionSide).filter(Boolean)).size===group.length)
    :true;
  const checks=[
-  ["Støttet profilformat",board.schemaVersion===1&&hardware.schemaVersion===1],
+  ["Støttet profilformat",[1,2].includes(board.schemaVersion)&&hardware.schemaVersion===1],
   ["Tavle-ID er gyldig",typeof board.id==="string"&&/^[a-z0-9-]+$/.test(board.id)],
   ["Tavle- og hardwareprofil samsvarer",hardware.boardProfile===board.id],
   ["Oppgitt LED-antall samsvarer",Number.isInteger(board.leds?.count)&&board.leds.count>0&&board.leds.count===nodes.length&&hardware.leds?.count===nodes.length&&assignments.length===nodes.length],
@@ -55,8 +55,7 @@ function validate(files){
   ["Minst én rute er valgt",routes.length>0],
   ["Alle tavlepunkter bruker valgte ruter",nodeRoutesValid],
   ["Alle retninger har destinasjonsbevis",directionMetadataValid],
-  ["Felles/separate retninger følger valgt modus",modeValid],
-  ["Profilen er markert klar for hardware",!String(board.status||"").includes("pending")]
+  ["Felles/separate retninger følger valgt modus",modeValid]
  ];
  return{board,hardware,checks,valid:checks.every(([,ok])=>ok)}
 }
