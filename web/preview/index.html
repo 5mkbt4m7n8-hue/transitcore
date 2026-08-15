@@ -19,12 +19,29 @@
 const PREVIEW_STORE="transitcore-preview-project-v1",PUBLISH_STORE="transitcore-publish-project-v1",ENDPOINT="https://transitcore-led-feed.lgb84.workers.dev/v1/admin/preview";
 const $=id=>document.getElementById(id),esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let project=null,token="",timer=null;
+const lastStops=new Map();
 function load(){
  const raw=localStorage.getItem(PREVIEW_STORE);if(!raw){$("status").className="status bad";$("status").textContent="Prosjektet mangler. Gå tilbake til Editor og velg Test med live-data.";return}
  try{project=JSON.parse(raw);if(!project.files||Date.now()-Number(project.createdAt)>30*60*1000)throw Error("Prosjektet er utløpt");project.board=JSON.parse(project.files["board-profile.json"]);project.hardware=JSON.parse(project.files["hardware-profile.json"]);$("title").textContent=project.board.name;render({leds:[]})}catch(error){project=null;$("status").className="status bad";$("status").textContent="Kan ikke åpne prosjektet: "+error.message}
 }
 function rows(){const nodes=new Map(project.board.nodes.map(node=>[node.id,node]));return [...project.hardware.assignments].sort((a,b)=>a.physicalLed-b.physicalLed).map(a=>({assignment:a,node:nodes.get(a.sourceNodeId)||{}}))}
-function render(frame){const active=new Map((frame.leds||[]).map(led=>[led.id,led]));$("leds").innerHTML=rows().map(({assignment:a,node:n})=>{const led=active.get(a.physicalLed),rgb=led?.rgb?.join(",")||"80,90,105",afterglow=led?.lifecycle==="PASSED",state=afterglow?"ETTERLYS":led?.state||"AV",klass=led?"on "+(afterglow?"afterglow":led.state==="APPROACHING"?"approaching":""):"";return '<div class="led"><span class="num">'+String(a.physicalLed).padStart(3,"0")+'</span><span class="lamp '+klass+'" style="--rgb:'+rgb+'"></span><span><div class="name">'+esc(a.name||n.name)+'</div><div class="detail">'+esc(a.direction||n.directionSide||"Felles")+' · '+esc(state)+'</div></span></div>'}).join("")}
+function render(frame){
+ const now=Date.now(),duration=Math.max(0,Number(project?.board?.render?.departureAfterglowSeconds)||0)*1000;
+ const active=new Map((frame.leds||[]).map(led=>[led.id,led]));
+ for(const [id,record] of lastStops){
+  const current=active.get(id);
+  if(current){
+   if(current.state==="APPROACHING")lastStops.delete(id);
+   else if(current.lifecycle!=="PASSED"){record.led=current;record.missingSince=0}
+   continue
+  }
+  if(!record.missingSince)record.missingSince=now;
+  if(duration&&now-record.missingSince<duration)active.set(id,{...record.led,state:"AT_STOP",lifecycle:"PASSED",brightness:Math.min(8,record.led.brightness??32)});
+  else lastStops.delete(id);
+ }
+ for(const led of frame.leds||[])if(led.state==="AT_STOP"&&led.lifecycle!=="PASSED")lastStops.set(led.id,{led,missingSince:0});
+ $("leds").innerHTML=rows().map(({assignment:a,node:n})=>{const led=active.get(a.physicalLed),rgb=led?.rgb?.join(",")||"80,90,105",afterglow=led?.lifecycle==="PASSED",state=afterglow?"ETTERLYS":led?.state||"AV",klass=led?"on "+(afterglow?"afterglow":led.state==="APPROACHING"?"approaching":""):"";return '<div class="led"><span class="num">'+String(a.physicalLed).padStart(3,"0")+'</span><span class="lamp '+klass+'" style="--rgb:'+rgb+'"></span><span><div class="name">'+esc(a.name||n.name)+'</div><div class="detail">'+esc(a.direction||n.directionSide||"Felles")+' · '+esc(state)+'</div></span></div>'}).join("")
+}
 async function poll(){
  if(!project||!token)return;
  $("status").className="status";$("status").textContent="Henter live-data …";

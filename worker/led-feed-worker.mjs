@@ -383,8 +383,7 @@ async function liveStationArrivals(board, profiles, now) {
   const lookAhead = Math.max(...profiles.map(profile => profile.positioning.lookAheadSeconds || 600));
   const stationWindow = Math.max(...profiles.map(profile => profile.positioning.stationWindowSeconds || 45));
   const approachWindow = Math.max(stationWindow, board.render?.approachWindowSeconds || 120);
-  const afterglowWindow = Math.max(0, Math.min(120, Number(board.render?.departureAfterglowSeconds) || 0));
-  const start = new Date(now - Math.max(lookBehind, stationWindow + afterglowWindow) * 1000).toISOString();
+  const start = new Date(now - lookBehind * 1000).toISOString();
   const timeRange = lookBehind + lookAhead;
   const targets = [];
   const seenQuays = new Set();
@@ -419,18 +418,15 @@ async function liveStationArrivals(board, profiles, now) {
       if (target.node.routeDirections && !matchesDirection(target.node, profile, destination)) continue;
       const when = Date.parse(call.expectedArrivalTime || call.aimedArrivalTime || call.expectedDepartureTime || call.aimedDepartureTime || "");
       const deltaSeconds = (when - now) / 1000;
-      if (!Number.isFinite(when) || deltaSeconds < -(stationWindow + afterglowWindow) || deltaSeconds > approachWindow) continue;
+      if (!Number.isFinite(when) || deltaSeconds < -stationWindow || deltaSeconds > approachWindow) continue;
       const id = physical.get(target.node.led);
-      const state = Math.abs(deltaSeconds) <= stationWindow
-        ? "AT_STOP"
-        : deltaSeconds < -stationWindow ? "PASSED" : "APPROACHING";
+      const state = Math.abs(deltaSeconds) <= stationWindow ? "AT_STOP" : "APPROACHING";
       const candidate = {
         id, profile, destination, state, deltaSeconds,
         vehicleId: String(call.serviceJourney?.id || "")
       };
       const previous = strongest.get(id);
-      const priority = value => value === "AT_STOP" ? 3 : value === "APPROACHING" ? 2 : 1;
-      if (!previous || priority(state) > priority(previous.state) ||
+      if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" ||
           state === previous.state && Math.abs(deltaSeconds) < Math.abs(previous.deltaSeconds)) strongest.set(id, candidate);
     }
   });
@@ -448,11 +444,8 @@ function frameFromStationArrivals(board, hardware, arrivals, now) {
     leds: arrivals.sort((a, b) => a.id - b.id).map(item => ({
       id: item.id,
       rgb: rgb(color(item.profile, item.destination)),
-      brightness: item.state === "PASSED"
-        ? Math.min(8, hardware.leds?.brightnessLimit ?? 32)
-        : Math.min(32, hardware.leds?.brightnessLimit ?? 32),
-      state: item.state === "PASSED" ? "AT_STOP" : item.state,
-      ...(item.state === "PASSED" ? { lifecycle: "PASSED" } : {}),
+      brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32),
+      state: item.state,
       vehicle: { id: item.vehicleId }
     }))
   };
@@ -539,7 +532,8 @@ async function handlePreview(request,env){
   if(resolvedBoard.positioning!=="vehicle-proximity"){
    resolvedBoard.hardware=hardware;
    const arrivals=await liveStationArrivals(resolvedBoard,profiles,now);
-   return publishResponse(frameFromStationArrivals(resolvedBoard,hardware,arrivals,now));
+   const frame=frameFromStationArrivals(resolvedBoard,hardware,arrivals,now);
+   return publishResponse(await stabilizeMotionFrame(env,resolvedBoard,frame,now));
   }
   const vehicles=await liveVehicles(profiles[0].provider.vehicleEndpoint,profiles[0].provider.codespaceId);
   const frame=resolvedBoard.layout==="linear-route-vled"
@@ -600,7 +594,8 @@ export default {
       if (board.positioning !== "vehicle-proximity") {
         board.hardware = hardware;
         const arrivals = await liveStationArrivals(board, profiles, now);
-        return response(frameFromStationArrivals(board, hardware, arrivals, now));
+        const frame = frameFromStationArrivals(board, hardware, arrivals, now);
+        return response(await stabilizeMotionFrame(env, board, frame, now));
       }
       const vehicles = await liveVehicles(
         profiles[0].provider.vehicleEndpoint,
