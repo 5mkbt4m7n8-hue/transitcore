@@ -493,7 +493,9 @@ async function handlePublish(request,env){
    file.current=inspect.ok?await inspect.json():null;if(!inspect.ok&&inspect.status!==404)throw Error(`GitHub ${inspect.status}: cannot inspect ${file.path}`);
    if(file.current?.content){
     const binary=atob(file.current.content.replace(/\s/g,"")),bytes=Uint8Array.from(binary,char=>char.charCodeAt(0));
-    file.unchanged=new TextDecoder().decode(bytes)===file.content;
+    const currentValue=JSON.parse(new TextDecoder().decode(bytes)),incomingValue=JSON.parse(file.content);
+    delete currentValue.generatedAt;delete incomingValue.generatedAt;
+    file.unchanged=JSON.stringify(currentValue)===JSON.stringify(incomingValue);
    }else file.unchanged=false;
   }
   if(files.every(file=>file.unchanged))return publishResponse({ok:true,noChanges:true,message:"Profilene er allerede oppdatert på main."});
