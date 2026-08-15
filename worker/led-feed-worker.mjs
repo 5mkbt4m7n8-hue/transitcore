@@ -62,7 +62,6 @@ export class DeviceStatus {
 
   async fetch(request) {
     const url = new URL(request.url);
-    if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
     if (url.pathname === "/motion" && request.method === "POST") {
       const { frame, now } = await request.json();
       const previous = (await this.state.storage.get("motion")) || {};
@@ -500,6 +499,7 @@ async function handlePublish(request,env){
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
     if (url.pathname === "/status" && request.method === "GET") {
       return new Response(statusPage, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
     }
