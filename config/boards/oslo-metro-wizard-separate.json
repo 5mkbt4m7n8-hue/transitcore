@@ -2078,7 +2078,8 @@
     "collisionMode": "alternate",
     "routePriority": [],
     "arrivalHoldSeconds": 45,
-    "freshnessSeconds": 120
+    "freshnessSeconds": 120,
+    "departureAfterglowSeconds": 20
   },
   "status": "wizard-draft-hardware-order-pending"
 }
