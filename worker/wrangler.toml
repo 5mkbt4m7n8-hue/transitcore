@@ -13,4 +13,5 @@ class_name = "DeviceStatus"
 tag = "device-status-v1"
 new_sqlite_classes = ["DeviceStatus"]
 
-
+[triggers]
+crons = ["*/5 * * * *"]

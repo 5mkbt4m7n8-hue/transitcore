@@ -70,6 +70,7 @@ export class DeviceStatus {
         const changed = !latest || latest.state !== sample.state || latest.detail !== sample.detail;
         const heartbeatDue = !latest || Date.parse(sample.checkedAt) - Date.parse(latest.recordedAt || latest.checkedAt) >= 15 * 60 * 1000;
         const stored = { ...sample, recordedAt: sample.checkedAt };
+        if (sample.source === "scheduled") await this.state.storage.put("monitorLastScheduled", stored);
         if (changed || heartbeatDue) {
           history.push(stored);
           while (history.length > 672) history.shift();
@@ -80,7 +81,8 @@ export class DeviceStatus {
       }
       const latest = await this.state.storage.get("monitorLatest");
       const history = (await this.state.storage.get("monitorHistory")) || [];
-      return statusJson({ latest: latest || null, history });
+      const lastScheduled = await this.state.storage.get("monitorLastScheduled");
+      return statusJson({ latest: latest || null, lastScheduled: lastScheduled || null, history });
     }
     if (url.pathname === "/motion" && request.method === "POST") {
       const { frame, now, afterglowMs } = await request.json();
@@ -148,6 +150,24 @@ function validFrameSummary(frame, boardId) {
     activeLeds: Array.isArray(frame?.leds) ? frame.leds.length : 0,
     sequence: Number(frame?.sequence) || 0
   };
+}
+
+const MONITOR_ORIGIN = "https://transitcore-led-feed.lgb84.workers.dev";
+
+async function runBackgroundChecks(env) {
+  await Promise.all([...BOARD_IDS].map(async boardId => {
+    try {
+      const result = await fetch(`${MONITOR_ORIGIN}/v1/boards/${encodeURIComponent(boardId)}/frame`, {
+        headers: { "x-transitcore-monitor": "scheduled" }
+      });
+      if (!result.ok) console.error(`Background check ${boardId}: HTTP ${result.status}`);
+    } catch (error) {
+      console.error(`Background check ${boardId}:`, error);
+      await recordBoardMonitor(env, boardId, {
+        state: "FEED_ERROR", detail: `Bakgrunnskontroll: ${error.message}`, activeLeds: 0, source: "scheduled"
+      });
+    }
+  }));
 }
 
 const statusPage = `<!doctype html><html lang="no"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TransitCore status</title><style>body{font:16px system-ui;background:#0b1220;color:#e5edf8;margin:0;padding:24px}.wrap{max-width:720px;margin:auto}h1{margin:0 0 6px}.sub{color:#9fb0c8;margin-bottom:22px}.card{background:#131d2e;border:1px solid #26344b;border-radius:16px;padding:18px;margin:12px 0}.row{display:flex;justify-content:space-between;gap:16px;margin:8px 0}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:8px}.ok{background:#22c55e}.warn{background:#f59e0b}.off{background:#ef4444}.muted{color:#9fb0c8}code{color:#cfe3ff}</style><div class="wrap"><h1>TransitCore status</h1><div class="sub">Oppdateres automatisk hvert 30. sekund</div><div id="cards">Lasterâ€¦</div></div><script>const names={'trondheim-bus-board':'Trondheim buss','oslo-metro-board':'Oslo T-bane','oslo-metro-wizard-separate':'Oslo linje 1 – separate LED-er','grakallbanen-board':'GrÃ¥kallbanen'};function esc(x){return String(x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}async function load(){const data=await fetch('/v1/status',{cache:'no-store'}).then(r=>r.json());cards.innerHTML=data.devices.map(d=>{if(!d.latest)return '<div class="card"><div><span class="dot off"></span>'+esc(names[d.deviceId]||d.deviceId)+'</div><p class="muted">Ingen status mottatt</p></div>';const s=d.latest,age=Math.max(0,Math.floor((Date.now()-Date.parse(s.receivedAt))/1000)),state=age<=420&&s.frameValid?'ok':age<=900?'warn':'off',label=state==='ok'?'Online':state==='warn'?'Varsel':'Frakoblet';return '<div class="card"><div><span class="dot '+state+'"></span><b>'+esc(names[d.deviceId]||d.deviceId)+'</b> Â· '+label+'</div><div class="row"><span>Sist sett</span><span>'+age+' s siden</span></div><div class="row"><span>Firmware</span><code>'+esc(s.firmware)+'</code></div><div class="row"><span>Oppetid</span><span>'+Math.floor(s.uptimeSeconds/60)+' min</span></div><div class="row"><span>Wiâ€‘Fi brudd / tilbake</span><span>'+s.wifiOutages+' / '+s.wifiRecoveries+'</span></div><div class="row"><span>Feed OK / feil</span><span>'+s.feedSuccesses+' / '+s.feedFailures+'</span></div><div class="row"><span>Heap / minimum</span><span>'+s.freeHeap+' / '+s.minimumFreeHeap+'</span></div></div>'}).join('')}load().catch(e=>cards.textContent='Status kunne ikke lastes: '+e.message);setInterval(load,30000)</script></html>`;
@@ -584,6 +604,9 @@ async function handlePreview(request,env){
 }
 
 export default {
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(runBackgroundChecks(env));
+  },
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
@@ -637,13 +660,14 @@ export default {
     const match = url.pathname.match(/^\/v1\/boards\/([^/]+)\/frame$/);
     const boardId = match?.[1];
     if (!boardId || !BOARD_IDS.has(boardId)) return response({ error: "not_found" }, 404);
+    const monitorSource = request.headers.get("x-transitcore-monitor") === "scheduled" ? "scheduled" : "request";
     try {
       const now = Date.now(), { board, profiles, hardware } = await configuration(boardId, now);
       if (board.positioning !== "vehicle-proximity") {
         board.hardware = hardware;
         const arrivals = await liveStationArrivals(board, profiles, now);
         const frame = await stabilizeMotionFrame(env, board, frameFromStationArrivals(board, hardware, arrivals, now), now);
-        await recordBoardMonitor(env, boardId, validFrameSummary(frame, boardId));
+        await recordBoardMonitor(env, boardId, { ...validFrameSummary(frame, boardId), source: monitorSource });
         return response(frame);
       }
       const vehicles = await liveVehicles(
@@ -652,16 +676,16 @@ export default {
       );
       if (board.layout === "linear-route-vled") {
         const frame = buildLinearRouteFrame({ board, profiles, hardware, vehicles, now });
-        await recordBoardMonitor(env, boardId, validFrameSummary(frame, boardId));
+        await recordBoardMonitor(env, boardId, { ...validFrameSummary(frame, boardId), source: monitorSource });
         return response(frame);
       }
       const rawFrame = buildFrame({ board, profiles, hardware, vehicles, now });
       const frame = await stabilizeMotionFrame(env, board, rawFrame, now);
-      await recordBoardMonitor(env, boardId, validFrameSummary(frame, boardId));
+      await recordBoardMonitor(env, boardId, { ...validFrameSummary(frame, boardId), source: monitorSource });
       return response(frame);
     } catch (error) {
       console.error(error);
-      await recordBoardMonitor(env, boardId, { state: "FEED_ERROR", detail: error.message, activeLeds: 0 });
+      await recordBoardMonitor(env, boardId, { state: "FEED_ERROR", detail: error.message, activeLeds: 0, source: monitorSource });
       return response({ error: "feed_unavailable", message: error.message, generatedAt: new Date().toISOString() }, 503);
     }
   }
