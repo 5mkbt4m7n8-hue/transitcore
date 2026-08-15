@@ -458,7 +458,8 @@ async function stabilizeMotionFrame(env, boardId, frame, now) {
   return result.json();
 }
 
-// Git-connected deploys reuse the encrypted publishing secrets configured in Cloudflare.\nconst publishCors={"content-type":"application/json; charset=utf-8","cache-control":"no-store","access-control-allow-origin":"https://5mkbt4m7n8-hue.github.io","access-control-allow-headers":"authorization, content-type","access-control-allow-methods":"POST, OPTIONS"};
+// Git-connected deploys reuse the encrypted publishing secrets configured in Cloudflare.
+const publishCors={"content-type":"application/json; charset=utf-8","cache-control":"no-store","access-control-allow-origin":"https://5mkbt4m7n8-hue.github.io","access-control-allow-headers":"authorization, content-type","access-control-allow-methods":"POST, OPTIONS"};
 const publishResponse=(body,status=200)=>new Response(JSON.stringify(body,null,2)+"\n",{status,headers:publishCors});
 function validatePublishProfiles(board,hardware){
  if(!board||!hardware||![1,2].includes(board.schemaVersion)||hardware.schemaVersion!==1)throw Error("Unsupported profile format");
