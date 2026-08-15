@@ -3,7 +3,7 @@
   "id": "oslo-metro-wizard-separate-hardware",
   "name": "Oslo T-bane · begge retninger / separate LED-er hardwareprofil",
   "boardProfile": "oslo-metro-wizard-separate",
-  "generatedAt": "2026-08-13T10:36:56.275Z",
+  "generatedAt": "2026-08-15T09:49:22.349Z",
   "leds": {
     "count": 69,
     "dataPin": null,
