@@ -68,7 +68,9 @@ async function publishDraft(){
  try{
   const response=await fetch(PUBLISH_ENDPOINT,{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+token},body:JSON.stringify({board:loaded.board,hardware:loaded.hardware})});
   const result=await response.json();if(!response.ok)throw Error(result.message||result.error||("HTTP "+response.status));
-  $("adminToken").value="";$("publishStatus").className="status ok publish-result";$("publishStatus").innerHTML='Draft-PR opprettet: <a href="'+esc(result.pullRequestUrl)+'" target="_blank" rel="noopener">Åpne PR #'+esc(result.pullRequestNumber)+'</a>';
+  $("adminToken").value="";$("publishStatus").className="status ok publish-result";
+  if(result.noChanges){$("publishStatus").textContent=result.message||"Profilene er allerede oppdatert. Ingen PR ble opprettet.";return}
+  $("publishStatus").innerHTML='Draft-PR opprettet: <a href="'+esc(result.pullRequestUrl)+'" target="_blank" rel="noopener">Åpne PR #'+esc(result.pullRequestNumber)+'</a>';
  }catch(error){$("publishStatus").className="status bad publish-result";$("publishStatus").textContent="Publisering feilet: "+error.message}
  finally{$("publishPr").disabled=!loaded?.valid}
 }
