@@ -62,6 +62,26 @@ export class DeviceStatus {
 
   async fetch(request) {
     const url = new URL(request.url);
+    if (url.pathname === "/monitor") {
+      if (request.method === "POST") {
+        const sample = await request.json();
+        const latest = (await this.state.storage.get("monitorLatest")) || null;
+        const history = (await this.state.storage.get("monitorHistory")) || [];
+        const changed = !latest || latest.state !== sample.state || latest.detail !== sample.detail;
+        const heartbeatDue = !latest || Date.parse(sample.checkedAt) - Date.parse(latest.recordedAt || latest.checkedAt) >= 15 * 60 * 1000;
+        const stored = { ...sample, recordedAt: sample.checkedAt };
+        if (changed || heartbeatDue) {
+          history.push(stored);
+          while (history.length > 672) history.shift();
+          await this.state.storage.put("monitorHistory", history);
+        }
+        await this.state.storage.put("monitorLatest", changed || heartbeatDue ? stored : { ...latest, ...sample });
+        return statusJson({ ok: true, recorded: changed || heartbeatDue });
+      }
+      const latest = await this.state.storage.get("monitorLatest");
+      const history = (await this.state.storage.get("monitorHistory")) || [];
+      return statusJson({ latest: latest || null, history });
+    }
     if (url.pathname === "/motion" && request.method === "POST") {
       const { frame, now, afterglowMs } = await request.json();
       const previous = (await this.state.storage.get("motion")) || {};
@@ -107,6 +127,26 @@ export function cleanStatusPayload(value, deviceId, receivedAt) {
     frameValid: Boolean(value.frameValid),
     freeHeap: number("freeHeap", 1000000),
     minimumFreeHeap: number("minimumFreeHeap", 1000000)
+  };
+}
+
+async function recordBoardMonitor(env, boardId, sample) {
+  if (!env.DEVICE_STATUS) return;
+  const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(boardId));
+  await stub.fetch("https://status.internal/monitor", {
+    method: "POST",
+    body: JSON.stringify({ boardId, checkedAt: new Date().toISOString(), ...sample })
+  });
+}
+
+function validFrameSummary(frame, boardId) {
+  const valid = frame?.schemaVersion === 1 && frame.boardProfile === boardId &&
+    Number.isInteger(frame.ledCount) && Array.isArray(frame.leds);
+  return {
+    state: valid ? "OK" : "PROFILE_MISMATCH",
+    detail: valid ? "Gyldig Worker-frame" : "Tavle-ID, schema eller LED-antall avviker",
+    activeLeds: Array.isArray(frame?.leds) ? frame.leds.length : 0,
+    sequence: Number(frame?.sequence) || 0
   };
 }
 
@@ -567,6 +607,14 @@ export default {
       }));
       return statusJson({ generatedAt: new Date().toISOString(), devices });
     }
+    const historyMatch = url.pathname.match(/^\/v1\/boards\/([^/]+)\/history$/);
+    if (historyMatch && request.method === "GET") {
+      const boardId = historyMatch[1];
+      if (!BOARD_IDS.has(boardId)) return statusJson({ error: "not_found" }, 404);
+      if (!env.DEVICE_STATUS) return statusJson({ latest: null, history: [], statusStorage: "disabled_in_preview" });
+      const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(boardId));
+      return stub.fetch("https://status.internal/monitor");
+    }
     const statusMatch = url.pathname.match(/^\/v1\/devices\/([^/]+)\/status$/);
     if (statusMatch) {
       const deviceId = statusMatch[1];
@@ -594,20 +642,26 @@ export default {
       if (board.positioning !== "vehicle-proximity") {
         board.hardware = hardware;
         const arrivals = await liveStationArrivals(board, profiles, now);
-        const frame = frameFromStationArrivals(board, hardware, arrivals, now);
-        return response(await stabilizeMotionFrame(env, board, frame, now));
+        const frame = await stabilizeMotionFrame(env, board, frameFromStationArrivals(board, hardware, arrivals, now), now);
+        await recordBoardMonitor(env, boardId, validFrameSummary(frame, boardId));
+        return response(frame);
       }
       const vehicles = await liveVehicles(
         profiles[0].provider.vehicleEndpoint,
         profiles[0].provider.codespaceId
       );
       if (board.layout === "linear-route-vled") {
-        return response(buildLinearRouteFrame({ board, profiles, hardware, vehicles, now }));
+        const frame = buildLinearRouteFrame({ board, profiles, hardware, vehicles, now });
+        await recordBoardMonitor(env, boardId, validFrameSummary(frame, boardId));
+        return response(frame);
       }
       const rawFrame = buildFrame({ board, profiles, hardware, vehicles, now });
-      return response(await stabilizeMotionFrame(env, board, rawFrame, now));
+      const frame = await stabilizeMotionFrame(env, board, rawFrame, now);
+      await recordBoardMonitor(env, boardId, validFrameSummary(frame, boardId));
+      return response(frame);
     } catch (error) {
       console.error(error);
+      await recordBoardMonitor(env, boardId, { state: "FEED_ERROR", detail: error.message, activeLeds: 0 });
       return response({ error: "feed_unavailable", message: error.message, generatedAt: new Date().toISOString() }, 503);
     }
   }
