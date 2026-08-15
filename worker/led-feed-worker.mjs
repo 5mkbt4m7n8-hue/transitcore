@@ -457,8 +457,8 @@ const response = (body, status = 200) => new Response(JSON.stringify(body, null,
 async function stabilizeMotionFrame(env, board, frame, now) {
   const configured = board.render?.departureAfterglowSeconds;
   const afterglowSeconds = configured == null && board.id === "trondheim-bus-board"
-    ? 20
-    : Math.max(0, Math.min(120, Number(configured) || 0));
+    ? 10
+    : Math.max(0, Math.min(10, Number(configured) || 0));
   if (!afterglowSeconds || !env.DEVICE_STATUS) return frame;
   const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(board.id));
   const result = await stub.fetch("https://status.internal/motion", {
