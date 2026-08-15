@@ -21,7 +21,7 @@ button,select{font:inherit;color:#fff;background:#222834;border:1px solid #3b435
 <h1>TransitCore LED-tavlesimulator</h1>
 <div class="sub" id="subtitle">Laster tavleprofil…</div>
 <div class="toolbar"><select id="boardSelect" aria-label="Velg tavle"><option value="oslo-metro-board">Oslo T-bane – begge retninger / felles LED</option><option value="oslo-metro-board-direction-a">Oslo T-bane – retning A</option><option value="oslo-metro-board-direction-b">Oslo T-bane – retning B</option><option value="oslo-metro-wizard-separate">Oslo linje 1 – separate LED-er</option><option value="trondheim-bus-board">Trondheim buss</option></select><button id="refresh">Oppdater live</button><button id="test">Test alle LED-er</button><button id="stop">Stopp test</button><button id="importHardware">Importer hardwareprofil</button><button id="clearHardware">Bruk logisk rekkefølge</button><input id="hardwareFile" type="file" accept="application/json,.json" hidden></div>
-<div id="status">Laster tavleprofil…</div><section class="monitor" aria-live="polite"><div class="monitor-head"><span class="monitor-title">Publisert tavle · drift</span><span id="monitorState" class="monitor-state">Kontrollerer…</span></div><div id="monitorGrid" class="monitor-grid"></div><details class="monitor-history"><summary>Vis lagret historikk</summary><div id="monitorHistory" class="note">Laster historikk…</div></details></section><div id="legend" class="legend"></div><section id="board" class="board" aria-label="Logisk LED-tavle"></section>
+<div id="status">Laster tavleprofil…</div><section class="monitor" aria-live="polite"><div class="monitor-head"><span class="monitor-title">Publisert tavle · drift</span><span id="monitorState" class="monitor-state">Kontrollerer…</span></div><div id="monitorGrid" class="monitor-grid"></div><div id="backgroundCheck" class="note">Siste automatiske bakgrunnskontroll: venter…</div><details class="monitor-history"><summary>Vis lagret historikk</summary><div id="monitorHistory" class="note">Laster historikk…</div></details></section><div id="legend" class="legend"></div><section id="board" class="board" aria-label="Logisk LED-tavle"></section>
 <p class="note" id="note">LED-numrene er foreløpig logiske, ikke fysisk ledningsrekkefølge.</p>
 </main>
 <script>
@@ -52,10 +52,10 @@ async function fetchBusBoard(){const query=`{vehicles(codespaceId:"ATB"){vehicle
 function monitorCard(label,value){return `<div class="monitor-item"><b>${esc(value)}</b>${esc(label)}</div>`}
 function renderMonitorHistory(data){
  const rows=[...(data.history||[])].reverse().slice(0,24);
- $("monitorHistory").innerHTML=rows.length?rows.map(item=>`<div class="history-row"><span>${esc(new Date(item.recordedAt||item.checkedAt).toLocaleString("no-NO"))}</span><span class="history-state ${esc(item.state)}">${esc(item.state==="OK"?"OK":item.state==="FEED_ERROR"?"Feed-feil":"Profilavvik")}</span><span>${esc(item.detail||"")} ${Number.isFinite(item.activeLeds)?"· "+item.activeLeds+" aktive LED-er":""}</span></div>`).join(""):"Ingen historikk er lagret ennå.";
+ $("monitorHistory").innerHTML=rows.length?rows.map(item=>`<div class="history-row"><span>${esc(new Date(item.recordedAt||item.checkedAt).toLocaleString("no-NO"))}</span><span class="history-state ${esc(item.state)}">${esc(item.state==="OK"?"OK":item.state==="FEED_ERROR"?"Feed-feil":"Profilavvik")}</span><span>${item.source==="scheduled"?"Bakgrunn · ":""}${esc(item.detail||"")} ${Number.isFinite(item.activeLeds)?"· "+item.activeLeds+" aktive LED-er":""}</span></div>`).join(""):"Ingen historikk er lagret ennå.";
 }
 async function loadMonitorHistory(){
- try{const response=await fetch(`${WORKER}/v1/boards/${encodeURIComponent(board.id)}/history`,{cache:"no-store"}),data=await response.json();if(response.ok)renderMonitorHistory(data)}
+ try{const response=await fetch(`${WORKER}/v1/boards/${encodeURIComponent(board.id)}/history`,{cache:"no-store"}),data=await response.json();if(response.ok){renderMonitorHistory(data);$("backgroundCheck").textContent=data.lastScheduled?`Siste automatiske bakgrunnskontroll: ${new Date(data.lastScheduled.checkedAt).toLocaleString("no-NO")} · ${data.lastScheduled.state==="OK"?"OK":"feil"}`:"Automatisk bakgrunnskontroll er ikke registrert ennå."}}
  catch(error){console.warn("Historikk",error)}
 }
 async function monitorPublishedBoard(){
