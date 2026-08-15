@@ -382,6 +382,7 @@ async function liveStationArrivals(board, profiles, now) {
   const lookBehind = Math.max(...profiles.map(profile => profile.positioning.lookBehindSeconds || 75));
   const lookAhead = Math.max(...profiles.map(profile => profile.positioning.lookAheadSeconds || 600));
   const stationWindow = Math.max(...profiles.map(profile => profile.positioning.stationWindowSeconds || 45));
+  const approachWindow = Math.max(stationWindow, board.render?.approachWindowSeconds || 120);
   const start = new Date(now - lookBehind * 1000).toISOString();
   const timeRange = lookBehind + lookAhead;
   const targets = [];
@@ -417,11 +418,13 @@ async function liveStationArrivals(board, profiles, now) {
       if (target.node.routeDirections && !matchesDirection(target.node, profile, destination)) continue;
       const when = Date.parse(call.expectedArrivalTime || call.aimedArrivalTime || call.expectedDepartureTime || call.aimedDepartureTime || "");
       const deltaSeconds = (when - now) / 1000;
-      if (!Number.isFinite(when) || Math.abs(deltaSeconds) > stationWindow) continue;
+      if (!Number.isFinite(when) || deltaSeconds < -stationWindow || deltaSeconds > approachWindow) continue;
       const id = physical.get(target.node.led);
-      const candidate = { id, profile, destination, state: "AT_STOP", deltaSeconds };
+      const state = Math.abs(deltaSeconds) <= stationWindow ? "AT_STOP" : "APPROACHING";
+      const candidate = { id, profile, destination, state, deltaSeconds };
       const previous = strongest.get(id);
-      if (!previous || Math.abs(deltaSeconds) < Math.abs(previous.deltaSeconds)) strongest.set(id, candidate);
+      if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" ||
+          state === previous.state && Math.abs(deltaSeconds) < Math.abs(previous.deltaSeconds)) strongest.set(id, candidate);
     }
   });
   return [...strongest.values()];
