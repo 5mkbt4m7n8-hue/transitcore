@@ -12,8 +12,8 @@ const statusJson = (body, status = 200) => new Response(
   { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" } }
 );
 
-export function applyMotionLifecycle(frame, previous = {}, now = Date.now()) {
-  const afterglowMs = 20000;
+export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), afterglowMs = 20000) {
+  afterglowMs = Math.max(0, Number(afterglowMs) || 0);
   const next = {};
   const leds = [];
   const seen = new Set();
@@ -63,9 +63,9 @@ export class DeviceStatus {
   async fetch(request) {
     const url = new URL(request.url);
     if (url.pathname === "/motion" && request.method === "POST") {
-      const { frame, now } = await request.json();
+      const { frame, now, afterglowMs } = await request.json();
       const previous = (await this.state.storage.get("motion")) || {};
-      const result = applyMotionLifecycle(frame, previous, Number(now) || Date.now());
+      const result = applyMotionLifecycle(frame, previous, Number(now) || Date.now(), afterglowMs);
       await this.state.storage.put("motion", result.state);
       return statusJson(result.frame);
     }
@@ -421,7 +421,10 @@ async function liveStationArrivals(board, profiles, now) {
       if (!Number.isFinite(when) || deltaSeconds < -stationWindow || deltaSeconds > approachWindow) continue;
       const id = physical.get(target.node.led);
       const state = Math.abs(deltaSeconds) <= stationWindow ? "AT_STOP" : "APPROACHING";
-      const candidate = { id, profile, destination, state, deltaSeconds };
+      const candidate = {
+        id, profile, destination, state, deltaSeconds,
+        vehicleId: String(call.serviceJourney?.id || "")
+      };
       const previous = strongest.get(id);
       if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" ||
           state === previous.state && Math.abs(deltaSeconds) < Math.abs(previous.deltaSeconds)) strongest.set(id, candidate);
@@ -442,7 +445,8 @@ function frameFromStationArrivals(board, hardware, arrivals, now) {
       id: item.id,
       rgb: rgb(color(item.profile, item.destination)),
       brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32),
-      state: item.state
+      state: item.state,
+      vehicle: { id: item.vehicleId }
     }))
   };
 }
@@ -450,12 +454,16 @@ function frameFromStationArrivals(board, hardware, arrivals, now) {
 const headers = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" };
 const response = (body, status = 200) => new Response(JSON.stringify(body, null, 2) + "\n", { status, headers });
 
-async function stabilizeMotionFrame(env, boardId, frame, now) {
-  if (boardId !== "trondheim-bus-board" || !env.DEVICE_STATUS) return frame;
-  const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(boardId));
+async function stabilizeMotionFrame(env, board, frame, now) {
+  const configured = board.render?.departureAfterglowSeconds;
+  const afterglowSeconds = configured == null && board.id === "trondheim-bus-board"
+    ? 20
+    : Math.max(0, Math.min(120, Number(configured) || 0));
+  if (!afterglowSeconds || !env.DEVICE_STATUS) return frame;
+  const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(board.id));
   const result = await stub.fetch("https://status.internal/motion", {
     method: "POST",
-    body: JSON.stringify({ frame, now })
+    body: JSON.stringify({ frame, now, afterglowMs: afterglowSeconds * 1000 })
   });
   if (!result.ok) throw Error(`motion state: HTTP ${result.status}`);
   return result.json();
@@ -524,13 +532,14 @@ async function handlePreview(request,env){
   if(resolvedBoard.positioning!=="vehicle-proximity"){
    resolvedBoard.hardware=hardware;
    const arrivals=await liveStationArrivals(resolvedBoard,profiles,now);
-   return publishResponse(frameFromStationArrivals(resolvedBoard,hardware,arrivals,now));
+   const frame=frameFromStationArrivals(resolvedBoard,hardware,arrivals,now);
+   return publishResponse(await stabilizeMotionFrame(env,resolvedBoard,frame,now));
   }
   const vehicles=await liveVehicles(profiles[0].provider.vehicleEndpoint,profiles[0].provider.codespaceId);
   const frame=resolvedBoard.layout==="linear-route-vled"
    ?buildLinearRouteFrame({board:resolvedBoard,profiles,hardware,vehicles,now})
    :buildFrame({board:resolvedBoard,profiles,hardware,vehicles,now});
-  return publishResponse(frame);
+  return publishResponse(await stabilizeMotionFrame(env,resolvedBoard,frame,now));
  }catch(error){console.error("preview failed",error);return publishResponse({error:"preview_failed",message:error.message},400)}
 }
 
@@ -585,7 +594,8 @@ export default {
       if (board.positioning !== "vehicle-proximity") {
         board.hardware = hardware;
         const arrivals = await liveStationArrivals(board, profiles, now);
-        return response(frameFromStationArrivals(board, hardware, arrivals, now));
+        const frame = frameFromStationArrivals(board, hardware, arrivals, now);
+        return response(await stabilizeMotionFrame(env, board, frame, now));
       }
       const vehicles = await liveVehicles(
         profiles[0].provider.vehicleEndpoint,
@@ -595,7 +605,7 @@ export default {
         return response(buildLinearRouteFrame({ board, profiles, hardware, vehicles, now }));
       }
       const rawFrame = buildFrame({ board, profiles, hardware, vehicles, now });
-      return response(await stabilizeMotionFrame(env, boardId, rawFrame, now));
+      return response(await stabilizeMotionFrame(env, board, rawFrame, now));
     } catch (error) {
       console.error(error);
       return response({ error: "feed_unavailable", message: error.message, generatedAt: new Date().toISOString() }, 503);
