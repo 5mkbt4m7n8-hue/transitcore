@@ -485,12 +485,22 @@ async function handlePublish(request,env){
  if(request.headers.get("authorization")!==`Bearer ${env.PUBLISH_ADMIN_TOKEN}`)return publishResponse({error:"unauthorized"},401);
  try{
   const payload=await request.json(),board=payload.board,hardware=payload.hardware;validatePublishProfiles(board,hardware);
-  const repository=env.GITHUB_REPOSITORY||"5mkbt4m7n8-hue/transitcore",base="main",baseRef=await githubApi(env,`/repos/${repository}/git/ref/heads/${base}`),branch=`publish/${board.id}-${Date.now()}`;
-  await githubApi(env,`/repos/${repository}/git/refs`,{method:"POST",body:JSON.stringify({ref:`refs/heads/${branch}`,sha:baseRef.object.sha})});
-  for(const file of [{path:`config/boards/${board.id}.json`,value:board},{path:`config/hardware/${board.id}-hardware.json`,value:hardware}]){
+  const repository=env.GITHUB_REPOSITORY||"5mkbt4m7n8-hue/transitcore",base="main";
+  const files=[{path:`config/boards/${board.id}.json`,value:board},{path:`config/hardware/${board.id}-hardware.json`,value:hardware}];
+  for(const file of files){
+   file.content=JSON.stringify(file.value,null,2)+"\n";
    const inspect=await fetch(`https://api.github.com/repos/${repository}/contents/${file.path}?ref=${base}`,{headers:{"accept":"application/vnd.github+json","authorization":`Bearer ${env.GITHUB_PUBLISH_TOKEN}`,"x-github-api-version":"2022-11-28","user-agent":"TransitCore-Publisher"}});
-   const current=inspect.ok?await inspect.json():null;if(!inspect.ok&&inspect.status!==404)throw Error(`GitHub ${inspect.status}: cannot inspect ${file.path}`);
-   await githubApi(env,`/repos/${repository}/contents/${file.path}`,{method:"PUT",body:JSON.stringify({message:`Publish ${board.id}: ${file.path}`,content:base64Utf8(JSON.stringify(file.value,null,2)+"\n"),branch,...(current?.sha?{sha:current.sha}:{})})});
+   file.current=inspect.ok?await inspect.json():null;if(!inspect.ok&&inspect.status!==404)throw Error(`GitHub ${inspect.status}: cannot inspect ${file.path}`);
+   if(file.current?.content){
+    const binary=atob(file.current.content.replace(/\s/g,"")),bytes=Uint8Array.from(binary,char=>char.charCodeAt(0));
+    file.unchanged=new TextDecoder().decode(bytes)===file.content;
+   }else file.unchanged=false;
+  }
+  if(files.every(file=>file.unchanged))return publishResponse({ok:true,noChanges:true,message:"Profilene er allerede oppdatert på main."});
+  const baseRef=await githubApi(env,`/repos/${repository}/git/ref/heads/${base}`),branch=`publish/${board.id}-${Date.now()}`;
+  await githubApi(env,`/repos/${repository}/git/refs`,{method:"POST",body:JSON.stringify({ref:`refs/heads/${branch}`,sha:baseRef.object.sha})});
+  for(const file of files.filter(file=>!file.unchanged)){
+   await githubApi(env,`/repos/${repository}/contents/${file.path}`,{method:"PUT",body:JSON.stringify({message:`Publish ${board.id}: ${file.path}`,content:base64Utf8(file.content),branch,...(file.current?.sha?{sha:file.current.sha}:{})})});
   }
   const pull=await githubApi(env,`/repos/${repository}/pulls`,{method:"POST",body:JSON.stringify({title:`Publiser tavleprofil: ${board.name||board.id}`,head:branch,base,draft:true,body:`## Automatisk tavlepublisering\n\n- Tavle-ID: \`${board.id}\`\n- Ruter: ${(board.routes||[]).join(", ")}\n- LED-punkter: ${board.nodes.length}\n\nProfilene er kontrollert i nettleseren og på Worker.`})});
   return publishResponse({ok:true,pullRequestNumber:pull.number,pullRequestUrl:pull.html_url,branch});
