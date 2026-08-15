@@ -155,7 +155,7 @@ export function matchesDirection(node, profile, destination) {
 }
 
 export function validateConfiguration(board, profiles, hardware) {
-  if (!BOARD_IDS.has(board.id) || hardware.schemaVersion !== 1 || hardware.boardProfile !== board.id) throw Error("Board/hardware profile mismatch");
+  if (hardware.schemaVersion !== 1 || hardware.boardProfile !== board.id) throw Error("Board/hardware profile mismatch");
   if (board.nodes.length !== board.leds.count || hardware.assignments?.length !== board.nodes.length) throw Error("LED count mismatch");
   const logical = new Set(), physical = new Set();
   for (const assignment of hardware.assignments) {
@@ -509,10 +509,33 @@ async function handlePublish(request,env){
  }catch(error){console.error("publish failed",error);return publishResponse({error:"publish_failed",message:error.message},400)}
 }
 
+async function handlePreview(request,env){
+ if(request.method==="OPTIONS")return new Response(null,{status:204,headers:publishCors});
+ if(request.method!=="POST")return publishResponse({error:"method_not_allowed"},405);
+ if(!env.PUBLISH_ADMIN_TOKEN)return publishResponse({error:"preview_not_configured"},503);
+ if(request.headers.get("authorization")!==`Bearer ${env.PUBLISH_ADMIN_TOKEN}`)return publishResponse({error:"unauthorized"},401);
+ try{
+  const payload=await request.json(),board=payload.board,hardware=payload.hardware;validatePublishProfiles(board,hardware);
+  const profiles=await Promise.all(board.routes.map(id=>fetchJson(`${REPOSITORY}/config/routes/${id}.json`)));
+  const now=Date.now(),resolvedBoard=board.layout==="linear-route-vled"?board:addNodeCoordinates(board,profiles);
+  if(resolvedBoard.positioning!=="vehicle-proximity"){
+   resolvedBoard.hardware=hardware;
+   const arrivals=await liveStationArrivals(resolvedBoard,profiles,now);
+   return publishResponse(frameFromStationArrivals(resolvedBoard,hardware,arrivals,now));
+  }
+  const vehicles=await liveVehicles(profiles[0].provider.vehicleEndpoint,profiles[0].provider.codespaceId);
+  const frame=resolvedBoard.layout==="linear-route-vled"
+   ?buildLinearRouteFrame({board:resolvedBoard,profiles,hardware,vehicles,now})
+   :buildFrame({board:resolvedBoard,profiles,hardware,vehicles,now});
+  return publishResponse(frame);
+ }catch(error){console.error("preview failed",error);return publishResponse({error:"preview_failed",message:error.message},400)}
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
+    if (url.pathname === "/v1/admin/preview") return handlePreview(request, env);
     if (url.pathname === "/status" && request.method === "GET") {
       return new Response(statusPage, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
     }
