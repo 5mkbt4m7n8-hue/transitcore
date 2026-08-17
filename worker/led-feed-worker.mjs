@@ -604,8 +604,10 @@ async function handlePreview(request,env){
 }
 
 export default {
-  async scheduled(controller, env, ctx) {
-    ctx.waitUntil(runBackgroundChecks(env));
+  async scheduled(controller, env) {
+    console.log("Scheduled background checks started", new Date(controller.scheduledTime).toISOString());
+    await runBackgroundChecks(env);
+    console.log("Scheduled background checks completed");
   },
   async fetch(request, env) {
     const url = new URL(request.url);
