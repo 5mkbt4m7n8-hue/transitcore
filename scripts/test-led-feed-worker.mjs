@@ -16,7 +16,7 @@ assert.equal(frame.schemaVersion, 1);
 assert.equal(frame.boardProfile, "trondheim-bus-board");
 assert.equal(frame.ledCount, 2);
 assert.equal(frame.ttlSeconds, 30);
-assert.deepEqual(frame.leds, [{ id: 1, rgb: [0, 255, 80], brightness: 20, state: "AT_STOP", vehicle: { id: "bus-1", line: "1", destination: "Kattem", ageSeconds: 5, distanceMeters: 0 } }]);
+assert.deepEqual(frame.leds, [{ id: 1, rgb: [0, 255, 80], brightness: 20, state: "AT_STOP", vehicle: { id: "bus-1", line: "1", destination: "Kattem", ageSeconds: 5, distanceMeters: 0 }, occupants: [{ id: "bus-1", line: "1", destination: "Kattem", rgb: [0, 255, 80], state: "AT_STOP", ageSeconds: 5, distanceMeters: 0 }] }]);
 const unknownDirectionFrame = buildFrame({
   board, profiles, hardware,
   vehicles: [{ ...vehicles[0], destinationName: "Ukjent endeholdeplass", location: { latitude: 63.4310, longitude: 10.3951 } }],
@@ -70,3 +70,41 @@ assert.equal(motion.frame.leds[0].brightness, 8);
 motion = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, vehicle: { ...approachingLed.vehicle, id: "following-bus", distanceMeters: 140 } }] }, motion.state, now + 25000);
 assert.equal(motion.frame.leds[0].state, "APPROACHING", "A following bus must replace the first bus after it leaves");
 console.log("Server motion lifecycle tests OK");
+
+const oppositeDirectionColorFrame = buildFrame({
+  board, profiles, hardware,
+  vehicles: [{ ...vehicles[0], vehicleId: "bus-line-color", destinationName: "Ranheim", location: { latitude: 63.4310, longitude: 10.3951 } }],
+  now
+});
+assert.deepEqual(oppositeDirectionColorFrame.leds[0].rgb, [0, 255, 80], "Bus line colour must not change with direction or state");
+assert.deepEqual(oppositeDirectionColorFrame.leds[0].occupants[0].rgb, [0, 255, 80], "Occupant and LED must use the same line colour");
+
+const firstAtStop = {
+  ...approachingLed,
+  state: "AT_STOP",
+  rgb: [0, 255, 80],
+  vehicle: { ...approachingLed.vehicle, id: "first-bus", distanceMeters: 10 },
+  occupants: [
+    { id: "first-bus", line: "1", destination: "Ranheim", rgb: [0, 255, 80], state: "AT_STOP" },
+    { id: "old-bus", line: "2", destination: "Strindheim", rgb: [239, 83, 80], state: "PASSED" }
+  ]
+};
+let latestDeparture = applyMotionLifecycle({ ...motionBase, leds: [firstAtStop] }, {}, now);
+latestDeparture = applyMotionLifecycle({ ...motionBase, leds: [] }, latestDeparture.state, now + 1000);
+assert.equal(latestDeparture.frame.leds[0].lifecycle, "PASSED");
+assert.equal(latestDeparture.frame.leds[0].occupants.length, 1, "Afterglow must not alternate between old occupants");
+assert.deepEqual(latestDeparture.frame.leds[0].occupants[0].rgb, [0, 255, 80]);
+
+const secondAtStop = {
+  ...firstAtStop,
+  rgb: [239, 83, 80],
+  vehicle: { ...firstAtStop.vehicle, id: "second-bus", line: "2" },
+  occupants: [{ id: "second-bus", line: "2", destination: "Strindheim", rgb: [239, 83, 80], state: "AT_STOP" }]
+};
+latestDeparture = applyMotionLifecycle({ ...motionBase, leds: [secondAtStop] }, latestDeparture.state, now + 2000);
+assert.equal(latestDeparture.frame.leds[0].state, "AT_STOP", "AT_STOP must replace afterglow");
+latestDeparture = applyMotionLifecycle({ ...motionBase, leds: [] }, latestDeparture.state, now + 3000);
+assert.deepEqual(latestDeparture.frame.leds[0].rgb, [239, 83, 80], "The latest departed bus owns the afterglow colour");
+assert.equal(latestDeparture.frame.leds[0].occupants.length, 1);
+console.log("LED priority, line colour and latest-departure tests OK");
+

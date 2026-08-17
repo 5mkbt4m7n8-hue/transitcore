@@ -12,6 +12,19 @@ const statusJson = (body, status = 200) => new Response(
   { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" } }
 );
 
+function makePassedLed(led) {
+  const vehicle = led.vehicle ? { ...led.vehicle, rgb: led.rgb, state: "PASSED" } : null;
+  return {
+    ...led,
+    state: "AT_STOP",
+    lifecycle: "PASSED",
+    brightness: Math.min(8, led.brightness),
+    // Afterglow belongs only to the most recently departed vehicle.
+    // Keeping older occupants here made one LED alternate between stale line colours.
+    occupants: vehicle ? [vehicle] : []
+  };
+}
+
 export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), afterglowMs = 20000) {
   afterglowMs = Math.max(0, Number(afterglowMs) || 0);
   const next = {};
@@ -32,7 +45,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     if (departing) {
       const expiresAt = before.state === "PASSED" ? before.expiresAt : now + afterglowMs;
       if (expiresAt > now) {
-        const passed = { ...led, state: "AT_STOP", lifecycle: "PASSED", brightness: Math.min(8, led.brightness) };
+        const passed = makePassedLed(led);
         leds.push(passed);
         next[id] = { vehicleId, state: "PASSED", distance, expiresAt, led: passed };
       }
@@ -47,7 +60,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     if (seen.has(id)) continue;
     const expiresAt = before.state === "PASSED" ? before.expiresAt : now + afterglowMs;
     if (expiresAt <= now) continue;
-    const passed = { ...before.led, state: "AT_STOP", lifecycle: "PASSED", brightness: Math.min(8, before.led.brightness) };
+    const passed = makePassedLed(before.led);
     leds.push(passed);
     next[id] = { ...before, state: "PASSED", expiresAt, led: passed };
   }
@@ -287,7 +300,7 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
       }).map(occupantJson);
       return {
         id: item.id,
-        rgb: rgb(color(item.profile, item.destination)),
+        rgb: rgb(item.profile.line.color || color(item.profile, item.destination)),
         brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32),
         state: item.state,
         vehicle: {
@@ -503,7 +516,7 @@ function frameFromStationArrivals(board, hardware, arrivals, now) {
     ledCount: hardware.leds?.count ?? board.leds.count,
     leds: arrivals.sort((a, b) => a.id - b.id).map(item => ({
       id: item.id,
-      rgb: rgb(color(item.profile, item.destination)),
+      rgb: rgb(item.profile.line.color || color(item.profile, item.destination)),
       brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32),
       state: item.state,
       vehicle: { id: item.vehicleId }
