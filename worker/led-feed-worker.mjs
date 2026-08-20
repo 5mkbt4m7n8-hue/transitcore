@@ -16,8 +16,8 @@ export async function attachProfileIdentity(board,hardware){
  const configured=Number(board.profileRevision);
  board.profileRevision=Number.isInteger(configured)&&configured>0?configured:1;
  const source=JSON.stringify({board:{...board,profileFingerprint:undefined},hardware});
- const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(source));
- board.profileFingerprint=[...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,"0")).join("").slice(0,16);
+ const hash=seed=>{let value=seed>>>0;for(let index=0;index<source.length;index++)value=Math.imul(value^source.charCodeAt(index),16777619);return(value>>>0).toString(16).padStart(8,"0")};
+ board.profileFingerprint=hash(2166136261)+hash(2246822507);
  return board;
 }
 
