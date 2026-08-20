@@ -4,13 +4,13 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0d11"><title>TransitCore live-test</title>
 <style>
-:root{color-scheme:dark;--bg:#0b0d11;--panel:#151922;--line:#2b3340;--text:#f4f7fb;--muted:#9aa5b5;--ok:#65d99a;--bad:#ff7b7b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,sans-serif}main{max-width:920px;margin:auto;padding:20px}h1{margin:0}.lead,.muted{color:var(--muted)}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;margin:14px 0}.controls,.actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}input,button,a.button{font:inherit;color:var(--text);background:#202838;border:1px solid #3a465b;border-radius:9px;padding:10px 12px;text-decoration:none}input{width:min(100%,380px)}button{cursor:pointer;font-weight:700}.primary{background:#1a4b7d!important;border-color:#438fd6!important}.status{margin-top:12px;padding:11px;border-radius:9px;background:#10141b}.ok{color:var(--ok)}.bad{color:var(--bad)}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}.metric{padding:11px;border:1px solid var(--line);border-radius:10px;background:#10141b;color:var(--muted);font-size:12px}.metric b{display:block;color:var(--text);font-size:17px;margin-bottom:3px}.checks{margin:12px 0 0;padding:0;list-style:none}.checks li{padding:5px 0}.checks .pass{color:var(--ok)}.checks .fail{color:var(--bad)}button:disabled{opacity:.45;cursor:not-allowed}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:8px}.led{display:grid;grid-template-columns:34px 24px 1fr;align-items:center;gap:9px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#10141b}.num{font:12px ui-monospace,monospace;color:#9fb0c8}.lamp{width:18px;height:18px;border-radius:50%;background:#303846;border:2px solid #596476}.lamp.on{background:rgb(var(--rgb));border-color:white;box-shadow:0 0 13px rgb(var(--rgb))}.lamp.approaching{animation:pulse 1.5s ease-in-out infinite}.lamp.afterglow{opacity:.3;box-shadow:0 0 5px rgb(var(--rgb))}.name{font-weight:650}.detail{font-size:12px;color:var(--muted)}@keyframes pulse{50%{opacity:.35;transform:scale(.78)}}@media(max-width:560px){main{padding:12px}.grid{grid-template-columns:1fr}}
+:root{color-scheme:dark;--bg:#0b0d11;--panel:#151922;--line:#2b3340;--text:#f4f7fb;--muted:#9aa5b5;--ok:#65d99a;--bad:#ff7b7b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,sans-serif}main{max-width:920px;margin:auto;padding:20px}h1{margin:0}.lead,.muted{color:var(--muted)}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;margin:14px 0}.controls,.actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}input,button,a.button{font:inherit;color:var(--text);background:#202838;border:1px solid #3a465b;border-radius:9px;padding:10px 12px;text-decoration:none}input{width:min(100%,380px)}button{cursor:pointer;font-weight:700}.primary{background:#1a4b7d!important;border-color:#438fd6!important}.status{margin-top:12px;padding:11px;border-radius:9px;background:#10141b}.ok{color:var(--ok)}.bad{color:var(--bad)}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}.metric{padding:11px;border:1px solid var(--line);border-radius:10px;background:#10141b;color:var(--muted);font-size:12px}.metric b{display:block;color:var(--text);font-size:17px;margin-bottom:3px}.checks{margin:12px 0 0;padding:0;list-style:none}.checks li{padding:5px 0}.checks .pass{color:var(--ok)}.checks .fail{color:var(--bad)}button:disabled{opacity:.45;cursor:not-allowed}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:8px}.led{display:grid;grid-template-columns:34px 24px 1fr;align-items:center;gap:9px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#10141b;cursor:pointer}.led.selected{border-color:#65d99a;box-shadow:0 0 0 2px #65d99a33}.num{font:12px ui-monospace,monospace;color:#9fb0c8}.lamp{width:18px;height:18px;border-radius:50%;background:#303846;border:2px solid #596476}.lamp.on{background:rgb(var(--rgb));border-color:white;box-shadow:0 0 13px rgb(var(--rgb))}.lamp.approaching{animation:pulse 1.5s ease-in-out infinite}.lamp.afterglow{opacity:.3;box-shadow:0 0 5px rgb(var(--rgb))}.name{font-weight:650}.detail{font-size:12px;color:var(--muted)}@keyframes pulse{50%{opacity:.35;transform:scale(.78)}}@media(max-width:560px){main{padding:12px}.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body><main>
 <h1>TransitCore live-test</h1>
 <p class="lead">Tester det upubliserte prosjektet med samme live-data og LED-beregning som den fysiske tavlen.</p>
-<section class="panel"><h2 id="title">Laster prosjekt …</h2><div class="controls"><input id="token" type="password" autocomplete="off" placeholder="Administratornøkkel"><button id="start" class="primary">Start live-test</button><button id="refresh">Oppdater nå</button></div><div id="status" class="status">Venter på test.</div></section>
+<section class="panel"><h2 id="title">Laster prosjekt …</h2><div class="controls"><input id="token" type="password" autocomplete="off" placeholder="Administratornøkkel"><button id="start" class="primary">Start live-test</button><button id="refresh">Oppdater nå</button><button id="signalTest" disabled>Test valgt LED</button></div><div id="status" class="status">Venter på test.</div></section>
 <section class="panel"><h2>Klar for fysisk tavle</h2><div id="projectSummary" class="summary"></div><div id="readiness" class="status">Kontrollerer prosjektet …</div><ul id="checks" class="checks"></ul></section>
 <section class="panel"><div id="leds" class="grid"></div></section>
 <section class="panel actions"><a class="button" href="../editor/?wizard=1">Tilbake til Editor</a><button id="publish" class="primary">Fortsett til publisering</button></section>
@@ -19,7 +19,7 @@
 "use strict";
 const PREVIEW_STORE="transitcore-preview-project-v1",PUBLISH_STORE="transitcore-publish-project-v1",ENDPOINT="https://transitcore-led-feed.lgb84.workers.dev/v1/admin/preview";
 const $=id=>document.getElementById(id),esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let project=null,token="",timer=null,lastFrameValid=false;
+let project=null,token="",timer=null,lastFrameValid=false,selectedPhysical=null,testTimers=[];
 const lastStops=new Map();
 function load(){
  const raw=localStorage.getItem(PREVIEW_STORE);if(!raw){$("status").className="status bad";$("status").textContent="Prosjektet mangler. Gå tilbake til Editor og velg Test med live-data.";return}
@@ -71,7 +71,7 @@ function render(frame){
   else lastStops.delete(id);
  }
  for(const led of frame.leds||[])if(led.state==="AT_STOP"&&led.lifecycle!=="PASSED")lastStops.set(led.id,{led,missingSince:0});
- $("leds").innerHTML=rows().map(({assignment:a,node:n})=>{const led=active.get(a.physicalLed),rgb=led?.rgb?.join(",")||"80,90,105",afterglow=led?.lifecycle==="PASSED",state=afterglow?"ETTERLYS":led?.state||"AV",klass=led?"on "+(afterglow?"afterglow":led.state==="APPROACHING"?"approaching":""):"";return '<div class="led"><span class="num">'+String(a.physicalLed).padStart(3,"0")+'</span><span class="lamp '+klass+'" style="--rgb:'+rgb+'"></span><span><div class="name">'+esc(a.name||n.name)+'</div><div class="detail">'+esc(a.direction||n.directionSide||"Felles")+' · '+esc(state)+'</div></span></div>'}).join("")
+ $("leds").innerHTML=rows().map(({assignment:a,node:n})=>{const led=active.get(a.physicalLed),rgb=led?.rgb?.join(",")||"80,90,105",afterglow=led?.lifecycle==="PASSED",state=afterglow?"ETTERLYS":led?.state||"AV",klass=led?"on "+(afterglow?"afterglow":led.state==="APPROACHING"?"approaching":""):"";return '<div class="led '+(selectedPhysical===a.physicalLed?"selected":"")+'" data-led="'+a.physicalLed+'"><span class="num">'+String(a.physicalLed).padStart(3,"0")+'</span><span class="lamp '+klass+'" style="--rgb:'+rgb+'"></span><span><div class="name">'+esc(a.name||n.name)+'</div><div class="detail">'+esc(a.direction||n.directionSide||"Felles")+' · '+esc(state)+'</div></span></div>'}).join("")
 }
 async function poll(){
  if(!project||!token)return;
@@ -81,6 +81,19 @@ async function poll(){
 }
 $("start").onclick=()=>{token=$("token").value.trim();if(!token){$("status").className="status bad";$("status").textContent="Skriv inn administratornøkkelen.";return}$("token").value="";poll();clearInterval(timer);timer=setInterval(poll,10000)};
 $("refresh").onclick=poll;
+$("leds").onclick=event=>{const row=event.target.closest(".led");if(!row)return;selectedPhysical=Number(row.dataset.led);$("signalTest").disabled=!token;render({leds:[]});$("status").className="status";$("status").textContent="Valgt fysisk LED "+selectedPhysical+" · klar for isolert signaltest."};
+$("signalTest").onclick=async()=>{
+ if(!project||!token||!Number.isInteger(selectedPhysical))return;
+ clearInterval(timer);testTimers.forEach(clearTimeout);testTimers=[];
+ $("signalTest").disabled=true;$("status").className="status";$("status").textContent="Henter isolert signalforløp for LED "+selectedPhysical+" …";
+ try{
+  const response=await fetch("https://transitcore-led-feed.lgb84.workers.dev/v1/admin/signal-test",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+token},body:JSON.stringify({board:project.board,hardware:project.hardware,physicalLed:selectedPhysical})}),result=await response.json();
+  if(!response.ok)throw Error(result.message||result.error||("HTTP "+response.status));
+  (result.frames||[]).forEach((frame,index)=>testTimers.push(setTimeout(()=>{render(frame);$("status").className="status ok";$("status").textContent="SIGNALTEST · "+result.testNode.name+" · "+((frame.leds||[])[0]?.lifecycle||((frame.leds||[])[0]?.state)||"AV")},Number(result.stepMilliseconds?.[index])||0)));
+  const end=(result.stepMilliseconds?.at(-1)||0)+500;
+  testTimers.push(setTimeout(()=>{$("signalTest").disabled=false;$("status").textContent="Signaltesten er fullført. Trykk Oppdater nå for live-data.";},end));
+ }catch(error){$("signalTest").disabled=false;$("status").className="status bad";$("status").textContent="Signaltest feilet: "+error.message}
+};
 $("publish").onclick=()=>{if(!project||!lastFrameValid)return;localStorage.setItem(PUBLISH_STORE,JSON.stringify({createdAt:Date.now(),files:project.files}));location.href="../publish/?from=preview"};
 load();
 </script></body></html>
