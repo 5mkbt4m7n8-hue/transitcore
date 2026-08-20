@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0d11"><title>TransitCore live-test</title>
 <style>
-:root{color-scheme:dark;--bg:#0b0d11;--panel:#151922;--line:#2b3340;--text:#f4f7fb;--muted:#9aa5b5;--ok:#65d99a;--bad:#ff7b7b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,sans-serif}main{max-width:920px;margin:auto;padding:20px}h1{margin:0}.lead,.muted{color:var(--muted)}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;margin:14px 0}.controls,.actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}input,button,a.button{font:inherit;color:var(--text);background:#202838;border:1px solid #3a465b;border-radius:9px;padding:10px 12px;text-decoration:none}input{width:min(100%,380px)}button{cursor:pointer;font-weight:700}.primary{background:#1a4b7d!important;border-color:#438fd6!important}.status{margin-top:12px;padding:11px;border-radius:9px;background:#10141b}.ok{color:var(--ok)}.bad{color:var(--bad)}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}.metric{padding:11px;border:1px solid var(--line);border-radius:10px;background:#10141b;color:var(--muted);font-size:12px}.metric b{display:block;color:var(--text);font-size:17px;margin-bottom:3px}.checks{margin:12px 0 0;padding:0;list-style:none}.checks li{padding:5px 0}.checks .pass{color:var(--ok)}.checks .fail{color:var(--bad)}button:disabled{opacity:.45;cursor:not-allowed}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:8px}.led{display:grid;grid-template-columns:34px 24px 1fr;align-items:center;gap:9px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#10141b;cursor:pointer}.led.selected{border-color:#65d99a;box-shadow:0 0 0 2px #65d99a33}.num{font:12px ui-monospace,monospace;color:#9fb0c8}.lamp{width:18px;height:18px;border-radius:50%;background:#303846;border:2px solid #596476}.lamp.on{background:rgb(var(--rgb));border-color:white;box-shadow:0 0 13px rgb(var(--rgb))}.lamp.approaching{animation:pulse 1.5s ease-in-out infinite}.lamp.afterglow{opacity:.3;box-shadow:0 0 5px rgb(var(--rgb))}.name{font-weight:650}.detail{font-size:12px;color:var(--muted)}@keyframes pulse{50%{opacity:.35;transform:scale(.78)}}@media(max-width:560px){main{padding:12px}.grid{grid-template-columns:1fr}}
+:root{color-scheme:dark;--bg:#0b0d11;--panel:#151922;--line:#2b3340;--text:#f4f7fb;--muted:#9aa5b5;--ok:#65d99a;--bad:#ff7b7b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,sans-serif}main{max-width:920px;margin:auto;padding:20px}h1{margin:0}.lead,.muted{color:var(--muted)}.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;margin:14px 0}.controls,.actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center}input,button,a.button{font:inherit;color:var(--text);background:#202838;border:1px solid #3a465b;border-radius:9px;padding:10px 12px;text-decoration:none}input{width:min(100%,380px)}button{cursor:pointer;font-weight:700}.primary{background:#1a4b7d!important;border-color:#438fd6!important}.status{margin-top:12px;padding:11px;border-radius:9px;background:#10141b}.ok{color:var(--ok)}.bad{color:var(--bad)}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}.metric{padding:11px;border:1px solid var(--line);border-radius:10px;background:#10141b;color:var(--muted);font-size:12px}.metric b{display:block;color:var(--text);font-size:17px;margin-bottom:3px}.checks{margin:12px 0 0;padding:0;list-style:none}.checks li{padding:5px 0}.checks .pass{color:var(--ok)}.checks .warn{color:#ffc857}.checks .fail{color:var(--bad)}button:disabled{opacity:.45;cursor:not-allowed}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:8px}.led{display:grid;grid-template-columns:34px 24px 1fr;align-items:center;gap:9px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#10141b;cursor:pointer}.led.selected{border-color:#65d99a;box-shadow:0 0 0 2px #65d99a33}.num{font:12px ui-monospace,monospace;color:#9fb0c8}.lamp{width:18px;height:18px;border-radius:50%;background:#303846;border:2px solid #596476}.lamp.on{background:rgb(var(--rgb));border-color:white;box-shadow:0 0 13px rgb(var(--rgb))}.lamp.approaching{animation:pulse 1.5s ease-in-out infinite}.lamp.afterglow{opacity:.3;box-shadow:0 0 5px rgb(var(--rgb))}.name{font-weight:650}.detail{font-size:12px;color:var(--muted)}@keyframes pulse{50%{opacity:.35;transform:scale(.78)}}@media(max-width:560px){main{padding:12px}.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body><main>
@@ -27,34 +27,49 @@ function load(){
 }
 function rows(){const nodes=new Map(project.board.nodes.map(node=>[node.id,node]));return [...project.hardware.assignments].sort((a,b)=>a.physicalLed-b.physicalLed).map(a=>({assignment:a,node:nodes.get(a.sourceNodeId)||{}}))}
 function configurationChecks(){
- const board=project.board,hardware=project.hardware,nodes=Array.isArray(board.nodes)?board.nodes:[],assignments=Array.isArray(hardware.assignments)?hardware.assignments:[],nodeIds=new Set(nodes.map(n=>n.id)),logical=nodes.map(n=>n.led),physical=assignments.map(a=>a.physicalLed).sort((a,b)=>a-b);
+ const board=project.board,hardware=project.hardware,nodes=Array.isArray(board.nodes)?board.nodes:[],assignments=Array.isArray(hardware.assignments)?hardware.assignments:[],routes=new Set(board.routes||[]),nodeIds=new Set(nodes.map(n=>n.id)),logical=nodes.map(n=>n.led),physical=assignments.map(a=>a.physicalLed).sort((a,b)=>a-b);
+ const directional=board.directionalPlatforms===true||board.directionMode==="separate",stationGroups=new Map();
+ for(const node of nodes){const key=node.stationId||node.name;if(!stationGroups.has(key))stationGroups.set(key,[]);stationGroups.get(key).push(node)}
+ const routeRefs=nodes.flatMap(node=>node.routes||[]),unknownRoutes=routeRefs.filter(id=>!routes.has(id));
+ const badDirections=nodes.filter(node=>Object.keys(node.routeDirections||{}).some(id=>!(node.routes||[]).includes(id))||Object.values(node.routeDirections||{}).some(value=>!Array.isArray(value.directionIds)||!value.directionIds.length));
+ const incompleteStations=directional?[...stationGroups.values()].filter(group=>group.some(n=>(n.platformCount||0)>1)&&new Set(group.flatMap(n=>Object.values(n.routeDirections||{}).flatMap(v=>v.directionIds||[]))).size<2):[];
  return [
   {ok:hardware.boardProfile===board.id,text:"Tavle-ID samsvarer mellom profilene"},
   {ok:board.leds?.count===nodes.length&&hardware.leds?.count===nodes.length&&assignments.length===nodes.length,text:"Alle LED-punkter er tilordnet"},
   {ok:nodeIds.size===nodes.length&&new Set(logical).size===logical.length,text:"Ingen doble stasjoner eller logiske LED-numre"},
   {ok:new Set(physical).size===physical.length&&physical.every((value,index)=>Number.isInteger(value)&&value===index),text:"Fysiske LED-numre er sammenhengende fra 0"},
   {ok:assignments.every(a=>nodeIds.has(a.sourceNodeId)&&nodes.some(n=>n.id===a.sourceNodeId&&n.led===a.logicalLed)),text:"Hardwareprofilen peker på riktige stasjoner"},
-  {ok:Array.isArray(board.routes)&&board.routes.length>0,text:"Minst én gyldig rute er valgt"}
+  {ok:routes.size>0,text:"Minst én gyldig rute er valgt"},
+  {ok:nodes.every(n=>n.id&&n.name&&Number.isInteger(n.led)&&Array.isArray(n.routes)&&n.routes.length),text:"Alle stasjoner har ID, navn, LED og rutetilknytning"},
+  {ok:unknownRoutes.length===0,text:"Alle stasjonenes ruter finnes i tavleprofilen"},
+  {ok:badDirections.length===0,text:"Retningsdata er knyttet til riktig rute og har direction-ID"},
+  {ok:nodes.every(n=>n.quayId||Array.isArray(n.stopIds)&&n.stopIds.length||board.positioning==="vehicle-proximity"),text:"Alle stasjonssignaler har holdeplass-ID"},
+  {ok:board.layout!=="station-network"||nodes.every(n=>Number.isFinite(n.lat)&&Number.isFinite(n.lon)),text:"Alle kartstasjoner har gyldige koordinater"},
+  {ok:Number(board.render?.departureAfterglowSeconds||0)>=0&&Number(board.render?.departureAfterglowSeconds||0)<=10,text:"Etterlys er innenfor sikker grense på 0–10 sekunder"},
+  {ok:incompleteStations.length===0,severity:"warning",text:"Retningsdelte stasjoner har begge retninger"}
  ];
 }
 function frameChecks(frame){
- const ids=(frame.leds||[]).map(led=>led.id),allowed=new Set(["APPROACHING","AT_STOP"]);
+ const ids=(frame.leds||[]).map(led=>led.id),allowed=new Set(["APPROACHING","AT_STOP"]),sameRgb=(a,b)=>Array.isArray(a)&&Array.isArray(b)&&a.length===3&&a.every((v,i)=>v===b[i]);
  return [
   {ok:frame.schemaVersion===1&&frame.boardProfile===project.board.id,text:"Live-frame tilhører riktig tavle"},
   {ok:frame.ledCount===project.hardware.leds.count,text:"Live-frame har riktig LED-antall"},
   {ok:new Set(ids).size===ids.length&&ids.every(id=>Number.isInteger(id)&&id>=0&&id<frame.ledCount),text:"Aktive LED-numre er unike og innenfor tavlen"},
-  {ok:(frame.leds||[]).every(led=>allowed.has(led.state)&&Array.isArray(led.rgb)&&led.rgb.length===3&&led.rgb.every(v=>Number.isInteger(v)&&v>=0&&v<=255)&&Number.isFinite(led.brightness)),text:"Alle aktive signaler har gyldig tilstand, farge og lysstyrke"}
+  {ok:(frame.leds||[]).every(led=>allowed.has(led.state)&&Array.isArray(led.rgb)&&led.rgb.length===3&&led.rgb.every(v=>Number.isInteger(v)&&v>=0&&v<=255)&&Number.isFinite(led.brightness)),text:"Alle aktive signaler har gyldig tilstand, farge og lysstyrke"},
+  {ok:(frame.leds||[]).every(led=>!led.occupants?.length||led.occupants.some(item=>sameRgb(item.rgb,led.rgb))),text:"LED-fargen tilhører en faktisk buss eller linje på stoppet"},
+  {ok:(frame.leds||[]).every(led=>!led.occupants?.some(item=>item.state==="AT_STOP")||led.state==="AT_STOP"),text:"Buss ved holdeplass har prioritet over buss som nærmer seg"},
+  {ok:(frame.leds||[]).every(led=>led.lifecycle!=="PASSED"||(led.occupants||[]).length<=1),text:"Etterlys bruker bare fargen til sist avgåtte buss"}
  ];
 }
 function renderReadiness(frame=null){
  const board=project.board,afterglow=Math.min(10,Math.max(0,Number(board.render?.departureAfterglowSeconds)||0)),direction=board.directionMode==="shared"?"Felles LED":board.directionMode==="separate"?"To retninger":"Profilstyrt";
  $("projectSummary").innerHTML=[["Tavle",board.id],["Linjer",(board.routes||[]).map(id=>id.match(/\d+/g)?.at(-1)||id).join(", ")],["Retninger",direction],["LED-er",board.leds?.count??"–"],["Etterlys",afterglow?afterglow+" sek":"Av"]].map(([label,value])=>'<div class="metric"><b>'+esc(value)+'</b>'+esc(label)+'</div>').join("");
- const checks=[...configurationChecks(),...(frame?frameChecks(frame):[])],errors=checks.filter(item=>!item.ok);
- $("checks").innerHTML=checks.map(item=>'<li class="'+(item.ok?"pass":"fail")+'">'+(item.ok?"✓ ":"✕ ")+esc(item.text)+'</li>').join("");
+ const checks=[...configurationChecks(),...(frame?frameChecks(frame):[])],errors=checks.filter(item=>!item.ok&&item.severity!=="warning"),warnings=checks.filter(item=>!item.ok&&item.severity==="warning");
+ $("checks").innerHTML=checks.map(item=>'<li class="'+(item.ok?"pass":item.severity==="warning"?"warn":"fail")+'">'+(item.ok?"✓ ":item.severity==="warning"?"⚠ ":"✕ ")+esc(item.text)+'</li>').join("");
  lastFrameValid=Boolean(frame)&&!errors.length;
  $("publish").disabled=!lastFrameValid;
  $("readiness").className="status "+(errors.length?"bad":frame?"ok":"");
- $("readiness").textContent=errors.length?errors.length+" feil må rettes før publisering.":frame?"Klar for fysisk tavle · prosjekt og live-frame er godkjent.":"Prosjektprofilen er godkjent · venter på første live-frame.";
+ $("readiness").textContent=errors.length?errors.length+" kritiske feil må rettes før publisering.":frame?(warnings.length?"Klar for publisering med "+warnings.length+" advarsel som bør kontrolleres.":"Klar for fysisk tavle · prosjekt, retninger og live-frame er godkjent."):"Prosjektprofilen er godkjent · venter på første live-frame.";
 }
 function render(frame){
  const now=Date.now(),duration=Math.min(10,Math.max(0,Number(project?.board?.render?.departureAfterglowSeconds)||0))*1000;
