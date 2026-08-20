@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { applyMotionLifecycle, buildFrame, buildLinearRouteFrame, matchesDirection, validateConfiguration } from "../worker/led-feed-worker.mjs";
+import { applyMotionLifecycle, buildFrame, buildLinearRouteFrame, buildSignalTestSequence, matchesDirection, validateConfiguration } from "../worker/led-feed-worker.mjs";
 
 const now = Date.parse("2026-08-11T12:00:00Z");
 const board = { id: "trondheim-bus-board", leds: { count: 2 }, routes: ["route-1"], render: { freshnessSeconds: 120, approachRadiusMeters: 250, arrivalRadiusMeters: 85 }, nodes: [
@@ -107,4 +107,24 @@ latestDeparture = applyMotionLifecycle({ ...motionBase, leds: [] }, latestDepart
 assert.deepEqual(latestDeparture.frame.leds[0].rgb, [239, 83, 80], "The latest departed bus owns the afterglow colour");
 assert.equal(latestDeparture.frame.leds[0].occupants.length, 1);
 console.log("LED priority, line colour and latest-departure tests OK");
+
+const signalFrames = buildSignalTestSequence({
+  boardProfile: "trondheim-bus-board",
+  ledCount: 147,
+  ledId: 76,
+  firstLine: { code: "1", rgb: [239, 83, 80] },
+  secondLine: { code: "2", rgb: [66, 165, 245] },
+  brightness: 32,
+  now,
+  afterglowMs: 10000
+});
+assert.equal(signalFrames.length, 8);
+assert.deepEqual(signalFrames.map(frame => frame.leds[0]?.lifecycle || frame.leds[0]?.state || "OFF"), [
+  "APPROACHING", "AT_STOP", "PASSED", "APPROACHING", "AT_STOP", "AT_STOP", "PASSED", "OFF"
+]);
+assert.deepEqual(signalFrames[2].leds[0].rgb, [239, 83, 80], "First departure keeps line 1 colour");
+assert.deepEqual(signalFrames[6].leds[0].rgb, [66, 165, 245], "Latest departure keeps line 2 colour");
+assert.equal(signalFrames[6].leds[0].brightness, 8);
+assert.deepEqual(signalFrames[7].leds, [], "Afterglow expires to OFF after ten seconds");
+console.log("Isolated Worker signal sequence tests OK");
 
