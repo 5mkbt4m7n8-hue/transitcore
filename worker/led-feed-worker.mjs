@@ -68,6 +68,70 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
   return { frame: { ...frame, leds: leds.sort((a, b) => a.id - b.id) }, state: next };
 }
 
+export function buildSignalTestSequence({
+  boardProfile,
+  ledCount,
+  ledId,
+  firstLine,
+  secondLine,
+  brightness = 32,
+  now = Date.now(),
+  afterglowMs = 10000
+}) {
+  const base = {
+    schemaVersion: 1,
+    boardProfile,
+    ttlSeconds: 30,
+    ledCount
+  };
+  const testLed = (line, state, distanceMeters) => ({
+    id: ledId,
+    rgb: line.rgb,
+    brightness,
+    state,
+    vehicle: {
+      id: `signal-test-${line.code}`,
+      line: String(line.code),
+      destination: "SIGNALTEST",
+      ageSeconds: 0,
+      distanceMeters
+    },
+    occupants: [{
+      id: `signal-test-${line.code}`,
+      line: String(line.code),
+      destination: "SIGNALTEST",
+      rgb: line.rgb,
+      state,
+      ageSeconds: 0,
+      distanceMeters
+    }]
+  });
+  const raw = [
+    [testLed(firstLine, "APPROACHING", 140)],
+    [testLed(firstLine, "AT_STOP", 10)],
+    [],
+    [testLed(secondLine, "APPROACHING", 140)],
+    [testLed(firstLine, "AT_STOP", 10)],
+    [testLed(secondLine, "AT_STOP", 10)],
+    [],
+    []
+  ];
+  const offsets = [0, 1000, 2000, 3000, 4000, 5000, 6000, 6000 + afterglowMs + 1];
+  let lifecycle = {};
+  return raw.map((leds, index) => {
+    const timestamp = now + offsets[index];
+    const input = {
+      ...base,
+      generatedAt: new Date(timestamp).toISOString(),
+      sequence: Math.floor(timestamp / 1000),
+      leds
+    };
+    const result = applyMotionLifecycle(input, lifecycle, timestamp, afterglowMs);
+    lifecycle = result.state;
+    return result.frame;
+  });
+}
+
 export class DeviceStatus {
   constructor(state) {
     this.state = state;
@@ -593,6 +657,24 @@ async function handlePublish(request,env){
  }catch(error){console.error("publish failed",error);return publishResponse({error:"publish_failed",message:error.message},400)}
 }
 
+async function handleSignalTest(request,env){
+ if(request.method==="OPTIONS")return new Response(null,{status:204,headers:publishCors});
+ if(request.method!=="POST")return publishResponse({error:"method_not_allowed"},405);
+ if(!env.PUBLISH_ADMIN_TOKEN)return publishResponse({error:"signal_test_not_configured"},503);
+ if(request.headers.get("authorization")!==`Bearer ${env.PUBLISH_ADMIN_TOKEN}`)return publishResponse({error:"unauthorized"},401);
+ try{
+  const payload=await request.json(),boardId=String(payload.boardId||"");
+  if(!BOARD_IDS.has(boardId))return publishResponse({error:"not_found"},404);
+  const now=Date.now(),{board,profiles,hardware}=await configuration(boardId,now);
+  const node=board.nodes.find(n=>n.routes.filter(id=>profiles.some(p=>p.id===id)).length>1)||board.nodes[0];
+  const available=profiles.filter(p=>node.routes.includes(p.id)),first=available[0]||profiles[0],second=available[1]||profiles.find(p=>p!==first)||first;
+  const physical=new Map(hardware.assignments.map(item=>[item.logicalLed,item.physicalLed]));
+  const line=p=>({code:String(p.line.publicCode),rgb:rgb(p.line.color||color(p))});
+  const frames=buildSignalTestSequence({boardProfile:board.id,ledCount:hardware.leds?.count??board.leds.count,ledId:physical.get(node.led)??node.led,firstLine:line(first),secondLine:line(second),brightness:Math.min(32,hardware.leds?.brightnessLimit??32),now,afterglowMs:10000});
+  return publishResponse({schemaVersion:1,boardProfile:board.id,testNode:{name:node.name,logicalLed:node.led,physicalLed:physical.get(node.led)??node.led},stepMilliseconds:[0,1000,2000,3000,4000,5000,6000,16001],frames});
+ }catch(error){console.error("signal test failed",error);return publishResponse({error:"signal_test_failed",message:error.message},400)}
+}
+
 async function handlePreview(request,env){
  if(request.method==="OPTIONS")return new Response(null,{status:204,headers:publishCors});
  if(request.method!=="POST")return publishResponse({error:"method_not_allowed"},405);
@@ -625,6 +707,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
+    if (url.pathname === "/v1/admin/signal-test") return handleSignalTest(request, env);
     if (url.pathname === "/v1/admin/preview") return handlePreview(request, env);
     if (url.pathname === "/status" && request.method === "GET") {
       return new Response(statusPage, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
