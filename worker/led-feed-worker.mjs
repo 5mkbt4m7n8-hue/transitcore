@@ -196,8 +196,16 @@ export class DeviceStatus {
 }
 
 export function cleanStatusPayload(value, deviceId, receivedAt) {
-  if (!value || value.schemaVersion !== 1 || value.boardProfile !== deviceId || value.firmware !== "1.0.4") {
+  const firmware = String(value?.firmware || "");
+  if (!value || value.schemaVersion !== 1 || value.boardProfile !== deviceId || !["1.0.4","1.0.5"].includes(firmware)) {
     throw Error("invalid status payload");
+  }
+  const profileRevision = Number(value.profileRevision || 0);
+  const profileFingerprint = String(value.profileFingerprint || "");
+  if (!Number.isInteger(profileRevision) || profileRevision < 0 || profileRevision > 0xffffffff ||
+      (profileRevision > 0) !== (profileFingerprint.length > 0) ||
+      (profileFingerprint && !/^[0-9a-f]{16}$/.test(profileFingerprint))) {
+    throw Error("invalid profile identity");
   }
   const number = (name, max = 0xffffffff) => {
     const result = Number(value[name]);
@@ -208,7 +216,9 @@ export function cleanStatusPayload(value, deviceId, receivedAt) {
     schemaVersion: 1,
     deviceId,
     boardProfile: deviceId,
-    firmware: "1.0.4",
+    firmware,
+    profileRevision,
+    profileFingerprint,
     receivedAt: new Date(receivedAt).toISOString(),
     uptimeSeconds: number("uptimeSeconds"),
     wifiOutages: number("wifiOutages"),
