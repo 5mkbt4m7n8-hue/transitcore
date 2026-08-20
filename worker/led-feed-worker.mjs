@@ -609,17 +609,42 @@ async function stabilizeMotionFrame(env, board, frame, now) {
 // Git-connected deploys reuse the encrypted publishing secrets configured in Cloudflare.
 const publishCors={"content-type":"application/json; charset=utf-8","cache-control":"no-store","access-control-allow-origin":"https://5mkbt4m7n8-hue.github.io","access-control-allow-headers":"authorization, content-type","access-control-allow-methods":"POST, OPTIONS"};
 const publishResponse=(body,status=200)=>new Response(JSON.stringify(body,null,2)+"\n",{status,headers:publishCors});
-function validatePublishProfiles(board,hardware){
+export function validatePublishProfiles(board,hardware){
  if(!board||!hardware||![1,2].includes(board.schemaVersion)||hardware.schemaVersion!==1)throw Error("Unsupported profile format");
  if(typeof board.id!=="string"||!/^[a-z0-9-]+$/.test(board.id))throw Error("Invalid board id");
  if(hardware.boardProfile!==board.id)throw Error("Board/hardware profile mismatch");
- const nodes=Array.isArray(board.nodes)?board.nodes:[],assignments=Array.isArray(hardware.assignments)?hardware.assignments:[];
+ const nodes=Array.isArray(board.nodes)?board.nodes:[],assignments=Array.isArray(hardware.assignments)?hardware.assignments:[],routes=Array.isArray(board.routes)?board.routes:[];
+ if(!routes.length||routes.some(id=>typeof id!=="string"||!id)||new Set(routes).size!==routes.length)throw Error("Invalid or duplicate board route");
  if(!nodes.length||board.leds?.count!==nodes.length||hardware.leds?.count!==nodes.length||assignments.length!==nodes.length)throw Error("LED count mismatch");
- const nodeById=new Map(nodes.map(n=>[n.id,n])),logical=new Set(),physical=new Set(),sources=new Set();
+ const afterglow=Number(board.render?.departureAfterglowSeconds||0);
+ if(!Number.isFinite(afterglow)||afterglow<0||afterglow>10)throw Error("Departure afterglow must be between 0 and 10 seconds");
+ if(!Number.isInteger(hardware.leds?.brightnessLimit)||hardware.leds.brightnessLimit<1||hardware.leds.brightnessLimit>255)throw Error("Invalid hardware brightness limit");
+ const routeSet=new Set(routes),nodeById=new Map(nodes.map(n=>[n.id,n])),logical=new Set(),physical=new Set(),sources=new Set();
  if(nodeById.size!==nodes.length)throw Error("Duplicate board node id");
- for(const node of nodes){if(!Number.isInteger(node.led)||logical.has(node.led))throw Error("Duplicate or invalid logical LED");if(!Array.isArray(node.stopIds)||!node.stopIds.length||!Array.isArray(node.routes)||!node.routes.length)throw Error("Node is missing stop or route");logical.add(node.led)}
- for(const a of assignments){const node=nodeById.get(a.sourceNodeId);if(!node||node.led!==a.logicalLed||sources.has(a.sourceNodeId))throw Error("Invalid hardware source mapping");if(!Number.isInteger(a.physicalLed)||a.physicalLed<0||a.physicalLed>=nodes.length||physical.has(a.physicalLed))throw Error("Duplicate or invalid physical LED");sources.add(a.sourceNodeId);physical.add(a.physicalLed)}
+ for(const node of nodes){
+  if(typeof node.id!=="string"||!node.id||typeof node.name!=="string"||!node.name.trim())throw Error("Node is missing id or name");
+  if(!Number.isInteger(node.led)||node.led<0||logical.has(node.led))throw Error("Duplicate or invalid logical LED");
+  if(!Array.isArray(node.stopIds)||!node.stopIds.length||node.stopIds.some(id=>typeof id!=="string"||!id))throw Error("Node is missing valid stop id");
+  if(!Array.isArray(node.routes)||!node.routes.length||node.routes.some(id=>!routeSet.has(id)))throw Error("Node references unknown or missing route");
+  const directions=node.routeDirections;
+  if(directions!==undefined){
+   if(!directions||typeof directions!=="object"||Array.isArray(directions))throw Error("Invalid route direction map");
+   for(const [routeId,value] of Object.entries(directions)){
+    if(!node.routes.includes(routeId)||!value||!Array.isArray(value.directionIds)||!value.directionIds.length)throw Error("Invalid route direction mapping");
+    if(value.directionIds.some(id=>typeof id!=="string"&&typeof id!=="number"))throw Error("Invalid direction id");
+   }
+  }
+  if(board.layout==="station-network"&&(!Number.isFinite(node.lat)||!Number.isFinite(node.lon)))throw Error("Station-network node is missing coordinates");
+  logical.add(node.led);
+ }
+ for(const a of assignments){
+  const node=nodeById.get(a.sourceNodeId);
+  if(!node||node.led!==a.logicalLed||sources.has(a.sourceNodeId))throw Error("Invalid hardware source mapping");
+  if(!Number.isInteger(a.physicalLed)||a.physicalLed<0||a.physicalLed>=nodes.length||physical.has(a.physicalLed))throw Error("Duplicate or invalid physical LED");
+  sources.add(a.sourceNodeId);physical.add(a.physicalLed);
+ }
  if([...physical].sort((a,b)=>a-b).some((value,index)=>value!==index))throw Error("Physical LEDs are not continuous");
+ return true;
 }
 function base64Utf8(value){const bytes=new TextEncoder().encode(value);let binary="";for(let offset=0;offset<bytes.length;offset+=0x8000)binary+=String.fromCharCode(...bytes.subarray(offset,offset+0x8000));return btoa(binary)}
 async function githubApi(env,path,options={}){
