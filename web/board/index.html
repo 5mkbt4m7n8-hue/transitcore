@@ -68,13 +68,13 @@ async function monitorPublishedBoard(){
   if(frame.schemaVersion!==1||frame.boardProfile!==board.id||frame.ledCount!==expected){state.className="monitor-state error";state.textContent="Profilavvik";grid.innerHTML=monitorCard("Forventet tavle",board.id)+monitorCard("Mottatt tavle",frame.boardProfile||"mangler")+monitorCard("Forventet LED-antall",expected)+monitorCard("Mottatt LED-antall",frame.ledCount??"mangler");return}
   const generated=Date.parse(frame.generatedAt||""),age=Number.isFinite(generated)?Math.max(0,Math.floor((Date.now()-generated)/1000)):Infinity,ttl=Number(frame.ttlSeconds)||30;
   if(age>ttl){state.className="monitor-state error";state.textContent="Utløpt frame";grid.innerHTML=monitorCard("Frame-alder",Number.isFinite(age)?age+" sek":"ukjent")+monitorCard("Tillatt alder",ttl+" sek");return}
-  let esp="Ikke registrert",espClass="warn",lastSeen="–";
+  let esp="Ikke registrert",espClass="warn",lastSeen="–",profileMatch="Ikke rapportert";
   try{
    const deviceResponse=await fetch(`${WORKER}/v1/devices/${encodeURIComponent(board.id)}/status`,{cache:"no-store"}),device=await deviceResponse.json();
-   if(deviceResponse.ok&&device.latest){const deviceAge=Math.max(0,Math.floor((Date.now()-Date.parse(device.latest.receivedAt))/1000));lastSeen=deviceAge+" sek siden";if(deviceAge<=420&&device.latest.frameValid){esp="Online";espClass="ok"}else{esp="Frakoblet";espClass="error"}}
+   if(deviceResponse.ok&&device.latest){const deviceAge=Math.max(0,Math.floor((Date.now()-Date.parse(device.latest.receivedAt))/1000));lastSeen=deviceAge+" sek siden";if(device.latest.profileFingerprint&&frame.profileFingerprint){profileMatch=device.latest.profileFingerprint===frame.profileFingerprint?"Samsvar":"AVVIK"}if(profileMatch==="AVVIK"){esp="Profilavvik";espClass="error"}else if(deviceAge<=420&&device.latest.frameValid){esp="Online";espClass="ok"}else{esp="Frakoblet";espClass="error"}}
   }catch(error){console.warn("ESP-status",error)}
   state.className="monitor-state "+espClass;state.textContent=espClass==="ok"?"OK":espClass==="error"?"ESP frakoblet":"Worker OK · ESP ikke registrert";
-  grid.innerHTML=monitorCard("Worker-feed","Gyldig")+monitorCard("Profilrevisjon","r"+(frame.profileRevision||1))+monitorCard("Profilfingeravtrykk",frame.profileFingerprint||"eldre frame")+monitorCard("Frame-alder",age+" sek")+monitorCard("Aktive LED-er",(frame.leds||[]).length)+monitorCard("ESP",esp)+monitorCard("ESP sist sett",lastSeen);
+  grid.innerHTML=monitorCard("Worker-feed","Gyldig")+monitorCard("Profilrevisjon","r"+(frame.profileRevision||1))+monitorCard("Profilfingeravtrykk",frame.profileFingerprint||"eldre frame")+monitorCard("Frame-alder",age+" sek")+monitorCard("Aktive LED-er",(frame.leds||[]).length)+monitorCard("ESP",esp)+monitorCard("ESP profil",profileMatch)+monitorCard("ESP sist sett",lastSeen);
  }catch(error){state.className="monitor-state error";state.textContent="Feed-feil";grid.innerHTML=monitorCard("Worker-feed",error.message)}
  finally{await loadMonitorHistory();monitorTimer=setTimeout(monitorPublishedBoard,30000)}
 }
