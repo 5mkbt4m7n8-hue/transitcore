@@ -12,6 +12,15 @@ const statusJson = (body, status = 200) => new Response(
   { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" } }
 );
 
+async function attachProfileIdentity(board,hardware){
+ const configured=Number(board.profileRevision);
+ board.profileRevision=Number.isInteger(configured)&&configured>0?configured:1;
+ const source=JSON.stringify({board:{...board,profileFingerprint:undefined},hardware});
+ const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(source));
+ board.profileFingerprint=[...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,"0")).join("").slice(0,16);
+ return board;
+}
+
 function makePassedLed(led) {
   const vehicle = led.vehicle ? { ...led.vehicle, rgb: led.rgb, state: "PASSED" } : null;
   return {
@@ -70,6 +79,8 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
 
 export function buildSignalTestSequence({
   boardProfile,
+  profileRevision = 1,
+  profileFingerprint = "",
   ledCount,
   ledId,
   firstLine,
@@ -81,6 +92,8 @@ export function buildSignalTestSequence({
   const base = {
     schemaVersion: 1,
     boardProfile,
+    profileRevision,
+    profileFingerprint,
     ttlSeconds: 30,
     ledCount
   };
@@ -353,6 +366,8 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
   return {
     schemaVersion: 1,
     boardProfile: board.id,
+    profileRevision: board.profileRevision ?? 1,
+    profileFingerprint: board.profileFingerprint || "",
     generatedAt: new Date(now).toISOString(),
     sequence: Math.floor(now / 1000),
     ttlSeconds: 30,
@@ -441,7 +456,7 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
     }
   }
   return {
-    schemaVersion: 1, boardProfile: board.id, generatedAt: new Date(now).toISOString(),
+    schemaVersion: 1, boardProfile: board.id, profileRevision: board.profileRevision ?? 1, profileFingerprint: board.profileFingerprint || "", generatedAt: new Date(now).toISOString(),
     sequence: Math.floor(now / 1000), ttlSeconds: 30, ledCount: hardware.leds?.count ?? board.leds.count,
     leds: [...strongest.values()].sort((a, b) => a.id - b.id).map(item => ({
       id: item.id, rgb: rgb(color(profile, item.destination)),
@@ -502,6 +517,7 @@ async function configuration(boardId, now) {
   // Linear route boards derive segment positions from the ordered route profile.\n  // Only station-network boards need coordinates copied onto every board node.\n  if (board.layout !== "linear-route-vled") board = addNodeCoordinates(board, profiles);
   const resolvedHardware = hardware || defaultHardware(board);
   validateConfiguration(board, profiles, resolvedHardware);
+  await attachProfileIdentity(board,resolvedHardware);
   const value = { board, profiles, hardware: resolvedHardware };
   configCache.set(boardId, { loadedAt: now, value });
   return value;
@@ -574,6 +590,8 @@ function frameFromStationArrivals(board, hardware, arrivals, now) {
   return {
     schemaVersion: 1,
     boardProfile: board.id,
+    profileRevision: board.profileRevision ?? 1,
+    profileFingerprint: board.profileFingerprint || "",
     generatedAt: new Date(now).toISOString(),
     sequence: Math.floor(now / 1000),
     ttlSeconds: 30,
@@ -692,7 +710,7 @@ async function handleSignalTest(request,env){
   let board,profiles,hardware;
   const now=Date.now();
   if(payload.board&&payload.hardware){
-   board=payload.board;hardware=payload.hardware;validatePublishProfiles(board,hardware);
+   board=payload.board;hardware=payload.hardware;validatePublishProfiles(board,hardware);await attachProfileIdentity(board,hardware);
    profiles=await Promise.all(board.routes.map(id=>fetchJson(`${REPOSITORY}/config/routes/${id}.json`)));
   }else{
    if(!BOARD_IDS.has(boardId))return publishResponse({error:"not_found"},404);
@@ -705,8 +723,8 @@ async function handleSignalTest(request,env){
   const available=profiles.filter(p=>node.routes.includes(p.id)),first=available[0]||profiles[0],second=available[1]||profiles.find(p=>p!==first)||first;
   const physical=new Map(hardware.assignments.map(item=>[item.logicalLed,item.physicalLed]));
   const line=p=>({code:String(p.line.publicCode),rgb:rgb(p.line.color||color(p))});
-  const frames=buildSignalTestSequence({boardProfile:board.id,ledCount:hardware.leds?.count??board.leds.count,ledId:physical.get(node.led)??node.led,firstLine:line(first),secondLine:line(second),brightness:Math.min(32,hardware.leds?.brightnessLimit??32),now,afterglowMs:10000});
-  return publishResponse({schemaVersion:1,boardProfile:board.id,testNode:{name:node.name,logicalLed:node.led,physicalLed:physical.get(node.led)??node.led},stepMilliseconds:[0,1000,2000,3000,4000,5000,6000,16001],frames});
+  const frames=buildSignalTestSequence({boardProfile:board.id,profileRevision:board.profileRevision??1,profileFingerprint:board.profileFingerprint||"",ledCount:hardware.leds?.count??board.leds.count,ledId:physical.get(node.led)??node.led,firstLine:line(first),secondLine:line(second),brightness:Math.min(32,hardware.leds?.brightnessLimit??32),now,afterglowMs:10000});
+  return publishResponse({schemaVersion:1,boardProfile:board.id,profileRevision:board.profileRevision??1,profileFingerprint:board.profileFingerprint||"",testNode:{name:node.name,logicalLed:node.led,physicalLed:physical.get(node.led)??node.led},stepMilliseconds:[0,1000,2000,3000,4000,5000,6000,16001],frames});
  }catch(error){console.error("signal test failed",error);return publishResponse({error:"signal_test_failed",message:error.message},400)}
 }
 
@@ -718,7 +736,7 @@ async function handlePreview(request,env){
  try{
   const payload=await request.json(),board=payload.board,hardware=payload.hardware;validatePublishProfiles(board,hardware);
   const profiles=await Promise.all(board.routes.map(id=>fetchJson(`${REPOSITORY}/config/routes/${id}.json`)));
-  const now=Date.now(),resolvedBoard=board.layout==="linear-route-vled"?board:addNodeCoordinates(board,profiles);
+  const now=Date.now(),resolvedBoard=board.layout==="linear-route-vled"?board:addNodeCoordinates(board,profiles);await attachProfileIdentity(resolvedBoard,hardware);
   if(resolvedBoard.positioning!=="vehicle-proximity"){
    resolvedBoard.hardware=hardware;
    const arrivals=await liveStationArrivals(resolvedBoard,profiles,now);
