@@ -12,7 +12,7 @@ const statusJson = (body, status = 200) => new Response(
   { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" } }
 );
 
-async function attachProfileIdentity(board,hardware){
+export async function attachProfileIdentity(board,hardware){
  const configured=Number(board.profileRevision);
  board.profileRevision=Number.isInteger(configured)&&configured>0?configured:1;
  const source=JSON.stringify({board:{...board,profileFingerprint:undefined},hardware});
