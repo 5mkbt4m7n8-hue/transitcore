@@ -663,10 +663,20 @@ async function handleSignalTest(request,env){
  if(!env.PUBLISH_ADMIN_TOKEN)return publishResponse({error:"signal_test_not_configured"},503);
  if(request.headers.get("authorization")!==`Bearer ${env.PUBLISH_ADMIN_TOKEN}`)return publishResponse({error:"unauthorized"},401);
  try{
-  const payload=await request.json(),boardId=String(payload.boardId||"");
-  if(!BOARD_IDS.has(boardId))return publishResponse({error:"not_found"},404);
-  const now=Date.now(),{board,profiles,hardware}=await configuration(boardId,now);
-  const node=board.nodes.find(n=>n.routes.filter(id=>profiles.some(p=>p.id===id)).length>1)||board.nodes[0];
+  const payload=await request.json(),boardId=String(payload.boardId||payload.board?.id||"");
+  let board,profiles,hardware;
+  const now=Date.now();
+  if(payload.board&&payload.hardware){
+   board=payload.board;hardware=payload.hardware;validatePublishProfiles(board,hardware);
+   profiles=await Promise.all(board.routes.map(id=>fetchJson(`${REPOSITORY}/config/routes/${id}.json`)));
+  }else{
+   if(!BOARD_IDS.has(boardId))return publishResponse({error:"not_found"},404);
+   ({board,profiles,hardware}=await configuration(boardId,now));
+  }
+  const requestedPhysical=Number(payload.physicalLed);
+  const assignment=Number.isInteger(requestedPhysical)?hardware.assignments.find(item=>item.physicalLed===requestedPhysical):null;
+  const node=assignment?board.nodes.find(item=>item.led===assignment.logicalLed):board.nodes.find(n=>n.routes.filter(id=>profiles.some(p=>p.id===id)).length>1)||board.nodes[0];
+  if(!node)return publishResponse({error:"test_node_not_found"},400);
   const available=profiles.filter(p=>node.routes.includes(p.id)),first=available[0]||profiles[0],second=available[1]||profiles.find(p=>p!==first)||first;
   const physical=new Map(hardware.assignments.map(item=>[item.logicalLed,item.physicalLed]));
   const line=p=>({code:String(p.line.publicCode),rgb:rgb(p.line.color||color(p))});
