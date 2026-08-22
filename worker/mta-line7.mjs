@@ -72,9 +72,8 @@ export function decodeMtaLine7(bytes, now = Date.now()) {
   return arrivals.sort((a,b)=>a.etaSeconds-b.etaSeconds);
 }
 
-export async function mtaLine7Response(env, now = Date.now()) {
-  if (!env.MTA_API_KEY) return { status: 503, body: { error:"mta_api_key_not_configured", message:"Worker-secret MTA_API_KEY mangler" } };
-  const response = await fetch(MTA_LINE7_FEED, { headers: { "x-api-key": env.MTA_API_KEY, "user-agent":"TransitCore/1.0" } });
+export async function mtaLine7Response(_env, now = Date.now()) {
+  const response = await fetch(MTA_LINE7_FEED, { headers: { "user-agent":"TransitCore/1.0" } });
   if (!response.ok) return { status: 502, body: { error:"mta_feed_unavailable", upstreamStatus:response.status } };
   const arrivals = decodeMtaLine7(new Uint8Array(await response.arrayBuffer()), now);
   const nearest = new Map();
