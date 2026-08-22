@@ -29,12 +29,25 @@ function profiles() {
 }
 
 assert.equal(validatePublishProfiles(...Object.values(profiles())), true);
+{
+  const value = profiles();
+  for (const node of value.board.nodes) {
+    delete node.lat;
+    delete node.lon;
+  }
+  assert.equal(
+    validatePublishProfiles(value.board, value.hardware),
+    true,
+    "Station-network nodes may inherit coordinates from their route profiles"
+  );
+}
 const rejects = [
   p => { p.board.routes.push("route-1"); },
   p => { p.board.nodes[0].routes = ["unknown"]; },
   p => { p.board.nodes[0].routeDirections["unknown"] = { directionIds: ["0"] }; },
   p => { p.board.nodes[0].stopIds = []; },
-  p => { p.board.nodes[0].lat = null; },
+  p => { delete p.board.nodes[0].lon; },
+  p => { p.board.nodes[0].lat = 91; },
   p => { p.board.render.departureAfterglowSeconds = 11; },
   p => { p.hardware.leds.brightnessLimit = 0; },
   p => { p.hardware.assignments[1].physicalLed = 0; }
