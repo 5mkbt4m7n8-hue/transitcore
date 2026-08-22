@@ -662,7 +662,9 @@ export function validatePublishProfiles(board,hardware){
     if(value.directionIds.some(id=>typeof id!=="string"&&typeof id!=="number"))throw Error("Invalid direction id");
    }
   }
-  if(board.layout==="station-network"&&(!Number.isFinite(node.lat)||!Number.isFinite(node.lon)))throw Error("Station-network node is missing coordinates");
+  const hasLat=node.lat!==undefined&&node.lat!==null,hasLon=node.lon!==undefined&&node.lon!==null;
+  if(hasLat!==hasLon)throw Error("Node coordinates must contain both latitude and longitude");
+  if(hasLat&&(!Number.isFinite(node.lat)||!Number.isFinite(node.lon)||node.lat< -90||node.lat>90||node.lon< -180||node.lon>180))throw Error("Node has invalid coordinates");
   logical.add(node.led);
  }
  for(const a of assignments){
