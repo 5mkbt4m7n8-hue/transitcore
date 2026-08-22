@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_0_4.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_0_6.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -38,5 +38,13 @@ Version 1.0.4 sends the same health summary to the authenticated Worker status
 endpoint every five minutes. Add `TRANSITCORE_STATUS_TOKEN` to `secrets.h` and
 configure the matching encrypted Worker secret `STATUS_INGEST_TOKEN`. No Wi-Fi
 credentials, vehicle data or LED frame contents are included in telemetry.
+
+Version 1.0.5 adds board profile revision and fingerprint reporting so the
+Worker and ESP32 can detect profile mismatches.
+
+Version 1.0.6 keeps the LED and feed behavior unchanged, but waits for Wi-Fi
+before consuming the first five-minute health interval. The first remote status
+report is therefore sent immediately after Wi-Fi connects. Startup logging also
+states whether a status token is configured without exposing its value.
 
 
