@@ -3,13 +3,89 @@
   "id": "oslo-metro-wizard-separate-hardware",
   "name": "Oslo T-bane · begge retninger / separate LED-er hardwareprofil",
   "boardProfile": "oslo-metro-wizard-separate",
-  "generatedAt": "2026-08-13T10:36:56.275Z",
+  "generatedAt": "2026-08-22T19:56:10.770Z",
   "leds": {
-    "count": 69,
+    "count": 189,
     "dataPin": null,
     "brightnessLimit": 32
   },
   "assignments": [
+    {
+      "sourceNodeId": "ammerud-direction-a",
+      "stationId": "ammerud",
+      "quayId": null,
+      "name": "Ammerud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 0,
+      "physicalLed": 0
+    },
+    {
+      "sourceNodeId": "ammerud-direction-b",
+      "stationId": "ammerud",
+      "quayId": null,
+      "name": "Ammerud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 1,
+      "physicalLed": 1
+    },
+    {
+      "sourceNodeId": "avlos-direction-a",
+      "stationId": "avlos",
+      "quayId": null,
+      "name": "Avløs",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 2,
+      "physicalLed": 2
+    },
+    {
+      "sourceNodeId": "avlos-direction-b",
+      "stationId": "avlos",
+      "quayId": null,
+      "name": "Avløs",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 3,
+      "physicalLed": 3
+    },
+    {
+      "sourceNodeId": "bekkestua-direction-a",
+      "stationId": "bekkestua",
+      "quayId": null,
+      "name": "Bekkestua",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 4,
+      "physicalLed": 4
+    },
+    {
+      "sourceNodeId": "bekkestua-direction-b",
+      "stationId": "bekkestua",
+      "quayId": null,
+      "name": "Bekkestua",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 5,
+      "physicalLed": 5
+    },
     {
       "sourceNodeId": "bergkrystallen-direction-a",
       "stationId": "bergkrystallen",
@@ -17,10 +93,11 @@
       "name": "Bergkrystallen",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-1-live"
+        "rut-metro-1-live",
+        "rut-metro-4-live"
       ],
-      "logicalLed": 0,
-      "physicalLed": 0
+      "logicalLed": 6,
+      "physicalLed": 6
     },
     {
       "sourceNodeId": "bergkrystallen-direction-b",
@@ -29,646 +106,11 @@
       "name": "Bergkrystallen",
       "direction": "Retning B",
       "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 1,
-      "physicalLed": 1
-    },
-    {
-      "sourceNodeId": "munkelia-direction-a",
-      "stationId": "munkelia",
-      "quayId": null,
-      "name": "Munkelia",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 41,
-      "physicalLed": 2
-    },
-    {
-      "sourceNodeId": "munkelia-direction-b",
-      "stationId": "munkelia",
-      "quayId": null,
-      "name": "Munkelia",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 42,
-      "physicalLed": 3
-    },
-    {
-      "sourceNodeId": "lambertseter-direction-a",
-      "stationId": "lambertseter",
-      "quayId": null,
-      "name": "Lambertseter",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 31,
-      "physicalLed": 4
-    },
-    {
-      "sourceNodeId": "lambertseter-direction-b",
-      "stationId": "lambertseter",
-      "quayId": null,
-      "name": "Lambertseter",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 32,
-      "physicalLed": 5
-    },
-    {
-      "sourceNodeId": "karlsrud-direction-a",
-      "stationId": "karlsrud",
-      "quayId": null,
-      "name": "Karlsrud",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 29,
-      "physicalLed": 6
-    },
-    {
-      "sourceNodeId": "karlsrud-direction-b",
-      "stationId": "karlsrud",
-      "quayId": null,
-      "name": "Karlsrud",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 30,
-      "physicalLed": 7
-    },
-    {
-      "sourceNodeId": "brattlikollen-direction-a",
-      "stationId": "brattlikollen",
-      "quayId": null,
-      "name": "Brattlikollen",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 4,
-      "physicalLed": 8
-    },
-    {
-      "sourceNodeId": "brattlikollen-direction-b",
-      "stationId": "brattlikollen",
-      "quayId": null,
-      "name": "Brattlikollen",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 5,
-      "physicalLed": 9
-    },
-    {
-      "sourceNodeId": "ryen-direction-a",
-      "stationId": "ryen",
-      "quayId": null,
-      "name": "Ryen",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 47,
-      "physicalLed": 10
-    },
-    {
-      "sourceNodeId": "ryen-direction-b",
-      "stationId": "ryen",
-      "quayId": null,
-      "name": "Ryen",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 48,
-      "physicalLed": 11
-    },
-    {
-      "sourceNodeId": "manglerud-direction-a",
-      "stationId": "manglerud",
-      "quayId": null,
-      "name": "Manglerud",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 37,
-      "physicalLed": 12
-    },
-    {
-      "sourceNodeId": "manglerud-direction-b",
-      "stationId": "manglerud",
-      "quayId": null,
-      "name": "Manglerud",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 38,
-      "physicalLed": 13
-    },
-    {
-      "sourceNodeId": "hoyenhall-direction-a",
-      "stationId": "hoyenhall",
-      "quayId": null,
-      "name": "Høyenhall",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 25,
-      "physicalLed": 14
-    },
-    {
-      "sourceNodeId": "hoyenhall-direction-b",
-      "stationId": "hoyenhall",
-      "quayId": null,
-      "name": "Høyenhall",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 26,
-      "physicalLed": 15
-    },
-    {
-      "sourceNodeId": "brynseng-direction-a",
-      "stationId": "brynseng",
-      "quayId": null,
-      "name": "Brynseng",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 6,
-      "physicalLed": 16
-    },
-    {
-      "sourceNodeId": "brynseng-direction-b",
-      "stationId": "brynseng",
-      "quayId": null,
-      "name": "Brynseng",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
+        "rut-metro-1-live",
+        "rut-metro-4-live"
       ],
       "logicalLed": 7,
-      "physicalLed": 17
-    },
-    {
-      "sourceNodeId": "helsfyr-direction-a",
-      "stationId": "helsfyr",
-      "quayId": null,
-      "name": "Helsfyr",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 21,
-      "physicalLed": 18
-    },
-    {
-      "sourceNodeId": "helsfyr-direction-b",
-      "stationId": "helsfyr",
-      "quayId": null,
-      "name": "Helsfyr",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 22,
-      "physicalLed": 19
-    },
-    {
-      "sourceNodeId": "ensjo-direction-a",
-      "stationId": "ensjo",
-      "quayId": null,
-      "name": "Ensjø",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 8,
-      "physicalLed": 20
-    },
-    {
-      "sourceNodeId": "ensjo-direction-b",
-      "stationId": "ensjo",
-      "quayId": null,
-      "name": "Ensjø",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 9,
-      "physicalLed": 21
-    },
-    {
-      "sourceNodeId": "toyen-direction-a",
-      "stationId": "toyen",
-      "quayId": null,
-      "name": "Tøyen",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 59,
-      "physicalLed": 22
-    },
-    {
-      "sourceNodeId": "toyen-direction-b",
-      "stationId": "toyen",
-      "quayId": null,
-      "name": "Tøyen",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 60,
-      "physicalLed": 23
-    },
-    {
-      "sourceNodeId": "gronland-direction-a",
-      "stationId": "gronland",
-      "quayId": null,
-      "name": "Grønland",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 16,
-      "physicalLed": 24
-    },
-    {
-      "sourceNodeId": "gronland-direction-b",
-      "stationId": "gronland",
-      "quayId": null,
-      "name": "Grønland",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 17,
-      "physicalLed": 25
-    },
-    {
-      "sourceNodeId": "jernbanetorget-direction-a",
-      "stationId": "jernbanetorget",
-      "quayId": null,
-      "name": "Jernbanetorget",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 27,
-      "physicalLed": 26
-    },
-    {
-      "sourceNodeId": "jernbanetorget-direction-b",
-      "stationId": "jernbanetorget",
-      "quayId": null,
-      "name": "Jernbanetorget",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 28,
-      "physicalLed": 27
-    },
-    {
-      "sourceNodeId": "stortinget-direction-a",
-      "stationId": "stortinget",
-      "quayId": null,
-      "name": "Stortinget",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 57,
-      "physicalLed": 28
-    },
-    {
-      "sourceNodeId": "stortinget-direction-b",
-      "stationId": "stortinget",
-      "quayId": null,
-      "name": "Stortinget",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 58,
-      "physicalLed": 29
-    },
-    {
-      "sourceNodeId": "nationaltheatret-direction-a",
-      "stationId": "nationaltheatret",
-      "quayId": null,
-      "name": "Nationaltheatret",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 43,
-      "physicalLed": 30
-    },
-    {
-      "sourceNodeId": "nationaltheatret-direction-b",
-      "stationId": "nationaltheatret",
-      "quayId": null,
-      "name": "Nationaltheatret",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 44,
-      "physicalLed": 31
-    },
-    {
-      "sourceNodeId": "majorstuen-direction-a",
-      "stationId": "majorstuen",
-      "quayId": null,
-      "name": "Majorstuen",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 35,
-      "physicalLed": 32
-    },
-    {
-      "sourceNodeId": "majorstuen-direction-b",
-      "stationId": "majorstuen",
-      "quayId": null,
-      "name": "Majorstuen",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 36,
-      "physicalLed": 33
-    },
-    {
-      "sourceNodeId": "froen-direction-a",
-      "stationId": "froen",
-      "quayId": null,
-      "name": "Frøen",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 12,
-      "physicalLed": 34
-    },
-    {
-      "sourceNodeId": "froen-direction-b",
-      "stationId": "froen",
-      "quayId": null,
-      "name": "Frøen",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 13,
-      "physicalLed": 35
-    },
-    {
-      "sourceNodeId": "steinerud-direction-a",
-      "stationId": "steinerud",
-      "quayId": null,
-      "name": "Steinerud",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 55,
-      "physicalLed": 36
-    },
-    {
-      "sourceNodeId": "steinerud-direction-b",
-      "stationId": "steinerud",
-      "quayId": null,
-      "name": "Steinerud",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 56,
-      "physicalLed": 37
-    },
-    {
-      "sourceNodeId": "vinderen-direction-a",
-      "stationId": "vinderen",
-      "quayId": null,
-      "name": "Vinderen",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 63,
-      "physicalLed": 38
-    },
-    {
-      "sourceNodeId": "vinderen-direction-b",
-      "stationId": "vinderen",
-      "quayId": null,
-      "name": "Vinderen",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 64,
-      "physicalLed": 39
-    },
-    {
-      "sourceNodeId": "gaustad-direction-a",
-      "stationId": "gaustad",
-      "quayId": null,
-      "name": "Gaustad",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 14,
-      "physicalLed": 40
-    },
-    {
-      "sourceNodeId": "gaustad-direction-b",
-      "stationId": "gaustad",
-      "quayId": null,
-      "name": "Gaustad",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 15,
-      "physicalLed": 41
-    },
-    {
-      "sourceNodeId": "ris-direction-a",
-      "stationId": "ris",
-      "quayId": null,
-      "name": "Ris",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 45,
-      "physicalLed": 42
-    },
-    {
-      "sourceNodeId": "ris-direction-b",
-      "stationId": "ris",
-      "quayId": null,
-      "name": "Ris",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 46,
-      "physicalLed": 43
-    },
-    {
-      "sourceNodeId": "slemdal-direction-a",
-      "stationId": "slemdal",
-      "quayId": null,
-      "name": "Slemdal",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 53,
-      "physicalLed": 44
-    },
-    {
-      "sourceNodeId": "slemdal-direction-b",
-      "stationId": "slemdal",
-      "quayId": null,
-      "name": "Slemdal",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 54,
-      "physicalLed": 45
-    },
-    {
-      "sourceNodeId": "grakammen-direction-a",
-      "stationId": "grakammen",
-      "quayId": null,
-      "name": "Gråkammen",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 18,
-      "physicalLed": 46
-    },
-    {
-      "sourceNodeId": "grakammen-direction-b",
-      "stationId": "grakammen",
-      "quayId": null,
-      "name": "Gråkammen",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 19,
-      "physicalLed": 47
-    },
-    {
-      "sourceNodeId": "gullerasen-direction-a",
-      "stationId": "gullerasen",
-      "quayId": null,
-      "name": "Gulleråsen",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 20,
-      "physicalLed": 48
-    },
-    {
-      "sourceNodeId": "vettakollen-direction-a",
-      "stationId": "vettakollen",
-      "quayId": null,
-      "name": "Vettakollen",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 61,
-      "physicalLed": 49
-    },
-    {
-      "sourceNodeId": "vettakollen-direction-b",
-      "stationId": "vettakollen",
-      "quayId": null,
-      "name": "Vettakollen",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 62,
-      "physicalLed": 50
-    },
-    {
-      "sourceNodeId": "skadalen-direction-a",
-      "stationId": "skadalen",
-      "quayId": null,
-      "name": "Skådalen",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 51,
-      "physicalLed": 51
-    },
-    {
-      "sourceNodeId": "skadalen-direction-b",
-      "stationId": "skadalen",
-      "quayId": null,
-      "name": "Skådalen",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 52,
-      "physicalLed": 52
-    },
-    {
-      "sourceNodeId": "midtstuen-direction-a",
-      "stationId": "midtstuen",
-      "quayId": null,
-      "name": "Midtstuen",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 39,
-      "physicalLed": 53
-    },
-    {
-      "sourceNodeId": "midtstuen-direction-b",
-      "stationId": "midtstuen",
-      "quayId": null,
-      "name": "Midtstuen",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 40,
-      "physicalLed": 54
+      "physicalLed": 7
     },
     {
       "sourceNodeId": "besserud-direction-a",
@@ -679,8 +121,8 @@
       "routes": [
         "rut-metro-1-live"
       ],
-      "logicalLed": 2,
-      "physicalLed": 55
+      "logicalLed": 8,
+      "physicalLed": 8
     },
     {
       "sourceNodeId": "besserud-direction-b",
@@ -691,128 +133,342 @@
       "routes": [
         "rut-metro-1-live"
       ],
-      "logicalLed": 3,
-      "physicalLed": 56
+      "logicalLed": 9,
+      "physicalLed": 9
     },
     {
-      "sourceNodeId": "holmenkollen-direction-a",
-      "stationId": "holmenkollen",
+      "sourceNodeId": "bjornsletta-direction-a",
+      "stationId": "bjornsletta",
       "quayId": null,
-      "name": "Holmenkollen",
+      "name": "Bjørnsletta",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-1-live"
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 10,
+      "physicalLed": 10
+    },
+    {
+      "sourceNodeId": "bjornsletta-direction-b",
+      "stationId": "bjornsletta",
+      "quayId": null,
+      "name": "Bjørnsletta",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 11,
+      "physicalLed": 11
+    },
+    {
+      "sourceNodeId": "blindern-direction-a",
+      "stationId": "blindern",
+      "quayId": null,
+      "name": "Blindern",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 12,
+      "physicalLed": 12
+    },
+    {
+      "sourceNodeId": "blindern-direction-b",
+      "stationId": "blindern",
+      "quayId": null,
+      "name": "Blindern",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 13,
+      "physicalLed": 13
+    },
+    {
+      "sourceNodeId": "bogerud-direction-a",
+      "stationId": "bogerud",
+      "quayId": null,
+      "name": "Bogerud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 14,
+      "physicalLed": 14
+    },
+    {
+      "sourceNodeId": "bogerud-direction-b",
+      "stationId": "bogerud",
+      "quayId": null,
+      "name": "Bogerud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 15,
+      "physicalLed": 15
+    },
+    {
+      "sourceNodeId": "borgen-direction-a",
+      "stationId": "borgen",
+      "quayId": null,
+      "name": "Borgen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 16,
+      "physicalLed": 16
+    },
+    {
+      "sourceNodeId": "borgen-direction-b",
+      "stationId": "borgen",
+      "quayId": null,
+      "name": "Borgen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live",
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 17,
+      "physicalLed": 17
+    },
+    {
+      "sourceNodeId": "brattlikollen-direction-a",
+      "stationId": "brattlikollen",
+      "quayId": null,
+      "name": "Brattlikollen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 18,
+      "physicalLed": 18
+    },
+    {
+      "sourceNodeId": "brattlikollen-direction-b",
+      "stationId": "brattlikollen",
+      "quayId": null,
+      "name": "Brattlikollen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 19,
+      "physicalLed": 19
+    },
+    {
+      "sourceNodeId": "brynseng-direction-a",
+      "stationId": "brynseng",
+      "quayId": null,
+      "name": "Brynseng",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 20,
+      "physicalLed": 20
+    },
+    {
+      "sourceNodeId": "brynseng-direction-b",
+      "stationId": "brynseng",
+      "quayId": null,
+      "name": "Brynseng",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 21,
+      "physicalLed": 21
+    },
+    {
+      "sourceNodeId": "boler-direction-a",
+      "stationId": "boler",
+      "quayId": null,
+      "name": "Bøler",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 22,
+      "physicalLed": 22
+    },
+    {
+      "sourceNodeId": "boler-direction-b",
+      "stationId": "boler",
+      "quayId": null,
+      "name": "Bøler",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
       ],
       "logicalLed": 23,
-      "physicalLed": 57
+      "physicalLed": 23
     },
     {
-      "sourceNodeId": "holmenkollen-direction-b",
-      "stationId": "holmenkollen",
+      "sourceNodeId": "carl-berners-plass-direction-a",
+      "stationId": "carl-berners-plass",
       "quayId": null,
-      "name": "Holmenkollen",
-      "direction": "Retning B",
+      "name": "Carl Berners plass",
+      "direction": "Retning A",
       "routes": [
-        "rut-metro-1-live"
+        "rut-metro-5-live"
       ],
       "logicalLed": 24,
-      "physicalLed": 58
+      "physicalLed": 24
     },
     {
-      "sourceNodeId": "voksenlia-direction-a",
-      "stationId": "voksenlia",
+      "sourceNodeId": "carl-berners-plass-direction-b",
+      "stationId": "carl-berners-plass",
       "quayId": null,
-      "name": "Voksenlia",
-      "direction": "Retning A",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 67,
-      "physicalLed": 59
-    },
-    {
-      "sourceNodeId": "voksenlia-direction-b",
-      "stationId": "voksenlia",
-      "quayId": null,
-      "name": "Voksenlia",
+      "name": "Carl Berners plass",
       "direction": "Retning B",
       "routes": [
-        "rut-metro-1-live"
+        "rut-metro-5-live"
       ],
-      "logicalLed": 68,
-      "physicalLed": 60
+      "logicalLed": 25,
+      "physicalLed": 25
     },
     {
-      "sourceNodeId": "skogen-direction-a",
-      "stationId": "skogen",
+      "sourceNodeId": "eiksmarka-direction-a",
+      "stationId": "eiksmarka",
       "quayId": null,
-      "name": "Skogen",
+      "name": "Eiksmarka",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-1-live"
+        "rut-metro-2-live"
       ],
-      "logicalLed": 49,
-      "physicalLed": 61
+      "logicalLed": 26,
+      "physicalLed": 26
     },
     {
-      "sourceNodeId": "skogen-direction-b",
-      "stationId": "skogen",
+      "sourceNodeId": "eiksmarka-direction-b",
+      "stationId": "eiksmarka",
       "quayId": null,
-      "name": "Skogen",
+      "name": "Eiksmarka",
       "direction": "Retning B",
       "routes": [
-        "rut-metro-1-live"
+        "rut-metro-2-live"
       ],
-      "logicalLed": 50,
-      "physicalLed": 62
+      "logicalLed": 27,
+      "physicalLed": 27
     },
     {
-      "sourceNodeId": "lillevann-direction-a",
-      "stationId": "lillevann",
+      "sourceNodeId": "ekraveien-direction-a",
+      "stationId": "ekraveien",
       "quayId": null,
-      "name": "Lillevann",
+      "name": "Ekraveien",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-1-live"
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 28,
+      "physicalLed": 28
+    },
+    {
+      "sourceNodeId": "ekraveien-direction-b",
+      "stationId": "ekraveien",
+      "quayId": null,
+      "name": "Ekraveien",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 29,
+      "physicalLed": 29
+    },
+    {
+      "sourceNodeId": "ellingsrudasen-direction-a",
+      "stationId": "ellingsrudasen",
+      "quayId": null,
+      "name": "Ellingsrudåsen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 30,
+      "physicalLed": 30
+    },
+    {
+      "sourceNodeId": "ellingsrudasen-direction-b",
+      "stationId": "ellingsrudasen",
+      "quayId": null,
+      "name": "Ellingsrudåsen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 31,
+      "physicalLed": 31
+    },
+    {
+      "sourceNodeId": "ensjo-direction-a",
+      "stationId": "ensjo",
+      "quayId": null,
+      "name": "Ensjø",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 32,
+      "physicalLed": 32
+    },
+    {
+      "sourceNodeId": "ensjo-direction-b",
+      "stationId": "ensjo",
+      "quayId": null,
+      "name": "Ensjø",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live"
       ],
       "logicalLed": 33,
-      "physicalLed": 63
+      "physicalLed": 33
     },
     {
-      "sourceNodeId": "lillevann-direction-b",
-      "stationId": "lillevann",
+      "sourceNodeId": "forskningsparken-direction-a",
+      "stationId": "forskningsparken",
       "quayId": null,
-      "name": "Lillevann",
-      "direction": "Retning B",
-      "routes": [
-        "rut-metro-1-live"
-      ],
-      "logicalLed": 34,
-      "physicalLed": 64
-    },
-    {
-      "sourceNodeId": "voksenkollen-direction-a",
-      "stationId": "voksenkollen",
-      "quayId": null,
-      "name": "Voksenkollen",
+      "name": "Forskningsparken",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-1-live"
+        "rut-metro-4-live",
+        "rut-metro-5-live"
       ],
-      "logicalLed": 65,
-      "physicalLed": 65
+      "logicalLed": 34,
+      "physicalLed": 34
     },
     {
-      "sourceNodeId": "voksenkollen-direction-b",
-      "stationId": "voksenkollen",
+      "sourceNodeId": "forskningsparken-direction-b",
+      "stationId": "forskningsparken",
       "quayId": null,
-      "name": "Voksenkollen",
+      "name": "Forskningsparken",
       "direction": "Retning B",
       "routes": [
-        "rut-metro-1-live"
+        "rut-metro-4-live",
+        "rut-metro-5-live"
       ],
-      "logicalLed": 66,
-      "physicalLed": 66
+      "logicalLed": 35,
+      "physicalLed": 35
     },
     {
       "sourceNodeId": "frognerseteren-direction-a",
@@ -823,8 +479,8 @@
       "routes": [
         "rut-metro-1-live"
       ],
-      "logicalLed": 10,
-      "physicalLed": 67
+      "logicalLed": 36,
+      "physicalLed": 36
     },
     {
       "sourceNodeId": "frognerseteren-direction-b",
@@ -835,8 +491,1930 @@
       "routes": [
         "rut-metro-1-live"
       ],
-      "logicalLed": 11,
+      "logicalLed": 37,
+      "physicalLed": 37
+    },
+    {
+      "sourceNodeId": "froen-direction-a",
+      "stationId": "froen",
+      "quayId": null,
+      "name": "Frøen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 38,
+      "physicalLed": 38
+    },
+    {
+      "sourceNodeId": "froen-direction-b",
+      "stationId": "froen",
+      "quayId": null,
+      "name": "Frøen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 39,
+      "physicalLed": 39
+    },
+    {
+      "sourceNodeId": "furuset-direction-a",
+      "stationId": "furuset",
+      "quayId": null,
+      "name": "Furuset",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 40,
+      "physicalLed": 40
+    },
+    {
+      "sourceNodeId": "furuset-direction-b",
+      "stationId": "furuset",
+      "quayId": null,
+      "name": "Furuset",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 41,
+      "physicalLed": 41
+    },
+    {
+      "sourceNodeId": "gaustad-direction-a",
+      "stationId": "gaustad",
+      "quayId": null,
+      "name": "Gaustad",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 42,
+      "physicalLed": 42
+    },
+    {
+      "sourceNodeId": "gaustad-direction-b",
+      "stationId": "gaustad",
+      "quayId": null,
+      "name": "Gaustad",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 43,
+      "physicalLed": 43
+    },
+    {
+      "sourceNodeId": "gjettum-direction-a",
+      "stationId": "gjettum",
+      "quayId": null,
+      "name": "Gjettum",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 44,
+      "physicalLed": 44
+    },
+    {
+      "sourceNodeId": "gjettum-direction-b",
+      "stationId": "gjettum",
+      "quayId": null,
+      "name": "Gjettum",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 45,
+      "physicalLed": 45
+    },
+    {
+      "sourceNodeId": "gjonnes-direction-a",
+      "stationId": "gjonnes",
+      "quayId": null,
+      "name": "Gjønnes",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 46,
+      "physicalLed": 46
+    },
+    {
+      "sourceNodeId": "gjonnes-direction-b",
+      "stationId": "gjonnes",
+      "quayId": null,
+      "name": "Gjønnes",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 47,
+      "physicalLed": 47
+    },
+    {
+      "sourceNodeId": "godlia-direction-a",
+      "stationId": "godlia",
+      "quayId": null,
+      "name": "Godlia",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 48,
+      "physicalLed": 48
+    },
+    {
+      "sourceNodeId": "godlia-direction-b",
+      "stationId": "godlia",
+      "quayId": null,
+      "name": "Godlia",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 49,
+      "physicalLed": 49
+    },
+    {
+      "sourceNodeId": "grorud-direction-a",
+      "stationId": "grorud",
+      "quayId": null,
+      "name": "Grorud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 50,
+      "physicalLed": 50
+    },
+    {
+      "sourceNodeId": "grorud-direction-b",
+      "stationId": "grorud",
+      "quayId": null,
+      "name": "Grorud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 51,
+      "physicalLed": 51
+    },
+    {
+      "sourceNodeId": "gronland-direction-a",
+      "stationId": "gronland",
+      "quayId": null,
+      "name": "Grønland",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 52,
+      "physicalLed": 52
+    },
+    {
+      "sourceNodeId": "gronland-direction-b",
+      "stationId": "gronland",
+      "quayId": null,
+      "name": "Grønland",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 53,
+      "physicalLed": 53
+    },
+    {
+      "sourceNodeId": "grakammen-direction-a",
+      "stationId": "grakammen",
+      "quayId": null,
+      "name": "Gråkammen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 54,
+      "physicalLed": 54
+    },
+    {
+      "sourceNodeId": "grakammen-direction-b",
+      "stationId": "grakammen",
+      "quayId": null,
+      "name": "Gråkammen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 55,
+      "physicalLed": 55
+    },
+    {
+      "sourceNodeId": "gullerasen-direction-a",
+      "stationId": "gullerasen",
+      "quayId": null,
+      "name": "Gulleråsen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 56,
+      "physicalLed": 56
+    },
+    {
+      "sourceNodeId": "hasle-direction-a",
+      "stationId": "hasle",
+      "quayId": null,
+      "name": "Hasle",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 57,
+      "physicalLed": 57
+    },
+    {
+      "sourceNodeId": "hasle-direction-b",
+      "stationId": "hasle",
+      "quayId": null,
+      "name": "Hasle",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 58,
+      "physicalLed": 58
+    },
+    {
+      "sourceNodeId": "haslum-direction-a",
+      "stationId": "haslum",
+      "quayId": null,
+      "name": "Haslum",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 59,
+      "physicalLed": 59
+    },
+    {
+      "sourceNodeId": "haslum-direction-b",
+      "stationId": "haslum",
+      "quayId": null,
+      "name": "Haslum",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 60,
+      "physicalLed": 60
+    },
+    {
+      "sourceNodeId": "hauger-direction-a",
+      "stationId": "hauger",
+      "quayId": null,
+      "name": "Hauger",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 61,
+      "physicalLed": 61
+    },
+    {
+      "sourceNodeId": "hauger-direction-b",
+      "stationId": "hauger",
+      "quayId": null,
+      "name": "Hauger",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 62,
+      "physicalLed": 62
+    },
+    {
+      "sourceNodeId": "haugerud-direction-a",
+      "stationId": "haugerud",
+      "quayId": null,
+      "name": "Haugerud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 63,
+      "physicalLed": 63
+    },
+    {
+      "sourceNodeId": "haugerud-direction-b",
+      "stationId": "haugerud",
+      "quayId": null,
+      "name": "Haugerud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 64,
+      "physicalLed": 64
+    },
+    {
+      "sourceNodeId": "hellerud-direction-a",
+      "stationId": "hellerud",
+      "quayId": null,
+      "name": "Hellerud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live",
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 65,
+      "physicalLed": 65
+    },
+    {
+      "sourceNodeId": "hellerud-direction-b",
+      "stationId": "hellerud",
+      "quayId": null,
+      "name": "Hellerud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live",
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 66,
+      "physicalLed": 66
+    },
+    {
+      "sourceNodeId": "helsfyr-direction-a",
+      "stationId": "helsfyr",
+      "quayId": null,
+      "name": "Helsfyr",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 67,
+      "physicalLed": 67
+    },
+    {
+      "sourceNodeId": "helsfyr-direction-b",
+      "stationId": "helsfyr",
+      "quayId": null,
+      "name": "Helsfyr",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 68,
       "physicalLed": 68
+    },
+    {
+      "sourceNodeId": "holmen-direction-a",
+      "stationId": "holmen",
+      "quayId": null,
+      "name": "Holmen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 69,
+      "physicalLed": 69
+    },
+    {
+      "sourceNodeId": "holmen-direction-b",
+      "stationId": "holmen",
+      "quayId": null,
+      "name": "Holmen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 70,
+      "physicalLed": 70
+    },
+    {
+      "sourceNodeId": "holmenkollen-direction-a",
+      "stationId": "holmenkollen",
+      "quayId": null,
+      "name": "Holmenkollen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 71,
+      "physicalLed": 71
+    },
+    {
+      "sourceNodeId": "holmenkollen-direction-b",
+      "stationId": "holmenkollen",
+      "quayId": null,
+      "name": "Holmenkollen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 72,
+      "physicalLed": 72
+    },
+    {
+      "sourceNodeId": "hovseter-direction-a",
+      "stationId": "hovseter",
+      "quayId": null,
+      "name": "Hovseter",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 73,
+      "physicalLed": 73
+    },
+    {
+      "sourceNodeId": "hovseter-direction-b",
+      "stationId": "hovseter",
+      "quayId": null,
+      "name": "Hovseter",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 74,
+      "physicalLed": 74
+    },
+    {
+      "sourceNodeId": "hoyenhall-direction-a",
+      "stationId": "hoyenhall",
+      "quayId": null,
+      "name": "Høyenhall",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 75,
+      "physicalLed": 75
+    },
+    {
+      "sourceNodeId": "hoyenhall-direction-b",
+      "stationId": "hoyenhall",
+      "quayId": null,
+      "name": "Høyenhall",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 76,
+      "physicalLed": 76
+    },
+    {
+      "sourceNodeId": "jar-direction-a",
+      "stationId": "jar",
+      "quayId": null,
+      "name": "Jar",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 77,
+      "physicalLed": 77
+    },
+    {
+      "sourceNodeId": "jar-direction-b",
+      "stationId": "jar",
+      "quayId": null,
+      "name": "Jar",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 78,
+      "physicalLed": 78
+    },
+    {
+      "sourceNodeId": "jernbanetorget-direction-a",
+      "stationId": "jernbanetorget",
+      "quayId": null,
+      "name": "Jernbanetorget",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 79,
+      "physicalLed": 79
+    },
+    {
+      "sourceNodeId": "jernbanetorget-direction-b",
+      "stationId": "jernbanetorget",
+      "quayId": null,
+      "name": "Jernbanetorget",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 80,
+      "physicalLed": 80
+    },
+    {
+      "sourceNodeId": "kalbakken-direction-a",
+      "stationId": "kalbakken",
+      "quayId": null,
+      "name": "Kalbakken",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 81,
+      "physicalLed": 81
+    },
+    {
+      "sourceNodeId": "kalbakken-direction-b",
+      "stationId": "kalbakken",
+      "quayId": null,
+      "name": "Kalbakken",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 82,
+      "physicalLed": 82
+    },
+    {
+      "sourceNodeId": "karlsrud-direction-a",
+      "stationId": "karlsrud",
+      "quayId": null,
+      "name": "Karlsrud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 83,
+      "physicalLed": 83
+    },
+    {
+      "sourceNodeId": "karlsrud-direction-b",
+      "stationId": "karlsrud",
+      "quayId": null,
+      "name": "Karlsrud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 84,
+      "physicalLed": 84
+    },
+    {
+      "sourceNodeId": "kolsas-direction-a",
+      "stationId": "kolsas",
+      "quayId": null,
+      "name": "Kolsås",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 85,
+      "physicalLed": 85
+    },
+    {
+      "sourceNodeId": "kolsas-direction-b",
+      "stationId": "kolsas",
+      "quayId": null,
+      "name": "Kolsås",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 86,
+      "physicalLed": 86
+    },
+    {
+      "sourceNodeId": "lambertseter-direction-a",
+      "stationId": "lambertseter",
+      "quayId": null,
+      "name": "Lambertseter",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 87,
+      "physicalLed": 87
+    },
+    {
+      "sourceNodeId": "lambertseter-direction-b",
+      "stationId": "lambertseter",
+      "quayId": null,
+      "name": "Lambertseter",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 88,
+      "physicalLed": 88
+    },
+    {
+      "sourceNodeId": "lijordet-direction-a",
+      "stationId": "lijordet",
+      "quayId": null,
+      "name": "Lijordet",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 89,
+      "physicalLed": 89
+    },
+    {
+      "sourceNodeId": "lijordet-direction-b",
+      "stationId": "lijordet",
+      "quayId": null,
+      "name": "Lijordet",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 90,
+      "physicalLed": 90
+    },
+    {
+      "sourceNodeId": "lillevann-direction-a",
+      "stationId": "lillevann",
+      "quayId": null,
+      "name": "Lillevann",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 91,
+      "physicalLed": 91
+    },
+    {
+      "sourceNodeId": "lillevann-direction-b",
+      "stationId": "lillevann",
+      "quayId": null,
+      "name": "Lillevann",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 92,
+      "physicalLed": 92
+    },
+    {
+      "sourceNodeId": "lindeberg-direction-a",
+      "stationId": "lindeberg",
+      "quayId": null,
+      "name": "Lindeberg",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 93,
+      "physicalLed": 93
+    },
+    {
+      "sourceNodeId": "lindeberg-direction-b",
+      "stationId": "lindeberg",
+      "quayId": null,
+      "name": "Lindeberg",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 94,
+      "physicalLed": 94
+    },
+    {
+      "sourceNodeId": "linderud-direction-a",
+      "stationId": "linderud",
+      "quayId": null,
+      "name": "Linderud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 95,
+      "physicalLed": 95
+    },
+    {
+      "sourceNodeId": "linderud-direction-b",
+      "stationId": "linderud",
+      "quayId": null,
+      "name": "Linderud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 96,
+      "physicalLed": 96
+    },
+    {
+      "sourceNodeId": "loren-direction-a",
+      "stationId": "loren",
+      "quayId": null,
+      "name": "Løren",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 97,
+      "physicalLed": 97
+    },
+    {
+      "sourceNodeId": "loren-direction-b",
+      "stationId": "loren",
+      "quayId": null,
+      "name": "Løren",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 98,
+      "physicalLed": 98
+    },
+    {
+      "sourceNodeId": "majorstuen-direction-a",
+      "stationId": "majorstuen",
+      "quayId": null,
+      "name": "Majorstuen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 99,
+      "physicalLed": 99
+    },
+    {
+      "sourceNodeId": "majorstuen-direction-b",
+      "stationId": "majorstuen",
+      "quayId": null,
+      "name": "Majorstuen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 100,
+      "physicalLed": 100
+    },
+    {
+      "sourceNodeId": "makrellbekken-direction-a",
+      "stationId": "makrellbekken",
+      "quayId": null,
+      "name": "Makrellbekken",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 101,
+      "physicalLed": 101
+    },
+    {
+      "sourceNodeId": "makrellbekken-direction-b",
+      "stationId": "makrellbekken",
+      "quayId": null,
+      "name": "Makrellbekken",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 102,
+      "physicalLed": 102
+    },
+    {
+      "sourceNodeId": "manglerud-direction-a",
+      "stationId": "manglerud",
+      "quayId": null,
+      "name": "Manglerud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 103,
+      "physicalLed": 103
+    },
+    {
+      "sourceNodeId": "manglerud-direction-b",
+      "stationId": "manglerud",
+      "quayId": null,
+      "name": "Manglerud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 104,
+      "physicalLed": 104
+    },
+    {
+      "sourceNodeId": "midtstuen-direction-a",
+      "stationId": "midtstuen",
+      "quayId": null,
+      "name": "Midtstuen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 105,
+      "physicalLed": 105
+    },
+    {
+      "sourceNodeId": "midtstuen-direction-b",
+      "stationId": "midtstuen",
+      "quayId": null,
+      "name": "Midtstuen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 106,
+      "physicalLed": 106
+    },
+    {
+      "sourceNodeId": "montebello-direction-a",
+      "stationId": "montebello",
+      "quayId": null,
+      "name": "Montebello",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 107,
+      "physicalLed": 107
+    },
+    {
+      "sourceNodeId": "montebello-direction-b",
+      "stationId": "montebello",
+      "quayId": null,
+      "name": "Montebello",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 108,
+      "physicalLed": 108
+    },
+    {
+      "sourceNodeId": "mortensrud-direction-a",
+      "stationId": "mortensrud",
+      "quayId": null,
+      "name": "Mortensrud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 109,
+      "physicalLed": 109
+    },
+    {
+      "sourceNodeId": "mortensrud-direction-b",
+      "stationId": "mortensrud",
+      "quayId": null,
+      "name": "Mortensrud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 110,
+      "physicalLed": 110
+    },
+    {
+      "sourceNodeId": "munkelia-direction-a",
+      "stationId": "munkelia",
+      "quayId": null,
+      "name": "Munkelia",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 111,
+      "physicalLed": 111
+    },
+    {
+      "sourceNodeId": "munkelia-direction-b",
+      "stationId": "munkelia",
+      "quayId": null,
+      "name": "Munkelia",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 112,
+      "physicalLed": 112
+    },
+    {
+      "sourceNodeId": "nationaltheatret-direction-a",
+      "stationId": "nationaltheatret",
+      "quayId": null,
+      "name": "Nationaltheatret",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 113,
+      "physicalLed": 113
+    },
+    {
+      "sourceNodeId": "nationaltheatret-direction-b",
+      "stationId": "nationaltheatret",
+      "quayId": null,
+      "name": "Nationaltheatret",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 114,
+      "physicalLed": 114
+    },
+    {
+      "sourceNodeId": "nydalen-direction-a",
+      "stationId": "nydalen",
+      "quayId": null,
+      "name": "Nydalen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 115,
+      "physicalLed": 115
+    },
+    {
+      "sourceNodeId": "nydalen-direction-b",
+      "stationId": "nydalen",
+      "quayId": null,
+      "name": "Nydalen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 116,
+      "physicalLed": 116
+    },
+    {
+      "sourceNodeId": "oppsal-direction-a",
+      "stationId": "oppsal",
+      "quayId": null,
+      "name": "Oppsal",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 117,
+      "physicalLed": 117
+    },
+    {
+      "sourceNodeId": "oppsal-direction-b",
+      "stationId": "oppsal",
+      "quayId": null,
+      "name": "Oppsal",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 118,
+      "physicalLed": 118
+    },
+    {
+      "sourceNodeId": "ringstabekk-direction-a",
+      "stationId": "ringstabekk",
+      "quayId": null,
+      "name": "Ringstabekk",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 119,
+      "physicalLed": 119
+    },
+    {
+      "sourceNodeId": "ringstabekk-direction-b",
+      "stationId": "ringstabekk",
+      "quayId": null,
+      "name": "Ringstabekk",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 120,
+      "physicalLed": 120
+    },
+    {
+      "sourceNodeId": "ris-direction-a",
+      "stationId": "ris",
+      "quayId": null,
+      "name": "Ris",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 121,
+      "physicalLed": 121
+    },
+    {
+      "sourceNodeId": "ris-direction-b",
+      "stationId": "ris",
+      "quayId": null,
+      "name": "Ris",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 122,
+      "physicalLed": 122
+    },
+    {
+      "sourceNodeId": "rislokka-direction-a",
+      "stationId": "rislokka",
+      "quayId": null,
+      "name": "Risløkka",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 123,
+      "physicalLed": 123
+    },
+    {
+      "sourceNodeId": "rislokka-direction-b",
+      "stationId": "rislokka",
+      "quayId": null,
+      "name": "Risløkka",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 124,
+      "physicalLed": 124
+    },
+    {
+      "sourceNodeId": "rommen-direction-a",
+      "stationId": "rommen",
+      "quayId": null,
+      "name": "Rommen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 125,
+      "physicalLed": 125
+    },
+    {
+      "sourceNodeId": "rommen-direction-b",
+      "stationId": "rommen",
+      "quayId": null,
+      "name": "Rommen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 126,
+      "physicalLed": 126
+    },
+    {
+      "sourceNodeId": "romsas-direction-a",
+      "stationId": "romsas",
+      "quayId": null,
+      "name": "Romsås",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 127,
+      "physicalLed": 127
+    },
+    {
+      "sourceNodeId": "romsas-direction-b",
+      "stationId": "romsas",
+      "quayId": null,
+      "name": "Romsås",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 128,
+      "physicalLed": 128
+    },
+    {
+      "sourceNodeId": "ryen-direction-a",
+      "stationId": "ryen",
+      "quayId": null,
+      "name": "Ryen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 129,
+      "physicalLed": 129
+    },
+    {
+      "sourceNodeId": "ryen-direction-b",
+      "stationId": "ryen",
+      "quayId": null,
+      "name": "Ryen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-4-live"
+      ],
+      "logicalLed": 130,
+      "physicalLed": 130
+    },
+    {
+      "sourceNodeId": "roa-direction-a",
+      "stationId": "roa",
+      "quayId": null,
+      "name": "Røa",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 131,
+      "physicalLed": 131
+    },
+    {
+      "sourceNodeId": "roa-direction-b",
+      "stationId": "roa",
+      "quayId": null,
+      "name": "Røa",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 132,
+      "physicalLed": 132
+    },
+    {
+      "sourceNodeId": "rodtvet-direction-a",
+      "stationId": "rodtvet",
+      "quayId": null,
+      "name": "Rødtvet",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 133,
+      "physicalLed": 133
+    },
+    {
+      "sourceNodeId": "rodtvet-direction-b",
+      "stationId": "rodtvet",
+      "quayId": null,
+      "name": "Rødtvet",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 134,
+      "physicalLed": 134
+    },
+    {
+      "sourceNodeId": "sinsen-direction-a",
+      "stationId": "sinsen",
+      "quayId": null,
+      "name": "Sinsen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 135,
+      "physicalLed": 135
+    },
+    {
+      "sourceNodeId": "sinsen-direction-b",
+      "stationId": "sinsen",
+      "quayId": null,
+      "name": "Sinsen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 136,
+      "physicalLed": 136
+    },
+    {
+      "sourceNodeId": "skogen-direction-a",
+      "stationId": "skogen",
+      "quayId": null,
+      "name": "Skogen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 137,
+      "physicalLed": 137
+    },
+    {
+      "sourceNodeId": "skogen-direction-b",
+      "stationId": "skogen",
+      "quayId": null,
+      "name": "Skogen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 138,
+      "physicalLed": 138
+    },
+    {
+      "sourceNodeId": "skullerud-direction-a",
+      "stationId": "skullerud",
+      "quayId": null,
+      "name": "Skullerud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 139,
+      "physicalLed": 139
+    },
+    {
+      "sourceNodeId": "skullerud-direction-b",
+      "stationId": "skullerud",
+      "quayId": null,
+      "name": "Skullerud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 140,
+      "physicalLed": 140
+    },
+    {
+      "sourceNodeId": "skoyenasen-direction-a",
+      "stationId": "skoyenasen",
+      "quayId": null,
+      "name": "Skøyenåsen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 141,
+      "physicalLed": 141
+    },
+    {
+      "sourceNodeId": "skoyenasen-direction-b",
+      "stationId": "skoyenasen",
+      "quayId": null,
+      "name": "Skøyenåsen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 142,
+      "physicalLed": 142
+    },
+    {
+      "sourceNodeId": "skadalen-direction-a",
+      "stationId": "skadalen",
+      "quayId": null,
+      "name": "Skådalen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 143,
+      "physicalLed": 143
+    },
+    {
+      "sourceNodeId": "skadalen-direction-b",
+      "stationId": "skadalen",
+      "quayId": null,
+      "name": "Skådalen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 144,
+      "physicalLed": 144
+    },
+    {
+      "sourceNodeId": "slemdal-direction-a",
+      "stationId": "slemdal",
+      "quayId": null,
+      "name": "Slemdal",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 145,
+      "physicalLed": 145
+    },
+    {
+      "sourceNodeId": "slemdal-direction-b",
+      "stationId": "slemdal",
+      "quayId": null,
+      "name": "Slemdal",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 146,
+      "physicalLed": 146
+    },
+    {
+      "sourceNodeId": "smestad-direction-a",
+      "stationId": "smestad",
+      "quayId": null,
+      "name": "Smestad",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 147,
+      "physicalLed": 147
+    },
+    {
+      "sourceNodeId": "smestad-direction-b",
+      "stationId": "smestad",
+      "quayId": null,
+      "name": "Smestad",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live",
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 148,
+      "physicalLed": 148
+    },
+    {
+      "sourceNodeId": "steinerud-direction-a",
+      "stationId": "steinerud",
+      "quayId": null,
+      "name": "Steinerud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 149,
+      "physicalLed": 149
+    },
+    {
+      "sourceNodeId": "steinerud-direction-b",
+      "stationId": "steinerud",
+      "quayId": null,
+      "name": "Steinerud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 150,
+      "physicalLed": 150
+    },
+    {
+      "sourceNodeId": "storo-direction-a",
+      "stationId": "storo",
+      "quayId": null,
+      "name": "Storo",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 151,
+      "physicalLed": 151
+    },
+    {
+      "sourceNodeId": "storo-direction-b",
+      "stationId": "storo",
+      "quayId": null,
+      "name": "Storo",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 152,
+      "physicalLed": 152
+    },
+    {
+      "sourceNodeId": "stortinget-direction-a",
+      "stationId": "stortinget",
+      "quayId": null,
+      "name": "Stortinget",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 153,
+      "physicalLed": 153
+    },
+    {
+      "sourceNodeId": "stortinget-direction-b",
+      "stationId": "stortinget",
+      "quayId": null,
+      "name": "Stortinget",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 154,
+      "physicalLed": 154
+    },
+    {
+      "sourceNodeId": "stovner-direction-a",
+      "stationId": "stovner",
+      "quayId": null,
+      "name": "Stovner",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 155,
+      "physicalLed": 155
+    },
+    {
+      "sourceNodeId": "stovner-direction-b",
+      "stationId": "stovner",
+      "quayId": null,
+      "name": "Stovner",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 156,
+      "physicalLed": 156
+    },
+    {
+      "sourceNodeId": "trosterud-direction-a",
+      "stationId": "trosterud",
+      "quayId": null,
+      "name": "Trosterud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 157,
+      "physicalLed": 157
+    },
+    {
+      "sourceNodeId": "trosterud-direction-b",
+      "stationId": "trosterud",
+      "quayId": null,
+      "name": "Trosterud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 158,
+      "physicalLed": 158
+    },
+    {
+      "sourceNodeId": "tveita-direction-a",
+      "stationId": "tveita",
+      "quayId": null,
+      "name": "Tveita",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 159,
+      "physicalLed": 159
+    },
+    {
+      "sourceNodeId": "tveita-direction-b",
+      "stationId": "tveita",
+      "quayId": null,
+      "name": "Tveita",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 160,
+      "physicalLed": 160
+    },
+    {
+      "sourceNodeId": "toyen-direction-a",
+      "stationId": "toyen",
+      "quayId": null,
+      "name": "Tøyen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 161,
+      "physicalLed": 161
+    },
+    {
+      "sourceNodeId": "toyen-direction-b",
+      "stationId": "toyen",
+      "quayId": null,
+      "name": "Tøyen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live",
+        "rut-metro-2-live",
+        "rut-metro-3-live",
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 162,
+      "physicalLed": 162
+    },
+    {
+      "sourceNodeId": "ullernasen-direction-a",
+      "stationId": "ullernasen",
+      "quayId": null,
+      "name": "Ullernåsen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 163,
+      "physicalLed": 163
+    },
+    {
+      "sourceNodeId": "ullernasen-direction-b",
+      "stationId": "ullernasen",
+      "quayId": null,
+      "name": "Ullernåsen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 164,
+      "physicalLed": 164
+    },
+    {
+      "sourceNodeId": "ulleval-stadion-direction-a",
+      "stationId": "ulleval-stadion",
+      "quayId": null,
+      "name": "Ullevål stadion",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 165,
+      "physicalLed": 165
+    },
+    {
+      "sourceNodeId": "ulleval-stadion-direction-b",
+      "stationId": "ulleval-stadion",
+      "quayId": null,
+      "name": "Ullevål stadion",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 166,
+      "physicalLed": 166
+    },
+    {
+      "sourceNodeId": "ulsrud-direction-a",
+      "stationId": "ulsrud",
+      "quayId": null,
+      "name": "Ulsrud",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 167,
+      "physicalLed": 167
+    },
+    {
+      "sourceNodeId": "ulsrud-direction-b",
+      "stationId": "ulsrud",
+      "quayId": null,
+      "name": "Ulsrud",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 168,
+      "physicalLed": 168
+    },
+    {
+      "sourceNodeId": "veitvet-direction-a",
+      "stationId": "veitvet",
+      "quayId": null,
+      "name": "Veitvet",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 169,
+      "physicalLed": 169
+    },
+    {
+      "sourceNodeId": "veitvet-direction-b",
+      "stationId": "veitvet",
+      "quayId": null,
+      "name": "Veitvet",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 170,
+      "physicalLed": 170
+    },
+    {
+      "sourceNodeId": "vestli-direction-a",
+      "stationId": "vestli",
+      "quayId": null,
+      "name": "Vestli",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 171,
+      "physicalLed": 171
+    },
+    {
+      "sourceNodeId": "vestli-direction-b",
+      "stationId": "vestli",
+      "quayId": null,
+      "name": "Vestli",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 172,
+      "physicalLed": 172
+    },
+    {
+      "sourceNodeId": "vettakollen-direction-a",
+      "stationId": "vettakollen",
+      "quayId": null,
+      "name": "Vettakollen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 173,
+      "physicalLed": 173
+    },
+    {
+      "sourceNodeId": "vettakollen-direction-b",
+      "stationId": "vettakollen",
+      "quayId": null,
+      "name": "Vettakollen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 174,
+      "physicalLed": 174
+    },
+    {
+      "sourceNodeId": "vinderen-direction-a",
+      "stationId": "vinderen",
+      "quayId": null,
+      "name": "Vinderen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 175,
+      "physicalLed": 175
+    },
+    {
+      "sourceNodeId": "vinderen-direction-b",
+      "stationId": "vinderen",
+      "quayId": null,
+      "name": "Vinderen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 176,
+      "physicalLed": 176
+    },
+    {
+      "sourceNodeId": "voksenkollen-direction-a",
+      "stationId": "voksenkollen",
+      "quayId": null,
+      "name": "Voksenkollen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 177,
+      "physicalLed": 177
+    },
+    {
+      "sourceNodeId": "voksenkollen-direction-b",
+      "stationId": "voksenkollen",
+      "quayId": null,
+      "name": "Voksenkollen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 178,
+      "physicalLed": 178
+    },
+    {
+      "sourceNodeId": "voksenlia-direction-a",
+      "stationId": "voksenlia",
+      "quayId": null,
+      "name": "Voksenlia",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 179,
+      "physicalLed": 179
+    },
+    {
+      "sourceNodeId": "voksenlia-direction-b",
+      "stationId": "voksenlia",
+      "quayId": null,
+      "name": "Voksenlia",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-1-live"
+      ],
+      "logicalLed": 180,
+      "physicalLed": 180
+    },
+    {
+      "sourceNodeId": "vollebekk-direction-a",
+      "stationId": "vollebekk",
+      "quayId": null,
+      "name": "Vollebekk",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 181,
+      "physicalLed": 181
+    },
+    {
+      "sourceNodeId": "vollebekk-direction-b",
+      "stationId": "vollebekk",
+      "quayId": null,
+      "name": "Vollebekk",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 182,
+      "physicalLed": 182
+    },
+    {
+      "sourceNodeId": "okern-direction-a",
+      "stationId": "okern",
+      "quayId": null,
+      "name": "Økern",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 183,
+      "physicalLed": 183
+    },
+    {
+      "sourceNodeId": "okern-direction-b",
+      "stationId": "okern",
+      "quayId": null,
+      "name": "Økern",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-4-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 184,
+      "physicalLed": 184
+    },
+    {
+      "sourceNodeId": "osteras-direction-a",
+      "stationId": "osteras",
+      "quayId": null,
+      "name": "Østerås",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 185,
+      "physicalLed": 185
+    },
+    {
+      "sourceNodeId": "osteras-direction-b",
+      "stationId": "osteras",
+      "quayId": null,
+      "name": "Østerås",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-2-live"
+      ],
+      "logicalLed": 186,
+      "physicalLed": 186
+    },
+    {
+      "sourceNodeId": "asjordet-direction-a",
+      "stationId": "asjordet",
+      "quayId": null,
+      "name": "Åsjordet",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-3-live",
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 187,
+      "physicalLed": 187
+    },
+    {
+      "sourceNodeId": "asjordet-direction-b",
+      "stationId": "asjordet",
+      "quayId": null,
+      "name": "Åsjordet",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-3-live"
+      ],
+      "logicalLed": 188,
+      "physicalLed": 188
     }
   ]
 }
