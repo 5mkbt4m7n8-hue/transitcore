@@ -1,7 +1,7 @@
 (function(root){
 "use strict";
 
-const FIRMWARE_VERSION="1.0.6";
+const FIRMWARE_VERSION="1.0.7";
 const FIRMWARE_FILE=`TransitCore_Universal_BoardClient_v${FIRMWARE_VERSION.replaceAll(".","_")}.ino`;
 
 function sketchName(boardId){
@@ -43,6 +43,13 @@ Arduino-oppsett
 5. Åpne ${folder}.ino og velg riktig ESP32-kort og port.
 6. Kjør Verify og deretter Upload.
 7. Åpne Serial Monitor på 115200 baud.
+
+Sikker LED-test
+---------------
+Testen er avslått som standard. Når LED-stripen skal kontrolleres, sett både
+LED_HARDWARE_ENABLED og LED_STARTUP_TEST_ENABLED til true i sketch-filen.
+Testen bruker brightness 8, viser rød, grønn og blå på LED 0, går deretter
+gjennom én fysisk LED om gangen og slukker alt før normal drift starter.
 
 Forventet kontroll
 ------------------
