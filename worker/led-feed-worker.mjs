@@ -1,3 +1,5 @@
+import { mtaLine7Response } from "./mta-line7.mjs";
+
 const REPOSITORY = "https://raw.githubusercontent.com/5mkbt4m7n8-hue/transitcore/main";
 const BOARD_IDS = new Set([
   "trondheim-bus-board", "oslo-metro-board", "oslo-metro-board-direction-a",
@@ -771,6 +773,15 @@ export default {
   },
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/v1/international/nyc-subway-7" && request.method === "GET") {
+      try {
+        const result = await mtaLine7Response(env);
+        return statusJson(result.body, result.status);
+      } catch (error) {
+        console.error("MTA line 7 failed", error);
+        return statusJson({ error:"mta_feed_unavailable", message:error.message }, 503);
+      }
+    }
     if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
     if (url.pathname === "/v1/admin/signal-test") return handleSignalTest(request, env);
     if (url.pathname === "/v1/admin/preview") return handlePreview(request, env);
