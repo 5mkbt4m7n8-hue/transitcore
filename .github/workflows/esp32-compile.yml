@@ -1,0 +1,58 @@
+name: ESP32 package compile
+
+on:
+  pull_request:
+    paths:
+      - "firmware/esp32/**"
+      - "config/boards/**"
+      - "config/hardware/**"
+      - "web/publish/esp-package.js"
+      - "scripts/prepare-esp-compile.mjs"
+      - "scripts/test-esp-package.mjs"
+      - ".github/workflows/esp32-compile.yml"
+  push:
+    branches: [main]
+    paths:
+      - "firmware/esp32/**"
+      - "config/boards/**"
+      - "config/hardware/**"
+      - "web/publish/esp-package.js"
+      - "scripts/prepare-esp-compile.mjs"
+      - "scripts/test-esp-package.mjs"
+      - ".github/workflows/esp32-compile.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: arduino/setup-arduino-cli@v2
+
+      - name: Validate downloadable package builder
+        run: node scripts/test-esp-package.mjs
+
+      - name: Prepare profile-specific sketches
+        run: node scripts/prepare-esp-compile.mjs "$RUNNER_TEMP/esp-sketches"
+
+      - name: Install ESP32 core and libraries
+        run: |
+          arduino-cli config init
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32
+          arduino-cli lib install ArduinoJson "Adafruit NeoPixel"
+
+      - name: Compile 47, 147 and 189 LED packages
+        run: |
+          set -euo pipefail
+          for sketch in "$RUNNER_TEMP"/esp-sketches/*; do
+            echo "Compiling $(basename "$sketch")"
+            arduino-cli compile --fqbn esp32:esp32:esp32doit-devkit-v1 "$sketch"
+          done

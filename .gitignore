@@ -1,4 +1,5 @@
 # Local Wi-Fi credentials
 **/secrets.h
 .cache/
+.build/
 
