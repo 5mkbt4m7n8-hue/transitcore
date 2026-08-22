@@ -10,6 +10,8 @@ assert.equal(current.profileRevision,1);
 assert.equal(current.profileFingerprint,"0123456789abcdef");
 const wifiHealthFix=cleanStatusPayload({...base,firmware:"1.0.6",profileRevision:1,profileFingerprint:"0123456789abcdef"},"test-board",Date.now());
 assert.equal(wifiHealthFix.firmware,"1.0.6");
+const commissioningVersion=cleanStatusPayload({...base,firmware:"1.0.7",profileRevision:1,profileFingerprint:"0123456789abcdef"},"test-board",Date.now());
+assert.equal(commissioningVersion.firmware,"1.0.7");
 assert.equal(wifiHealthFix.profileRevision,1);
 assert.equal(wifiHealthFix.profileFingerprint,"0123456789abcdef");
 assert.throws(()=>cleanStatusPayload({...base,firmware:"1.0.5",profileRevision:1,profileFingerprint:""},"test-board",Date.now()));
