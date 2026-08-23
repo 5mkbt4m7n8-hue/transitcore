@@ -168,6 +168,49 @@ export class DeviceStatus {
 
   async fetch(request) {
     const url = new URL(request.url);
+    if (url.pathname === "/registry") {
+      if (request.method === "GET") {
+        const stored = await this.state.storage.list({ prefix: "device:" });
+        const devices = [...stored.values()].map(({ tokenHash, ...device }) => device)
+          .sort((left, right) => left.deviceId.localeCompare(right.deviceId));
+        return statusJson({ devices });
+      }
+      if (request.method === "POST") {
+        const command = await request.json();
+        const key = `device:${command.deviceId}`;
+        const current = await this.state.storage.get(key);
+        if (command.action === "create") {
+          if (current) return statusJson({ error: "device_exists" }, 409);
+          const device = {
+            deviceId: command.deviceId,
+            boardProfile: command.boardProfile,
+            label: command.label,
+            tokenHash: command.tokenHash,
+            enabled: true,
+            createdAt: command.changedAt,
+            rotatedAt: command.changedAt
+          };
+          await this.state.storage.put(key, device);
+          return statusJson({ ok: true });
+        }
+        if (!current) return statusJson({ error: "not_found" }, 404);
+        if (command.action === "rotate") {
+          await this.state.storage.put(key, { ...current, tokenHash: command.tokenHash, enabled: true, rotatedAt: command.changedAt });
+          return statusJson({ ok: true });
+        }
+        if (command.action === "revoke") {
+          await this.state.storage.put(key, { ...current, enabled: false, revokedAt: command.changedAt });
+          return statusJson({ ok: true });
+        }
+        return statusJson({ error: "invalid_action" }, 400);
+      }
+      return statusJson({ error: "method_not_allowed" }, 405);
+    }
+    const registryDeviceMatch = url.pathname.match(/^\/registry\/([^/]+)$/);
+    if (registryDeviceMatch && request.method === "GET") {
+      const device = await this.state.storage.get(`device:${registryDeviceMatch[1]}`);
+      return device ? statusJson(device) : statusJson({ error: "not_found" }, 404);
+    }
     if (url.pathname === "/monitor") {
       if (request.method === "POST") {
         const sample = await request.json();
@@ -245,6 +288,26 @@ async function secureTokenEquals(actual, expected) {
     different |= (left[index] || 0) ^ (right[index] || 0);
   }
   return different === 0;
+}
+
+async function tokenHash(value) {
+  const bytes = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(value))));
+  return [...bytes].map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function lookupDeviceRegistration(env, deviceId) {
+  if (env.DEVICE_STATUS) {
+    const registry = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName("__device-registry__"));
+    const response = await registry.fetch(`https://status.internal/registry/${encodeURIComponent(deviceId)}`);
+    if (response.ok) {
+      const entry = await response.json();
+      if (entry.enabled && BOARD_IDS.has(entry.boardProfile) && /^[0-9a-f]{64}$/.test(entry.tokenHash || "")) {
+        return { ...entry, legacy: false };
+      }
+      return null;
+    }
+  }
+  return resolveDeviceRegistration(env, deviceId);
 }
 
 export function cleanStatusPayload(value, deviceId, boardProfile, receivedAt) {
@@ -733,6 +796,49 @@ async function githubApi(env,path,options={}){
  const result=await fetch("https://api.github.com"+path,{...options,headers:{"accept":"application/vnd.github+json","authorization":`Bearer ${env.GITHUB_PUBLISH_TOKEN}`,"x-github-api-version":"2022-11-28","user-agent":"TransitCore-Publisher",...(options.headers||{})}});
  const body=await result.json().catch(()=>({}));if(!result.ok)throw Error(`GitHub ${result.status}: ${body.message||"request failed"}`);return body;
 }
+function randomCredential(byteCount=32){
+ const bytes=crypto.getRandomValues(new Uint8Array(byteCount));
+ let binary="";for(const byte of bytes)binary+=String.fromCharCode(byte);
+ return btoa(binary).replaceAll("+","-").replaceAll("/","_").replace(/=+$/g,"");
+}
+function deviceRegistry(env){return env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName("__device-registry__"))}
+export async function handleDevices(request,env){
+ if(request.method==="OPTIONS")return new Response(null,{status:204,headers:publishCors});
+ if(!env.PUBLISH_ADMIN_TOKEN)return publishResponse({error:"device_admin_not_configured"},503);
+ if(request.headers.get("authorization")!==`Bearer ${env.PUBLISH_ADMIN_TOKEN}`)return publishResponse({error:"unauthorized"},401);
+ if(!env.DEVICE_STATUS)return publishResponse({error:"device_storage_unavailable"},503);
+ const registry=deviceRegistry(env);
+ if(request.method==="GET")return publishResponse(await registry.fetch("https://status.internal/registry").then(response=>response.json()));
+ if(request.method!=="POST")return publishResponse({error:"method_not_allowed"},405);
+ try{
+  const payload=await request.json(),action=String(payload.action||"");
+  const changedAt=new Date().toISOString();
+  if(action==="create"){
+   const boardProfile=String(payload.boardProfile||"");
+   if(!BOARD_IDS.has(boardProfile))return publishResponse({error:"invalid_board_profile"},400);
+   const label=String(payload.label||boardProfile).trim().slice(0,80);
+   for(let attempt=0;attempt<4;attempt++){
+    const deviceId=`${boardProfile}-${randomCredential(6).toLowerCase()}`,token=randomCredential(32);
+    const response=await registry.fetch("https://status.internal/registry",{method:"POST",body:JSON.stringify({action,deviceId,boardProfile,label,tokenHash:await tokenHash(token),changedAt})});
+    if(response.ok)return publishResponse({ok:true,device:{deviceId,boardProfile,label,enabled:true,createdAt:changedAt},token},201);
+    if(response.status!==409)return publishResponse({error:"device_create_failed"},response.status);
+   }
+   return publishResponse({error:"device_id_collision"},409);
+  }
+  const deviceId=String(payload.deviceId||"");
+  if(!/^[a-z0-9_-]{3,120}$/.test(deviceId))return publishResponse({error:"invalid_device_id"},400);
+  if(action==="rotate"){
+   const token=randomCredential(32),response=await registry.fetch("https://status.internal/registry",{method:"POST",body:JSON.stringify({action,deviceId,tokenHash:await tokenHash(token),changedAt})});
+   if(!response.ok)return publishResponse(await response.json(),response.status);
+   return publishResponse({ok:true,deviceId,token,rotatedAt:changedAt});
+  }
+  if(action==="revoke"){
+   const response=await registry.fetch("https://status.internal/registry",{method:"POST",body:JSON.stringify({action,deviceId,changedAt})});
+   return publishResponse(await response.json(),response.status);
+  }
+  return publishResponse({error:"invalid_action"},400);
+ }catch(error){console.error("device administration failed",error);return publishResponse({error:"device_admin_failed",message:error.message},400)}
+}
 async function handlePublish(request,env){
  if(request.method==="OPTIONS")return new Response(null,{status:204,headers:publishCors});
  if(request.method!=="POST")return publishResponse({error:"method_not_allowed"},405);
@@ -833,6 +939,7 @@ export default {
       }
     }
     if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
+    if (url.pathname === "/v1/admin/devices") return handleDevices(request, env);
     if (url.pathname === "/v1/admin/signal-test") return handleSignalTest(request, env);
     if (url.pathname === "/v1/admin/preview") return handlePreview(request, env);
     if (url.pathname === "/status" && request.method === "GET") {
@@ -872,7 +979,7 @@ export default {
       }
       let registration;
       try {
-        registration = resolveDeviceRegistration(env, deviceId);
+        registration = await lookupDeviceRegistration(env, deviceId);
       } catch (error) {
         console.error(error);
         return statusJson({ error: "status_not_configured" }, 503);
@@ -882,7 +989,11 @@ export default {
       if (request.method === "GET") return stub.fetch("https://status.internal/");
       if (request.method !== "POST") return statusJson({ error: "method_not_allowed" }, 405);
       const authorization = request.headers.get("authorization") || "";
-      if (!authorization.startsWith("Bearer ") || !await secureTokenEquals(authorization.slice(7), registration.token)) {
+      const suppliedToken = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+      const authenticated = registration.tokenHash
+        ? await secureTokenEquals(await tokenHash(suppliedToken), registration.tokenHash)
+        : await secureTokenEquals(suppliedToken, registration.token);
+      if (!authorization.startsWith("Bearer ") || !authenticated) {
         return statusJson({ error: "unauthorized" }, 401);
       }
       try {
