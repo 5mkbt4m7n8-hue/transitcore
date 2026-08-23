@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>TransitCore nettverkskart</title>
+  <link rel="stylesheet" href="../shared/signal-policy.css">
   <style>
     :root{color-scheme:dark;--bg:#090d12;--panel:#121821;--line:#35404d;--text:#f5f7fa;--muted:#9ca9b8;--ok:#39d98a;--warn:#ffb020}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,sans-serif}main{max-width:1400px;margin:auto;padding:16px}
@@ -11,8 +12,8 @@
     button,.toggle{background:#18212c;color:var(--text);border:1px solid #3b4858;border-radius:9px;padding:8px 11px;cursor:pointer;font:inherit}.toggle input{margin-right:6px}.status{margin-left:auto;color:var(--muted)}
     .badge{border:1px solid #2b3542;background:#121821;border-radius:999px;padding:6px 10px}.badge b{color:#fff}.swatch{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px}
     .mapwrap{background:#0e141c;border:1px solid #26303d;border-radius:14px;overflow:hidden;position:relative}svg{display:block;width:100%;height:auto;min-height:560px}
-    .route{fill:none;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;opacity:.82}.route.off{display:none}.station{cursor:pointer}.station-core{fill:#202a36;stroke:#657386;stroke-width:3;transition:opacity .2s}.station-core.on{fill:currentColor;stroke:#fff;filter:url(#glow)}.station-core.approaching{animation:pulse 2.4s ease-in-out infinite}.station-core.departed{fill:currentColor;stroke:currentColor;opacity:.24}.station-core.hidden-route{display:none}\n    .station-label{fill:#dce4ee;font-size:12px;font-weight:700;paint-order:stroke;stroke:#0e141c;stroke-width:5px;stroke-linejoin:round;pointer-events:none}.station-label.minor{font-size:10px;opacity:0;transition:opacity .15s}.station:hover .station-label.minor,.station:focus .station-label.minor{opacity:1}
-    @keyframes pulse{0%,100%{opacity:.38}50%{opacity:1}}.info{display:none;position:absolute;left:12px;bottom:12px;width:min(420px,calc(100% - 24px));background:#17202b;border:1px solid #48576a;border-radius:12px;padding:12px;box-shadow:0 15px 40px #000a}.info.show{display:block}.info h2{font-size:16px;margin:0 0 7px}.info p{margin:5px 0;color:#ccd5df}.close{float:right;padding:4px 8px}
+    .route{fill:none;stroke-width:9;stroke-linecap:round;stroke-linejoin:round;opacity:.82}.route.off{display:none}.station{cursor:pointer}.station-core{fill:#202a36;stroke:#657386;stroke-width:3;transition:opacity .2s}.station-core.on{fill:currentColor;stroke:#fff;filter:url(#glow)}.station-core.approaching{animation:transitCoreApproachPulse var(--tc-approach-pulse) ease-in-out infinite;transform-box:fill-box;transform-origin:center}.station-core.departed{fill:currentColor;stroke:currentColor;opacity:.24}.station-core.hidden-route{display:none}\n    .station-label{fill:#dce4ee;font-size:12px;font-weight:700;paint-order:stroke;stroke:#0e141c;stroke-width:5px;stroke-linejoin:round;pointer-events:none}.station-label.minor{font-size:10px;opacity:0;transition:opacity .15s}.station:hover .station-label.minor,.station:focus .station-label.minor{opacity:1}
+    .info{display:none;position:absolute;left:12px;bottom:12px;width:min(420px,calc(100% - 24px));background:#17202b;border:1px solid #48576a;border-radius:12px;padding:12px;box-shadow:0 15px 40px #000a}.info.show{display:block}.info h2{font-size:16px;margin:0 0 7px}.info p{margin:5px 0;color:#ccd5df}.close{float:right;padding:4px 8px}
     @media(max-width:650px){main{padding:9px}.status{width:100%;margin:0}svg{min-height:440px}.station-label{font-size:9px}.station-label.minor{display:none}.route{stroke-width:11}}
   </style>
 </head>
@@ -28,7 +29,8 @@
     <aside class="info" id="info"><button class="close" id="close">Lukk</button><h2 id="infoTitle"></h2><div id="infoBody"></div></aside>
   </section>
 </main>
-<script>
+<script src="../shared/signal-policy.js"></script><script>
+TransitCoreSignals.applyCssVariables(document);
 "use strict";
 const $=id=>document.getElementById(id),BASE="../../config/",FEED="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/trondheim-bus-board/frame";
 let board,hardware,profiles=[],stationMap=new Map,physicalByLogical=new Map,physicalStation=new Map,lastFrame=null,timer=null,cycleTimer=null,simulation=false;
