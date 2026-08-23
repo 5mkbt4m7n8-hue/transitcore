@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
-import { applyMotionLifecycle, buildFrame, buildLinearRouteFrame, buildSignalTestSequence, matchesDirection, validateConfiguration } from "../worker/led-feed-worker.mjs";
+import { SIGNAL_POLICY, applyMotionLifecycle, attachSignalPolicy, buildFrame, buildLinearRouteFrame, buildSignalTestSequence, matchesDirection, validateConfiguration } from "../worker/led-feed-worker.mjs";
+
+assert.equal(SIGNAL_POLICY.version, 1);
+assert.equal(SIGNAL_POLICY.approachPulseMs, 1800);
+assert.deepEqual(attachSignalPolicy({ schemaVersion: 1 }).signalPolicy, SIGNAL_POLICY);
 
 const now = Date.parse("2026-08-11T12:00:00Z");
 const board = { id: "trondheim-bus-board", leds: { count: 2 }, routes: ["route-1"], render: { freshnessSeconds: 120, approachRadiusMeters: 250, arrivalRadiusMeters: 85 }, nodes: [
@@ -127,4 +131,3 @@ assert.deepEqual(signalFrames[6].leds[0].rgb, [66, 165, 245], "Latest departure 
 assert.equal(signalFrames[6].leds[0].brightness, 8);
 assert.deepEqual(signalFrames[7].leds, [], "Afterglow expires to OFF after ten seconds");
 console.log("Isolated Worker signal sequence tests OK");
-

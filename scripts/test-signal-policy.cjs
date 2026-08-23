@@ -1,6 +1,7 @@
 const assert = require("node:assert/strict");
 const policy = require("../web/shared/signal-policy.js");
 
+assert.equal(policy.version, 1);
 assert.equal(policy.resolveEta(31), "OFF");
 assert.equal(policy.resolveEta(30), "APPROACHING");
 assert.equal(policy.resolveEta(1), "APPROACHING");

@@ -1,7 +1,7 @@
 (function(root){
 "use strict";
 
-const FIRMWARE_VERSION="1.0.7";
+const FIRMWARE_VERSION="1.0.8";
 const FIRMWARE_FILE=`TransitCore_Universal_BoardClient_v${FIRMWARE_VERSION.replaceAll(".","_")}.ino`;
 
 function sketchName(boardId){
@@ -55,7 +55,7 @@ Forventet kontroll
 ------------------
 Board ${board.id} | ${hardware.leds.count} LED-er
 Status-token konfigurert: JA
-LED-frame OK | profil r…
+LED-frame OK | profil r… | policy v1 1800 ms
 STATUS | HTTP 200
 
 Sikkerhet

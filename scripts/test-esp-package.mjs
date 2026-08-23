@@ -6,8 +6,8 @@ const source=fs.readFileSync(new URL("../web/publish/esp-package.js",import.meta
 const context={};context.globalThis=context;vm.runInNewContext(source,context);
 const api=context.TransitCoreEspPackage;
 
-assert.equal(api.FIRMWARE_VERSION,"1.0.7");
-assert.equal(api.FIRMWARE_FILE,"TransitCore_Universal_BoardClient_v1_0_7.ino");
+assert.equal(api.FIRMWARE_VERSION,"1.0.8");
+assert.equal(api.FIRMWARE_FILE,"TransitCore_Universal_BoardClient_v1_0_8.ino");
 assert.equal(api.sketchName("oslo-metro-board"),"TransitCore_oslo_metro_board_ESP32");
 
 const result=api.createFiles({
@@ -17,7 +17,7 @@ const result=api.createFiles({
   firmware:"void setup(){}\nvoid loop(){}\n"
 });
 assert.equal(result.files.length,4);
-assert.equal(result.filename,"test-board-esp32-v1.0.7.zip");
+assert.equal(result.filename,"test-board-esp32-v1.0.8.zip");
 assert.deepEqual(Array.from(result.files,file=>file.name),[
   "TransitCore_test_board_ESP32/TransitCore_test_board_ESP32.ino",
   "TransitCore_test_board_ESP32/board_config.h",
@@ -27,4 +27,4 @@ assert.deepEqual(Array.from(result.files,file=>file.name),[
 assert.match(result.files[2].content,/TRANSITCORE_STATUS_TOKEN/);
 assert.match(result.files[3].content,/STATUS \| HTTP 200/);
 assert.match(result.files[3].content,/LED_STARTUP_TEST_ENABLED/);
-console.log("ESP package builder OK: 4 safe files for Board Client v1.0.7");
+console.log("ESP package builder OK: 4 safe files for Board Client v1.0.8");

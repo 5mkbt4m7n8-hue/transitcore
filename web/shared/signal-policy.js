@@ -5,6 +5,8 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
+  const version = 1;
+
   const settings = Object.freeze({
     approachWindowSeconds: 30,
     atStopThresholdSeconds: 0,
@@ -45,5 +47,5 @@
     style.setProperty("--tc-afterglow-duration", `${settings.departureAfterglowSeconds}s`);
   }
 
-  return Object.freeze({settings, priorities, normalize, priority, highestState, resolveEta, applyCssVariables});
+  return Object.freeze({version, settings, priorities, normalize, priority, highestState, resolveEta, applyCssVariables});
 });
