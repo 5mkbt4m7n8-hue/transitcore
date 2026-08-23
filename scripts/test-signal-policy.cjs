@@ -11,5 +11,9 @@ assert.equal(policy.highestState([{state:"PASSED"},{state:"APPROACHING"},{state:
 assert.equal(policy.highestState([{state:"afterglow"},{state:"approaching"}]), "APPROACHING");
 assert.equal(policy.settings.departureAfterglowSeconds, 10);
 assert.equal(policy.settings.approachPulseSeconds, 1.8);
+assert.equal(policy.approachAnimationDelayMs(0), 0);
+assert.equal(policy.approachAnimationDelayMs(1000), -1000);
+assert.equal(policy.approachAnimationDelayMs(1800), 0);
+assert.equal(policy.approachAnimationDelayMs(1900), -100);
 
 console.log("Signal policy tests OK");
