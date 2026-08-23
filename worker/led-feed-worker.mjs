@@ -1,5 +1,18 @@
 import { mtaLine7Response } from "./mta-line7.mjs";
 
+export const SIGNAL_POLICY = Object.freeze({
+  version: 1,
+  approachPulseMs: 1800,
+  departureAfterglowSeconds: 10,
+  fullBrightness: 32,
+  afterglowBrightness: 8,
+  priorities: Object.freeze({ OFF: 0, PASSED: 1, APPROACHING: 2, AT_STOP: 3 })
+});
+
+export function attachSignalPolicy(frame) {
+  return { ...frame, signalPolicy: SIGNAL_POLICY };
+}
+
 const REPOSITORY = "https://raw.githubusercontent.com/5mkbt4m7n8-hue/transitcore/main";
 const BOARD_IDS = new Set([
   "trondheim-bus-board", "oslo-metro-board", "oslo-metro-board-direction-a",
@@ -29,14 +42,14 @@ function makePassedLed(led) {
     ...led,
     state: "AT_STOP",
     lifecycle: "PASSED",
-    brightness: Math.min(8, led.brightness),
+    brightness: Math.min(SIGNAL_POLICY.afterglowBrightness, led.brightness),
     // Afterglow belongs only to the most recently departed vehicle.
     // Keeping older occupants here made one LED alternate between stale line colours.
     occupants: vehicle ? [vehicle] : []
   };
 }
 
-export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), afterglowMs = 20000) {
+export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), afterglowMs = SIGNAL_POLICY.departureAfterglowSeconds * 1000) {
   afterglowMs = Math.max(0, Number(afterglowMs) || 0);
   const next = {};
   const leds = [];
@@ -87,12 +100,13 @@ export function buildSignalTestSequence({
   ledId,
   firstLine,
   secondLine,
-  brightness = 32,
+  brightness = SIGNAL_POLICY.fullBrightness,
   now = Date.now(),
-  afterglowMs = 10000
+  afterglowMs = SIGNAL_POLICY.departureAfterglowSeconds * 1000
 }) {
   const base = {
     schemaVersion: 1,
+    signalPolicy: SIGNAL_POLICY,
     boardProfile,
     profileRevision,
     profileFingerprint,
@@ -199,7 +213,7 @@ export class DeviceStatus {
 
 export function cleanStatusPayload(value, deviceId, receivedAt) {
   const firmware = String(value?.firmware || "");
-  if (!value || value.schemaVersion !== 1 || value.boardProfile !== deviceId || !["1.0.4","1.0.5","1.0.6","1.0.7"].includes(firmware)) {
+  if (!value || value.schemaVersion !== 1 || value.boardProfile !== deviceId || !["1.0.4","1.0.5","1.0.6","1.0.7","1.0.8"].includes(firmware)) {
     throw Error("invalid status payload");
   }
   const profileRevision = Number(value.profileRevision || 0);
@@ -392,7 +406,7 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
       return {
         id: item.id,
         rgb: rgb(item.profile.line.color || color(item.profile, item.destination)),
-        brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32),
+        brightness: Math.min(SIGNAL_POLICY.fullBrightness, hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness),
         state: item.state,
         vehicle: {
           id: item.vehicleId,
@@ -472,7 +486,7 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
     sequence: Math.floor(now / 1000), ttlSeconds: 30, ledCount: hardware.leds?.count ?? board.leds.count,
     leds: [...strongest.values()].sort((a, b) => a.id - b.id).map(item => ({
       id: item.id, rgb: rgb(color(profile, item.destination)),
-      brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32), state: item.state
+      brightness: Math.min(SIGNAL_POLICY.fullBrightness, hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness), state: item.state
     }))
   };
 }
@@ -611,7 +625,7 @@ function frameFromStationArrivals(board, hardware, arrivals, now) {
     leds: arrivals.sort((a, b) => a.id - b.id).map(item => ({
       id: item.id,
       rgb: rgb(item.profile.line.color || color(item.profile, item.destination)),
-      brightness: Math.min(32, hardware.leds?.brightnessLimit ?? 32),
+      brightness: Math.min(SIGNAL_POLICY.fullBrightness, hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness),
       state: item.state,
       vehicle: { id: item.vehicleId }
     }))
@@ -624,16 +638,16 @@ const response = (body, status = 200) => new Response(JSON.stringify(body, null,
 async function stabilizeMotionFrame(env, board, frame, now) {
   const configured = board.render?.departureAfterglowSeconds;
   const afterglowSeconds = configured == null && board.id === "trondheim-bus-board"
-    ? 10
-    : Math.max(0, Math.min(10, Number(configured) || 0));
-  if (!afterglowSeconds || !env.DEVICE_STATUS) return frame;
+    ? SIGNAL_POLICY.departureAfterglowSeconds
+    : Math.max(0, Math.min(SIGNAL_POLICY.departureAfterglowSeconds, Number(configured) || 0));
+  if (!afterglowSeconds || !env.DEVICE_STATUS) return attachSignalPolicy(frame);
   const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(board.id));
   const result = await stub.fetch("https://status.internal/motion", {
     method: "POST",
     body: JSON.stringify({ frame, now, afterglowMs: afterglowSeconds * 1000 })
   });
   if (!result.ok) throw Error(`motion state: HTTP ${result.status}`);
-  return result.json();
+  return attachSignalPolicy(await result.json());
 }
 
 // Git-connected deploys reuse the encrypted publishing secrets configured in Cloudflare.
@@ -737,7 +751,7 @@ async function handleSignalTest(request,env){
   const available=profiles.filter(p=>node.routes.includes(p.id)),first=available[0]||profiles[0],second=available[1]||profiles.find(p=>p!==first)||first;
   const physical=new Map(hardware.assignments.map(item=>[item.logicalLed,item.physicalLed]));
   const line=p=>({code:String(p.line.publicCode),rgb:rgb(p.line.color||color(p))});
-  const frames=buildSignalTestSequence({boardProfile:board.id,profileRevision:board.profileRevision??1,profileFingerprint:board.profileFingerprint||"",ledCount:hardware.leds?.count??board.leds.count,ledId:physical.get(node.led)??node.led,firstLine:line(first),secondLine:line(second),brightness:Math.min(32,hardware.leds?.brightnessLimit??32),now,afterglowMs:10000});
+  const frames=buildSignalTestSequence({boardProfile:board.id,profileRevision:board.profileRevision??1,profileFingerprint:board.profileFingerprint||"",ledCount:hardware.leds?.count??board.leds.count,ledId:physical.get(node.led)??node.led,firstLine:line(first),secondLine:line(second),brightness:Math.min(SIGNAL_POLICY.fullBrightness,hardware.leds?.brightnessLimit??SIGNAL_POLICY.fullBrightness),now,afterglowMs:SIGNAL_POLICY.departureAfterglowSeconds*1000});
   return publishResponse({schemaVersion:1,boardProfile:board.id,profileRevision:board.profileRevision??1,profileFingerprint:board.profileFingerprint||"",testNode:{name:node.name,logicalLed:node.led,physicalLed:physical.get(node.led)??node.led},stepMilliseconds:[0,1000,2000,3000,4000,5000,6000,16001],frames});
  }catch(error){console.error("signal test failed",error);return publishResponse({error:"signal_test_failed",message:error.message},400)}
 }
@@ -842,7 +856,7 @@ export default {
         const arrivals = await liveStationArrivals(board, profiles, now);
         const frame = await stabilizeMotionFrame(env, board, frameFromStationArrivals(board, hardware, arrivals, now), now);
         await recordBoardMonitor(env, boardId, { ...validFrameSummary(frame, boardId), source: monitorSource });
-        return response(frame);
+        return response(attachSignalPolicy(frame));
       }
       const vehicles = await liveVehicles(
         profiles[0].provider.vehicleEndpoint,
@@ -851,12 +865,12 @@ export default {
       if (board.layout === "linear-route-vled") {
         const frame = buildLinearRouteFrame({ board, profiles, hardware, vehicles, now });
         await recordBoardMonitor(env, boardId, { ...validFrameSummary(frame, boardId), source: monitorSource });
-        return response(frame);
+        return response(attachSignalPolicy(frame));
       }
       const rawFrame = buildFrame({ board, profiles, hardware, vehicles, now });
       const frame = await stabilizeMotionFrame(env, board, rawFrame, now);
       await recordBoardMonitor(env, boardId, { ...validFrameSummary(frame, boardId), source: monitorSource });
-      return response(frame);
+      return response(attachSignalPolicy(frame));
     } catch (error) {
       console.error(error);
       await recordBoardMonitor(env, boardId, { state: "FEED_ERROR", detail: error.message, activeLeds: 0, source: monitorSource });
