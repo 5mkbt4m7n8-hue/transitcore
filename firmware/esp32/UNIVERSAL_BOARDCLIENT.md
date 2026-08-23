@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_0_8.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_0_9.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -52,5 +52,9 @@ Version 1.0.7 adds a safe, non-blocking LED commissioning sequence.
 Version 1.0.8 validates the Worker's versioned signal policy and uses its
 approach pulse period. Frames without policy metadata remain compatible and use
 the established 1800 ms pulse period.
+
+Version 1.0.9 pins the physical approach pulse to the compiled 1800 ms policy.
+It rejects a versioned frame whose pulse period differs, and frame reception
+never restarts the local animation phase.
 
 
