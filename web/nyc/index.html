@@ -21,6 +21,6 @@ function signal(stopId,arrival,now){
  afterglowUntil.delete(stopId);return {state:"",label:""};
 }
 function render(data){lastData=data;const now=Date.now(),arrivals=new Map(data.arrivals.map(a=>[a.stopId,a]));stations.innerHTML=data.stations.slice().reverse().map(s=>`<div class="station"><div class="name">${esc(s.name)}</div>${["N","S"].map(d=>{const stopId=s.id+d,{state,label}=signal(stopId,arrivals.get(stopId),now);return `<div class="track"><span class="dot ${state}"></span><span class="eta">${label}</span></div>`}).join("")}</div>`).join("");status.className="status";status.textContent=`${data.arrivals.length} kommende tog · oppdatert ${new Date(data.generatedAt).toLocaleTimeString()}`}
-function repaintAfterglow(){if(lastData)render(lastData)}
+function repaintAfterglow(){const now=Date.now();if(lastData&&[...afterglowUntil.values()].some(until=>until<=now))render(lastData)}
 async function refresh(){try{const response=await fetch(API,{cache:"no-store"}),data=await response.json();if(!response.ok)throw Error(data.message||data.error);render(data)}catch(error){status.className="status error";status.textContent=`MTA-feed ikke tilgjengelig: ${error.message}`;if(!stations.children.length)stations.innerHTML='<p class="error">Den offentlige MTA-feeden svarte ikke. Siden prøver automatisk igjen.</p>'}finally{setTimeout(refresh,10000)}}refresh();setInterval(repaintAfterglow,1000);
 </script></html>
