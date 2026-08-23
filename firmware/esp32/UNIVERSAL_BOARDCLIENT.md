@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_0_9.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_0_10.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -56,5 +56,12 @@ the established 1800 ms pulse period.
 Version 1.0.9 pins the physical approach pulse to the compiled 1800 ms policy.
 It rejects a versioned frame whose pulse period differs, and frame reception
 never restarts the local animation phase.
+
+Version 1.0.10 removes insecure TLS mode. Feed and status requests validate the
+server hostname and certificate chain with Espressif's maintained public CA
+bundle. It also supports `TRANSITCORE_DEVICE_ID` and
+`TRANSITCORE_DEVICE_TOKEN`, allowing one compromised installation to be
+revoked without changing every other physical board. The older shared status
+token remains a temporary Worker-side migration fallback.
 
 

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { cleanStatusPayload, DeviceStatus } from "../worker/led-feed-worker.mjs";
+import { cleanStatusPayload, DeviceStatus, resolveDeviceRegistration } from "../worker/led-feed-worker.mjs";
 
 const input = {
   schemaVersion: 1,
@@ -16,11 +16,18 @@ const input = {
   minimumFreeHeap: 208000,
   ignored: "not stored"
 };
-const clean = cleanStatusPayload(input, "trondheim-bus-board", Date.parse("2026-08-13T18:00:00Z"));
+const clean = cleanStatusPayload(input, "trondheim-bus-001", "trondheim-bus-board", Date.parse("2026-08-13T18:00:00Z"));
 assert.equal(clean.receivedAt, "2026-08-13T18:00:00.000Z");
+assert.equal(clean.deviceId, "trondheim-bus-001");
+assert.equal(clean.boardProfile, "trondheim-bus-board");
 assert.equal(clean.ignored, undefined);
-assert.throws(() => cleanStatusPayload({ ...input, boardProfile: "wrong" }, "trondheim-bus-board", Date.now()));
-assert.throws(() => cleanStatusPayload({ ...input, freeHeap: -1 }, "trondheim-bus-board", Date.now()));
+assert.throws(() => cleanStatusPayload({ ...input, boardProfile: "wrong" }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
+assert.throws(() => cleanStatusPayload({ ...input, freeHeap: -1 }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
+const uniqueToken="0123456789abcdef0123456789abcdef";
+const registration=resolveDeviceRegistration({DEVICE_INGEST_TOKENS:JSON.stringify({"trondheim-bus-001":{boardProfile:"trondheim-bus-board",token:uniqueToken}})},"trondheim-bus-001");
+assert.deepEqual(registration,{deviceId:"trondheim-bus-001",boardProfile:"trondheim-bus-board",token:uniqueToken,legacy:false});
+assert.equal(resolveDeviceRegistration({DEVICE_INGEST_TOKENS:JSON.stringify({"trondheim-bus-001":{boardProfile:"trondheim-bus-board",token:uniqueToken,enabled:false}})},"trondheim-bus-001"),null);
+assert.equal(resolveDeviceRegistration({STATUS_INGEST_TOKEN:"legacy"},"trondheim-bus-board").legacy,true);
 
 const values = new Map();
 const state = { storage: {
