@@ -39,6 +39,13 @@
     return eta <= settings.atStopThresholdSeconds ? "AT_STOP" : "APPROACHING";
   }
 
+  function approachAnimationDelayMs(now = Date.now()) {
+    const period = settings.approachPulseSeconds * 1000;
+    const timestamp = Number(now);
+    const phase = ((Number.isFinite(timestamp) ? timestamp : 0) % period + period) % period;
+    return phase ? -phase : 0;
+  }
+
   function applyCssVariables(documentRef) {
     const style = documentRef?.documentElement?.style;
     if (!style) return;
@@ -47,5 +54,5 @@
     style.setProperty("--tc-afterglow-duration", `${settings.departureAfterglowSeconds}s`);
   }
 
-  return Object.freeze({version, settings, priorities, normalize, priority, highestState, resolveEta, applyCssVariables});
+  return Object.freeze({version, settings, priorities, normalize, priority, highestState, resolveEta, approachAnimationDelayMs, applyCssVariables});
 });
