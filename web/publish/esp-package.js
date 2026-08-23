@@ -1,7 +1,7 @@
 (function(root){
 "use strict";
 
-const FIRMWARE_VERSION="1.0.9";
+const FIRMWARE_VERSION="1.0.10";
 const FIRMWARE_FILE=`TransitCore_Universal_BoardClient_v${FIRMWARE_VERSION.replaceAll(".","_")}.ino`;
 
 function sketchName(boardId){
@@ -9,14 +9,16 @@ function sketchName(boardId){
   return `TransitCore_${safe}_ESP32`;
 }
 
-function secretsExample(){return `#pragma once
+function secretsExample(deviceId){return `#pragma once
 
 // Fyll inn lokale verdier. Ikke publiser secrets.h.
 const char* WIFI_SSID = "YOUR_WIFI_NAME";
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 
-// Må samsvare med Worker-hemmeligheten STATUS_INGEST_TOKEN.
-#define TRANSITCORE_STATUS_TOKEN "YOUR_PRIVATE_STATUS_TOKEN"
+// Unik identitet og nøkkel for denne fysiske tavlen. Registreres i Workerens
+// krypterte DEVICE_INGEST_TOKENS. Ikke bruk GitHub- eller administratornøkler.
+#define TRANSITCORE_DEVICE_ID "${deviceId}"
+#define TRANSITCORE_DEVICE_TOKEN "YOUR_UNIQUE_DEVICE_TOKEN"
 `}
 
 function readme(board,hardware,folder){return `TransitCore ferdig ESP32-pakke
@@ -32,13 +34,14 @@ Innhold
 -------
 ${folder}.ino       Stabil, universell ESP32-motor.
 board_config.h      Tavle-ID, feed-adresse, datapin og LED-antall.
-secrets.example.h   Mal for Wi-Fi og privat status-token.
+secrets.example.h   Mal for Wi-Fi og unik enhetsidentitet.
 
 Arduino-oppsett
 ---------------
 1. Pakk ut ZIP-filen uten å endre mappenavnet «${folder}».
 2. Kopier secrets.example.h til secrets.h i samme mappe.
-3. Fyll inn Wi-Fi-navn, Wi-Fi-passord og TRANSITCORE_STATUS_TOKEN.
+3. Fyll inn Wi-Fi-navn, Wi-Fi-passord, TRANSITCORE_DEVICE_ID og
+   TRANSITCORE_DEVICE_TOKEN. Den foreslåtte ID-en kan erstattes med en unik ID.
 4. Installer bibliotekene ArduinoJson og Adafruit NeoPixel i Arduino IDE.
 5. Åpne ${folder}.ino og velg riktig ESP32-kort og port.
 6. Kjør Verify og deretter Upload.
@@ -54,14 +57,14 @@ gjennom én fysisk LED om gangen og slukker alt før normal drift starter.
 Forventet kontroll
 ------------------
 Board ${board.id} | ${hardware.leds.count} LED-er
-Status-token konfigurert: JA
+TLS-verifisering: CA-bunt | enhet … | enhetsnøkkel JA
 LED-frame OK | profil r… | policy v1 1800 ms
 STATUS | HTTP 200
 
 Sikkerhet
 ---------
-secrets.h skal aldri legges i Git eller deles. GitHub-token og
-publiseringsnøkkel skal ikke brukes som status-token.
+secrets.h skal aldri legges i Git eller deles. Hver fysisk tavle skal ha sin
+egen nøkkel. GitHub-token og publiseringsnøkkel skal aldri brukes her.
 `}
 
 function createFiles({board,hardware,boardConfig,firmware}){
@@ -73,7 +76,7 @@ function createFiles({board,hardware,boardConfig,firmware}){
     files:[
       {name:`${prefix}${folder}.ino`,content:firmware},
       {name:`${prefix}board_config.h`,content:boardConfig},
-      {name:`${prefix}secrets.example.h`,content:secretsExample()},
+      {name:`${prefix}secrets.example.h`,content:secretsExample(board.id)},
       {name:`${prefix}README.txt`,content:readme(board,hardware,folder)}
     ]
   };

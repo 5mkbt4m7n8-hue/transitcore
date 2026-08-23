@@ -211,9 +211,45 @@ export class DeviceStatus {
   }
 }
 
-export function cleanStatusPayload(value, deviceId, receivedAt) {
+export function resolveDeviceRegistration(env, deviceId) {
+  let registrations = {};
+  try {
+    registrations = JSON.parse(env.DEVICE_INGEST_TOKENS || "{}");
+  } catch {
+    throw Error("invalid DEVICE_INGEST_TOKENS secret");
+  }
+  const entry = registrations[deviceId];
+  if (entry && typeof entry === "object" && !Array.isArray(entry)) {
+    const token = String(entry.token || "");
+    const boardProfile = String(entry.boardProfile || "");
+    if (entry.enabled === false || token.length < 32 || !BOARD_IDS.has(boardProfile)) return null;
+    return { deviceId, boardProfile, token, legacy: false };
+  }
+  // Temporary migration path: existing installations use the board profile as
+  // device ID and the old shared secret. New installations must use the map.
+  if (BOARD_IDS.has(deviceId) && env.STATUS_INGEST_TOKEN) {
+    return { deviceId, boardProfile: deviceId, token: String(env.STATUS_INGEST_TOKEN), legacy: true };
+  }
+  return null;
+}
+
+async function secureTokenEquals(actual, expected) {
+  const encode = value => new TextEncoder().encode(String(value));
+  const [actualHash, expectedHash] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encode(actual)),
+    crypto.subtle.digest("SHA-256", encode(expected))
+  ]);
+  const left = new Uint8Array(actualHash), right = new Uint8Array(expectedHash);
+  let different = left.length ^ right.length;
+  for (let index = 0; index < Math.max(left.length, right.length); index++) {
+    different |= (left[index] || 0) ^ (right[index] || 0);
+  }
+  return different === 0;
+}
+
+export function cleanStatusPayload(value, deviceId, boardProfile, receivedAt) {
   const firmware = String(value?.firmware || "");
-  if (!value || value.schemaVersion !== 1 || value.boardProfile !== deviceId || !["1.0.4","1.0.5","1.0.6","1.0.7","1.0.8","1.0.9"].includes(firmware)) {
+  if (!value || value.schemaVersion !== 1 || (value.deviceId && value.deviceId !== deviceId) || value.boardProfile !== boardProfile || !["1.0.4","1.0.5","1.0.6","1.0.7","1.0.8","1.0.9","1.0.10"].includes(firmware)) {
     throw Error("invalid status payload");
   }
   const profileRevision = Number(value.profileRevision || 0);
@@ -231,7 +267,7 @@ export function cleanStatusPayload(value, deviceId, receivedAt) {
   return {
     schemaVersion: 1,
     deviceId,
-    boardProfile: deviceId,
+    boardProfile,
     firmware,
     profileRevision,
     profileFingerprint,
@@ -829,15 +865,28 @@ export default {
     const statusMatch = url.pathname.match(/^\/v1\/devices\/([^/]+)\/status$/);
     if (statusMatch) {
       const deviceId = statusMatch[1];
-      if (!BOARD_IDS.has(deviceId)) return statusJson({ error: "not_found" }, 404);
       if (!env.DEVICE_STATUS) return statusJson({ error: "status_storage_unavailable" }, 503);
-      const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(deviceId));
+      if (request.method === "GET" && BOARD_IDS.has(deviceId)) {
+        const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(deviceId));
+        return stub.fetch("https://status.internal/");
+      }
+      let registration;
+      try {
+        registration = resolveDeviceRegistration(env, deviceId);
+      } catch (error) {
+        console.error(error);
+        return statusJson({ error: "status_not_configured" }, 503);
+      }
+      if (!registration) return statusJson({ error: "not_found" }, 404);
+      const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(registration.boardProfile));
       if (request.method === "GET") return stub.fetch("https://status.internal/");
       if (request.method !== "POST") return statusJson({ error: "method_not_allowed" }, 405);
-      if (!env.STATUS_INGEST_TOKEN) return statusJson({ error: "status_not_configured" }, 503);
-      if (request.headers.get("authorization") !== `Bearer ${env.STATUS_INGEST_TOKEN}`) return statusJson({ error: "unauthorized" }, 401);
+      const authorization = request.headers.get("authorization") || "";
+      if (!authorization.startsWith("Bearer ") || !await secureTokenEquals(authorization.slice(7), registration.token)) {
+        return statusJson({ error: "unauthorized" }, 401);
+      }
       try {
-        const sample = cleanStatusPayload(await request.json(), deviceId, Date.now());
+        const sample = cleanStatusPayload(await request.json(), deviceId, registration.boardProfile, Date.now());
         return stub.fetch("https://status.internal/", { method: "POST", body: JSON.stringify(sample) });
       } catch (error) {
         return statusJson({ error: "invalid_status", message: error.message }, 400);
