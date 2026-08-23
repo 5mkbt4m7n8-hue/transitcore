@@ -1,6 +1,7 @@
 #pragma once
 
-// Copy this file to secrets.h and enter local Wi-Fi credentials.
+// Copy this file to secrets.h. Wi-Fi values are optional fallbacks: when they
+// are absent or fail, the ESP32 starts a phone-friendly setup network.
 // Never commit secrets.h to GitHub.
 const char* WIFI_SSID = "YOUR_WIFI_NAME";
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";

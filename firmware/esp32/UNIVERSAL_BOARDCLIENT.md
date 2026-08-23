@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_0_10.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_1_0.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -63,5 +63,13 @@ bundle. It also supports `TRANSITCORE_DEVICE_ID` and
 `TRANSITCORE_DEVICE_TOKEN`, allowing one compromised installation to be
 revoked without changing every other physical board. The older shared status
 token remains a temporary Worker-side migration fallback.
+
+Version 1.1.0 adds customer Wi-Fi provisioning without changing feed, TTL or
+signal behavior. When no stored or fallback credentials exist, the ESP32 opens
+a temporary `TransitCore-XXXXXX` setup network and captive web page at
+`http://192.168.4.1`. Credentials are stored only in the ESP32's local NVS
+storage, never sent to TransitCore, and take precedence over `secrets.h`.
+Hardware-enabled boards show a startup wave, amber setup indication and green
+success indication.
 
 

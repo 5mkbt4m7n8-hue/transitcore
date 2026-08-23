@@ -1,7 +1,7 @@
 (function(root){
 "use strict";
 
-const FIRMWARE_VERSION="1.0.10";
+const FIRMWARE_VERSION="1.1.0";
 const FIRMWARE_FILE=`TransitCore_Universal_BoardClient_v${FIRMWARE_VERSION.replaceAll(".","_")}.ino`;
 
 function sketchName(boardId){
@@ -34,14 +34,16 @@ Innhold
 -------
 ${folder}.ino       Stabil, universell ESP32-motor.
 board_config.h      Tavle-ID, feed-adresse, datapin og LED-antall.
-secrets.example.h   Mal for Wi-Fi og unik enhetsidentitet.
+secrets.example.h   Reserveverdier og unik enhetsidentitet.
 
 Arduino-oppsett
 ---------------
 1. Pakk ut ZIP-filen uten å endre mappenavnet «${folder}».
-2. Kopier secrets.example.h til secrets.h i samme mappe.
-3. Fyll inn Wi-Fi-navn, Wi-Fi-passord, TRANSITCORE_DEVICE_ID og
-   TRANSITCORE_DEVICE_TOKEN. Den foreslåtte ID-en kan erstattes med en unik ID.
+2. Kopier secrets.example.h til secrets.h i samme mappe. Enhets-ID og token er
+   allerede fylt inn i en registrert pakke.
+3. Wi-Fi kan fylles inn i secrets.h som reserve. Uten gyldig nettverk starter
+   tavlen «TransitCore-XXXXXX». Koble telefonen til dette nettet, åpne
+   http://192.168.4.1 og velg kundens Wi-Fi. Opplysningene lagres lokalt på ESP.
 4. Installer bibliotekene ArduinoJson og Adafruit NeoPixel i Arduino IDE.
 5. Åpne ${folder}.ino og velg riktig ESP32-kort og port.
 6. Kjør Verify og deretter Upload.
