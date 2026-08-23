@@ -1,0 +1,14 @@
+:root{
+  --tc-approach-pulse:1.8s;
+  --tc-reduced-motion-pulse:3.2s;
+  --tc-afterglow-duration:10s;
+}
+
+@keyframes transitCoreApproachPulse{
+  0%,100%{opacity:.28;transform:scale(.82);box-shadow:0 0 4px color-mix(in srgb,currentColor 25%,transparent)}
+  50%{opacity:1;transform:scale(1);box-shadow:0 0 13px color-mix(in srgb,currentColor 65%,transparent)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .approaching{animation-duration:var(--tc-reduced-motion-pulse)!important}
+}
