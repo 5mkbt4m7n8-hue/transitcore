@@ -4,14 +4,23 @@
 <style>
 :root{color-scheme:dark;font:16px system-ui;background:#080b10;color:#f4f7fb;--route:#9a38a1;--route-light:#c986cf}body{margin:0}.wrap{max-width:720px;margin:auto;padding:22px 16px 50px}h1{margin:0;font-size:clamp(25px,6vw,40px)}.sub,.status{color:#aab5c5}.badge{display:inline-grid;place-items:center;background:var(--route);border-radius:50%;width:42px;height:42px;margin-right:10px}.board{margin-top:20px;background:#111720;border:1px solid #293342;border-radius:18px;padding:20px;overflow:auto}.head,.station{display:grid;grid-template-columns:minmax(180px,1fr) 88px 88px;align-items:center}.head{color:#aab5c5;font-size:13px;text-align:center;padding-bottom:10px}.station{min-height:48px}.name{text-align:right;padding-right:24px;font-weight:650}.track{height:100%;display:grid;place-items:center;position:relative}.track:before{content:"";position:absolute;inset:0 auto;width:4px;background:#384455}.dot{z-index:1;width:15px;height:15px;border-radius:50%;background:#202936;border:2px solid #607087;color:var(--route-light);transition:.25s}.dot.approaching{background:color-mix(in srgb,var(--route) 35%,#202936);border-color:var(--route-light);animation:transitCoreApproachPulse var(--tc-approach-pulse) ease-in-out infinite}.dot.at{background:var(--route);border-color:#fff;box-shadow:0 0 17px var(--route-light)}.dot.afterglow{background:color-mix(in srgb,var(--route) 22%,#202936);border-color:color-mix(in srgb,var(--route-light) 50%,#607087);box-shadow:0 0 7px color-mix(in srgb,var(--route-light) 30%,transparent)}.eta{font-size:10px;color:#aab5c5;position:absolute;left:49px;white-space:nowrap}.error{color:#ff8585}.note{margin-top:16px;padding:14px;border-radius:12px;background:#171d27;color:#b8c3d2;font-size:14px}
 </style>
-<div class="wrap"><h1><span class="badge">7</span>NYC Subway Live</h1><p class="sub">Flushing–Main St ↔ 34 St–Hudson Yards · MTA GTFS-Realtime</p><div id="status" class="status">Henter sanntidsdata…</div><div class="board"><div class="head"><span>Stasjon</span><span>mot Flushing</span><span>mot Manhattan</span></div><div id="stations"></div></div><div class="note">Pulsering = 1–30 sekunder til ankomst · fast lys = beregnet ved stasjonen · svakt lys = toget har nettopp forlatt. Signalprioritet: ved stasjon → nærmer seg → etterlys.</div></div>
+<div class="wrap"><h1><span class="badge">7</span>NYC Subway Live</h1><p class="sub">Flushing–Main St ↔ 34 St–Hudson Yards · MTA GTFS-Realtime</p><div id="status" class="status">Henter sanntidsdata…</div><div class="board"><div class="head"><span>Stasjon</span><span>mot Flushing ↑</span><span>mot Manhattan ↓</span></div><div id="stations"></div></div><div class="note">Hvert tog vises bare ved sin nåværende eller neste stasjon. Pulsering = 1–30 sekunder til ankomst · fast lys = beregnet ved stasjonen · svakt lys = toget har nettopp forlatt.</div></div>
 <script src="../shared/signal-policy.js"></script><script>
 const API="https://transitcore-led-feed.lgb84.workers.dev/v1/international/nyc-subway-7";
 const SIGNALS=TransitCoreSignals;SIGNALS.applyCssVariables(document);
 const esc=value=>String(value).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-const previousStates=new Map(),afterglowUntil=new Map();
+const previousStates=new Map(),afterglowUntil=new Map(),recentArrivals=new Map();
 let lastData;
+function effectiveArrival(stopId,arrival,now){
+ if(arrival){recentArrivals.set(stopId,{...arrival,seenAt:now});return arrival}
+ const cached=recentArrivals.get(stopId);
+ if(!cached||now-cached.seenAt>30000){recentArrivals.delete(stopId);return null}
+ const etaSeconds=Math.round((Date.parse(cached.arrivalTime)-now)/1000);
+ if(!Number.isFinite(etaSeconds)||etaSeconds< -30){recentArrivals.delete(stopId);return null}
+ return {...cached,etaSeconds};
+}
 function signal(stopId,arrival,now){
+ arrival=effectiveArrival(stopId,arrival,now);
  const resolved=arrival?SIGNALS.resolveEta(arrival.etaSeconds):"OFF",live=resolved==="AT_STOP"?"at":resolved==="APPROACHING"?"approaching":"";
  const previous=previousStates.get(stopId)||"";
  if(previous==="at"&&live!=="at")afterglowUntil.set(stopId,now+SIGNALS.settings.departureAfterglowSeconds*1000);
@@ -20,7 +29,7 @@ function signal(stopId,arrival,now){
  if((afterglowUntil.get(stopId)||0)>now)return {state:"afterglow",label:"passert"};
  afterglowUntil.delete(stopId);return {state:"",label:""};
 }
-function render(data){lastData=data;const now=Date.now(),arrivals=new Map(data.arrivals.map(a=>[a.stopId,a]));stations.innerHTML=data.stations.slice().reverse().map(s=>`<div class="station"><div class="name">${esc(s.name)}</div>${["N","S"].map(d=>{const stopId=s.id+d,{state,label}=signal(stopId,arrivals.get(stopId),now);return `<div class="track"><span class="dot ${state}"></span><span class="eta">${label}</span></div>`}).join("")}</div>`).join("");status.className="status";status.textContent=`${data.arrivals.length} kommende tog · oppdatert ${new Date(data.generatedAt).toLocaleTimeString()}`}
+function render(data){lastData=data;const now=Date.now(),arrivals=new Map(data.arrivals.map(a=>[a.stopId,a]));stations.innerHTML=data.stations.map(s=>`<div class="station"><div class="name">${esc(s.name)}</div>${["N","S"].map(d=>{const stopId=s.id+d,{state,label}=signal(stopId,arrivals.get(stopId),now);return `<div class="track"><span class="dot ${state}"></span><span class="eta">${label}</span></div>`}).join("")}</div>`).join("");status.className="status";status.textContent=`${data.arrivals.length} aktive tog · oppdatert ${new Date(data.generatedAt).toLocaleTimeString()}`}
 function repaintAfterglow(){const now=Date.now();if(lastData&&[...afterglowUntil.values()].some(until=>until<=now))render(lastData)}
 async function refresh(){try{const response=await fetch(API,{cache:"no-store"}),data=await response.json();if(!response.ok)throw Error(data.message||data.error);render(data)}catch(error){status.className="status error";status.textContent=`MTA-feed ikke tilgjengelig: ${error.message}`;if(!stations.children.length)stations.innerHTML='<p class="error">Den offentlige MTA-feeden svarte ikke. Siden prøver automatisk igjen.</p>'}finally{setTimeout(refresh,10000)}}refresh();setInterval(repaintAfterglow,1000);
 </script></html>
