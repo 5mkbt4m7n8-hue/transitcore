@@ -58,6 +58,7 @@ export function decodeMtaLine7(bytes, now = Date.now()) {
     const trip = nested(update, 1)[0];
     if (!trip || !["7","7X"].includes(text(trip, 5))) continue;
     const tripId = text(trip, 1);
+    const tripStops = [];
     for (const stopUpdate of nested(update, 2)) {
       const stopId = text(stopUpdate, 4);
       if (!/^7\d\d[NS]$/.test(stopId)) continue;
@@ -66,8 +67,13 @@ export function decodeMtaLine7(bytes, now = Date.now()) {
       if (!epoch) continue;
       const etaSeconds = Math.round(epoch - now / 1000);
       if (etaSeconds < -45 || etaSeconds > 20 * 60) continue;
-      arrivals.push({tripId,routeId:text(trip,5),stopId,stationId:stopId.slice(0,3),direction:stopId.at(-1),etaSeconds,arrivalTime:new Date(epoch*1000).toISOString()});
+      tripStops.push({tripId,routeId:text(trip,5),stopId,stationId:stopId.slice(0,3),direction:stopId.at(-1),etaSeconds,arrivalTime:new Date(epoch*1000).toISOString()});
     }
+    // A GTFS trip update contains every future stop. Treating all of them as
+    // positions makes one train light several stations at once. The earliest
+    // non-expired update is the train's current/next station.
+    tripStops.sort((a,b)=>a.etaSeconds-b.etaSeconds);
+    if (tripStops[0]) arrivals.push(tripStops[0]);
   }
   return arrivals.sort((a,b)=>a.etaSeconds-b.etaSeconds);
 }
