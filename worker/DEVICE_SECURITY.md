@@ -6,6 +6,20 @@ the full public CA bundle maintained by Espressif. It no longer uses
 
 ## Register one physical device
 
+The normal workflow is the **Fysiske enheter** section on `web/publish/`:
+
+1. Load the published project package.
+2. Enter the publishing administrator key.
+3. Choose **Opprett enhet og last ned ESP-pakke**.
+4. Keep the downloaded ZIP file. The unique device token cannot be read back
+   from the Worker.
+
+The Worker stores only a SHA-256 digest. The same page can list devices, revoke
+one installation, or rotate its token. Rotation immediately invalidates the old
+token and creates one replacement ESP package.
+
+## Temporary secret-map fallback
+
 Create a random token of at least 32 characters. Add or update the encrypted
 Worker secret `DEVICE_INGEST_TOKENS` as a JSON object:
 
@@ -36,6 +50,6 @@ the shared `STATUS_INGEST_TOKEN`. This fallback keeps deployed v1.0.4-v1.0.9
 clients online while they are upgraded. New devices must use
 `DEVICE_INGEST_TOKENS`; remove the legacy secret when migration is complete.
 
-The JSON secret is suitable for development and a small pilot. Before a larger
-fleet, registrations should move to dedicated encrypted device storage with an
-administrative enrollment and rotation workflow.
+The JSON secret remains available only as a migration fallback. New devices are
+registered in the existing Durable Object storage through the authenticated
+administration endpoint.

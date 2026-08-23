@@ -28,4 +28,10 @@ assert.match(result.files[2].content,/TRANSITCORE_DEVICE_ID "test-board"/);
 assert.match(result.files[2].content,/TRANSITCORE_DEVICE_TOKEN/);
 assert.match(result.files[3].content,/STATUS \| HTTP 200/);
 assert.match(result.files[3].content,/LED_STARTUP_TEST_ENABLED/);
+const enrolled=api.createFiles({
+  board:{id:"test-board",name:"Test",leds:{count:2,dataPin:2}},hardware:{leds:{count:2}},boardConfig:"#pragma once\n",firmware:"void setup(){}\nvoid loop(){}\n",
+  device:{deviceId:"test-board-unit-001",token:"private-device-token"}
+});
+assert.match(enrolled.files[2].content,/TRANSITCORE_DEVICE_ID "test-board-unit-001"/);
+assert.match(enrolled.files[2].content,/TRANSITCORE_DEVICE_TOKEN "private-device-token"/);
 console.log("ESP package builder OK: 4 safe files for Board Client v1.0.10");

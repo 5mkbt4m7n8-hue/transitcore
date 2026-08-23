@@ -9,7 +9,7 @@ function sketchName(boardId){
   return `TransitCore_${safe}_ESP32`;
 }
 
-function secretsExample(deviceId){return `#pragma once
+function secretsExample(deviceId,deviceToken="YOUR_UNIQUE_DEVICE_TOKEN"){return `#pragma once
 
 // Fyll inn lokale verdier. Ikke publiser secrets.h.
 const char* WIFI_SSID = "YOUR_WIFI_NAME";
@@ -18,7 +18,7 @@ const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 // Unik identitet og nøkkel for denne fysiske tavlen. Registreres i Workerens
 // krypterte DEVICE_INGEST_TOKENS. Ikke bruk GitHub- eller administratornøkler.
 #define TRANSITCORE_DEVICE_ID "${deviceId}"
-#define TRANSITCORE_DEVICE_TOKEN "YOUR_UNIQUE_DEVICE_TOKEN"
+#define TRANSITCORE_DEVICE_TOKEN "${deviceToken}"
 `}
 
 function readme(board,hardware,folder){return `TransitCore ferdig ESP32-pakke
@@ -67,7 +67,7 @@ secrets.h skal aldri legges i Git eller deles. Hver fysisk tavle skal ha sin
 egen nøkkel. GitHub-token og publiseringsnøkkel skal aldri brukes her.
 `}
 
-function createFiles({board,hardware,boardConfig,firmware}){
+function createFiles({board,hardware,boardConfig,firmware,device}){
   if(!board?.id||!Number.isInteger(hardware?.leds?.count)||!boardConfig||!firmware)throw Error("ESP-pakken mangler påkrevde data");
   const folder=sketchName(board.id),prefix=`${folder}/`;
   return{
@@ -76,7 +76,7 @@ function createFiles({board,hardware,boardConfig,firmware}){
     files:[
       {name:`${prefix}${folder}.ino`,content:firmware},
       {name:`${prefix}board_config.h`,content:boardConfig},
-      {name:`${prefix}secrets.example.h`,content:secretsExample(board.id)},
+      {name:`${prefix}secrets.example.h`,content:secretsExample(device?.deviceId||board.id,device?.token)},
       {name:`${prefix}README.txt`,content:readme(board,hardware,folder)}
     ]
   };
