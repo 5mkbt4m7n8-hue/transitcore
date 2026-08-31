@@ -11,7 +11,7 @@
     "rut-metro-5-live"
   ],
   "leds": {
-    "count": 95,
+    "count": 101,
     "dataPin": null,
     "brightnessLimit": 32
   },
@@ -38,8 +38,7 @@
         "NSR:Quay:7132"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ]
     },
     {
@@ -51,8 +50,7 @@
         "NSR:Quay:6824"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ]
     },
     {
@@ -89,8 +87,7 @@
         "NSR:Quay:12038"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ]
     },
     {
@@ -128,8 +125,7 @@
       ],
       "routes": [
         "rut-metro-2-live",
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ]
     },
     {
@@ -319,8 +315,7 @@
         "NSR:Quay:6929"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ]
     },
     {
@@ -408,8 +403,7 @@
         "NSR:Quay:7022"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ]
     },
     {
@@ -522,8 +516,7 @@
         "NSR:Quay:6522"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ]
     },
     {
@@ -716,8 +709,7 @@
         "NSR:Quay:11965"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ]
     },
     {
@@ -795,8 +787,7 @@
         "NSR:Quay:6765"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ]
     },
     {
@@ -971,8 +962,7 @@
       ],
       "routes": [
         "rut-metro-2-live",
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ]
     },
     {
@@ -1081,8 +1071,7 @@
         "NSR:Quay:12012"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ]
     },
     {
@@ -1206,8 +1195,7 @@
         "NSR:Quay:12026"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ]
     },
     {
@@ -1234,6 +1222,77 @@
       "routes": [
         "rut-metro-2-live"
       ]
+    },
+    {
+      "id": "sognsvann",
+      "name": "Sognsvann",
+      "led": 95,
+      "stopIds": [
+        "NSR:Quay:11411"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "kringsja",
+      "name": "Kringsjå",
+      "led": 96,
+      "stopIds": [
+        "NSR:Quay:11400",
+        "NSR:Quay:11401"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "holstein",
+      "name": "Holstein",
+      "led": 97,
+      "stopIds": [
+        "NSR:Quay:11388",
+        "NSR:Quay:11389"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "osthorn",
+      "name": "Østhorn",
+      "led": 98,
+      "stopIds": [
+        "NSR:Quay:11371",
+        "NSR:Quay:11372"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "tasen",
+      "name": "Tåsen",
+      "led": 99,
+      "stopIds": [
+        "NSR:Quay:11339",
+        "NSR:Quay:11341"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ]
+    },
+    {
+      "id": "berg",
+      "name": "Berg",
+      "led": 100,
+      "stopIds": [
+        "NSR:Quay:11317",
+        "NSR:Quay:11319"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ]
     }
   ],
   "render": {
@@ -1244,4 +1303,3 @@
   },
   "status": "logical-map-ready-hardware-order-pending"
 }
-

@@ -15,7 +15,7 @@
     "rut-metro-5-live"
   ],
   "leds": {
-    "count": 94,
+    "count": 100,
     "dataPin": null,
     "brightnessLimit": 32
   },
@@ -265,8 +265,6 @@
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
             "Vestli via Majorstuen"
@@ -276,8 +274,6 @@
             "Manglerud",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -509,22 +505,17 @@
           ],
           "headsigns": [
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
-            "Sinsen",
-            "Stortinget",
+            "Ullevål stadion",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Manglerud",
-            "Nydalen",
             "Ringen",
-            "Sinsen",
-            "Stortinget",
+            "Ullevål stadion",
             "Veitvet",
             "Vestli"
           ]
@@ -731,8 +722,6 @@
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
             "Vestli via Majorstuen"
@@ -742,8 +731,6 @@
             "Manglerud",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -1121,25 +1108,18 @@
           "headsigns": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -1166,8 +1146,7 @@
             "Ringen via Tøyen",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Ringen",
@@ -1626,25 +1605,18 @@
           "headsigns": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -1931,8 +1903,7 @@
             "Ringen via Tøyen",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Ringen",
@@ -2066,8 +2037,6 @@
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
             "Vestli via Majorstuen"
@@ -2077,8 +2046,6 @@
             "Manglerud",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -2377,8 +2344,6 @@
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
             "Vestli via Majorstuen"
@@ -2388,8 +2353,6 @@
             "Manglerud",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -2429,18 +2392,17 @@
           ],
           "headsigns": [
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
-            "Stortinget",
-            "Vestli",
+            "Ryen",
+            "Ullevål stadion",
             "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Manglerud",
-            "Nydalen",
             "Ringen",
-            "Stortinget",
+            "Ryen",
+            "Ullevål stadion",
             "Vestli"
           ]
         }
@@ -2572,8 +2534,7 @@
             "Ringen via Tøyen",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Ringen",
@@ -2839,20 +2800,14 @@
           ],
           "headsigns": [
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
-            "Sinsen",
-            "Stortinget",
-            "Vestli"
+            "Ullevål stadion"
           ],
           "destinationMatches": [
             "Manglerud",
-            "Nydalen",
             "Ringen",
-            "Sinsen",
-            "Stortinget",
-            "Vestli"
+            "Ullevål stadion"
           ]
         }
       }
@@ -3118,19 +3073,14 @@
           ],
           "headsigns": [
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
-            "Stortinget",
-            "Vestli",
-            "Vestli via Majorstuen"
+            "Ullevål stadion"
           ],
           "destinationMatches": [
             "Manglerud",
-            "Nydalen",
             "Ringen",
-            "Stortinget",
-            "Vestli"
+            "Ullevål stadion"
           ]
         }
       }
@@ -3227,25 +3177,18 @@
           "headsigns": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -3434,25 +3377,18 @@
           "headsigns": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -3526,8 +3462,7 @@
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
+            "Ullevål stadion",
             "Veitvet",
             "Vestli",
             "Vestli via Majorstuen"
@@ -3537,8 +3472,7 @@
             "Manglerud",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
+            "Ullevål stadion",
             "Veitvet",
             "Vestli"
           ]
@@ -3609,8 +3543,7 @@
             "Ringen via Tøyen",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Ringen",
@@ -3836,8 +3769,7 @@
             "Ringen via Tøyen",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Ringen",
@@ -3917,8 +3849,7 @@
             "Ringen via Tøyen",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Ringen",
@@ -3957,6 +3888,216 @@
             "Grønland",
             "Ryen",
             "Stortinget"
+          ]
+        }
+      }
+    },
+    {
+      "id": "berg",
+      "name": "Berg",
+      "led": 94,
+      "stopIds": [
+        "NSR:Quay:11317"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen via Majorstuen",
+            "Ryen",
+            "Veitvet",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen",
+            "Ryen",
+            "Veitvet",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "holstein",
+      "name": "Holstein",
+      "led": 95,
+      "stopIds": [
+        "NSR:Quay:11389"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen via Majorstuen",
+            "Ryen",
+            "Veitvet",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen",
+            "Ryen",
+            "Veitvet",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "kringsja",
+      "name": "Kringsjå",
+      "led": 96,
+      "stopIds": [
+        "NSR:Quay:11400"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen via Majorstuen",
+            "Ryen",
+            "Veitvet",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen",
+            "Ryen",
+            "Veitvet",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "sognsvann",
+      "name": "Sognsvann",
+      "led": 97,
+      "stopIds": [
+        "NSR:Quay:11411"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen via Majorstuen",
+            "Ryen",
+            "Veitvet",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen",
+            "Ryen",
+            "Veitvet",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "tasen",
+      "name": "Tåsen",
+      "led": 98,
+      "stopIds": [
+        "NSR:Quay:11339"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen via Majorstuen",
+            "Ryen",
+            "Veitvet",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen",
+            "Ryen",
+            "Veitvet",
+            "Vestli"
+          ]
+        }
+      }
+    },
+    {
+      "id": "osthorn",
+      "name": "Østhorn",
+      "led": 99,
+      "stopIds": [
+        "NSR:Quay:11372"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen via Majorstuen",
+            "Ryen",
+            "Veitvet",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen",
+            "Ryen",
+            "Veitvet",
+            "Vestli"
           ]
         }
       }

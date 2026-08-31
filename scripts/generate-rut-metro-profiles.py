@@ -17,7 +17,7 @@ BOARD_DIRECTION_FILES = {
     "1": ROOT / "config" / "boards" / "oslo-metro-board-direction-b.json",
 }
 LINES = {"2", "3", "4", "5"}
-FALLBACK_COLORS = {"1": "7CB342", "2": "F9A825", "3": "7E57C2", "4": "1976D2", "5": "43A047"}
+LINE_COLORS = {"1": "00A9E0", "2": "F15A24", "3": "9B5AA6", "4": "00529B", "5": "35A936"}
 
 
 def read_rows(archive, name):
@@ -92,7 +92,18 @@ def canonical_trip(route_id, line):
         unique_count = len(dict.fromkeys(names))
         candidates.append((len(values), unique_count, trip["trip_id"], trip))
     if line == "5":
-        return max(candidates, key=lambda value: (value[0], value[1]))[3]
+        # Line 5 has several through-running and short-turn variants. The
+        # longest trip is not necessarily the public Sognsvann–Vestli line.
+        public_terminals = {"Sognsvann", "Vestli"}
+        preferred = []
+        for candidate in candidates:
+            values = trip_stops[candidate[3]["trip_id"]]
+            names = [stops_by_id[value["stop_id"]]["stop_name"] for value in values]
+            if names and {names[0], names[-1]} == public_terminals:
+                preferred.append(candidate)
+        if not preferred:
+            raise RuntimeError("Fant ingen linje 5-tur mellom Sognsvann og Vestli")
+        return max(preferred, key=lambda value: (value[0], value[1]))[3]
     patterns = Counter((tuple(stops_by_id[value["stop_id"]]["stop_name"] for value in trip_stops[item["trip_id"]]), item["shape_id"]) for item in route_trip_rows[route_id] if trip_stops[item["trip_id"]])
     names, shape_id = patterns.most_common(1)[0][0]
     return next(item for item in route_trip_rows[route_id] if item["shape_id"] == shape_id and tuple(stops_by_id[value["stop_id"]]["stop_name"] for value in trip_stops[item["trip_id"]]) == names)
@@ -127,7 +138,9 @@ for line in sorted(LINES):
             "shapeDistanceMeters": round(distance, 1),
         })
     first, last = stops[0]["name"], stops[-1]["name"]
-    color = "#" + (route.get("route_color") or FALLBACK_COLORS[line])
+    # TransitCore uses stable product colours per public line. The aggregated
+    # GTFS route colour can be a common operator brand colour.
+    color = "#" + LINE_COLORS[line]
     shape = [{"lat": float(point["shape_pt_lat"]), "lon": float(point["shape_pt_lon"])} for point in shape_points[trip["shape_id"]]]
     profile = {
         "schemaVersion": 1,
@@ -168,7 +181,9 @@ line1_file = ROUTE_DIR / "rut-metro-1-live.json"
 line1 = json.loads(line1_file.read_text(encoding="utf-8"))
 for stop in line1["stops"]:
     stop["quayIds"] = sorted(quays_by_station_name[stop["name"]])
-line1["line"]["color"] = "#" + FALLBACK_COLORS["1"]
+line1["line"]["color"] = "#" + LINE_COLORS["1"]
+for direction in line1["directions"]:
+    direction["color"] = "#" + LINE_COLORS["1"]
 write_json(line1_file, line1)
 
 registry_file = ROUTE_DIR / "routes.json"
@@ -181,14 +196,22 @@ for line in sorted(LINES):
 write_json(registry_file, registry)
 
 all_profiles = [line1] + profiles
+existing_board = json.loads(BOARD_FILE.read_text(encoding="utf-8")) if BOARD_FILE.exists() else {"nodes": []}
+existing_board_leds = {node["id"]: node["led"] for node in existing_board.get("nodes", [])}
 nodes_by_name = {}
 for profile in all_profiles:
     for stop in profile["stops"]:
         node = nodes_by_name.setdefault(stop["name"], {"id": slug(stop["name"]), "name": stop["name"], "stopIds": set(), "routes": set()})
         node["stopIds"].update(stop.get("quayIds", [stop["id"]]))
         node["routes"].add(profile["id"])
+ordered_nodes = sorted(
+    nodes_by_name.values(),
+    key=lambda value: (0, existing_board_leds[value["id"]])
+    if value["id"] in existing_board_leds
+    else (1, value["name"]),
+)
 nodes = []
-for led, node in enumerate(sorted(nodes_by_name.values(), key=lambda value: value["name"])):
+for led, node in enumerate(ordered_nodes):
     nodes.append({"id": node["id"], "name": node["name"], "led": led, "stopIds": sorted(node["stopIds"]), "routes": sorted(node["routes"])})
 board = {
     "schemaVersion": 1,
@@ -230,8 +253,18 @@ for trip in trip_rows:
             route_direction["destinationMatches"].add(terminal_match(headsign))
 
 for direction_id, target in BOARD_DIRECTION_FILES.items():
+    existing_direction_board = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {"nodes": []}
+    existing_direction_leds = {
+        node["id"]: node["led"] for node in existing_direction_board.get("nodes", [])
+    }
     directional = []
-    for led, value in enumerate(sorted(direction_nodes[direction_id].values(), key=lambda item: item["name"])):
+    ordered_direction_nodes = sorted(
+        direction_nodes[direction_id].values(),
+        key=lambda value: (0, existing_direction_leds[value["id"]])
+        if value["id"] in existing_direction_leds
+        else (1, value["name"]),
+    )
+    for led, value in enumerate(ordered_direction_nodes):
         route_directions = {
             route: {
                 "directionIds": details["directionIds"],

@@ -19,7 +19,7 @@
     "publicCode": "3",
     "mode": "metro",
     "longName": "Kolsås - Mortensrud",
-    "color": "#EC700C"
+    "color": "#9B5AA6"
   },
   "directions": [
     {
@@ -28,7 +28,7 @@
       "destinationMatches": [
         "Kolsås"
       ],
-      "color": "#EC700C",
+      "color": "#9B5AA6",
       "reverseShape": false
     },
     {
@@ -37,7 +37,7 @@
       "destinationMatches": [
         "Mortensrud"
       ],
-      "color": "#EC700C",
+      "color": "#9B5AA6",
       "reverseShape": true
     }
   ],

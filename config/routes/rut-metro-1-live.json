@@ -19,7 +19,7 @@
     "publicCode": "1",
     "mode": "metro",
     "longName": "Frognerseteren - Bergkrystallen",
-    "color": "#7CB342"
+    "color": "#00A9E0"
   },
   "directions": [
     {
@@ -29,7 +29,7 @@
         "Frognerseteren",
         "Skogen"
       ],
-      "color": "#ef5350",
+      "color": "#00A9E0",
       "reverseShape": false
     },
     {
@@ -40,7 +40,7 @@
         "Helsfyr",
         "Ryen"
       ],
-      "color": "#66bb6a",
+      "color": "#00A9E0",
       "reverseShape": true
     }
   ],

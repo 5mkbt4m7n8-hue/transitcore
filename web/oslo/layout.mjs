@@ -46,6 +46,12 @@ export const corridors = [
     points: [[520, 500], [540, 390], [610, 315], [720, 275], [835, 300]]
   },
   {
+    id: "sognsvann",
+    lines: ["5"],
+    stations: ["Ullevål stadion", "Berg", "Tåsen", "Østhorn", "Holstein", "Kringsjå", "Sognsvann"],
+    points: [[610, 315], [610, 245], [610, 170], [610, 90]]
+  },
+  {
     id: "ring-east",
     lines: ["5"],
     stations: ["Sinsen", "Carl Berners plass", "Tøyen"],
