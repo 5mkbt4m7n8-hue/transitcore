@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f1f0ec">
+  <title>TransitCore · Oslo T-bane fullnett</title>
+  <link rel="stylesheet" href="../shared/signal-policy.css">
+  <style>
+    :root{color-scheme:light;--paper:#f1f0ec;--ink:#18202b;--muted:#68717b;--off:#26313c;--panel:#fffdf8;--border:#c8c6bf;--ok:#14834f;--error:#c73737}
+    *{box-sizing:border-box}body{margin:0;background:#15100d;color:var(--ink);font:14px system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:1800px;margin:auto;padding:10px}
+    header{display:flex;gap:18px;align-items:flex-start;justify-content:space-between;background:var(--paper);padding:18px 22px 12px;border-radius:15px 15px 0 0}.brand h1{font-size:30px;letter-spacing:.02em;margin:0}.brand p{margin:5px 0 0;color:var(--muted)}
+    .controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}button{border:1px solid #92979c;border-radius:8px;background:#fff;color:var(--ink);font:inherit;font-weight:650;padding:8px 11px;cursor:pointer}button.active{background:#18202b;color:#fff}.status{min-width:220px;text-align:right;color:var(--muted)}.status.ok{color:var(--ok)}.status.error{color:var(--error)}
+    .map-shell{position:relative;background:var(--paper);border-radius:0 0 15px 15px;overflow:auto}.map-shell svg{display:block;width:100%;height:auto;min-width:1050px;aspect-ratio:1600/1080}
+    .route-underlay{fill:none;stroke:#fff;stroke-width:12;stroke-linecap:round;stroke-linejoin:round}.route-line{fill:none;stroke-width:6;stroke-linecap:round;stroke-linejoin:round}.route-line.dim{opacity:.13}
+    .station-hit{cursor:pointer}.station-tick{stroke:#18202b;stroke-width:2}.station-label{fill:#18202b;font-size:12px;font-weight:650;paint-order:stroke;stroke:var(--paper);stroke-width:4px;stroke-linejoin:round;pointer-events:none}.station-label.major{font-size:14px;font-weight:750}
+    .led{fill:#343d46;stroke:#fff;stroke-width:1.5;transition:fill .15s,opacity .15s,filter .15s}.led.on{fill:rgb(var(--rgb));filter:drop-shadow(0 0 5px rgb(var(--rgb)))}.led.approaching{animation:transitCoreApproachPulse var(--tc-approach-pulse) ease-in-out infinite;transform-box:fill-box;transform-origin:center}.led.passed{fill:rgb(var(--rgb));opacity:var(--tc-afterglow-opacity)}
+    .direction-mark{fill:#65707a;font-size:9px;font-weight:800;pointer-events:none}.legend{position:absolute;right:22px;bottom:20px;display:flex;gap:9px;flex-wrap:wrap;background:#ffffffdc;padding:8px 10px;border-radius:10px}.line-key{display:flex;align-items:center;gap:5px;font-weight:700}.line-dot{display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:var(--line-color);color:#fff;font-size:12px}
+    .detail{position:absolute;left:20px;bottom:18px;width:min(390px,calc(100% - 40px));background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:0 12px 32px #0003}.detail[hidden]{display:none}.detail h2{margin:0 0 7px;font-size:17px}.detail p{margin:5px 0;color:#4d5863}.detail button{float:right;padding:4px 8px}.led-key{display:inline-block;width:10px;height:10px;border-radius:50%;background:rgb(var(--rgb));margin-right:6px}
+    @media(max-width:760px){main{padding:0}header{border-radius:0;display:block;padding:12px}.brand h1{font-size:22px}.controls{justify-content:flex-start;margin-top:10px}.status{width:100%;text-align:left;min-width:0}.map-shell{border-radius:0}.legend{position:sticky;left:8px;bottom:8px;width:max-content}}
+  </style>
+</head>
+<body><main>
+  <header>
+    <div class="brand"><h1>TransitCore · Oslo T-bane</h1><p>Hele nettet · 95 stasjoner · separate LED-er for begge retninger</p></div>
+    <div class="controls"><button id="live" class="active">Live</button><button id="all">Vis alle LED-er</button><button id="labels">Skjul stasjonsnavn</button><span id="status" class="status">Laster tavleprofil …</span></div>
+  </header>
+  <section class="map-shell">
+    <svg id="map" viewBox="0 0 1600 1080" role="img" aria-labelledby="map-title map-desc">
+      <title id="map-title">Oslo T-bane med live LED-signaler</title>
+      <desc id="map-desc">Skjematisk kart over alle fem linjer. Hver stasjon viser separate LED-punkter for retning A og B.</desc>
+      <g id="routes"></g><g id="stations"></g>
+    </svg>
+    <div class="legend" id="legend" aria-label="T-banelinjer"></div>
+    <aside class="detail" id="detail" hidden><button id="close">Lukk</button><h2 id="detail-title"></h2><div id="detail-body"></div></aside>
+  </section>
+</main>
+<script src="../shared/signal-policy.js"></script>
+<script type="module">
+import { VIEW_BOX, corridors, lineColors, buildStationLayout } from "./layout.mjs";
+
+const BOARD_URL="../../config/boards/oslo-metro-wizard-separate.json";
+const HARDWARE_URL="../../config/hardware/oslo-metro-wizard-separate-hardware.json";
+const FRAME_URL="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/oslo-metro-wizard-separate/frame";
+const SVG="http://www.w3.org/2000/svg", $=id=>document.getElementById(id);
+let board,hardware,frame,showAll=false,showLabels=true,refreshTimer,cycleTimer,cycleStep=0;
+
+TransitCoreSignals.applyCssVariables(document);
+function esc(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
+async function json(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error(`${url}: HTTP ${response.status}`);return response.json()}
+function svg(name,attrs={}){const node=document.createElementNS(SVG,name);for(const [key,value] of Object.entries(attrs))node.setAttribute(key,value);return node}
+function path(points){return points.map((point,index)=>(index?"L":"M")+point.join(" ")).join(" ")}
+function stationNodes(name){return board.nodes.filter(node=>node.name===name).sort((a,b)=>String(a.directionSide).localeCompare(String(b.directionSide)))}
+function physicalLed(logical){return hardware.assignments.find(item=>item.logicalLed===logical)?.physicalLed??logical}
+function majorStation(name){return ["Majorstuen","Stortinget","Tøyen","Brynseng","Hellerud","Storo","Sinsen","Økern","Vestli","Bergkrystallen","Mortensrud","Kolsås","Østerås","Frognerseteren"].includes(name)}
+
+function renderRoutes(){
+  const root=$("routes");root.innerHTML="";
+  for(const corridor of corridors){
+    root.append(svg("path",{d:path(corridor.points),class:"route-underlay"}));
+    const middle=(corridor.lines.length-1)/2;
+    corridor.lines.forEach((line,index)=>{
+      const offset=(index-middle)*7;
+      const shifted=corridor.points.map(([x,y])=>[x,y+offset]);
+      root.append(svg("path",{d:path(shifted),class:"route-line","data-line":line,stroke:lineColors[line]}));
+    });
+  }
+}
+
+function renderStations(){
+  const layout=buildStationLayout(),root=$("stations");root.innerHTML="";
+  for(const [name,position] of layout){
+    const nodes=stationNodes(name);if(!nodes.length)continue;
+    const length=Math.hypot(position.tx,position.ty)||1,nx=-position.ty/length,ny=position.tx/length;
+    const group=svg("g",{class:"station-hit","data-station":name,role:"button","aria-label":`${name}, ${nodes.length} retnings-LED-er`});
+    group.append(svg("line",{x1:position.x-nx*10,y1:position.y-ny*10,x2:position.x+nx*10,y2:position.y+ny*10,class:"station-tick"}));
+    nodes.forEach((node,index)=>{
+      const side=nodes.length===1?0:(index===0?-1:1),cx=position.x+nx*side*6,cy=position.y+ny*side*6;
+      const led=svg("circle",{cx,cy,r:4.7,class:"led",id:`led-${physicalLed(node.led)}`,"data-led":physicalLed(node.led),"data-logical":node.led,"data-side":node.directionSide||"Felles"});
+      group.append(led);
+      const mark=svg("text",{x:cx+nx*8,y:cy+ny*8+3,class:"direction-mark","text-anchor":"middle"});mark.textContent=node.directionSide||"";group.append(mark);
+    });
+    const central=position.corridor==="central",labelSide=(position.y<430||name==="Brynseng"||name==="Hellerud")?-1:1;
+    const labelX=central?position.x-4:position.x+nx*labelSide*17,labelY=central?position.y-19:position.y+ny*labelSide*17+4;
+    const label=svg("text",{x:labelX,y:labelY,class:`station-label${majorStation(name)?" major":""}`,"text-anchor":central?"start":Math.abs(nx)>.55?(nx*labelSide>0?"start":"end"):"middle","data-label":""});
+    if(central)label.setAttribute("transform",`rotate(-52 ${labelX} ${labelY})`);
+    label.textContent=name;group.append(label);
+    group.addEventListener("click",()=>showDetail(name));root.append(group);
+  }
+}
+
+function activeEntries(item){
+  if(item.occupants?.length)return item.occupants;
+  return [{...(item.vehicle||{}),state:item.state,rgb:item.rgb,lifecycle:item.lifecycle}];
+}
+function priority(item){const state=TransitCoreSignals.normalize(item.state);return state==="AT_STOP"?3:state==="APPROACHING"?2:state==="PASSED"||item.lifecycle==="PASSED"?1:0}
+function paint(){
+  document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching","passed");led.style.removeProperty("--rgb");delete led.dataset.items});
+  const byId=new Map((frame?.leds||[]).map(item=>[Number(item.id),item]));
+  let active=0;
+  document.querySelectorAll(".led").forEach(led=>{
+    const item=byId.get(Number(led.dataset.led));
+    if(showAll){
+      const logical=Number(led.dataset.logical),node=board.nodes.find(value=>value.led===logical),line=node?.routes?.map(id=>id.match(/metro-(\d)/)?.[1]).find(Boolean)||"1";
+      led.style.setProperty("--rgb",hexRgb(lineColors[line]).join(","));led.classList.add("on");active++;return;
+    }
+    if(!item)return;
+    const entries=activeEntries(item).sort((a,b)=>priority(b)-priority(a)),highest=priority(entries[0]||item),winner=entries.filter(value=>priority(value)===highest)[cycleStep%(entries.filter(value=>priority(value)===highest).length||1)]||item;
+    const rgb=winner.rgb||item.rgb||[255,255,255];led.style.setProperty("--rgb",rgb.join(","));led.dataset.items=JSON.stringify(entries);
+    const state=TransitCoreSignals.normalize(winner.state||item.state);
+    if(state==="PASSED"||item.lifecycle==="PASSED")led.classList.add("passed");else{led.classList.add("on");active++}
+    if(state==="APPROACHING")led.classList.add("approaching");
+  });
+  const generated=Date.parse(frame?.generatedAt||""),age=Number.isFinite(generated)?Math.max(0,Math.floor((Date.now()-generated)/1000)):null;
+  $("status").className="status "+(frame?"ok":"error");$("status").textContent=showAll?`LED-test · ${board.leds.count} punkter`:frame?`Live · ${active} aktive · frame ${age} sek`:`Ingen live-frame`;
+}
+function hexRgb(hex){const value=hex.replace("#","");return [0,2,4].map(index=>parseInt(value.slice(index,index+2),16))}
+function lineNumbers(node){return node.routes.map(id=>id.match(/metro-(\d)/)?.[1]).filter(Boolean).join(", ")}
+function showDetail(name){
+  const nodes=stationNodes(name),items=nodes.map(node=>{const physical=physicalLed(node.led),entry=(frame?.leds||[]).find(value=>Number(value.id)===physical);return {node,physical,entry}});
+  $("detail-title").textContent=name;
+  $("detail-body").innerHTML=items.map(({node,physical,entry})=>{const winner=activeEntries(entry||{}).sort((a,b)=>priority(b)-priority(a))[0],state=winner?.state||entry?.state||"AV",rgb=winner?.rgb||entry?.rgb||[52,61,70];return `<p><i class="led-key" style="--rgb:${rgb.join(",")}"></i><strong>Retning ${esc(node.directionSide||"felles")}</strong> · LED ${String(physical).padStart(3,"0")} · ${esc(state)} · linje ${esc(lineNumbers(node))}</p>`}).join("");
+  $("detail").hidden=false;
+}
+async function refresh(){
+  clearTimeout(refreshTimer);
+  try{const response=await fetch(FRAME_URL,{cache:"no-store"}),next=await response.json();if(!response.ok)throw Error(`Worker HTTP ${response.status}`);if(next.boardProfile!==board.id||next.ledCount!==board.leds.count)throw Error("Worker-profilen samsvarer ikke med kartet");frame=next;paint()}catch(error){console.error(error);$("status").className="status error";$("status").textContent=`Livefeil: ${error.message}`}finally{refreshTimer=setTimeout(refresh,10000)}
+}
+function renderLegend(){$("legend").innerHTML=Object.entries(lineColors).map(([line,color])=>`<span class="line-key"><i class="line-dot" style="--line-color:${color}">${line}</i></span>`).join("")+'<span class="line-key">A/B = retning</span>'}
+function validate(){
+  const names=new Set(corridors.flatMap(corridor=>corridor.stations)),boardNames=new Set(board.nodes.map(node=>node.name));
+  const missing=[...boardNames].filter(name=>!names.has(name)),unknown=[...names].filter(name=>!boardNames.has(name));
+  if(missing.length||unknown.length)throw Error(`Kartprofil avviker: mangler ${missing.join(", ")||"ingen"}; ukjente ${unknown.join(", ")||"ingen"}`);
+  if(board.nodes.length!==189||hardware.assignments.length!==189)throw Error("Forventet 189 retnings-LED-er");
+}
+
+$("live").onclick=()=>{showAll=false;$("live").classList.add("active");$("all").classList.remove("active");paint()};
+$("all").onclick=()=>{showAll=true;$("all").classList.add("active");$("live").classList.remove("active");paint()};
+$("labels").onclick=()=>{showLabels=!showLabels;document.querySelectorAll("[data-label]").forEach(label=>label.style.display=showLabels?"":"none");$("labels").textContent=showLabels?"Skjul stasjonsnavn":"Vis stasjonsnavn"};
+$("close").onclick=()=>$("detail").hidden=true;
+
+Promise.all([json(BOARD_URL),json(HARDWARE_URL)]).then(values=>{[board,hardware]=values;validate();renderRoutes();renderStations();renderLegend();cycleTimer=setInterval(()=>{cycleStep+=1;paint()},1200);refresh()}).catch(error=>{$("status").className="status error";$("status").textContent=`Oppstartsfeil: ${error.message}`});
+</script></body></html>
