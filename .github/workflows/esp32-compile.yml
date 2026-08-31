@@ -49,7 +49,7 @@ jobs:
           arduino-cli core install esp32:esp32
           arduino-cli lib install ArduinoJson "Adafruit NeoPixel"
 
-      - name: Compile 47, 147 and 189 LED packages
+      - name: Compile every published board profile
         run: |
           set -euo pipefail
           for sketch in "$RUNNER_TEMP"/esp-sketches/*; do

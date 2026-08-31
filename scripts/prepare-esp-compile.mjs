@@ -3,7 +3,7 @@ import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
 const outputRoot = path.resolve(process.argv[2] || path.join(root, ".build", "esp-sketches"));
-const firmwarePath = path.join(root, "firmware", "esp32", "TransitCore_Universal_BoardClient_v1_0_7.ino");
+const firmwarePath = path.join(root, "firmware", "esp32", "TransitCore_Universal_BoardClient_v1_1_0.ino");
 const firmware = fs.readFileSync(firmwarePath, "utf8");
 const boardIds = [
   "grakallbanen-board",
@@ -55,7 +55,8 @@ for (const boardId of boardIds) {
   fs.writeFileSync(path.join(sketchDir, "secrets.h"), `#pragma once
 const char* WIFI_SSID = "CI_ONLY";
 const char* WIFI_PASSWORD = "CI_ONLY";
-#define TRANSITCORE_STATUS_TOKEN "CI_ONLY"
+#define TRANSITCORE_DEVICE_ID "${boardId}-ci"
+#define TRANSITCORE_DEVICE_TOKEN "CI_ONLY"
 `);
   console.log(`${boardId}: prepared ${hardware.leds.count} LED sketch at ${sketchDir}`);
 }

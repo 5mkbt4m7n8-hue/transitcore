@@ -4,6 +4,8 @@ import vm from "node:vm";
 
 const source=fs.readFileSync(new URL("../web/publish/esp-package.js",import.meta.url),"utf8");
 const firmwareSource=fs.readFileSync(new URL("../firmware/esp32/TransitCore_Universal_BoardClient_v1_1_0.ino",import.meta.url),"utf8");
+const osloBoard=JSON.parse(fs.readFileSync(new URL("../config/boards/oslo-metro-wizard-separate.json",import.meta.url),"utf8"));
+const osloHardware=JSON.parse(fs.readFileSync(new URL("../config/hardware/oslo-metro-wizard-separate-hardware.json",import.meta.url),"utf8"));
 const context={};context.globalThis=context;vm.runInNewContext(source,context);
 const api=context.TransitCoreEspPackage;
 
@@ -16,6 +18,10 @@ assert.match(firmwareSource,/provisioningDns\.start\(53/);
 assert.match(firmwareSource,/WiFi\.softAP\(provisioningApName\.c_str\(\)\)/);
 assert.match(firmwareSource,/wifiPreferences\.putString\("wifiSsid"/);
 assert.match(firmwareSource,/document\["firmware"\] = "1\.1\.0"/);
+assert.equal(osloBoard.leds.count,201);
+assert.equal(osloHardware.leds.count,201);
+assert.equal(osloBoard.nodes.length,201);
+assert.equal(osloHardware.assignments.length,201);
 
 const result=api.createFiles({
   board:{id:"test-board",name:"Test",leds:{count:2,dataPin:2}},
