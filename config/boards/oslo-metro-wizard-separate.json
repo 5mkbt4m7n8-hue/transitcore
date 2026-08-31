@@ -13,7 +13,7 @@
     "rut-metro-5-live"
   ],
   "leds": {
-    "count": 189,
+    "count": 201,
     "dataPin": null,
     "brightnessLimit": 32
   },
@@ -49,21 +49,17 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ]
         }
       },
@@ -129,8 +125,7 @@
         "NSR:Quay:7132"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "routeDirections": {
         "rut-metro-3-live": {
@@ -144,19 +139,6 @@
           "destinationMatches": [
             "Avløs",
             "Kolsås"
-          ]
-        },
-        "rut-metro-5-live": {
-          "directionIds": [
-            "0"
-          ],
-          "headsigns": [
-            "Avløs",
-            "Ringen via Tøyen"
-          ],
-          "destinationMatches": [
-            "Avløs",
-            "Ringen"
           ]
         }
       },
@@ -203,8 +185,7 @@
         "NSR:Quay:6823"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "routeDirections": {
         "rut-metro-3-live": {
@@ -218,19 +199,6 @@
           "destinationMatches": [
             "Avløs",
             "Kolsås"
-          ]
-        },
-        "rut-metro-5-live": {
-          "directionIds": [
-            "0"
-          ],
-          "headsigns": [
-            "Avløs",
-            "Ringen via Tøyen"
-          ],
-          "destinationMatches": [
-            "Avløs",
-            "Ringen"
           ]
         }
       },
@@ -424,8 +392,7 @@
         "NSR:Quay:12038"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "routeDirections": {
         "rut-metro-3-live": {
@@ -439,19 +406,6 @@
           "destinationMatches": [
             "Avløs",
             "Kolsås"
-          ]
-        },
-        "rut-metro-5-live": {
-          "directionIds": [
-            "0"
-          ],
-          "headsigns": [
-            "Avløs",
-            "Ringen via Tøyen"
-          ],
-          "destinationMatches": [
-            "Avløs",
-            "Ringen"
           ]
         }
       },
@@ -519,18 +473,15 @@
             "0"
           ],
           "headsigns": [
-            "Carl Berners plass",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Sognsvann via Tøyen",
-            "Storo"
+            "Sognsvann via Tøyen"
           ],
           "destinationMatches": [
-            "Carl Berners plass",
             "Ringen",
-            "Sognsvann",
-            "Storo"
+            "Sognsvann"
           ]
         }
       },
@@ -574,8 +525,6 @@
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
             "Vestli via Majorstuen"
@@ -585,8 +534,6 @@
             "Manglerud",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -664,8 +611,7 @@
       ],
       "routes": [
         "rut-metro-2-live",
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "routeDirections": {
         "rut-metro-2-live": {
@@ -692,19 +638,6 @@
           "destinationMatches": [
             "Avløs",
             "Kolsås"
-          ]
-        },
-        "rut-metro-5-live": {
-          "directionIds": [
-            "0"
-          ],
-          "headsigns": [
-            "Avløs",
-            "Ringen via Tøyen"
-          ],
-          "destinationMatches": [
-            "Avløs",
-            "Ringen"
           ]
         }
       },
@@ -1080,9 +1013,9 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
             "Sognsvann",
             "Sognsvann via Tøyen",
@@ -1090,7 +1023,6 @@
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
             "Sognsvann",
@@ -1118,22 +1050,17 @@
           ],
           "headsigns": [
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
-            "Sinsen",
-            "Stortinget",
+            "Ullevål stadion",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Manglerud",
-            "Nydalen",
             "Ringen",
-            "Sinsen",
-            "Stortinget",
+            "Ullevål stadion",
             "Veitvet",
             "Vestli"
           ]
@@ -1502,18 +1429,15 @@
             "0"
           ],
           "headsigns": [
-            "Carl Berners plass",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Sognsvann via Tøyen",
-            "Storo"
+            "Sognsvann via Tøyen"
           ],
           "destinationMatches": [
-            "Carl Berners plass",
             "Ringen",
-            "Sognsvann",
-            "Storo"
+            "Sognsvann"
           ]
         }
       },
@@ -1557,8 +1481,6 @@
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
             "Vestli via Majorstuen"
@@ -1568,8 +1490,6 @@
             "Manglerud",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -1887,8 +1807,7 @@
         "NSR:Quay:6929"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "routeDirections": {
         "rut-metro-3-live": {
@@ -1902,19 +1821,6 @@
           "destinationMatches": [
             "Avløs",
             "Kolsås"
-          ]
-        },
-        "rut-metro-5-live": {
-          "directionIds": [
-            "0"
-          ],
-          "headsigns": [
-            "Avløs",
-            "Ringen via Tøyen"
-          ],
-          "destinationMatches": [
-            "Avløs",
-            "Ringen"
           ]
         }
       },
@@ -2045,21 +1951,17 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ]
         }
       },
@@ -2196,6 +2098,7 @@
             "Avløs",
             "Majorstuen",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
             "Sognsvann",
             "Sognsvann via Tøyen",
@@ -2299,25 +2202,18 @@
           "headsigns": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -2433,20 +2329,16 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Sognsvann via Tøyen",
-            "Stortinget"
+            "Sognsvann via Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
-            "Sognsvann",
-            "Stortinget"
+            "Sognsvann"
           ]
         }
       },
@@ -2473,8 +2365,7 @@
             "Ringen via Tøyen",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Ringen",
@@ -2494,8 +2385,7 @@
         "NSR:Quay:7021"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "routeDirections": {
         "rut-metro-3-live": {
@@ -2509,19 +2399,6 @@
           "destinationMatches": [
             "Avløs",
             "Kolsås"
-          ]
-        },
-        "rut-metro-5-live": {
-          "directionIds": [
-            "0"
-          ],
-          "headsigns": [
-            "Avløs",
-            "Ringen via Tøyen"
-          ],
-          "destinationMatches": [
-            "Avløs",
-            "Ringen"
           ]
         }
       },
@@ -3198,8 +3075,7 @@
         "NSR:Quay:6522"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "routeDirections": {
         "rut-metro-3-live": {
@@ -3213,19 +3089,6 @@
           "destinationMatches": [
             "Avløs",
             "Kolsås"
-          ]
-        },
-        "rut-metro-5-live": {
-          "directionIds": [
-            "0"
-          ],
-          "headsigns": [
-            "Avløs",
-            "Ringen via Tøyen"
-          ],
-          "destinationMatches": [
-            "Avløs",
-            "Ringen"
           ]
         }
       },
@@ -3344,6 +3207,7 @@
             "Avløs",
             "Majorstuen",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
             "Sognsvann",
             "Sognsvann via Tøyen",
@@ -3447,25 +3311,18 @@
           "headsigns": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -3505,21 +3362,17 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ]
         }
       },
@@ -4010,20 +3863,16 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Sognsvann via Tøyen",
-            "Stortinget"
+            "Sognsvann via Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
-            "Sognsvann",
-            "Stortinget"
+            "Sognsvann"
           ]
         }
       },
@@ -4070,8 +3919,7 @@
             "Ringen via Tøyen",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Ringen",
@@ -4215,21 +4063,18 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Sognsvann via Tøyen",
-            "Storo"
+            "Sognsvann via Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
-            "Sognsvann",
-            "Storo"
+            "Sognsvann"
           ]
         }
       },
@@ -4329,8 +4174,6 @@
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
             "Vestli via Majorstuen"
@@ -4340,8 +4183,6 @@
             "Manglerud",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -4570,8 +4411,7 @@
         "NSR:Quay:11964"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "routeDirections": {
         "rut-metro-3-live": {
@@ -4585,19 +4425,6 @@
           "destinationMatches": [
             "Avløs",
             "Kolsås"
-          ]
-        },
-        "rut-metro-5-live": {
-          "directionIds": [
-            "0"
-          ],
-          "headsigns": [
-            "Avløs",
-            "Ringen via Tøyen"
-          ],
-          "destinationMatches": [
-            "Avløs",
-            "Ringen"
           ]
         }
       },
@@ -4853,21 +4680,18 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Sognsvann via Tøyen",
-            "Storo"
+            "Sognsvann via Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
-            "Sognsvann",
-            "Storo"
+            "Sognsvann"
           ]
         }
       },
@@ -4967,8 +4791,6 @@
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
             "Vestli via Majorstuen"
@@ -4978,8 +4800,6 @@
             "Manglerud",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -5018,18 +4838,13 @@
             "0"
           ],
           "headsigns": [
-            "Carl Berners plass",
-            "Majorstuen",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
-            "Storo",
             "Stortinget"
           ],
           "destinationMatches": [
-            "Carl Berners plass",
-            "Majorstuen",
             "Ringen",
-            "Storo",
             "Stortinget"
           ]
         }
@@ -5070,18 +4885,17 @@
           ],
           "headsigns": [
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
-            "Stortinget",
-            "Vestli",
+            "Ryen",
+            "Ullevål stadion",
             "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Manglerud",
-            "Nydalen",
             "Ringen",
-            "Stortinget",
+            "Ryen",
+            "Ullevål stadion",
             "Vestli"
           ]
         }
@@ -5157,8 +4971,7 @@
         "NSR:Quay:6765"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "routeDirections": {
         "rut-metro-3-live": {
@@ -5172,19 +4985,6 @@
           "destinationMatches": [
             "Avløs",
             "Kolsås"
-          ]
-        },
-        "rut-metro-5-live": {
-          "directionIds": [
-            "0"
-          ],
-          "headsigns": [
-            "Avløs",
-            "Ringen via Tøyen"
-          ],
-          "destinationMatches": [
-            "Avløs",
-            "Ringen"
           ]
         }
       },
@@ -5316,20 +5116,16 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Sognsvann via Tøyen",
-            "Stortinget"
+            "Sognsvann via Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
-            "Sognsvann",
-            "Stortinget"
+            "Sognsvann"
           ]
         }
       },
@@ -5376,8 +5172,7 @@
             "Ringen via Tøyen",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Ringen",
@@ -5420,21 +5215,17 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ]
         }
       },
@@ -5522,21 +5313,17 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ]
         }
       },
@@ -5775,21 +5562,17 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ]
         }
       },
@@ -5875,16 +5658,15 @@
             "0"
           ],
           "headsigns": [
-            "Carl Berners plass",
-            "Majorstuen",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
+            "Sognsvann",
             "Stortinget"
           ],
           "destinationMatches": [
-            "Carl Berners plass",
-            "Majorstuen",
             "Ringen",
+            "Sognsvann",
             "Stortinget"
           ]
         }
@@ -5929,20 +5711,14 @@
           ],
           "headsigns": [
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
-            "Sinsen",
-            "Stortinget",
-            "Vestli"
+            "Ullevål stadion"
           ],
           "destinationMatches": [
             "Manglerud",
-            "Nydalen",
             "Ringen",
-            "Sinsen",
-            "Stortinget",
-            "Vestli"
+            "Ullevål stadion"
           ]
         }
       },
@@ -6266,8 +6042,7 @@
       ],
       "routes": [
         "rut-metro-2-live",
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "routeDirections": {
         "rut-metro-2-live": {
@@ -6294,19 +6069,6 @@
           "destinationMatches": [
             "Avløs",
             "Kolsås"
-          ]
-        },
-        "rut-metro-5-live": {
-          "directionIds": [
-            "0"
-          ],
-          "headsigns": [
-            "Avløs",
-            "Ringen via Tøyen"
-          ],
-          "destinationMatches": [
-            "Avløs",
-            "Ringen"
           ]
         }
       },
@@ -6457,18 +6219,13 @@
             "0"
           ],
           "headsigns": [
-            "Carl Berners plass",
-            "Majorstuen",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
-            "Storo",
             "Stortinget"
           ],
           "destinationMatches": [
-            "Carl Berners plass",
-            "Majorstuen",
             "Ringen",
-            "Storo",
             "Stortinget"
           ]
         }
@@ -6511,19 +6268,14 @@
           ],
           "headsigns": [
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
-            "Stortinget",
-            "Vestli",
-            "Vestli via Majorstuen"
+            "Ullevål stadion"
           ],
           "destinationMatches": [
             "Manglerud",
-            "Nydalen",
             "Ringen",
-            "Stortinget",
-            "Vestli"
+            "Ullevål stadion"
           ]
         }
       },
@@ -6610,22 +6362,19 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
             "Sognsvann",
             "Sognsvann via Tøyen",
-            "Storo",
             "Stortinget"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
             "Sognsvann",
-            "Storo",
             "Stortinget"
           ]
         }
@@ -6725,25 +6474,18 @@
           "headsigns": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -6783,21 +6525,17 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ]
         }
       },
@@ -7051,6 +6789,7 @@
             "Avløs",
             "Majorstuen",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
             "Sognsvann",
             "Sognsvann via Tøyen",
@@ -7154,25 +6893,18 @@
           "headsigns": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Helsfyr",
             "Manglerud",
-            "Nydalen",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
             "Veitvet",
             "Vestli"
           ]
@@ -7189,8 +6921,7 @@
         "NSR:Quay:12011"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "routeDirections": {
         "rut-metro-3-live": {
@@ -7204,19 +6935,6 @@
           "destinationMatches": [
             "Avløs",
             "Kolsås"
-          ]
-        },
-        "rut-metro-5-live": {
-          "directionIds": [
-            "0"
-          ],
-          "headsigns": [
-            "Avløs",
-            "Ringen via Tøyen"
-          ],
-          "destinationMatches": [
-            "Avløs",
-            "Ringen"
           ]
         }
       },
@@ -7284,18 +7002,17 @@
             "0"
           ],
           "headsigns": [
-            "Carl Berners plass",
             "Ringen via Majorstuen",
+            "Ringen via Storo",
             "Ringen via Tøyen",
             "Sognsvann",
             "Sognsvann via Tøyen",
-            "Storo"
+            "Stortinget"
           ],
           "destinationMatches": [
-            "Carl Berners plass",
             "Ringen",
             "Sognsvann",
-            "Storo"
+            "Stortinget"
           ]
         }
       },
@@ -7339,8 +7056,7 @@
             "Ringen via Majorstuen",
             "Ringen via Tøyen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
+            "Ullevål stadion",
             "Veitvet",
             "Vestli",
             "Vestli via Majorstuen"
@@ -7350,8 +7066,7 @@
             "Manglerud",
             "Ringen",
             "Ryen",
-            "Sinsen",
-            "Stortinget",
+            "Ullevål stadion",
             "Veitvet",
             "Vestli"
           ]
@@ -7451,20 +7166,16 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Sognsvann via Tøyen",
-            "Stortinget"
+            "Sognsvann via Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
-            "Sognsvann",
-            "Stortinget"
+            "Sognsvann"
           ]
         }
       },
@@ -7511,8 +7222,7 @@
             "Ringen via Tøyen",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Ringen",
@@ -7555,21 +7265,17 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
             "Sognsvann",
-            "Stortinget",
-            "Vestli"
+            "Tøyen"
           ]
         }
       },
@@ -7903,20 +7609,16 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Sognsvann via Tøyen",
-            "Stortinget"
+            "Sognsvann via Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
-            "Sognsvann",
-            "Stortinget"
+            "Sognsvann"
           ]
         }
       },
@@ -7963,8 +7665,7 @@
             "Ringen via Tøyen",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Ringen",
@@ -8007,20 +7708,16 @@
           ],
           "headsigns": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen via Tøyen",
             "Sognsvann",
-            "Sognsvann via Tøyen",
-            "Stortinget"
+            "Sognsvann via Tøyen"
           ],
           "destinationMatches": [
             "Avløs",
-            "Carl Berners plass",
             "Majorstuen",
             "Ringen",
-            "Sognsvann",
-            "Stortinget"
+            "Sognsvann"
           ]
         }
       },
@@ -8067,8 +7764,7 @@
             "Ringen via Tøyen",
             "Veitvet",
             "Vestli",
-            "Vestli via Majorstuen",
-            "Vestli via Tøyen"
+            "Vestli via Majorstuen"
           ],
           "destinationMatches": [
             "Ringen",
@@ -8150,8 +7846,7 @@
         "NSR:Quay:12025"
       ],
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "routeDirections": {
         "rut-metro-3-live": {
@@ -8165,19 +7860,6 @@
           "destinationMatches": [
             "Avløs",
             "Kolsås"
-          ]
-        },
-        "rut-metro-5-live": {
-          "directionIds": [
-            "0"
-          ],
-          "headsigns": [
-            "Avløs",
-            "Ringen via Tøyen"
-          ],
-          "destinationMatches": [
-            "Avløs",
-            "Ringen"
           ]
         }
       },
@@ -8214,6 +7896,408 @@
         }
       },
       "stationId": "asjordet",
+      "directionSide": "B"
+    },
+    {
+      "id": "berg-direction-a",
+      "name": "Berg",
+      "led": 189,
+      "stopIds": [
+        "NSR:Quay:11319"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen"
+          ],
+          "destinationMatches": [
+            "Ringen",
+            "Sognsvann"
+          ]
+        }
+      },
+      "stationId": "berg",
+      "directionSide": "A"
+    },
+    {
+      "id": "berg-direction-b",
+      "name": "Berg",
+      "led": 190,
+      "stopIds": [
+        "NSR:Quay:11317"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen via Majorstuen",
+            "Ryen",
+            "Veitvet",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen",
+            "Ryen",
+            "Veitvet",
+            "Vestli"
+          ]
+        }
+      },
+      "stationId": "berg",
+      "directionSide": "B"
+    },
+    {
+      "id": "holstein-direction-a",
+      "name": "Holstein",
+      "led": 191,
+      "stopIds": [
+        "NSR:Quay:11388"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen"
+          ],
+          "destinationMatches": [
+            "Ringen",
+            "Sognsvann"
+          ]
+        }
+      },
+      "stationId": "holstein",
+      "directionSide": "A"
+    },
+    {
+      "id": "holstein-direction-b",
+      "name": "Holstein",
+      "led": 192,
+      "stopIds": [
+        "NSR:Quay:11389"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen via Majorstuen",
+            "Ryen",
+            "Veitvet",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen",
+            "Ryen",
+            "Veitvet",
+            "Vestli"
+          ]
+        }
+      },
+      "stationId": "holstein",
+      "directionSide": "B"
+    },
+    {
+      "id": "kringsja-direction-a",
+      "name": "Kringsjå",
+      "led": 193,
+      "stopIds": [
+        "NSR:Quay:11401"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen"
+          ],
+          "destinationMatches": [
+            "Ringen",
+            "Sognsvann"
+          ]
+        }
+      },
+      "stationId": "kringsja",
+      "directionSide": "A"
+    },
+    {
+      "id": "kringsja-direction-b",
+      "name": "Kringsjå",
+      "led": 194,
+      "stopIds": [
+        "NSR:Quay:11400"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen via Majorstuen",
+            "Ryen",
+            "Veitvet",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen",
+            "Ryen",
+            "Veitvet",
+            "Vestli"
+          ]
+        }
+      },
+      "stationId": "kringsja",
+      "directionSide": "B"
+    },
+    {
+      "id": "sognsvann-direction-a",
+      "name": "Sognsvann",
+      "led": 195,
+      "stopIds": [
+        "NSR:Quay:11411"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen"
+          ],
+          "destinationMatches": [
+            "Ringen",
+            "Sognsvann"
+          ]
+        }
+      },
+      "stationId": "sognsvann",
+      "directionSide": "A"
+    },
+    {
+      "id": "sognsvann-direction-b",
+      "name": "Sognsvann",
+      "led": 196,
+      "stopIds": [
+        "NSR:Quay:11411"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen via Majorstuen",
+            "Ryen",
+            "Veitvet",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen",
+            "Ryen",
+            "Veitvet",
+            "Vestli"
+          ]
+        }
+      },
+      "stationId": "sognsvann",
+      "directionSide": "B"
+    },
+    {
+      "id": "tasen-direction-a",
+      "name": "Tåsen",
+      "led": 197,
+      "stopIds": [
+        "NSR:Quay:11341"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen"
+          ],
+          "destinationMatches": [
+            "Ringen",
+            "Sognsvann"
+          ]
+        }
+      },
+      "stationId": "tasen",
+      "directionSide": "A"
+    },
+    {
+      "id": "tasen-direction-b",
+      "name": "Tåsen",
+      "led": 198,
+      "stopIds": [
+        "NSR:Quay:11339"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen via Majorstuen",
+            "Ryen",
+            "Veitvet",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen",
+            "Ryen",
+            "Veitvet",
+            "Vestli"
+          ]
+        }
+      },
+      "stationId": "tasen",
+      "directionSide": "B"
+    },
+    {
+      "id": "osthorn-direction-a",
+      "name": "Østhorn",
+      "led": 199,
+      "stopIds": [
+        "NSR:Quay:11371"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Ringen via Majorstuen",
+            "Ringen via Tøyen",
+            "Sognsvann",
+            "Sognsvann via Tøyen"
+          ],
+          "destinationMatches": [
+            "Ringen",
+            "Sognsvann"
+          ]
+        }
+      },
+      "stationId": "osthorn",
+      "directionSide": "A"
+    },
+    {
+      "id": "osthorn-direction-b",
+      "name": "Østhorn",
+      "led": 200,
+      "stopIds": [
+        "NSR:Quay:11372"
+      ],
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "routeDirections": {
+        "rut-metro-5-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen via Majorstuen",
+            "Ryen",
+            "Veitvet",
+            "Vestli",
+            "Vestli via Majorstuen"
+          ],
+          "destinationMatches": [
+            "Helsfyr",
+            "Manglerud",
+            "Ringen",
+            "Ryen",
+            "Veitvet",
+            "Vestli"
+          ]
+        }
+      },
+      "stationId": "osthorn",
       "directionSide": "B"
     }
   ],

@@ -19,230 +19,151 @@
     "publicCode": "5",
     "mode": "metro",
     "longName": "Sognsvann - Vestli",
-    "color": "#EC700C"
+    "color": "#35A936"
   },
   "directions": [
-    {
-      "id": "avlos",
-      "label": "mot Avløs",
-      "destinationMatches": [
-        "Avløs"
-      ],
-      "color": "#EC700C",
-      "reverseShape": false
-    },
     {
       "id": "vestli",
       "label": "mot Vestli",
       "destinationMatches": [
         "Vestli"
       ],
-      "color": "#EC700C",
+      "color": "#35A936",
+      "reverseShape": false
+    },
+    {
+      "id": "sognsvann",
+      "label": "mot Sognsvann",
+      "destinationMatches": [
+        "Sognsvann"
+      ],
+      "color": "#35A936",
       "reverseShape": true
     }
   ],
   "stops": [
     {
-      "id": "NSR:Quay:10508",
+      "id": "NSR:Quay:11411",
       "quayIds": [
-        "NSR:Quay:10508",
-        "NSR:Quay:10509"
+        "NSR:Quay:11411"
       ],
-      "name": "Vestli",
-      "lat": 59.972726,
-      "lon": 10.929592,
-      "shapeDistanceMeters": 0.0
+      "name": "Sognsvann",
+      "lat": 59.967316,
+      "lon": 10.733833,
+      "shapeDistanceMeters": 0
     },
     {
-      "id": "NSR:Quay:10488",
+      "id": "NSR:Quay:11400",
       "quayIds": [
-        "NSR:Quay:10488",
-        "NSR:Quay:10489"
+        "NSR:Quay:11400",
+        "NSR:Quay:11401"
       ],
-      "name": "Stovner",
-      "lat": 59.96226,
-      "lon": 10.92333,
-      "shapeDistanceMeters": 1214.8
+      "name": "Kringsjå",
+      "lat": 59.963701,
+      "lon": 10.734842,
+      "shapeDistanceMeters": 405.9
     },
     {
-      "id": "NSR:Quay:10462",
+      "id": "NSR:Quay:11389",
       "quayIds": [
-        "NSR:Quay:10461",
-        "NSR:Quay:10462"
+        "NSR:Quay:11388",
+        "NSR:Quay:11389"
       ],
-      "name": "Rommen",
-      "lat": 59.96213,
-      "lon": 10.909467,
-      "shapeDistanceMeters": 1986.6
+      "name": "Holstein",
+      "lat": 59.960539,
+      "lon": 10.740386,
+      "shapeDistanceMeters": 873.7
     },
     {
-      "id": "NSR:Quay:10602",
+      "id": "NSR:Quay:11372",
       "quayIds": [
-        "NSR:Quay:10602",
-        "NSR:Quay:10603"
+        "NSR:Quay:11371",
+        "NSR:Quay:11372"
       ],
-      "name": "Romsås",
-      "lat": 59.962567,
-      "lon": 10.892678,
-      "shapeDistanceMeters": 2922.3
+      "name": "Østhorn",
+      "lat": 59.956579,
+      "lon": 10.750149,
+      "shapeDistanceMeters": 1573.2
     },
     {
-      "id": "NSR:Quay:10719",
+      "id": "NSR:Quay:11339",
       "quayIds": [
-        "NSR:Quay:10718",
-        "NSR:Quay:10719"
+        "NSR:Quay:11339",
+        "NSR:Quay:11341"
       ],
-      "name": "Grorud",
-      "lat": 59.96146,
-      "lon": 10.88078,
-      "shapeDistanceMeters": 3595.9
+      "name": "Tåsen",
+      "lat": 59.953587,
+      "lon": 10.752327,
+      "shapeDistanceMeters": 1927.3
     },
     {
-      "id": "NSR:Quay:10692",
+      "id": "NSR:Quay:11317",
       "quayIds": [
-        "NSR:Quay:10692",
-        "NSR:Quay:10693"
+        "NSR:Quay:11317",
+        "NSR:Quay:11319"
       ],
-      "name": "Ammerud",
-      "lat": 59.958295,
-      "lon": 10.871929,
-      "shapeDistanceMeters": 4201.4
+      "name": "Berg",
+      "lat": 59.951262,
+      "lon": 10.744524,
+      "shapeDistanceMeters": 2432.8
     },
     {
-      "id": "NSR:Quay:10652",
+      "id": "NSR:Quay:11287",
       "quayIds": [
-        "NSR:Quay:10651",
-        "NSR:Quay:10652"
+        "NSR:Quay:11287",
+        "NSR:Quay:11289"
       ],
-      "name": "Kalbakken",
-      "lat": 59.95458,
-      "lon": 10.86673,
-      "shapeDistanceMeters": 4705.8
+      "name": "Ullevål stadion",
+      "lat": 59.946879,
+      "lon": 10.732205,
+      "shapeDistanceMeters": 3274.3
     },
     {
-      "id": "NSR:Quay:10640",
+      "id": "NSR:Quay:11655",
       "quayIds": [
-        "NSR:Quay:10639",
-        "NSR:Quay:10640"
+        "NSR:Quay:11654",
+        "NSR:Quay:11655"
       ],
-      "name": "Rødtvet",
-      "lat": 59.951423,
-      "lon": 10.859253,
-      "shapeDistanceMeters": 5250.4
+      "name": "Forskningsparken",
+      "lat": 59.943734,
+      "lon": 10.7208,
+      "shapeDistanceMeters": 3999.3
     },
     {
-      "id": "NSR:Quay:10939",
+      "id": "NSR:Quay:11636",
       "quayIds": [
-        "NSR:Quay:10938",
-        "NSR:Quay:10939"
+        "NSR:Quay:11635",
+        "NSR:Quay:11636"
       ],
-      "name": "Veitvet",
-      "lat": 59.944578,
-      "lon": 10.846936,
-      "shapeDistanceMeters": 6274.9
+      "name": "Blindern",
+      "lat": 59.940219,
+      "lon": 10.716101,
+      "shapeDistanceMeters": 4469.7
     },
     {
-      "id": "NSR:Quay:10905",
+      "id": "NSR:Quay:8027",
       "quayIds": [
-        "NSR:Quay:10905",
-        "NSR:Quay:10906"
+        "NSR:Quay:8027",
+        "NSR:Quay:8028"
       ],
-      "name": "Linderud",
-      "lat": 59.941019,
-      "lon": 10.838461,
-      "shapeDistanceMeters": 6890.9
+      "name": "Majorstuen",
+      "lat": 59.930047,
+      "lon": 10.714728,
+      "shapeDistanceMeters": 5603.4
     },
     {
-      "id": "NSR:Quay:10885",
+      "id": "NSR:Quay:7333",
       "quayIds": [
-        "NSR:Quay:10884",
-        "NSR:Quay:10885"
+        "NSR:Quay:7333",
+        "NSR:Quay:7334"
       ],
-      "name": "Vollebekk",
-      "lat": 59.935935,
-      "lon": 10.831052,
-      "shapeDistanceMeters": 7590.8
+      "name": "Nationaltheatret",
+      "lat": 59.91532,
+      "lon": 10.73222,
+      "shapeDistanceMeters": 7509.1
     },
     {
-      "id": "NSR:Quay:10861",
-      "quayIds": [
-        "NSR:Quay:10861",
-        "NSR:Quay:10863"
-      ],
-      "name": "Risløkka",
-      "lat": 59.932513,
-      "lon": 10.822957,
-      "shapeDistanceMeters": 8180.8
-    },
-    {
-      "id": "NSR:Quay:10825",
-      "quayIds": [
-        "NSR:Quay:10825",
-        "NSR:Quay:10827"
-      ],
-      "name": "Økern",
-      "lat": 59.928281,
-      "lon": 10.806073,
-      "shapeDistanceMeters": 9232.7
-    },
-    {
-      "id": "NSR:Quay:11065",
-      "quayIds": [
-        "NSR:Quay:11065",
-        "NSR:Quay:11066"
-      ],
-      "name": "Hasle",
-      "lat": 59.924402,
-      "lon": 10.794682,
-      "shapeDistanceMeters": 10000.1
-    },
-    {
-      "id": "NSR:Quay:11027",
-      "quayIds": [
-        "NSR:Quay:11026",
-        "NSR:Quay:11027"
-      ],
-      "name": "Carl Berners plass",
-      "lat": 59.925981,
-      "lon": 10.7796,
-      "shapeDistanceMeters": 10858.6
-    },
-    {
-      "id": "NSR:Quay:11898",
-      "quayIds": [
-        "NSR:Quay:11895",
-        "NSR:Quay:11897",
-        "NSR:Quay:11898"
-      ],
-      "name": "Tøyen",
-      "lat": 59.915897,
-      "lon": 10.775802,
-      "shapeDistanceMeters": 11999.7
-    },
-    {
-      "id": "NSR:Quay:11929",
-      "quayIds": [
-        "NSR:Quay:11928",
-        "NSR:Quay:11929"
-      ],
-      "name": "Grønland",
-      "lat": 59.91283,
-      "lon": 10.76018,
-      "shapeDistanceMeters": 12934.9
-    },
-    {
-      "id": "NSR:Quay:7184",
-      "quayIds": [
-        "NSR:Quay:7183",
-        "NSR:Quay:7184"
-      ],
-      "name": "Jernbanetorget",
-      "lat": 59.912268,
-      "lon": 10.751326,
-      "shapeDistanceMeters": 13432.4
-    },
-    {
-      "id": "NSR:Quay:7255",
+      "id": "NSR:Quay:7256",
       "quayIds": [
         "NSR:Quay:7255",
         "NSR:Quay:7256",
@@ -250,229 +171,241 @@
         "NSR:Quay:7258"
       ],
       "name": "Stortinget",
-      "lat": 59.913478,
-      "lon": 10.743221,
-      "shapeDistanceMeters": 13903.8
+      "lat": 59.913406,
+      "lon": 10.743199,
+      "shapeDistanceMeters": 8157
     },
     {
-      "id": "NSR:Quay:7334",
+      "id": "NSR:Quay:7183",
       "quayIds": [
-        "NSR:Quay:7333",
-        "NSR:Quay:7334"
+        "NSR:Quay:7183",
+        "NSR:Quay:7184"
       ],
-      "name": "Nationaltheatret",
-      "lat": 59.91535,
-      "lon": 10.73233,
-      "shapeDistanceMeters": 14545.6
+      "name": "Jernbanetorget",
+      "lat": 59.912197,
+      "lon": 10.75131,
+      "shapeDistanceMeters": 8628.7
     },
     {
-      "id": "NSR:Quay:8028",
+      "id": "NSR:Quay:11928",
       "quayIds": [
-        "NSR:Quay:8027",
-        "NSR:Quay:8028"
+        "NSR:Quay:11928",
+        "NSR:Quay:11929"
       ],
-      "name": "Majorstuen",
-      "lat": 59.930279,
-      "lon": 10.714647,
-      "shapeDistanceMeters": 16476.1
+      "name": "Grønland",
+      "lat": 59.91276,
+      "lon": 10.76016,
+      "shapeDistanceMeters": 9126
     },
     {
-      "id": "NSR:Quay:11635",
+      "id": "NSR:Quay:11897",
       "quayIds": [
-        "NSR:Quay:11635",
-        "NSR:Quay:11636"
+        "NSR:Quay:11895",
+        "NSR:Quay:11897",
+        "NSR:Quay:11898"
       ],
-      "name": "Blindern",
-      "lat": 59.94019,
-      "lon": 10.716259,
-      "shapeDistanceMeters": 17581.8
+      "name": "Tøyen",
+      "lat": 59.915591,
+      "lon": 10.775989,
+      "shapeDistanceMeters": 10062.8
     },
     {
-      "id": "NSR:Quay:11654",
+      "id": "NSR:Quay:11026",
       "quayIds": [
-        "NSR:Quay:11654",
-        "NSR:Quay:11655"
+        "NSR:Quay:11026",
+        "NSR:Quay:11027"
       ],
-      "name": "Forskningsparken",
-      "lat": 59.943674,
-      "lon": 10.720934,
-      "shapeDistanceMeters": 18048.6
+      "name": "Carl Berners plass",
+      "lat": 59.925828,
+      "lon": 10.779763,
+      "shapeDistanceMeters": 11220.4
     },
     {
-      "id": "NSR:Quay:11289",
-      "quayIds": [
-        "NSR:Quay:11287",
-        "NSR:Quay:11289"
-      ],
-      "name": "Ullevål stadion",
-      "lat": 59.946754,
-      "lon": 10.732194,
-      "shapeDistanceMeters": 18763.0
-    },
-    {
-      "id": "NSR:Quay:11153",
-      "quayIds": [
-        "NSR:Quay:11151",
-        "NSR:Quay:11153"
-      ],
-      "name": "Nydalen",
-      "lat": 59.949433,
-      "lon": 10.765322,
-      "shapeDistanceMeters": 20631.7
-    },
-    {
-      "id": "NSR:Quay:11117",
-      "quayIds": [
-        "NSR:Quay:11115",
-        "NSR:Quay:11117"
-      ],
-      "name": "Storo",
-      "lat": 59.94481,
-      "lon": 10.778368,
-      "shapeDistanceMeters": 21521.6
-    },
-    {
-      "id": "NSR:Quay:11078",
+      "id": "NSR:Quay:11077",
       "quayIds": [
         "NSR:Quay:11077",
         "NSR:Quay:11078"
       ],
       "name": "Sinsen",
-      "lat": 59.93717,
-      "lon": 10.78174,
-      "shapeDistanceMeters": 22391.7
+      "lat": 59.93719,
+      "lon": 10.78187,
+      "shapeDistanceMeters": 12489.2
     },
     {
-      "id": "NSR:Quay:11932",
+      "id": "NSR:Quay:11115",
       "quayIds": [
-        "NSR:Quay:11932",
-        "NSR:Quay:11933"
+        "NSR:Quay:11115",
+        "NSR:Quay:11117"
       ],
-      "name": "Borgen",
-      "lat": 59.934648,
-      "lon": 10.695748,
-      "shapeDistanceMeters": 27190.1
+      "name": "Storo",
+      "lat": 59.944832,
+      "lon": 10.778484,
+      "shapeDistanceMeters": 13359.7
     },
     {
-      "id": "NSR:Quay:11945",
+      "id": "NSR:Quay:11151",
       "quayIds": [
-        "NSR:Quay:11944",
-        "NSR:Quay:11945"
+        "NSR:Quay:11151",
+        "NSR:Quay:11153"
       ],
-      "name": "Smestad",
-      "lat": 59.937205,
-      "lon": 10.684411,
-      "shapeDistanceMeters": 27882.6
+      "name": "Nydalen",
+      "lat": 59.949532,
+      "lon": 10.765338,
+      "shapeDistanceMeters": 14259.1
     },
     {
-      "id": "NSR:Quay:11964",
+      "id": "NSR:Quay:11066",
       "quayIds": [
-        "NSR:Quay:11964",
-        "NSR:Quay:11965"
+        "NSR:Quay:11065",
+        "NSR:Quay:11066"
       ],
-      "name": "Montebello",
-      "lat": 59.934849,
-      "lon": 10.666349,
-      "shapeDistanceMeters": 28922.3
+      "name": "Hasle",
+      "lat": 59.924324,
+      "lon": 10.794733,
+      "shapeDistanceMeters": 17505.3
     },
     {
-      "id": "NSR:Quay:12011",
+      "id": "NSR:Quay:10827",
       "quayIds": [
-        "NSR:Quay:12011",
-        "NSR:Quay:12012"
+        "NSR:Quay:10825",
+        "NSR:Quay:10827"
       ],
-      "name": "Ullernåsen",
-      "lat": 59.931505,
-      "lon": 10.655918,
-      "shapeDistanceMeters": 29612.2
+      "name": "Økern",
+      "lat": 59.928208,
+      "lon": 10.806108,
+      "shapeDistanceMeters": 18272.3
     },
     {
-      "id": "NSR:Quay:12025",
+      "id": "NSR:Quay:10863",
       "quayIds": [
-        "NSR:Quay:12025",
-        "NSR:Quay:12026"
+        "NSR:Quay:10861",
+        "NSR:Quay:10863"
       ],
-      "name": "Åsjordet",
-      "lat": 59.928895,
-      "lon": 10.648024,
-      "shapeDistanceMeters": 30139.2
+      "name": "Risløkka",
+      "lat": 59.932433,
+      "lon": 10.823016,
+      "shapeDistanceMeters": 19325
     },
     {
-      "id": "NSR:Quay:12038",
+      "id": "NSR:Quay:10884",
       "quayIds": [
-        "NSR:Quay:12037",
-        "NSR:Quay:12038"
+        "NSR:Quay:10884",
+        "NSR:Quay:10885"
       ],
-      "name": "Bjørnsletta",
-      "lat": 59.926549,
-      "lon": 10.634412,
-      "shapeDistanceMeters": 30941.2
+      "name": "Vollebekk",
+      "lat": 59.935903,
+      "lon": 10.831221,
+      "shapeDistanceMeters": 19923.2
     },
     {
-      "id": "NSR:Quay:6522",
+      "id": "NSR:Quay:10906",
       "quayIds": [
-        "NSR:Quay:6521",
-        "NSR:Quay:6522"
+        "NSR:Quay:10905",
+        "NSR:Quay:10906"
       ],
-      "name": "Jar",
-      "lat": 59.925856,
-      "lon": 10.618359,
-      "shapeDistanceMeters": 31839.0
+      "name": "Linderud",
+      "lat": 59.940954,
+      "lon": 10.838544,
+      "shapeDistanceMeters": 20617.3
     },
     {
-      "id": "NSR:Quay:6765",
+      "id": "NSR:Quay:10938",
       "quayIds": [
-        "NSR:Quay:6764",
-        "NSR:Quay:6765"
+        "NSR:Quay:10938",
+        "NSR:Quay:10939"
       ],
-      "name": "Ringstabekk",
-      "lat": 59.92016,
-      "lon": 10.60439,
-      "shapeDistanceMeters": 32842.6
+      "name": "Veitvet",
+      "lat": 59.944524,
+      "lon": 10.847049,
+      "shapeDistanceMeters": 21235.3
     },
     {
-      "id": "NSR:Quay:6823",
+      "id": "NSR:Quay:10639",
       "quayIds": [
-        "NSR:Quay:6823",
-        "NSR:Quay:6824"
+        "NSR:Quay:10639",
+        "NSR:Quay:10640"
       ],
-      "name": "Bekkestua",
-      "lat": 59.917285,
-      "lon": 10.589847,
-      "shapeDistanceMeters": 33713.9
+      "name": "Rødtvet",
+      "lat": 59.951344,
+      "lon": 10.859288,
+      "shapeDistanceMeters": 22254.9
     },
     {
-      "id": "NSR:Quay:6929",
+      "id": "NSR:Quay:10651",
       "quayIds": [
-        "NSR:Quay:6928",
-        "NSR:Quay:6929"
+        "NSR:Quay:10651",
+        "NSR:Quay:10652"
       ],
-      "name": "Gjønnes",
-      "lat": 59.91509,
-      "lon": 10.58013,
-      "shapeDistanceMeters": 34308.0
+      "name": "Kalbakken",
+      "lat": 59.95455,
+      "lon": 10.86687,
+      "shapeDistanceMeters": 22807.4
     },
     {
-      "id": "NSR:Quay:7021",
+      "id": "NSR:Quay:10693",
       "quayIds": [
-        "NSR:Quay:7021",
-        "NSR:Quay:7022"
+        "NSR:Quay:10692",
+        "NSR:Quay:10693"
       ],
-      "name": "Haslum",
-      "lat": 59.915108,
-      "lon": 10.564363,
-      "shapeDistanceMeters": 35186.8
+      "name": "Ammerud",
+      "lat": 59.958236,
+      "lon": 10.872026,
+      "shapeDistanceMeters": 23307.8
     },
     {
-      "id": "NSR:Quay:7132",
+      "id": "NSR:Quay:10718",
       "quayIds": [
-        "NSR:Quay:7131",
-        "NSR:Quay:7132"
+        "NSR:Quay:10718",
+        "NSR:Quay:10719"
       ],
-      "name": "Avløs",
-      "lat": 59.91314,
-      "lon": 10.5483,
-      "shapeDistanceMeters": 36108.5
+      "name": "Grorud",
+      "lat": 59.961371,
+      "lon": 10.880783,
+      "shapeDistanceMeters": 23907.1
+    },
+    {
+      "id": "NSR:Quay:10603",
+      "quayIds": [
+        "NSR:Quay:10602",
+        "NSR:Quay:10603"
+      ],
+      "name": "Romsås",
+      "lat": 59.962505,
+      "lon": 10.892725,
+      "shapeDistanceMeters": 24583.7
+    },
+    {
+      "id": "NSR:Quay:10461",
+      "quayIds": [
+        "NSR:Quay:10461",
+        "NSR:Quay:10462"
+      ],
+      "name": "Rommen",
+      "lat": 59.962042,
+      "lon": 10.909451,
+      "shapeDistanceMeters": 25516.1
+    },
+    {
+      "id": "NSR:Quay:10489",
+      "quayIds": [
+        "NSR:Quay:10488",
+        "NSR:Quay:10489"
+      ],
+      "name": "Stovner",
+      "lat": 59.9622,
+      "lon": 10.92338,
+      "shapeDistanceMeters": 26291.6
+    },
+    {
+      "id": "NSR:Quay:10509",
+      "quayIds": [
+        "NSR:Quay:10508",
+        "NSR:Quay:10509"
+      ],
+      "name": "Vestli",
+      "lat": 59.972727,
+      "lon": 10.929707,
+      "shapeDistanceMeters": 27513.9
     }
   ],
   "shape": [
@@ -7249,4 +7182,3 @@
     "checkedDate": "2026-08-11"
   }
 }
-

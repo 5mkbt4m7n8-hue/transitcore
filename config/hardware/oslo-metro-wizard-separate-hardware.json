@@ -3,9 +3,8 @@
   "id": "oslo-metro-wizard-separate-hardware",
   "name": "Oslo T-bane · begge retninger / separate LED-er hardwareprofil",
   "boardProfile": "oslo-metro-wizard-separate",
-  "generatedAt": "2026-08-22T19:56:10.770Z",
   "leds": {
-    "count": 189,
+    "count": 201,
     "dataPin": null,
     "brightnessLimit": 32
   },
@@ -43,8 +42,7 @@
       "name": "Avløs",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "logicalLed": 2,
       "physicalLed": 2
@@ -68,8 +66,7 @@
       "name": "Bekkestua",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "logicalLed": 4,
       "physicalLed": 4
@@ -143,8 +140,7 @@
       "name": "Bjørnsletta",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "logicalLed": 10,
       "physicalLed": 10
@@ -219,8 +215,7 @@
       "direction": "Retning A",
       "routes": [
         "rut-metro-2-live",
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "logicalLed": 16,
       "physicalLed": 16
@@ -597,8 +592,7 @@
       "name": "Gjønnes",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "logicalLed": 46,
       "physicalLed": 46
@@ -764,8 +758,7 @@
       "name": "Haslum",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "logicalLed": 59,
       "physicalLed": 59
@@ -991,8 +984,7 @@
       "name": "Jar",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "logicalLed": 77,
       "physicalLed": 77
@@ -1378,8 +1370,7 @@
       "name": "Montebello",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "logicalLed": 107,
       "physicalLed": 107
@@ -1535,8 +1526,7 @@
       "name": "Ringstabekk",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "logicalLed": 119,
       "physicalLed": 119
@@ -1885,8 +1875,7 @@
       "direction": "Retning A",
       "routes": [
         "rut-metro-2-live",
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "logicalLed": 147,
       "physicalLed": 147
@@ -2099,8 +2088,7 @@
       "name": "Ullernåsen",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "logicalLed": 163,
       "physicalLed": 163
@@ -2398,8 +2386,7 @@
       "name": "Åsjordet",
       "direction": "Retning A",
       "routes": [
-        "rut-metro-3-live",
-        "rut-metro-5-live"
+        "rut-metro-3-live"
       ],
       "logicalLed": 187,
       "physicalLed": 187
@@ -2415,6 +2402,150 @@
       ],
       "logicalLed": 188,
       "physicalLed": 188
+    },
+    {
+      "sourceNodeId": "berg-direction-a",
+      "stationId": "berg",
+      "quayId": null,
+      "name": "Berg",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 189,
+      "physicalLed": 189
+    },
+    {
+      "sourceNodeId": "berg-direction-b",
+      "stationId": "berg",
+      "quayId": null,
+      "name": "Berg",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 190,
+      "physicalLed": 190
+    },
+    {
+      "sourceNodeId": "holstein-direction-a",
+      "stationId": "holstein",
+      "quayId": null,
+      "name": "Holstein",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 191,
+      "physicalLed": 191
+    },
+    {
+      "sourceNodeId": "holstein-direction-b",
+      "stationId": "holstein",
+      "quayId": null,
+      "name": "Holstein",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 192,
+      "physicalLed": 192
+    },
+    {
+      "sourceNodeId": "kringsja-direction-a",
+      "stationId": "kringsja",
+      "quayId": null,
+      "name": "Kringsjå",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 193,
+      "physicalLed": 193
+    },
+    {
+      "sourceNodeId": "kringsja-direction-b",
+      "stationId": "kringsja",
+      "quayId": null,
+      "name": "Kringsjå",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 194,
+      "physicalLed": 194
+    },
+    {
+      "sourceNodeId": "sognsvann-direction-a",
+      "stationId": "sognsvann",
+      "quayId": null,
+      "name": "Sognsvann",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 195,
+      "physicalLed": 195
+    },
+    {
+      "sourceNodeId": "sognsvann-direction-b",
+      "stationId": "sognsvann",
+      "quayId": null,
+      "name": "Sognsvann",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 196,
+      "physicalLed": 196
+    },
+    {
+      "sourceNodeId": "tasen-direction-a",
+      "stationId": "tasen",
+      "quayId": null,
+      "name": "Tåsen",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 197,
+      "physicalLed": 197
+    },
+    {
+      "sourceNodeId": "tasen-direction-b",
+      "stationId": "tasen",
+      "quayId": null,
+      "name": "Tåsen",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 198,
+      "physicalLed": 198
+    },
+    {
+      "sourceNodeId": "osthorn-direction-a",
+      "stationId": "osthorn",
+      "quayId": null,
+      "name": "Østhorn",
+      "direction": "Retning A",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 199,
+      "physicalLed": 199
+    },
+    {
+      "sourceNodeId": "osthorn-direction-b",
+      "stationId": "osthorn",
+      "quayId": null,
+      "name": "Østhorn",
+      "direction": "Retning B",
+      "routes": [
+        "rut-metro-5-live"
+      ],
+      "logicalLed": 200,
+      "physicalLed": 200
     }
   ]
 }

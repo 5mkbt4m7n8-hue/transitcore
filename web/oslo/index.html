@@ -22,7 +22,7 @@
 </head>
 <body><main>
   <header>
-    <div class="brand"><h1>TransitCore · Oslo T-bane</h1><p>Hele nettet · 95 stasjoner · separate LED-er for begge retninger</p></div>
+    <div class="brand"><h1>TransitCore · Oslo T-bane</h1><p>Hele nettet · <span id="station-count">–</span> stasjoner · <span id="led-count">–</span> retnings-LED-er</p></div>
     <div class="controls"><button id="live" class="active">Live</button><button id="all">Vis alle LED-er</button><button id="labels">Skjul stasjonsnavn</button><span id="status" class="status">Laster tavleprofil …</span></div>
   </header>
   <section class="map-shell">
@@ -106,7 +106,7 @@ function paint(){
     }
     if(!item)return;
     const entries=activeEntries(item).sort((a,b)=>priority(b)-priority(a)),highest=priority(entries[0]||item),winner=entries.filter(value=>priority(value)===highest)[cycleStep%(entries.filter(value=>priority(value)===highest).length||1)]||item;
-    const rgb=winner.rgb||item.rgb||[255,255,255];led.style.setProperty("--rgb",rgb.join(","));led.dataset.items=JSON.stringify(entries);
+    const rgb=trainRgb(winner,item.rgb);led.style.setProperty("--rgb",rgb.join(","));led.dataset.items=JSON.stringify(entries);
     const state=TransitCoreSignals.normalize(winner.state||item.state);
     if(state==="PASSED"||item.lifecycle==="PASSED")led.classList.add("passed");else{led.classList.add("on");active++}
     if(state==="APPROACHING")led.classList.add("approaching");
@@ -115,11 +115,12 @@ function paint(){
   $("status").className="status "+(frame?"ok":"error");$("status").textContent=showAll?`LED-test · ${board.leds.count} punkter`:frame?`Live · ${active} aktive · frame ${age} sek`:`Ingen live-frame`;
 }
 function hexRgb(hex){const value=hex.replace("#","");return [0,2,4].map(index=>parseInt(value.slice(index,index+2),16))}
+function trainRgb(value,fallback){const color=lineColors[String(value?.line||"")];return color?hexRgb(color):(value?.rgb||fallback||[255,255,255])}
 function lineNumbers(node){return node.routes.map(id=>id.match(/metro-(\d)/)?.[1]).filter(Boolean).join(", ")}
 function showDetail(name){
   const nodes=stationNodes(name),items=nodes.map(node=>{const physical=physicalLed(node.led),entry=(frame?.leds||[]).find(value=>Number(value.id)===physical);return {node,physical,entry}});
   $("detail-title").textContent=name;
-  $("detail-body").innerHTML=items.map(({node,physical,entry})=>{const winner=activeEntries(entry||{}).sort((a,b)=>priority(b)-priority(a))[0],state=winner?.state||entry?.state||"AV",rgb=winner?.rgb||entry?.rgb||[52,61,70];return `<p><i class="led-key" style="--rgb:${rgb.join(",")}"></i><strong>Retning ${esc(node.directionSide||"felles")}</strong> · LED ${String(physical).padStart(3,"0")} · ${esc(state)} · linje ${esc(lineNumbers(node))}</p>`}).join("");
+  $("detail-body").innerHTML=items.map(({node,physical,entry})=>{const winner=activeEntries(entry||{}).sort((a,b)=>priority(b)-priority(a))[0],state=winner?.state||entry?.state||"AV",rgb=trainRgb(winner,entry?.rgb||[52,61,70]);return `<p><i class="led-key" style="--rgb:${rgb.join(",")}"></i><strong>Retning ${esc(node.directionSide||"felles")}</strong> · LED ${String(physical).padStart(3,"0")} · ${esc(state)} · linje ${esc(lineNumbers(node))}</p>`}).join("");
   $("detail").hidden=false;
 }
 async function refresh(){
@@ -131,7 +132,7 @@ function validate(){
   const names=new Set(corridors.flatMap(corridor=>corridor.stations)),boardNames=new Set(board.nodes.map(node=>node.name));
   const missing=[...boardNames].filter(name=>!names.has(name)),unknown=[...names].filter(name=>!boardNames.has(name));
   if(missing.length||unknown.length)throw Error(`Kartprofil avviker: mangler ${missing.join(", ")||"ingen"}; ukjente ${unknown.join(", ")||"ingen"}`);
-  if(board.nodes.length!==189||hardware.assignments.length!==189)throw Error("Forventet 189 retnings-LED-er");
+  if(board.nodes.length!==hardware.assignments.length)throw Error("Tavle- og hardwareprofil har ulikt antall LED-er");
 }
 
 $("live").onclick=()=>{showAll=false;$("live").classList.add("active");$("all").classList.remove("active");paint()};
@@ -139,5 +140,5 @@ $("all").onclick=()=>{showAll=true;$("all").classList.add("active");$("live").cl
 $("labels").onclick=()=>{showLabels=!showLabels;document.querySelectorAll("[data-label]").forEach(label=>label.style.display=showLabels?"":"none");$("labels").textContent=showLabels?"Skjul stasjonsnavn":"Vis stasjonsnavn"};
 $("close").onclick=()=>$("detail").hidden=true;
 
-Promise.all([json(BOARD_URL),json(HARDWARE_URL)]).then(values=>{[board,hardware]=values;validate();renderRoutes();renderStations();renderLegend();cycleTimer=setInterval(()=>{cycleStep+=1;paint()},1200);refresh()}).catch(error=>{$("status").className="status error";$("status").textContent=`Oppstartsfeil: ${error.message}`});
+Promise.all([json(BOARD_URL),json(HARDWARE_URL)]).then(values=>{[board,hardware]=values;validate();$("station-count").textContent=new Set(board.nodes.map(node=>node.stationId)).size;$("led-count").textContent=board.leds.count;renderRoutes();renderStations();renderLegend();cycleTimer=setInterval(()=>{cycleStep+=1;paint()},TransitCoreSignals.settings.collisionCycleSeconds*1000);refresh()}).catch(error=>{$("status").className="status error";$("status").textContent=`Oppstartsfeil: ${error.message}`});
 </script></body></html>
