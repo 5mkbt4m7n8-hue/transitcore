@@ -19,7 +19,7 @@
     "publicCode": "4",
     "mode": "metro",
     "longName": "Vestli - Bergkrystallen",
-    "color": "#00529B"
+    "color": "#0050FF"
   },
   "directions": [
     {
@@ -28,7 +28,7 @@
       "destinationMatches": [
         "Vestli"
       ],
-      "color": "#00529B",
+      "color": "#0050FF",
       "reverseShape": false
     },
     {
@@ -37,7 +37,7 @@
       "destinationMatches": [
         "Bergkrystallen"
       ],
-      "color": "#00529B",
+      "color": "#0050FF",
       "reverseShape": true
     }
   ],

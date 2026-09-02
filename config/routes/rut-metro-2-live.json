@@ -19,7 +19,7 @@
     "publicCode": "2",
     "mode": "metro",
     "longName": "Østerås - Ellingsrudåsen",
-    "color": "#F15A24"
+    "color": "#FF5A00"
   },
   "directions": [
     {
@@ -28,7 +28,7 @@
       "destinationMatches": [
         "Østerås"
       ],
-      "color": "#F15A24",
+      "color": "#FF5A00",
       "reverseShape": false
     },
     {
@@ -37,7 +37,7 @@
       "destinationMatches": [
         "Ellingsrudåsen"
       ],
-      "color": "#F15A24",
+      "color": "#FF5A00",
       "reverseShape": true
     }
   ],
