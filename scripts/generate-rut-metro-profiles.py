@@ -17,7 +17,7 @@ BOARD_DIRECTION_FILES = {
     "1": ROOT / "config" / "boards" / "oslo-metro-board-direction-b.json",
 }
 LINES = {"2", "3", "4", "5"}
-LINE_COLORS = {"1": "00A9E0", "2": "F15A24", "3": "9B5AA6", "4": "00529B", "5": "35A936"}
+LINE_COLORS = {"1": "00BFFF", "2": "FF5A00", "3": "C43DFF", "4": "0050FF", "5": "00C853"}
 
 
 def read_rows(archive, name):

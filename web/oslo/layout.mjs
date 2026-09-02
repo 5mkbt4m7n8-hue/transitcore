@@ -102,11 +102,11 @@ export const corridors = [
 ];
 
 export const lineColors = {
-  "1": "#00a9e0",
-  "2": "#f15a24",
-  "3": "#9b5aa6",
-  "4": "#00529b",
-  "5": "#35a936"
+  "1": "#00bfff",
+  "2": "#ff5a00",
+  "3": "#c43dff",
+  "4": "#0050ff",
+  "5": "#00c853"
 };
 
 export function pointAlongPolyline(points, ratio) {

@@ -19,7 +19,7 @@
     "publicCode": "5",
     "mode": "metro",
     "longName": "Sognsvann - Vestli",
-    "color": "#35A936"
+    "color": "#00C853"
   },
   "directions": [
     {
@@ -28,7 +28,7 @@
       "destinationMatches": [
         "Vestli"
       ],
-      "color": "#35A936",
+      "color": "#00C853",
       "reverseShape": false
     },
     {
@@ -37,7 +37,7 @@
       "destinationMatches": [
         "Sognsvann"
       ],
-      "color": "#35A936",
+      "color": "#00C853",
       "reverseShape": true
     }
   ],
