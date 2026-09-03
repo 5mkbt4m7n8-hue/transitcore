@@ -14,7 +14,7 @@
 <section class="panel"><h2 id="title">Laster prosjekt …</h2><div class="controls"><input id="token" type="password" autocomplete="off" placeholder="Administratornøkkel"><button id="start" class="primary">Start live-test</button><button id="refresh">Oppdater nå</button><button id="signalTest" disabled>Test valgt LED</button></div><div id="status" class="status">Venter på test.</div></section>
 <section class="panel"><h2>Klar for fysisk tavle</h2><div id="projectSummary" class="summary"></div><div id="readiness" class="status">Kontrollerer prosjektet …</div><ul id="checks" class="checks"></ul></section>
 <section class="panel"><div id="leds" class="grid"></div></section>
-<section class="panel actions"><a class="button" href="../editor/?wizard=1">Tilbake til Editor</a><button id="publish" class="primary">Fortsett til publisering</button></section>
+<section class="panel actions"><a id="returnEditor" class="button" href="../editor/?wizard=1">Tilbake til Editor</a><button id="publish" class="primary">Fortsett til publisering</button></section>
 </main>
 <script src="../shared/signal-policy.js"></script><script>
 TransitCoreSignals.applyCssVariables(document);
@@ -25,7 +25,7 @@ let project=null,token="",timer=null,lastFrameValid=false,selectedPhysical=null,
 const lastStops=new Map();
 function load(){
  const raw=localStorage.getItem(PREVIEW_STORE);if(!raw){$("status").className="status bad";$("status").textContent="Prosjektet mangler. Gå tilbake til Editor og velg Test med live-data.";return}
- try{project=JSON.parse(raw);if(!project.files||Date.now()-Number(project.createdAt)>30*60*1000)throw Error("Prosjektet er utløpt");project.board=JSON.parse(project.files["board-profile.json"]);project.hardware=JSON.parse(project.files["hardware-profile.json"]);$("title").textContent=project.board.name;render({leds:[]});renderReadiness()}catch(error){project=null;$("status").className="status bad";$("status").textContent="Kan ikke åpne prosjektet: "+error.message}
+ try{project=JSON.parse(raw);if(!project.files||Date.now()-Number(project.createdAt)>30*60*1000)throw Error("Prosjektet er utløpt");project.board=JSON.parse(project.files["board-profile.json"]);project.hardware=JSON.parse(project.files["hardware-profile.json"]);const editorPaths={editor:"../editor/?wizard=1",grakallbanen:"../grakallbanen-editor/"};$("returnEditor").href=editorPaths[project.sourceEditor]||editorPaths.editor;$("title").textContent=project.board.name;render({leds:[]});renderReadiness()}catch(error){project=null;$("status").className="status bad";$("status").textContent="Kan ikke åpne prosjektet: "+error.message}
 }
 function rows(){const nodes=new Map(project.board.nodes.map(node=>[node.id,node]));return [...project.hardware.assignments].sort((a,b)=>a.physicalLed-b.physicalLed).map(a=>({assignment:a,node:nodes.get(a.sourceNodeId)||{}}))}
 function configurationChecks(){
