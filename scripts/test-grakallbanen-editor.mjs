@@ -12,4 +12,5 @@ assert.match(script,/type:"segment"/,"mellom-LED-er skal eksporteres som segment
 assert.match(script,/physicalLed:reverse\?all\.length-1-node\.led:node\.led/,"DIN-retningen skal kunne snus uten å endre logisk rute");
 assert.match(script,/TransitCoreZip\.createZip\(files\(\)\)/,"redigereren skal laste ned en komplett prosjektpakke");
 assert.match(script,/PREVIEW_STORE/,"pakken skal kunne testes med live-data før publisering");
+assert.match(script,/sourceEditor:\s*"grakallbanen"/,"live-testen skal kunne gå tilbake til Gråkallbanen-editoren");
 console.log("Gråkallbanen prototype editor syntax and export flow OK");
