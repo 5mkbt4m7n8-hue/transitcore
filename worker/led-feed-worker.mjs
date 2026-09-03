@@ -543,6 +543,15 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
   validateConfiguration(board, profiles, hardware);
   const profile = profiles[0];
   const physical = new Map(hardware.assignments.map(item => [item.logicalLed, item.physicalLed]));
+  const stationByStop = new Map();
+  for (const node of board.nodes) if (node.type === "station") for (const stopId of node.stopIds || []) stationByStop.set(stopId, node);
+  const segmentNodes = index => {
+    const from = stationByStop.get(profile.stops[index]?.id), to = stationByStop.get(profile.stops[index + 1]?.id);
+    if (!from || !to) return [];
+    const low = Math.min(from.led, to.led), high = Math.max(from.led, to.led);
+    const nodes = board.nodes.filter(node => node.type === "segment" && node.led > low && node.led < high).sort((a, b) => a.led - b.led);
+    return from.led < to.led ? nodes : nodes.reverse();
+  };
   const dedupe = new Map();
   for (const raw of vehicles) {
     const updated = Date.parse(raw.lastUpdated || "");
@@ -562,16 +571,19 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
     });
     let logicalLed, state, meters;
     if (nearestStopIndex >= 0 && stopMeters <= board.render.arrivalRadiusMeters) {
-      logicalLed = profile.stops[nearestStopIndex].vled;
+      logicalLed = stationByStop.get(profile.stops[nearestStopIndex].id)?.led ?? profile.stops[nearestStopIndex].vled;
       state = "AT_STOP";
       meters = stopMeters;
     } else {
       const route = nearestRoutePosition(profile, vehicle);
       if (!route || route.meters > board.render.maximumTrackDistanceMeters) continue;
-      const segment = profile.stops[route.index].segmentToNext;
-      if (!segment?.vledCount) continue;
-      const offset = Math.min(segment.vledCount - 1, Math.floor(route.progress * segment.vledCount));
-      logicalLed = segment.vledStart + offset;
+      const configured = segmentNodes(route.index), legacy = profile.stops[route.index].segmentToNext;
+      if (configured.length) logicalLed = configured[Math.min(configured.length - 1, Math.floor(route.progress * configured.length))].led;
+      else if (stationByStop.size) continue;
+      else {
+        if (!legacy?.vledCount) continue;
+        logicalLed = legacy.vledStart + Math.min(legacy.vledCount - 1, Math.floor(route.progress * legacy.vledCount));
+      }
       state = "APPROACHING";
       meters = route.meters;
     }
@@ -767,7 +779,8 @@ export function validatePublishProfiles(board,hardware){
  for(const node of nodes){
   if(typeof node.id!=="string"||!node.id||typeof node.name!=="string"||!node.name.trim())throw Error("Node is missing id or name");
   if(!Number.isInteger(node.led)||node.led<0||logical.has(node.led))throw Error("Duplicate or invalid logical LED");
-  if(!Array.isArray(node.stopIds)||!node.stopIds.length||node.stopIds.some(id=>typeof id!=="string"||!id))throw Error("Node is missing valid stop id");
+  const linearSegment=board.layout==="linear-route-vled"&&node.type==="segment";
+  if(!Array.isArray(node.stopIds)||(!linearSegment&&!node.stopIds.length)||node.stopIds.some(id=>typeof id!=="string"||!id))throw Error("Node is missing valid stop id");
   if(!Array.isArray(node.routes)||!node.routes.length||node.routes.some(id=>!routeSet.has(id)))throw Error("Node references unknown or missing route");
   const directions=node.routeDirections;
   if(directions!==undefined){

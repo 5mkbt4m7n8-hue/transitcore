@@ -36,7 +36,7 @@ function validate(files){
  nodes.forEach(n=>{const id=n.stationId||n.id,list=stationGroups.get(id)||[];list.push(n);stationGroups.set(id,list)});
  const mappingExact=assignments.every(a=>{const n=nodeById.get(a.sourceNodeId);return n&&n.led===a.logicalLed});
  const nodeRoutesValid=nodes.every(n=>Array.isArray(n.routes)&&n.routes.length>0&&n.routes.every(route=>routeSet.has(route)));
- const directionMetadataValid=nodes.every(n=>n.routes.every(route=>{const d=n.routeDirections?.[route];return d&&Array.isArray(d.destinationMatches)&&d.destinationMatches.length>0}));
+ const directionMetadataValid=board.positioning==="vehicle-proximity"||nodes.every(n=>n.routes.every(route=>{const d=n.routeDirections?.[route];return d&&Array.isArray(d.destinationMatches)&&d.destinationMatches.length>0}));
  const modeValid=board.directionMode==="shared"
   ?[...stationGroups.values()].every(group=>group.length===1)
   :board.directionMode==="separate"
@@ -52,7 +52,7 @@ function validate(files){
   ["Fysiske LED-numre er unike og sammenhengende",physical.size===nodes.length&&continuous(physical,nodes.length)],
   ["Hardwarekilder er unike",sources.size===assignments.length],
   ["Hver hardwarekobling peker til riktig logisk LED",mappingExact&&assignmentLogical.size===nodes.length],
-  ["Alle tavlepunkter har stopp-ID",nodes.every(n=>Array.isArray(n.stopIds)&&n.stopIds.length>0)],
+  ["Stasjoner har stopp-ID",nodes.every(n=>Array.isArray(n.stopIds)&&(board.layout==="linear-route-vled"&&n.type==="segment"||n.stopIds.length>0))],
   ["Minst én rute er valgt",routes.length>0],
   ["Alle tavlepunkter bruker valgte ruter",nodeRoutesValid],
   ["Alle retninger har destinasjonsbevis",directionMetadataValid],

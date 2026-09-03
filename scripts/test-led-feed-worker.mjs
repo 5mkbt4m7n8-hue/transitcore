@@ -50,12 +50,15 @@ const tramProfile = { id: "tram-9", provider: {}, line: { publicCode: "9", color
   { id: "b", lat: 63.40, lon: 10.31, vled: 3 }
 ] };
 const tramBoard = { id: "grakallbanen-board", layout: "linear-route-vled", positioning: "vehicle-proximity", routes: ["tram-9"], leds: { count: 4 },
-  nodes: [0, 1, 2, 3].map(led => ({ led, routes: ["tram-9"], stopIds: [] })),
+  nodes: [{ led: 0, type: "station", routes: ["tram-9"], stopIds: ["a"] }, { led: 1, type: "segment", routes: ["tram-9"], stopIds: [] }, { led: 2, type: "segment", routes: ["tram-9"], stopIds: [] }, { led: 3, type: "station", routes: ["tram-9"], stopIds: ["b"] }],
   render: { freshnessSeconds: 120, arrivalRadiusMeters: 65, maximumTrackDistanceMeters: 250 } };
 const tramHardware = { schemaVersion: 1, boardProfile: "grakallbanen-board", leds: { count: 4, brightnessLimit: 20 }, assignments: [0, 1, 2, 3].map(led => ({ logicalLed: led, physicalLed: led })) };
 const tramVehicles = [{ vehicleId: "tram-1", lastUpdated: new Date(now - 5000).toISOString(), destinationName: "Lian", line: { publicCode: "9" }, location: { latitude: 63.40, longitude: 10.3075 } }];
 const tramFrame = buildLinearRouteFrame({ board: tramBoard, profiles: [tramProfile], hardware: tramHardware, vehicles: tramVehicles, now });
 assert.deepEqual(tramFrame.leds, [{ id: 2, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING" }]);
+const shortBoard={...tramBoard,leds:{count:3},nodes:[tramBoard.nodes[0],{...tramBoard.nodes[1]},{...tramBoard.nodes[3],led:2}]};
+const shortHardware={...tramHardware,leds:{count:3,brightnessLimit:20},assignments:[0,1,2].map(led=>({logicalLed:led,physicalLed:led}))};
+assert.deepEqual(buildLinearRouteFrame({board:shortBoard,profiles:[tramProfile],hardware:shortHardware,vehicles:tramVehicles,now}).leds,[{id:1,rgb:[0,255,80],brightness:20,state:"APPROACHING"}],"board profile must control the number of intermediate LEDs");
 console.log("GrÃƒÂ¥kallbanen linear VLED worker test OK");
 
 
