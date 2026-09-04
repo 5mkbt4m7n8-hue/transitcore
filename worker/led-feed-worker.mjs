@@ -429,6 +429,16 @@ export function matchesDirection(node, profile, destination) {
   return false;
 }
 
+export function vehicleAllowedByBoard(board, profile, destination) {
+  const filter = board.render?.vehicleDirectionFilters?.[profile.id];
+  if (!filter) return true;
+  const text = String(destination || "").toLowerCase();
+  return (filter.destinationMatches || []).some(value => {
+    const match = String(value).toLowerCase();
+    return text.includes(match) || match.includes(text);
+  });
+}
+
 export function validateConfiguration(board, profiles, hardware) {
   if (hardware.schemaVersion !== 1 || hardware.boardProfile !== board.id) throw Error("Board/hardware profile mismatch");
   if (board.nodes.length !== board.leds.count || hardware.assignments?.length !== board.nodes.length) throw Error("LED count mismatch");
@@ -449,7 +459,7 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
   for (const vehicle of vehicles) {
     const profile = byLine.get(String(vehicle.line?.publicCode || ""));
     const updated = Date.parse(vehicle.lastUpdated || "");
-    if (!profile || vehicle.location?.latitude == null || !Number.isFinite(updated) || (now - updated) / 1000 > board.render.freshnessSeconds) continue;
+    if (!profile || !vehicleAllowedByBoard(board, profile, vehicle.destinationName) || vehicle.location?.latitude == null || !Number.isFinite(updated) || (now - updated) / 1000 > board.render.freshnessSeconds) continue;
     const previous = dedupe.get(vehicle.vehicleId);
     if (!previous || updated > previous.updated) dedupe.set(vehicle.vehicleId, { vehicleId: String(vehicle.vehicleId || ""), profile, updated, destination: vehicle.destinationName || "", lat: Number(vehicle.location.latitude), lon: Number(vehicle.location.longitude) });
   }
@@ -555,7 +565,7 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
   const dedupe = new Map();
   for (const raw of vehicles) {
     const updated = Date.parse(raw.lastUpdated || "");
-    if (String(raw.line?.publicCode || "") !== String(profile.line.publicCode) || raw.location?.latitude == null ||
+    if (String(raw.line?.publicCode || "") !== String(profile.line.publicCode) || !vehicleAllowedByBoard(board, profile, raw.destinationName) || raw.location?.latitude == null ||
         !Number.isFinite(updated) || (now - updated) / 1000 > board.render.freshnessSeconds) continue;
     const previous = dedupe.get(raw.vehicleId);
     if (!previous || updated > previous.updated) dedupe.set(raw.vehicleId, {
