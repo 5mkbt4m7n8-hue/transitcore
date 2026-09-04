@@ -11,10 +11,10 @@
 #include "secrets.h"
 #include "board_config.h"
 
-// TransitCore Universal Board Client v1.1.2
+// TransitCore Universal Board Client v1.1.3
 // One stable ESP32 engine; board_config.h selects the physical board.
-// v1.1.2 bounds TLS handshakes, enforces frame TTL inside the LED task and
-// resets a connected-but-stalled Wi-Fi path after repeated feed failures.
+// v1.1.3 serializes all physical LED writes and keeps connection indicators
+// from briefly overwriting a live board frame.
 
 #ifndef TRANSITCORE_STATUS_TOKEN
 #define TRANSITCORE_STATUS_TOKEN ""
@@ -97,6 +97,7 @@ LedPixel activeFrame[LED_COUNT];
 LedPixel candidateFrame[LED_COUNT];
 LedPixel renderFrameSnapshot[LED_COUNT];
 portMUX_TYPE frameMutex = portMUX_INITIALIZER_UNLOCKED;
+SemaphoreHandle_t ledHardwareMutex = nullptr;
 
 volatile bool hasValidFrame = false;
 volatile bool ttlExpired = false;
@@ -150,8 +151,10 @@ void clearFrame(LedPixel* frame) {
 
 void clearHardware() {
   if (!LED_HARDWARE_ENABLED) return;
+  if (ledHardwareMutex != nullptr) xSemaphoreTake(ledHardwareMutex, portMAX_DELAY);
   strip.clear();
   strip.show();
+  if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
 }
 
 uint8_t scaleChannel(
@@ -181,12 +184,14 @@ uint8_t approachingPulse() {
 
 void showStatusColor(uint8_t red, uint8_t green, uint8_t blue) {
   if (!LED_HARDWARE_ENABLED) return;
+  if (ledHardwareMutex != nullptr) xSemaphoreTake(ledHardwareMutex, portMAX_DELAY);
   strip.clear();
   const uint16_t shown = min((uint16_t)3, LED_COUNT);
   for (uint16_t i = 0; i < shown; i++) {
     strip.setPixelColor(i, red, green, blue);
   }
   strip.show();
+  if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
 }
 
 void startStartupWave() {
@@ -201,15 +206,18 @@ bool updateStartupWave() {
   const unsigned long now = millis();
   if (startupWaveStepAtMs != 0 && now - startupWaveStepAtMs < 28) return true;
   startupWaveStepAtMs = now;
+  if (ledHardwareMutex != nullptr) xSemaphoreTake(ledHardwareMutex, portMAX_DELAY);
   strip.clear();
   if (startupWaveStep < LED_COUNT) {
     strip.setPixelColor(startupWaveStep, 0, 10, 28);
     if (startupWaveStep > 0) strip.setPixelColor(startupWaveStep - 1, 0, 3, 8);
     strip.show();
+    if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
     startupWaveStep++;
     return true;
   }
   strip.show();
+  if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
   startupWaveActive = false;
   return false;
 }
@@ -223,6 +231,7 @@ void renderFrame() {
 
   const uint8_t pulse = approachingPulse();
 
+  if (ledHardwareMutex != nullptr) xSemaphoreTake(ledHardwareMutex, portMAX_DELAY);
   for (uint16_t i = 0; i < LED_COUNT; i++) {
     const LedPixel& pixel = renderFrameSnapshot[i];
     const uint8_t level =
@@ -237,6 +246,7 @@ void renderFrame() {
   }
 
   strip.show();
+  if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
 }
 
 void ledRenderTask(void* parameter) {
@@ -284,6 +294,7 @@ bool updateLedTest() {
     return true;
   }
   lastLedTestStepAtMs = now;
+  if (ledHardwareMutex != nullptr) xSemaphoreTake(ledHardwareMutex, portMAX_DELAY);
   strip.clear();
 
   if (ledTestStep < 3) {
@@ -292,6 +303,7 @@ bool updateLedTest() {
     const uint8_t blue = ledTestStep == 2 ? LED_TEST_BRIGHTNESS : 0;
     strip.setPixelColor(0, red, green, blue);
     strip.show();
+    if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
     Serial.printf("LED-TEST kanal | LED 0 | %s\n", ledTestStep == 0 ? "RED" : ledTestStep == 1 ? "GREEN" : "BLUE");
     ledTestStep++;
     return true;
@@ -301,12 +313,14 @@ bool updateLedTest() {
   if (physicalLed < LED_COUNT) {
     strip.setPixelColor(physicalLed, LED_TEST_BRIGHTNESS, LED_TEST_BRIGHTNESS, LED_TEST_BRIGHTNESS);
     strip.show();
+    if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
     Serial.printf("LED-TEST fysisk | LED %u/%u\n", physicalLed, LED_COUNT - 1);
     ledTestStep++;
     return true;
   }
 
   strip.show();
+  if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
   ledTestActive = false;
   Serial.println("LED-TEST ferdig. Alle LED-er er slukket. Normal drift starter.");
   return false;
@@ -460,7 +474,7 @@ void ensureWifi() {
     if (wifiConnectedAtMs == 0) {
       wifiConnectedAtMs = millis();
       Serial.printf("Wi-Fi OK. IP: %s\n", WiFi.localIP().toString().c_str());
-      showStatusColor(0, 24, 4);
+      if (!hasValidFrame) showStatusColor(0, 24, 4);
       if (hasEverConnected && wifiOutageActive) wifiRecoveryCount++;
       hasEverConnected = true;
     }
@@ -1074,6 +1088,7 @@ void setup() {
   clearFrame(candidateFrame);
 
   if (LED_HARDWARE_ENABLED) {
+    ledHardwareMutex = xSemaphoreCreateMutex();
     strip.begin();
     strip.clear();
     strip.show();
@@ -1105,7 +1120,7 @@ void setup() {
     );
   }
 
-  Serial.println("TransitCore Universal Board Client v1.1.2 starter.");
+  Serial.println("TransitCore Universal Board Client v1.1.3 starter.");
   Serial.printf(
     "Board %s | %u LED-er | hardware %s\n",
     EXPECTED_BOARD_PROFILE,
