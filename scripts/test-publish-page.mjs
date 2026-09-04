@@ -14,5 +14,8 @@ assert.match(inline, /action==="revoke"/);
 assert.match(inline, /device:activeDevice/);
 assert.match(html, /id="physicalLedCount"/);
 assert.match(inline, /physicalLedCount:Number/);
+assert.match(inline, /raw\.githubusercontent\.com/);
+assert.match(inline, /cache:"reload"/);
+assert.doesNotMatch(inline, /finally\{localStorage\.removeItem\(PUBLISH_STORE\)\}/);
 assert.match(inline, /board\.directionMode!=="separate"\|\|board\.positioning==="vehicle-proximity"/);
 console.log("Publish device enrollment UI syntax and controls OK");
