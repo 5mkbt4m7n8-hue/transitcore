@@ -1,7 +1,7 @@
 (function(root){
 "use strict";
 
-const FIRMWARE_VERSION="1.1.8";
+const FIRMWARE_VERSION="1.1.9";
 const FIRMWARE_FILE=`TransitCore_Universal_BoardClient_v${FIRMWARE_VERSION.replaceAll(".","_")}.ino`;
 
 function sketchName(boardId){
@@ -60,9 +60,9 @@ gjennom én fysisk LED om gangen og slukker alt før normal drift starter.
 
 Isolasjonstest
 --------------
-Når isolasjonstesten er aktiv, hentes og valideres Worker-feed som normalt,
-men stripen sender kontinuerlig et fast rødt, grønt og blått testlys på LED 0-2.
-Worker-frames skrives ikke til stripen. Slå testen av etter feilsøkingen.
+Når isolasjonstesten er aktiv, hentes og valideres Worker-feed som normalt.
+Den første ekte Worker-framen fryses og sendes kontinuerlig til stripen. Senere
+Worker-frames logges, men vises ikke. Slå testen av etter feilsøkingen.
 
 Forventet kontroll
 ------------------
