@@ -850,7 +850,8 @@ void acceptCandidateFrame(
   uint16_t signalPolicyVersion,
   uint16_t approachPulseMs
 ) {
-  ttlExpired = true;
+  // Continue showing the previous complete frame during replacement. The
+  // mutex makes the swap atomic, so a normal refresh is never a TTL expiry.
   portENTER_CRITICAL(&frameMutex);
   memcpy(activeFrame, candidateFrame, sizeof(activeFrame));
   portEXIT_CRITICAL(&frameMutex);
@@ -991,7 +992,7 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
   document["schemaVersion"] = 1;
   document["deviceId"] = TRANSITCORE_DEVICE_ID;
   document["boardProfile"] = EXPECTED_BOARD_PROFILE;
-  document["firmware"] = "1.1.2";
+  document["firmware"] = "1.1.3";
   document["uptimeSeconds"] = now / 1000UL;
   document["wifiOutages"] = wifiOutageCount;
   document["wifiRecoveries"] = wifiRecoveryCount;
