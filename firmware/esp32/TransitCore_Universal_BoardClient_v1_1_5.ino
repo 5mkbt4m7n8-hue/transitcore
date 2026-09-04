@@ -11,10 +11,10 @@
 #include "secrets.h"
 #include "board_config.h"
 
-// TransitCore Universal Board Client v1.1.4
+// TransitCore Universal Board Client v1.1.5
 // One stable ESP32 engine; board_config.h selects the physical board.
-// v1.1.4 keeps frame replacement uninterrupted and uses a unique firmware
-// artifact so an older cached build cannot be mistaken for the current one.
+// v1.1.5 restores the proven v1.1.1 LED render lifecycle: only the main task
+// may expire and clear a frame after a bounded network request has completed.
 
 #ifndef TRANSITCORE_STATUS_TOKEN
 #define TRANSITCORE_STATUS_TOKEN ""
@@ -251,15 +251,6 @@ void renderFrame() {
 
 void ledRenderTask(void* parameter) {
   while (true) {
-    if (
-      hasValidFrame &&
-      !ttlExpired &&
-      millis() - lastValidFrameAtMs > frameTtlMs
-    ) {
-      ttlExpired = true;
-      clearHardware();
-      Serial.println("LED-frame utløpt i LED-oppgaven. Tavlen er slukket.");
-    }
     if (
       !provisioningActive &&
       !ledTestActive &&
@@ -992,7 +983,7 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
   document["schemaVersion"] = 1;
   document["deviceId"] = TRANSITCORE_DEVICE_ID;
   document["boardProfile"] = EXPECTED_BOARD_PROFILE;
-  document["firmware"] = "1.1.4";
+  document["firmware"] = "1.1.5";
   document["uptimeSeconds"] = now / 1000UL;
   document["wifiOutages"] = wifiOutageCount;
   document["wifiRecoveries"] = wifiRecoveryCount;
@@ -1121,7 +1112,7 @@ void setup() {
     );
   }
 
-  Serial.println("TransitCore Universal Board Client v1.1.4 starter | build frame-swap-continuous.");
+  Serial.println("TransitCore Universal Board Client v1.1.5 starter | build stable-render-lifecycle.");
   Serial.printf(
     "Board %s | %u LED-er | hardware %s\n",
     EXPECTED_BOARD_PROFILE,

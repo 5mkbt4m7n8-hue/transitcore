@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_1_4.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_1_5.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -84,5 +84,9 @@ failures even when the radio still reports itself as connected.
 Version 1.1.4 serializes physical LED writes and keeps the previous complete
 frame visible during an atomic frame replacement. The unique versioned file
 also prevents a stale cached v1.1.3 artifact from being downloaded.
+
+Version 1.1.5 restores the stable v1.1.1 LED render lifecycle. Frame expiry is
+handled by the main task after each bounded network request, preventing a
+parallel TTL clear from flashing the strip during a successful feed refresh.
 
 
