@@ -1,7 +1,7 @@
 (function(root){
 "use strict";
 
-const FIRMWARE_VERSION="1.1.5";
+const FIRMWARE_VERSION="1.1.6";
 const FIRMWARE_FILE=`TransitCore_Universal_BoardClient_v${FIRMWARE_VERSION.replaceAll(".","_")}.ino`;
 
 function sketchName(boardId){
@@ -21,13 +21,14 @@ const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 #define TRANSITCORE_DEVICE_TOKEN "${deviceToken}"
 `}
 
-function readme(board,hardware,folder){return `TransitCore ferdig ESP32-pakke
+function readme(board,hardware,folder,physicalLedCount){return `TransitCore ferdig ESP32-pakke
 ================================
 
 Tavle: ${board.name||board.id}
 Tavle-ID: ${board.id}
 Firmware: Universal Board Client v${FIRMWARE_VERSION}
-Fysiske LED-er: ${hardware.leds.count}
+Tavle-LED-er: ${hardware.leds.count}
+LED-er på tilkoblet stripe: ${physicalLedCount}
 Datapin: ${board.leds?.dataPin??2}
 
 Innhold
@@ -69,17 +70,20 @@ secrets.h skal aldri legges i Git eller deles. Hver fysisk tavle skal ha sin
 egen nøkkel. GitHub-token og publiseringsnøkkel skal aldri brukes her.
 `}
 
-function createFiles({board,hardware,boardConfig,firmware,device}){
+function createFiles({board,hardware,boardConfig,firmware,device,physicalLedCount=hardware?.leds?.count}){
   if(!board?.id||!Number.isInteger(hardware?.leds?.count)||!boardConfig||!firmware)throw Error("ESP-pakken mangler påkrevde data");
+  physicalLedCount=Number(physicalLedCount);
+  if(!Number.isInteger(physicalLedCount)||physicalLedCount<hardware.leds.count||physicalLedCount>2048)throw Error(`Fysisk stripelengde må være mellom ${hardware.leds.count} og 2048`);
+  const configuredBoard=boardConfig.replace(/\s*$/,"\n")+`\n#define TRANSITCORE_PHYSICAL_LED_COUNT ${physicalLedCount}\n`;
   const folder=sketchName(board.id),prefix=`${folder}/`;
   return{
     filename:`${board.id}-esp32-v${FIRMWARE_VERSION}.zip`,
     folder,
     files:[
       {name:`${prefix}${folder}.ino`,content:firmware},
-      {name:`${prefix}board_config.h`,content:boardConfig},
+      {name:`${prefix}board_config.h`,content:configuredBoard},
       {name:`${prefix}secrets.example.h`,content:secretsExample(device?.deviceId||board.id,device?.token)},
-      {name:`${prefix}README.txt`,content:readme(board,hardware,folder)}
+      {name:`${prefix}README.txt`,content:readme(board,hardware,folder,physicalLedCount)}
     ]
   };
 }
