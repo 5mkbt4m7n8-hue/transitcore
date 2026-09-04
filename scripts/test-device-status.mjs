@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { cleanStatusPayload, DeviceStatus, resolveDeviceRegistration } from "../worker/led-feed-worker.mjs";
+import { cleanStatusPayload, DeviceStatus, resolveDeviceRegistration, validBoardId } from "../worker/led-feed-worker.mjs";
 
 const input = {
   schemaVersion: 1,
@@ -24,10 +24,16 @@ assert.equal(clean.ignored, undefined);
 assert.throws(() => cleanStatusPayload({ ...input, boardProfile: "wrong" }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
 assert.throws(() => cleanStatusPayload({ ...input, freeHeap: -1 }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
 const uniqueToken="0123456789abcdef0123456789abcdef";
+assert.equal(validBoardId("oslo-metro-wizard-shared"),true);
+assert.equal(validBoardId("../not-a-board"),false);
 const registration=resolveDeviceRegistration({DEVICE_INGEST_TOKENS:JSON.stringify({"trondheim-bus-001":{boardProfile:"trondheim-bus-board",token:uniqueToken}})},"trondheim-bus-001");
 assert.deepEqual(registration,{deviceId:"trondheim-bus-001",boardProfile:"trondheim-bus-board",token:uniqueToken,legacy:false});
 assert.equal(resolveDeviceRegistration({DEVICE_INGEST_TOKENS:JSON.stringify({"trondheim-bus-001":{boardProfile:"trondheim-bus-board",token:uniqueToken,enabled:false}})},"trondheim-bus-001"),null);
 assert.equal(resolveDeviceRegistration({STATUS_INGEST_TOKEN:"legacy"},"trondheim-bus-board").legacy,true);
+assert.equal(resolveDeviceRegistration({DEVICE_INGEST_TOKENS:JSON.stringify({"custom-001":{boardProfile:"future-published-board",token:uniqueToken}})},"custom-001").boardProfile,"future-published-board");
+
+const currentFirmware = cleanStatusPayload({ ...input, firmware:"1.1.4" }, "oslo-shared-001", "trondheim-bus-board", Date.now());
+assert.equal(currentFirmware.firmware,"1.1.4");
 
 const values = new Map();
 const state = { storage: {
