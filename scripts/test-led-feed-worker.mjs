@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { SIGNAL_POLICY, applyMotionLifecycle, attachSignalPolicy, buildFrame, buildLinearRouteFrame, buildSignalTestSequence, matchesDirection, validateConfiguration } from "../worker/led-feed-worker.mjs";
+import { SIGNAL_POLICY, applyMotionLifecycle, attachSignalPolicy, buildFrame, buildLinearRouteFrame, buildSignalTestSequence, matchesDirection, validateConfiguration, vehicleAllowedByBoard } from "../worker/led-feed-worker.mjs";
 
 assert.equal(SIGNAL_POLICY.version, 1);
 assert.equal(SIGNAL_POLICY.approachPulseMs, 1800);
@@ -41,6 +41,10 @@ assert.equal(matchesDirection(gtfsDirectionOneNode, reversedCanonicalProfile, "M
 assert.equal(matchesDirection(gtfsDirectionOneNode, reversedCanonicalProfile, "Ryen"), true);
 assert.equal(matchesDirection(gtfsDirectionOneNode, reversedCanonicalProfile, "KolsÃ¥s"), false);
 console.log("GTFS quay direction matching tests OK");
+assert.equal(vehicleAllowedByBoard({render:{vehicleDirectionFilters:{"metro-3":{destinationMatches:["KolsÃ¥s"]}}}},reversedCanonicalProfile,"KolsÃ¥s"),true);
+assert.equal(vehicleAllowedByBoard({render:{vehicleDirectionFilters:{"metro-3":{destinationMatches:["KolsÃ¥s"]}}}},reversedCanonicalProfile,"Mortensrud"),false);
+assert.equal(vehicleAllowedByBoard({render:{}},reversedCanonicalProfile,"Mortensrud"),true);
+console.log("Board direction filter tests OK");
 
 const tramProfile = { id: "tram-9", provider: {}, line: { publicCode: "9", color: "#ffffff" }, directions: [
   { reverseShape: true, color: "#00ff50", destinationMatches: ["Lian"] },
@@ -56,6 +60,8 @@ const tramHardware = { schemaVersion: 1, boardProfile: "grakallbanen-board", led
 const tramVehicles = [{ vehicleId: "tram-1", lastUpdated: new Date(now - 5000).toISOString(), destinationName: "Lian", line: { publicCode: "9" }, location: { latitude: 63.40, longitude: 10.3075 } }];
 const tramFrame = buildLinearRouteFrame({ board: tramBoard, profiles: [tramProfile], hardware: tramHardware, vehicles: tramVehicles, now });
 assert.deepEqual(tramFrame.leds, [{ id: 2, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING" }]);
+const lianOnlyBoard={...tramBoard,render:{...tramBoard.render,vehicleDirectionFilters:{"tram-9":{directionId:"lian",destinationMatches:["Lian"]}}}};
+assert.deepEqual(buildLinearRouteFrame({board:lianOnlyBoard,profiles:[tramProfile],hardware:tramHardware,vehicles:[{...tramVehicles[0],destinationName:"Ila"}],now}).leds,[],"opposite Gråkallbanen direction must be excluded");
 const shortBoard={...tramBoard,leds:{count:3},nodes:[tramBoard.nodes[0],{...tramBoard.nodes[1]},{...tramBoard.nodes[3],led:2}]};
 const shortHardware={...tramHardware,leds:{count:3,brightnessLimit:20},assignments:[0,1,2].map(led=>({logicalLed:led,physicalLed:led}))};
 assert.deepEqual(buildLinearRouteFrame({board:shortBoard,profiles:[tramProfile],hardware:shortHardware,vehicles:tramVehicles,now}).leds,[{id:1,rgb:[0,255,80],brightness:20,state:"APPROACHING"}],"board profile must control the number of intermediate LEDs");
