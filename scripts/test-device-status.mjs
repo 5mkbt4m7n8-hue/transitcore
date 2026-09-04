@@ -32,8 +32,8 @@ assert.equal(resolveDeviceRegistration({DEVICE_INGEST_TOKENS:JSON.stringify({"tr
 assert.equal(resolveDeviceRegistration({STATUS_INGEST_TOKEN:"legacy"},"trondheim-bus-board").legacy,true);
 assert.equal(resolveDeviceRegistration({DEVICE_INGEST_TOKENS:JSON.stringify({"custom-001":{boardProfile:"future-published-board",token:uniqueToken}})},"custom-001").boardProfile,"future-published-board");
 
-const currentFirmware = cleanStatusPayload({ ...input, firmware:"1.1.8" }, "oslo-shared-001", "trondheim-bus-board", Date.now());
-assert.equal(currentFirmware.firmware,"1.1.8");
+const currentFirmware = cleanStatusPayload({ ...input, firmware:"1.1.9" }, "oslo-shared-001", "trondheim-bus-board", Date.now());
+assert.equal(currentFirmware.firmware,"1.1.9");
 
 const values = new Map();
 const state = { storage: {

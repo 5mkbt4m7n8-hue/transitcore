@@ -11,12 +11,13 @@
 #include "secrets.h"
 #include "board_config.h"
 
-// TransitCore Universal Board Client v1.1.8
+// TransitCore Universal Board Client v1.1.9
 // One stable ESP32 engine; board_config.h selects the physical board.
 // v1.1.6 separates the board LED count from the connected strip length so
 // unused tail pixels are actively held off on full-length test strips.
 // v1.1.7 adds a frame-isolation diagnostic and tests the complete strip.
 // v1.1.8 continuously retransmits the fixed isolation pattern.
+// v1.1.9 freezes and retransmits the first complete Worker frame.
 
 #ifndef TRANSITCORE_PHYSICAL_LED_COUNT
 #define TRANSITCORE_PHYSICAL_LED_COUNT LED_COUNT
@@ -109,6 +110,7 @@ Adafruit_NeoPixel strip(
 LedPixel activeFrame[LED_COUNT];
 LedPixel candidateFrame[LED_COUNT];
 LedPixel renderFrameSnapshot[LED_COUNT];
+LedPixel isolationFrame[LED_COUNT];
 portMUX_TYPE frameMutex = portMUX_INITIALIZER_UNLOCKED;
 SemaphoreHandle_t ledHardwareMutex = nullptr;
 
@@ -152,7 +154,7 @@ unsigned long provisioningStartedAtMs = 0;
 volatile bool startupWaveActive = false;
 uint16_t startupWaveStep = 0;
 unsigned long startupWaveStepAtMs = 0;
-bool isolationPatternShown = false;
+bool isolationFrameCaptured = false;
 
 // -----------------------------------------------------------------------------
 // HELPERS
@@ -269,19 +271,29 @@ void renderFrame() {
   if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
 }
 
-void showIsolationPattern() {
+void showFrozenIsolationFrame() {
   if (!LED_HARDWARE_ENABLED) return;
+  if (!isolationFrameCaptured) {
+    portENTER_CRITICAL(&frameMutex);
+    memcpy(isolationFrame, activeFrame, sizeof(activeFrame));
+    portEXIT_CRITICAL(&frameMutex);
+    isolationFrameCaptured = true;
+    Serial.println("ISOLASJONSTEST | første Worker-frame er fryst | senere frames vises ikke");
+  }
   if (ledHardwareMutex != nullptr) xSemaphoreTake(ledHardwareMutex, portMAX_DELAY);
-  strip.clear();
-  if (TRANSITCORE_PHYSICAL_LED_COUNT > 0) strip.setPixelColor(0, 8, 0, 0);
-  if (TRANSITCORE_PHYSICAL_LED_COUNT > 1) strip.setPixelColor(1, 0, 8, 0);
-  if (TRANSITCORE_PHYSICAL_LED_COUNT > 2) strip.setPixelColor(2, 0, 0, 8);
+  for (uint16_t i = 0; i < LED_COUNT; i++) {
+    const LedPixel& pixel = isolationFrame[i];
+    const uint8_t level = pixel.state == LED_APPROACHING ? 128 : 255;
+    strip.setPixelColor(i,
+      scaleChannel(pixel.red, pixel.brightness, level),
+      scaleChannel(pixel.green, pixel.brightness, level),
+      scaleChannel(pixel.blue, pixel.brightness, level));
+  }
+  for (uint16_t i = LED_COUNT; i < TRANSITCORE_PHYSICAL_LED_COUNT; i++) {
+    strip.setPixelColor(i, 0, 0, 0);
+  }
   strip.show();
   if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
-  if (!isolationPatternShown) {
-    isolationPatternShown = true;
-    Serial.println("ISOLASJONSTEST | kontinuerlig fast RGB på LED 0-2 | Worker-frame vises ikke");
-  }
 }
 
 void ledRenderTask(void* parameter) {
@@ -293,7 +305,7 @@ void ledRenderTask(void* parameter) {
       hasValidFrame &&
       !ttlExpired
     ) {
-      if (TRANSITCORE_LED_FRAME_ISOLATION_TEST) showIsolationPattern();
+      if (TRANSITCORE_LED_FRAME_ISOLATION_TEST) showFrozenIsolationFrame();
       else renderFrame();
     }
     vTaskDelay(pdMS_TO_TICKS(20));
@@ -1019,7 +1031,7 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
   document["schemaVersion"] = 1;
   document["deviceId"] = TRANSITCORE_DEVICE_ID;
   document["boardProfile"] = EXPECTED_BOARD_PROFILE;
-  document["firmware"] = "1.1.8";
+  document["firmware"] = "1.1.9";
   document["uptimeSeconds"] = now / 1000UL;
   document["wifiOutages"] = wifiOutageCount;
   document["wifiRecoveries"] = wifiRecoveryCount;
@@ -1148,7 +1160,7 @@ void setup() {
     );
   }
 
-  Serial.println("TransitCore Universal Board Client v1.1.8 starter | build continuous-frame-isolation.");
+  Serial.println("TransitCore Universal Board Client v1.1.9 starter | build frozen-worker-frame-test.");
   Serial.printf(
     "Board %s | %u tavle-LED-er | %u fysiske stripe-LED-er | hardware %s\n",
     EXPECTED_BOARD_PROFILE,
