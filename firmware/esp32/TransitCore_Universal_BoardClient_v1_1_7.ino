@@ -11,13 +11,18 @@
 #include "secrets.h"
 #include "board_config.h"
 
-// TransitCore Universal Board Client v1.1.6
+// TransitCore Universal Board Client v1.1.7
 // One stable ESP32 engine; board_config.h selects the physical board.
 // v1.1.6 separates the board LED count from the connected strip length so
 // unused tail pixels are actively held off on full-length test strips.
+// v1.1.7 adds a frame-isolation diagnostic and tests the complete strip.
 
 #ifndef TRANSITCORE_PHYSICAL_LED_COUNT
 #define TRANSITCORE_PHYSICAL_LED_COUNT LED_COUNT
+#endif
+
+#ifndef TRANSITCORE_LED_FRAME_ISOLATION_TEST
+#define TRANSITCORE_LED_FRAME_ISOLATION_TEST 0
 #endif
 
 static_assert(TRANSITCORE_PHYSICAL_LED_COUNT >= LED_COUNT,
@@ -146,6 +151,7 @@ unsigned long provisioningStartedAtMs = 0;
 volatile bool startupWaveActive = false;
 uint16_t startupWaveStep = 0;
 unsigned long startupWaveStepAtMs = 0;
+bool isolationPatternShown = false;
 
 // -----------------------------------------------------------------------------
 // HELPERS
@@ -262,6 +268,19 @@ void renderFrame() {
   if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
 }
 
+void showIsolationPattern() {
+  if (!LED_HARDWARE_ENABLED || isolationPatternShown) return;
+  if (ledHardwareMutex != nullptr) xSemaphoreTake(ledHardwareMutex, portMAX_DELAY);
+  strip.clear();
+  if (TRANSITCORE_PHYSICAL_LED_COUNT > 0) strip.setPixelColor(0, 8, 0, 0);
+  if (TRANSITCORE_PHYSICAL_LED_COUNT > 1) strip.setPixelColor(1, 0, 8, 0);
+  if (TRANSITCORE_PHYSICAL_LED_COUNT > 2) strip.setPixelColor(2, 0, 0, 8);
+  strip.show();
+  if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
+  isolationPatternShown = true;
+  Serial.println("ISOLASJONSTEST | fast RGB på LED 0-2 | Worker-frame vises ikke");
+}
+
 void ledRenderTask(void* parameter) {
   while (true) {
     if (
@@ -271,7 +290,8 @@ void ledRenderTask(void* parameter) {
       hasValidFrame &&
       !ttlExpired
     ) {
-      renderFrame();
+      if (TRANSITCORE_LED_FRAME_ISOLATION_TEST) showIsolationPattern();
+      else renderFrame();
     }
     vTaskDelay(pdMS_TO_TICKS(20));
   }
@@ -285,7 +305,7 @@ void beginLedTest() {
   clearHardware();
   Serial.printf(
     "LED-TEST starter | %u LED-er | brightness %u | %lu ms per steg\n",
-    LED_COUNT,
+    TRANSITCORE_PHYSICAL_LED_COUNT,
     LED_TEST_BRIGHTNESS,
     LED_TEST_STEP_MS
   );
@@ -314,11 +334,11 @@ bool updateLedTest() {
   }
 
   const uint16_t physicalLed = ledTestStep - 3;
-  if (physicalLed < LED_COUNT) {
+  if (physicalLed < TRANSITCORE_PHYSICAL_LED_COUNT) {
     strip.setPixelColor(physicalLed, LED_TEST_BRIGHTNESS, LED_TEST_BRIGHTNESS, LED_TEST_BRIGHTNESS);
     strip.show();
     if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
-    Serial.printf("LED-TEST fysisk | LED %u/%u\n", physicalLed, LED_COUNT - 1);
+    Serial.printf("LED-TEST fysisk | LED %u/%u\n", physicalLed, TRANSITCORE_PHYSICAL_LED_COUNT - 1);
     ledTestStep++;
     return true;
   }
@@ -996,7 +1016,7 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
   document["schemaVersion"] = 1;
   document["deviceId"] = TRANSITCORE_DEVICE_ID;
   document["boardProfile"] = EXPECTED_BOARD_PROFILE;
-  document["firmware"] = "1.1.6";
+  document["firmware"] = "1.1.7";
   document["uptimeSeconds"] = now / 1000UL;
   document["wifiOutages"] = wifiOutageCount;
   document["wifiRecoveries"] = wifiRecoveryCount;
@@ -1125,7 +1145,7 @@ void setup() {
     );
   }
 
-  Serial.println("TransitCore Universal Board Client v1.1.6 starter | build physical-strip-guard.");
+  Serial.println("TransitCore Universal Board Client v1.1.7 starter | build frame-isolation-test.");
   Serial.printf(
     "Board %s | %u tavle-LED-er | %u fysiske stripe-LED-er | hardware %s\n",
     EXPECTED_BOARD_PROFILE,
@@ -1138,6 +1158,8 @@ void setup() {
     TRANSITCORE_DEVICE_ID,
     strlen(TRANSITCORE_DEVICE_TOKEN) > 0 ? "JA" : "NEI"
   );
+  Serial.printf("LED-frame isolasjonstest: %s\n",
+    TRANSITCORE_LED_FRAME_ISOLATION_TEST ? "JA" : "NEI");
 }
 
 void loop() {

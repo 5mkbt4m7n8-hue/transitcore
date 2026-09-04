@@ -3,22 +3,23 @@ import fs from "node:fs";
 import vm from "node:vm";
 
 const source=fs.readFileSync(new URL("../web/publish/esp-package.js",import.meta.url),"utf8");
-const firmwareSource=fs.readFileSync(new URL("../firmware/esp32/TransitCore_Universal_BoardClient_v1_1_6.ino",import.meta.url),"utf8");
+const firmwareSource=fs.readFileSync(new URL("../firmware/esp32/TransitCore_Universal_BoardClient_v1_1_7.ino",import.meta.url),"utf8");
 const osloBoard=JSON.parse(fs.readFileSync(new URL("../config/boards/oslo-metro-wizard-separate.json",import.meta.url),"utf8"));
 const osloHardware=JSON.parse(fs.readFileSync(new URL("../config/hardware/oslo-metro-wizard-separate-hardware.json",import.meta.url),"utf8"));
 const context={};context.globalThis=context;vm.runInNewContext(source,context);
 const api=context.TransitCoreEspPackage;
 
-assert.equal(api.FIRMWARE_VERSION,"1.1.6");
-assert.equal(api.FIRMWARE_FILE,"TransitCore_Universal_BoardClient_v1_1_6.ino");
+assert.equal(api.FIRMWARE_VERSION,"1.1.7");
+assert.equal(api.FIRMWARE_FILE,"TransitCore_Universal_BoardClient_v1_1_7.ino");
 assert.equal(api.sketchName("oslo-metro-board"),"TransitCore_oslo_metro_board_ESP32");
 assert.match(firmwareSource,/Preferences wifiPreferences/);
 assert.match(firmwareSource,/TransitCore-/);
 assert.match(firmwareSource,/provisioningDns\.start\(53/);
 assert.match(firmwareSource,/WiFi\.softAP\(provisioningApName\.c_str\(\)\)/);
 assert.match(firmwareSource,/wifiPreferences\.putString\("wifiSsid"/);
-assert.match(firmwareSource,/document\["firmware"\] = "1\.1\.6"/);
+assert.match(firmwareSource,/document\["firmware"\] = "1\.1\.7"/);
 assert.match(firmwareSource,/TRANSITCORE_PHYSICAL_LED_COUNT/);
+assert.match(firmwareSource,/TRANSITCORE_LED_FRAME_ISOLATION_TEST/);
 assert.match(firmwareSource,/setHandshakeTimeout/);
 assert.match(firmwareSource,/FEED_FAILURES_BEFORE_WIFI_RESET/);
 assert.match(firmwareSource,/if \(millis\(\) - lastValidFrameAtMs <= frameTtlMs\) return;/);
@@ -38,7 +39,7 @@ const result=api.createFiles({
   firmware:"void setup(){}\nvoid loop(){}\n"
 });
 assert.equal(result.files.length,4);
-assert.equal(result.filename,"test-board-esp32-v1.1.6.zip");
+assert.equal(result.filename,"test-board-esp32-v1.1.7.zip");
 assert.deepEqual(Array.from(result.files,file=>file.name),[
   "TransitCore_test_board_ESP32/TransitCore_test_board_ESP32.ino",
   "TransitCore_test_board_ESP32/board_config.h",
@@ -52,10 +53,13 @@ assert.match(result.files[3].content,/LED_STARTUP_TEST_ENABLED/);
 assert.match(result.files[1].content,/TRANSITCORE_PHYSICAL_LED_COUNT 2/);
 const longStrip=api.createFiles({board:{id:"test-board",leds:{count:2}},hardware:{leds:{count:2}},boardConfig:"#pragma once\n",firmware:"void setup(){}",physicalLedCount:300});
 assert.match(longStrip.files[1].content,/TRANSITCORE_PHYSICAL_LED_COUNT 300/);
+assert.match(longStrip.files[1].content,/TRANSITCORE_LED_FRAME_ISOLATION_TEST 0/);
+const isolated=api.createFiles({board:{id:"test-board",leds:{count:2}},hardware:{leds:{count:2}},boardConfig:"#pragma once\n",firmware:"void setup(){}",physicalLedCount:150,isolationTest:true});
+assert.match(isolated.files[1].content,/TRANSITCORE_LED_FRAME_ISOLATION_TEST 1/);
 const enrolled=api.createFiles({
   board:{id:"test-board",name:"Test",leds:{count:2,dataPin:2}},hardware:{leds:{count:2}},boardConfig:"#pragma once\n",firmware:"void setup(){}\nvoid loop(){}\n",
   device:{deviceId:"test-board-unit-001",token:"private-device-token"}
 });
 assert.match(enrolled.files[2].content,/TRANSITCORE_DEVICE_ID "test-board-unit-001"/);
 assert.match(enrolled.files[2].content,/TRANSITCORE_DEVICE_TOKEN "private-device-token"/);
-console.log("ESP package builder OK: 4 safe files for Board Client v1.1.6");
+console.log("ESP package builder OK: 4 safe files for Board Client v1.1.7");
