@@ -12,4 +12,5 @@ assert.match(inline, /action:"create"/);
 assert.match(inline, /action==="rotate"/);
 assert.match(inline, /action==="revoke"/);
 assert.match(inline, /device:activeDevice/);
+assert.match(inline, /board\.directionMode!=="separate"\|\|board\.positioning==="vehicle-proximity"/);
 console.log("Publish device enrollment UI syntax and controls OK");

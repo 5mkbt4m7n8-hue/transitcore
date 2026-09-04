@@ -36,7 +36,9 @@ function validate(files){
  nodes.forEach(n=>{const id=n.stationId||n.id,list=stationGroups.get(id)||[];list.push(n);stationGroups.set(id,list)});
  const mappingExact=assignments.every(a=>{const n=nodeById.get(a.sourceNodeId);return n&&n.led===a.logicalLed});
  const nodeRoutesValid=nodes.every(n=>Array.isArray(n.routes)&&n.routes.length>0&&n.routes.every(route=>routeSet.has(route)));
- const directionMetadataValid=board.positioning==="vehicle-proximity"||nodes.every(n=>n.routes.every(route=>{const d=n.routeDirections?.[route];return d&&Array.isArray(d.destinationMatches)&&d.destinationMatches.length>0}));
+ // A shared station LED represents both directions. Destination evidence is
+ // required only when the board has separate physical LEDs per direction.
+ const directionMetadataValid=board.directionMode!=="separate"||board.positioning==="vehicle-proximity"||nodes.every(n=>n.routes.every(route=>{const d=n.routeDirections?.[route];return d&&Array.isArray(d.destinationMatches)&&d.destinationMatches.length>0}));
  const modeValid=board.directionMode==="shared"
   ?[...stationGroups.values()].every(group=>group.length===1)
   :board.directionMode==="separate"
