@@ -8,5 +8,7 @@ for(const [index,script] of scripts.entries())new vm.Script(script,{filename:`we
 assert.match(page,/id="useSelection"/);
 assert.match(page,/vehicleDirectionFilters/);
 assert.match(page,/function projectBoard\(/);
+assert.match(page,/function stopCoordinates\(/);
+assert.match(page,/stop\.quayIds/);
 assert.doesNotMatch(page,/Alle tavlepunkter må være aktive/);
 console.log("Editor single-line direction project flow OK");
