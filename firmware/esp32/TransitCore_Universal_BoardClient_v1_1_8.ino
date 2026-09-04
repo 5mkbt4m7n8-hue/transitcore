@@ -11,11 +11,12 @@
 #include "secrets.h"
 #include "board_config.h"
 
-// TransitCore Universal Board Client v1.1.7
+// TransitCore Universal Board Client v1.1.8
 // One stable ESP32 engine; board_config.h selects the physical board.
 // v1.1.6 separates the board LED count from the connected strip length so
 // unused tail pixels are actively held off on full-length test strips.
 // v1.1.7 adds a frame-isolation diagnostic and tests the complete strip.
+// v1.1.8 continuously retransmits the fixed isolation pattern.
 
 #ifndef TRANSITCORE_PHYSICAL_LED_COUNT
 #define TRANSITCORE_PHYSICAL_LED_COUNT LED_COUNT
@@ -269,7 +270,7 @@ void renderFrame() {
 }
 
 void showIsolationPattern() {
-  if (!LED_HARDWARE_ENABLED || isolationPatternShown) return;
+  if (!LED_HARDWARE_ENABLED) return;
   if (ledHardwareMutex != nullptr) xSemaphoreTake(ledHardwareMutex, portMAX_DELAY);
   strip.clear();
   if (TRANSITCORE_PHYSICAL_LED_COUNT > 0) strip.setPixelColor(0, 8, 0, 0);
@@ -277,8 +278,10 @@ void showIsolationPattern() {
   if (TRANSITCORE_PHYSICAL_LED_COUNT > 2) strip.setPixelColor(2, 0, 0, 8);
   strip.show();
   if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
-  isolationPatternShown = true;
-  Serial.println("ISOLASJONSTEST | fast RGB på LED 0-2 | Worker-frame vises ikke");
+  if (!isolationPatternShown) {
+    isolationPatternShown = true;
+    Serial.println("ISOLASJONSTEST | kontinuerlig fast RGB på LED 0-2 | Worker-frame vises ikke");
+  }
 }
 
 void ledRenderTask(void* parameter) {
@@ -1016,7 +1019,7 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
   document["schemaVersion"] = 1;
   document["deviceId"] = TRANSITCORE_DEVICE_ID;
   document["boardProfile"] = EXPECTED_BOARD_PROFILE;
-  document["firmware"] = "1.1.7";
+  document["firmware"] = "1.1.8";
   document["uptimeSeconds"] = now / 1000UL;
   document["wifiOutages"] = wifiOutageCount;
   document["wifiRecoveries"] = wifiRecoveryCount;
@@ -1145,7 +1148,7 @@ void setup() {
     );
   }
 
-  Serial.println("TransitCore Universal Board Client v1.1.7 starter | build frame-isolation-test.");
+  Serial.println("TransitCore Universal Board Client v1.1.8 starter | build continuous-frame-isolation.");
   Serial.printf(
     "Board %s | %u tavle-LED-er | %u fysiske stripe-LED-er | hardware %s\n",
     EXPECTED_BOARD_PROFILE,
