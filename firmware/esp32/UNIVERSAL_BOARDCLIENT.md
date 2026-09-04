@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_1_0.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_1_1.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -71,5 +71,10 @@ a temporary `TransitCore-XXXXXX` setup network and captive web page at
 storage, never sent to TransitCore, and take precedence over `secrets.h`.
 Hardware-enabled boards show a startup wave, amber setup indication and green
 success indication.
+
+Version 1.1.1 runs physical LED rendering as a dedicated local task. Network
+and TLS waits can therefore no longer pause an `APPROACHING` pulse. It
+continues until a newer valid frame changes the LED to `AT_STOP` or off, or the
+frame TTL expires.
 
 
