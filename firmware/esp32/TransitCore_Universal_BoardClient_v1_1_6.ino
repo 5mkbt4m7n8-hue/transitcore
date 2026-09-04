@@ -11,10 +11,17 @@
 #include "secrets.h"
 #include "board_config.h"
 
-// TransitCore Universal Board Client v1.1.5
+// TransitCore Universal Board Client v1.1.6
 // One stable ESP32 engine; board_config.h selects the physical board.
-// v1.1.5 restores the proven v1.1.1 LED render lifecycle: only the main task
-// may expire and clear a frame after a bounded network request has completed.
+// v1.1.6 separates the board LED count from the connected strip length so
+// unused tail pixels are actively held off on full-length test strips.
+
+#ifndef TRANSITCORE_PHYSICAL_LED_COUNT
+#define TRANSITCORE_PHYSICAL_LED_COUNT LED_COUNT
+#endif
+
+static_assert(TRANSITCORE_PHYSICAL_LED_COUNT >= LED_COUNT,
+  "TRANSITCORE_PHYSICAL_LED_COUNT must be at least LED_COUNT");
 
 #ifndef TRANSITCORE_STATUS_TOKEN
 #define TRANSITCORE_STATUS_TOKEN ""
@@ -88,7 +95,7 @@ struct LedPixel {
 };
 
 Adafruit_NeoPixel strip(
-  LED_COUNT,
+  TRANSITCORE_PHYSICAL_LED_COUNT,
   LED_DATA_PIN,
   LED_PIXEL_TYPE
 );
@@ -243,6 +250,12 @@ void renderFrame() {
       scaleChannel(pixel.green, pixel.brightness, level),
       scaleChannel(pixel.blue, pixel.brightness, level)
     );
+  }
+
+  // Pixels beyond the board profile can exist on an uncut development strip.
+  // Address them on every refresh so electrical noise cannot leave them latched.
+  for (uint16_t i = LED_COUNT; i < TRANSITCORE_PHYSICAL_LED_COUNT; i++) {
+    strip.setPixelColor(i, 0, 0, 0);
   }
 
   strip.show();
@@ -983,7 +996,7 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
   document["schemaVersion"] = 1;
   document["deviceId"] = TRANSITCORE_DEVICE_ID;
   document["boardProfile"] = EXPECTED_BOARD_PROFILE;
-  document["firmware"] = "1.1.5";
+  document["firmware"] = "1.1.6";
   document["uptimeSeconds"] = now / 1000UL;
   document["wifiOutages"] = wifiOutageCount;
   document["wifiRecoveries"] = wifiRecoveryCount;
@@ -1112,11 +1125,12 @@ void setup() {
     );
   }
 
-  Serial.println("TransitCore Universal Board Client v1.1.5 starter | build stable-render-lifecycle.");
+  Serial.println("TransitCore Universal Board Client v1.1.6 starter | build physical-strip-guard.");
   Serial.printf(
-    "Board %s | %u LED-er | hardware %s\n",
+    "Board %s | %u tavle-LED-er | %u fysiske stripe-LED-er | hardware %s\n",
     EXPECTED_BOARD_PROFILE,
     LED_COUNT,
+    TRANSITCORE_PHYSICAL_LED_COUNT,
     LED_HARDWARE_ENABLED ? "PÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦" : "AV"
   );
   Serial.printf(
