@@ -3,7 +3,7 @@ import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
 const outputRoot = path.resolve(process.argv[2] || path.join(root, ".build", "esp-sketches"));
-const firmwarePath = path.join(root, "firmware", "esp32", "TransitCore_Universal_BoardClient_v1_1_1.ino");
+const firmwarePath = path.join(root, "firmware", "esp32", "TransitCore_Universal_BoardClient_v1_1_2.ino");
 const firmware = fs.readFileSync(firmwarePath, "utf8");
 const boardIds = [
   "grakallbanen-board",
