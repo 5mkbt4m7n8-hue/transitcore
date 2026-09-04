@@ -16,8 +16,10 @@ export function attachSignalPolicy(frame) {
 const REPOSITORY = "https://raw.githubusercontent.com/5mkbt4m7n8-hue/transitcore/main";
 const BOARD_IDS = new Set([
   "trondheim-bus-board", "oslo-metro-board", "oslo-metro-board-direction-a",
-  "oslo-metro-board-direction-b", "oslo-metro-wizard-separate", "grakallbanen-board"
+  "oslo-metro-board-direction-b", "oslo-metro-wizard-separate",
+  "oslo-metro-wizard-shared", "grakallbanen-board"
 ]);
+export const validBoardId = value => typeof value === "string" && /^[a-z0-9-]{3,120}$/.test(value);
 const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
 const configCache = new Map();
@@ -265,7 +267,7 @@ export function resolveDeviceRegistration(env, deviceId) {
   if (entry && typeof entry === "object" && !Array.isArray(entry)) {
     const token = String(entry.token || "");
     const boardProfile = String(entry.boardProfile || "");
-    if (entry.enabled === false || token.length < 32 || !BOARD_IDS.has(boardProfile)) return null;
+    if (entry.enabled === false || token.length < 32 || !validBoardId(boardProfile)) return null;
     return { deviceId, boardProfile, token, legacy: false };
   }
   // Temporary migration path: existing installations use the board profile as
@@ -301,7 +303,7 @@ async function lookupDeviceRegistration(env, deviceId) {
     const response = await registry.fetch(`https://status.internal/registry/${encodeURIComponent(deviceId)}`);
     if (response.ok) {
       const entry = await response.json();
-      if (entry.enabled && BOARD_IDS.has(entry.boardProfile) && /^[0-9a-f]{64}$/.test(entry.tokenHash || "")) {
+      if (entry.enabled && validBoardId(entry.boardProfile) && /^[0-9a-f]{64}$/.test(entry.tokenHash || "")) {
         return { ...entry, legacy: false };
       }
       return null;
@@ -312,7 +314,7 @@ async function lookupDeviceRegistration(env, deviceId) {
 
 export function cleanStatusPayload(value, deviceId, boardProfile, receivedAt) {
   const firmware = String(value?.firmware || "");
-  if (!value || value.schemaVersion !== 1 || (value.deviceId && value.deviceId !== deviceId) || value.boardProfile !== boardProfile || !["1.0.4","1.0.5","1.0.6","1.0.7","1.0.8","1.0.9","1.0.10","1.1.0"].includes(firmware)) {
+  if (!value || value.schemaVersion !== 1 || (value.deviceId && value.deviceId !== deviceId) || value.boardProfile !== boardProfile || !["1.0.4","1.0.5","1.0.6","1.0.7","1.0.8","1.0.9","1.0.10","1.1.0","1.1.1","1.1.2","1.1.3","1.1.4"].includes(firmware)) {
     throw Error("invalid status payload");
   }
   const profileRevision = Number(value.profileRevision || 0);
@@ -838,7 +840,8 @@ export async function handleDevices(request,env){
   const changedAt=new Date().toISOString();
   if(action==="create"){
    const boardProfile=String(payload.boardProfile||"");
-   if(!BOARD_IDS.has(boardProfile))return publishResponse({error:"invalid_board_profile"},400);
+   if(!validBoardId(boardProfile))return publishResponse({error:"invalid_board_profile"},400);
+   try{await configuration(boardProfile,Date.now())}catch{return publishResponse({error:"board_profile_not_published"},404)}
    const label=String(payload.label||boardProfile).trim().slice(0,80);
    for(let attempt=0;attempt<4;attempt++){
     const deviceId=`${boardProfile}-${randomCredential(6).toLowerCase()}`,token=randomCredential(32);
@@ -906,7 +909,7 @@ async function handleSignalTest(request,env){
    board=payload.board;hardware=payload.hardware;validatePublishProfiles(board,hardware);await attachProfileIdentity(board,hardware);
    profiles=await Promise.all(board.routes.map(id=>fetchJson(`${REPOSITORY}/config/routes/${id}.json`)));
   }else{
-   if(!BOARD_IDS.has(boardId))return publishResponse({error:"not_found"},404);
+   if(!validBoardId(boardId))return publishResponse({error:"not_found"},404);
    ({board,profiles,hardware}=await configuration(boardId,now));
   }
   const requestedPhysical=Number(payload.physicalLed);
@@ -987,7 +990,7 @@ export default {
     const historyMatch = url.pathname.match(/^\/v1\/boards\/([^/]+)\/history$/);
     if (historyMatch && request.method === "GET") {
       const boardId = historyMatch[1];
-      if (!BOARD_IDS.has(boardId)) return statusJson({ error: "not_found" }, 404);
+      if (!validBoardId(boardId)) return statusJson({ error: "not_found" }, 404);
       if (!env.DEVICE_STATUS) return statusJson({ latest: null, history: [], statusStorage: "disabled_in_preview" });
       const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(boardId));
       return stub.fetch("https://status.internal/monitor");
@@ -1030,7 +1033,7 @@ export default {
     if (url.pathname === "/" || url.pathname === "/health") return response({ service: "TransitCore LED feed", status: "ok", boardProfiles: [...BOARD_IDS] });
     const match = url.pathname.match(/^\/v1\/boards\/([^/]+)\/frame$/);
     const boardId = match?.[1];
-    if (!boardId || !BOARD_IDS.has(boardId)) return response({ error: "not_found" }, 404);
+    if (!validBoardId(boardId)) return response({ error: "not_found" }, 404);
     const monitorSource = request.headers.get("x-transitcore-monitor") === "scheduled" ? "scheduled" : "request";
     try {
       const now = Date.now(), { board, profiles, hardware } = await configuration(boardId, now);
