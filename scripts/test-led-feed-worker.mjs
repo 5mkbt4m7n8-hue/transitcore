@@ -104,6 +104,13 @@ assert.equal(motion.frame.leds[0].state, "APPROACHING", "A following bus must re
 let singlePosition = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, id: 0, vehicle: { ...approachingLed.vehicle, id: "tram-single" } }] }, {}, now);
 singlePosition = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, id: 1, vehicle: { ...approachingLed.vehicle, id: "tram-single" } }] }, singlePosition.state, now + 1000);
 assert.deepEqual(singlePosition.frame.leds.map(led => led.id), [1], "One vehicle must never own both its current LED and an old afterglow LED");
+const stoppedAtPreviousLed = { ...approachingLed, id: 0, state: "AT_STOP", vehicle: { ...approachingLed.vehicle, id: "tram-passed", distanceMeters: 0 } };
+let passedTransition = applyMotionLifecycle({ ...motionBase, leds: [stoppedAtPreviousLed] }, {}, now, 10000);
+passedTransition = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, id: 1, vehicle: { ...approachingLed.vehicle, id: "tram-passed" } }] }, passedTransition.state, now + 1000, 10000);
+assert.deepEqual(passedTransition.frame.leds.map(led => led.id), [0], "PASSED skal erstatte neste APPROACHING slik at vognen bare vises én gang");
+assert.equal(passedTransition.frame.leds[0].lifecycle, "PASSED");
+passedTransition = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, id: 2, vehicle: { ...approachingLed.vehicle, id: "tram-passed" } }] }, passedTransition.state, now + 11001, 10000);
+assert.deepEqual(passedTransition.frame.leds.map(led => led.id), [2], "Etter PASSED-perioden skal vognen fortsette på sin nye LED");
 console.log("Server motion lifecycle tests OK");
 
 const oppositeDirectionColorFrame = buildFrame({
