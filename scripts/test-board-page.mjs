@@ -10,6 +10,6 @@ assert.match(inline,/async function fetchPublishedBoard/);
 assert.match(inline,/logicalByPhysical\.get\(physical\)/);
 assert.match(inline,/"grakallbanen-board":"\.\.\/\.\.\/config\/boards\/grakallbanen-board\.json"/);
 assert.match(inline,/\["oslo-metro-wizard-separate","grakallbanen-board"\]\.includes\(board\.id\)/);
-assert.match(inline,/entry\.state\|\|item\.state/);
+assert.match(inline,/entry\.state\|\|item\.lifecycle\|\|item\.state/);
 assert.match(inline,/signalColor:Array\.isArray\(rgb\)/);
 console.log("Board page syntax and published Worker-frame LED mapping OK");
