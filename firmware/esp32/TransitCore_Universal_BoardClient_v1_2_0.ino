@@ -11,13 +11,14 @@
 #include "secrets.h"
 #include "board_config.h"
 
-// TransitCore Universal Board Client v1.1.9
+// TransitCore Universal Board Client v1.2.0
 // One stable ESP32 engine; board_config.h selects the physical board.
 // v1.1.6 separates the board LED count from the connected strip length so
 // unused tail pixels are actively held off on full-length test strips.
 // v1.1.7 adds a frame-isolation diagnostic and tests the complete strip.
 // v1.1.8 continuously retransmits the fixed isolation pattern.
 // v1.1.9 freezes and retransmits the first complete Worker frame.
+// v1.2.0 adds a guarded local button for resetting stored Wi-Fi credentials.
 
 #ifndef TRANSITCORE_PHYSICAL_LED_COUNT
 #define TRANSITCORE_PHYSICAL_LED_COUNT LED_COUNT
@@ -25,6 +26,10 @@
 
 #ifndef TRANSITCORE_LED_FRAME_ISOLATION_TEST
 #define TRANSITCORE_LED_FRAME_ISOLATION_TEST 0
+#endif
+
+#ifndef TRANSITCORE_WIFI_RESET_BUTTON_PIN
+#define TRANSITCORE_WIFI_RESET_BUTTON_PIN 0
 #endif
 
 static_assert(TRANSITCORE_PHYSICAL_LED_COUNT >= LED_COUNT,
@@ -71,6 +76,7 @@ const unsigned long WIFI_DEVICE_RESTART_MS = 10UL * 60UL * 1000UL;
 const uint8_t WIFI_RADIO_RESET_EVERY_ATTEMPTS = 3;
 const unsigned long WIFI_STABLE_BEFORE_HTTP_MS = 2000;
 const unsigned long WIFI_PROVISIONING_TIMEOUT_MS = 10UL * 60UL * 1000UL;
+const unsigned long WIFI_RESET_HOLD_MS = 5000;
 const unsigned long HTTP_CONNECT_TIMEOUT_MS = 10000;
 const unsigned long HTTP_RESPONSE_TIMEOUT_MS = 20000;
 const int HTTP_MAX_RETRIES = 1;
@@ -155,6 +161,8 @@ volatile bool startupWaveActive = false;
 uint16_t startupWaveStep = 0;
 unsigned long startupWaveStepAtMs = 0;
 bool isolationFrameCaptured = false;
+unsigned long wifiResetPressedAtMs = 0;
+bool wifiResetHandled = false;
 
 // -----------------------------------------------------------------------------
 // HELPERS
@@ -435,6 +443,7 @@ void startProvisioning() {
     wifiPreferences.begin("transitcore", false);
     wifiPreferences.putString("wifiSsid", ssid);
     wifiPreferences.putString("wifiPassword", password);
+    wifiPreferences.remove("forceSetup");
     wifiPreferences.end();
     provisioningServer.send(200, "text/html; charset=utf-8",
       "<!doctype html><meta name=viewport content='width=device-width'><h1>Lagret</h1>"
@@ -457,13 +466,44 @@ void startProvisioning() {
 
 void loadWifiCredentials() {
   wifiPreferences.begin("transitcore", true);
+  const bool forceSetup = wifiPreferences.getBool("forceSetup", false);
   configuredWifiSsid = wifiPreferences.getString("wifiSsid", "");
   configuredWifiPassword = wifiPreferences.getString("wifiPassword", "");
   wifiPreferences.end();
+  if (forceSetup) {
+    configuredWifiSsid = "";
+    configuredWifiPassword = "";
+    return;
+  }
   if (configuredWifiSsid.length() == 0 && String(WIFI_SSID) != "YOUR_WIFI_NAME") {
     configuredWifiSsid = WIFI_SSID;
     configuredWifiPassword = WIFI_PASSWORD;
   }
+}
+
+void handleWifiResetButton() {
+  const bool pressed = digitalRead(TRANSITCORE_WIFI_RESET_BUTTON_PIN) == LOW;
+  if (!pressed) {
+    wifiResetPressedAtMs = 0;
+    wifiResetHandled = false;
+    return;
+  }
+  if (wifiResetPressedAtMs == 0) wifiResetPressedAtMs = millis();
+  if (wifiResetHandled || millis() - wifiResetPressedAtMs < WIFI_RESET_HOLD_MS) return;
+
+  wifiResetHandled = true;
+  wifiPreferences.begin("transitcore", false);
+  wifiPreferences.remove("wifiSsid");
+  wifiPreferences.remove("wifiPassword");
+  wifiPreferences.putBool("forceSetup", true);
+  wifiPreferences.end();
+  configuredWifiSsid = "";
+  configuredWifiPassword = "";
+  showStatusColor(24, 8, 0);
+  Serial.println("OPPSETT | Wi-Fi er nullstilt med knappen. Starter oppsettsmodus.");
+  Serial.flush();
+  delay(500);
+  ESP.restart();
 }
 
 unsigned long wifiRetryDelayMs() {
@@ -1031,7 +1071,7 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
   document["schemaVersion"] = 1;
   document["deviceId"] = TRANSITCORE_DEVICE_ID;
   document["boardProfile"] = EXPECTED_BOARD_PROFILE;
-  document["firmware"] = "1.1.9";
+  document["firmware"] = "1.2.0";
   document["uptimeSeconds"] = now / 1000UL;
   document["wifiOutages"] = wifiOutageCount;
   document["wifiRecoveries"] = wifiRecoveryCount;
@@ -1126,6 +1166,7 @@ void setup() {
 
   clearFrame(activeFrame);
   clearFrame(candidateFrame);
+  pinMode(TRANSITCORE_WIFI_RESET_BUTTON_PIN, INPUT_PULLUP);
 
   if (LED_HARDWARE_ENABLED) {
     ledHardwareMutex = xSemaphoreCreateMutex();
@@ -1160,7 +1201,7 @@ void setup() {
     );
   }
 
-  Serial.println("TransitCore Universal Board Client v1.1.9 starter | build frozen-worker-frame-test.");
+  Serial.println("TransitCore Universal Board Client v1.2.0 starter | Wi-Fi-reset: hold BOOT i 5 sekunder.");
   Serial.printf(
     "Board %s | %u tavle-LED-er | %u fysiske stripe-LED-er | hardware %s\n",
     EXPECTED_BOARD_PROFILE,
@@ -1178,6 +1219,7 @@ void setup() {
 }
 
 void loop() {
+  handleWifiResetButton();
   ensureWifi();
 
   if (provisioningActive) {

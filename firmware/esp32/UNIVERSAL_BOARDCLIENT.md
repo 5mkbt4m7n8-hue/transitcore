@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_1_9.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_2_0.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -92,5 +92,11 @@ parallel TTL clear from flashing the strip during a successful feed refresh.
 Version 1.1.6 supports a development strip longer than the board profile. Add
 `#define TRANSITCORE_PHYSICAL_LED_COUNT 300` to `board_config.h` for a five
 metre 60 LED/m strip; all pixels beyond the board profile are held off.
+
+Version 1.2.0 adds a guarded Wi-Fi reset. Hold the BOOT button (GPIO 0 by
+default) for five seconds while the board is running to erase only the stored
+Wi-Fi credentials and restart captive setup. Device identity and board
+configuration are preserved. A product-specific button pin can be selected
+with `TRANSITCORE_WIFI_RESET_BUTTON_PIN`.
 
 
