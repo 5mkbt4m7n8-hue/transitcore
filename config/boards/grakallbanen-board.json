@@ -517,7 +517,7 @@
     }
   ],
   "render": {
-    "collisionMode": "unknown-direction",
+    "collisionMode": "alternate",
     "departureAfterglowSeconds": 10,
     "emptyFrameHoldSeconds": 30,
     "freshnessSeconds": 120,
