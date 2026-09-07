@@ -56,6 +56,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
   const next = {};
   const leds = [];
   const seen = new Set();
+  const activeVehicleIds = new Set((frame.leds || []).map(led => String(led.vehicle?.id || "")).filter(Boolean));
 
   for (const led of frame.leds || []) {
     const id = String(led.id);
@@ -84,6 +85,9 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
 
   for (const [id, before] of Object.entries(previous)) {
     if (seen.has(id)) continue;
+    // A vehicle can own only one physical LED. Once it appears at its new
+    // position, its old afterglow must disappear instead of creating a clone.
+    if (before.vehicleId && activeVehicleIds.has(before.vehicleId)) continue;
     const expiresAt = before.state === "PASSED" ? before.expiresAt : now + afterglowMs;
     if (expiresAt <= now) continue;
     const passed = makePassedLed(before.led);
