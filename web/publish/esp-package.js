@@ -1,7 +1,7 @@
 (function(root){
 "use strict";
 
-const FIRMWARE_VERSION="1.1.9";
+const FIRMWARE_VERSION="1.2.0";
 const FIRMWARE_FILE=`TransitCore_Universal_BoardClient_v${FIRMWARE_VERSION.replaceAll(".","_")}.ino`;
 
 function sketchName(boardId){
@@ -50,6 +50,12 @@ Arduino-oppsett
 5. Åpne ${folder}.ino og velg riktig ESP32-kort og port.
 6. Kjør Verify og deretter Upload.
 7. Åpne Serial Monitor på 115200 baud.
+
+Bytte Wi-Fi
+-----------
+Mens tavlen er slått på, hold BOOT-knappen inne i 5 sekunder. Bare lagret
+Wi-Fi slettes. Tavlen starter på nytt og åpner TransitCore-XXXXXX slik at et
+nytt nettverk kan velges fra telefonen. Enhetsnøkkel og tavleprofil beholdes.
 
 Sikker LED-test
 ---------------
