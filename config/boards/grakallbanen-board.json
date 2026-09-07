@@ -519,6 +519,7 @@
   "render": {
     "collisionMode": "unknown-direction",
     "departureAfterglowSeconds": 10,
+    "emptyFrameHoldSeconds": 30,
     "freshnessSeconds": 120,
     "arrivalRadiusMeters": 65,
     "maximumTrackDistanceMeters": 250

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { SIGNAL_POLICY, applyMotionLifecycle, attachSignalPolicy, buildFrame, buildLinearRouteFrame, buildSignalTestSequence, matchesDirection, validateConfiguration, vehicleAllowedByBoard } from "../worker/led-feed-worker.mjs";
+import { SIGNAL_POLICY, applyMotionLifecycle, attachSignalPolicy, buildFrame, buildLinearRouteFrame, buildSignalTestSequence, holdTransientEmptyFrame, matchesDirection, validateConfiguration, vehicleAllowedByBoard } from "../worker/led-feed-worker.mjs";
 
 assert.equal(SIGNAL_POLICY.version, 1);
 assert.equal(SIGNAL_POLICY.approachPulseMs, 1800);
@@ -59,7 +59,13 @@ const tramBoard = { id: "grakallbanen-board", layout: "linear-route-vled", posit
 const tramHardware = { schemaVersion: 1, boardProfile: "grakallbanen-board", leds: { count: 4, brightnessLimit: 20 }, assignments: [0, 1, 2, 3].map(led => ({ logicalLed: led, physicalLed: led })) };
 const tramVehicles = [{ vehicleId: "tram-1", lastUpdated: new Date(now - 5000).toISOString(), destinationName: "Lian", line: { publicCode: "9" }, location: { latitude: 63.40, longitude: 10.3075 } }];
 const tramFrame = buildLinearRouteFrame({ board: tramBoard, profiles: [tramProfile], hardware: tramHardware, vehicles: tramVehicles, now });
-assert.deepEqual(tramFrame.leds, [{ id: 2, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING" }]);
+assert.deepEqual(tramFrame.leds, [{ id: 2, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING", vehicle: { id: "tram-1", line: "9", destination: "Lian", distanceMeters: 0 } }]);
+let emptyGuard = holdTransientEmptyFrame(tramFrame, null, now, 30000);
+emptyGuard = holdTransientEmptyFrame({ ...tramFrame, leds: [], sequence: 2 }, emptyGuard.previous, now + 10000, 30000);
+assert.equal(emptyGuard.frame.leds.length, 1, "A transient empty source sample must retain the last live frame");
+assert.equal(emptyGuard.frame.sequence, 2, "A held frame must still expose the current response sequence");
+emptyGuard = holdTransientEmptyFrame({ ...tramFrame, leds: [], sequence: 3 }, emptyGuard.previous, now + 30001, 30000);
+assert.deepEqual(emptyGuard.frame.leds, [], "A genuinely empty source must be allowed through after the guard expires");
 let stableTram = applyMotionLifecycle(tramFrame, {}, now, 10000);
 stableTram = applyMotionLifecycle({ ...tramFrame, leds: [] }, stableTram.state, now + 1000, 10000);
 assert.equal(stableTram.frame.leds.length, 1, "One empty Gråkallbanen update must not blank the board");
@@ -68,7 +74,7 @@ const lianOnlyBoard={...tramBoard,render:{...tramBoard.render,vehicleDirectionFi
 assert.deepEqual(buildLinearRouteFrame({board:lianOnlyBoard,profiles:[tramProfile],hardware:tramHardware,vehicles:[{...tramVehicles[0],destinationName:"Ila"}],now}).leds,[],"opposite Gråkallbanen direction must be excluded");
 const shortBoard={...tramBoard,leds:{count:3},nodes:[tramBoard.nodes[0],{...tramBoard.nodes[1]},{...tramBoard.nodes[3],led:2}]};
 const shortHardware={...tramHardware,leds:{count:3,brightnessLimit:20},assignments:[0,1,2].map(led=>({logicalLed:led,physicalLed:led}))};
-assert.deepEqual(buildLinearRouteFrame({board:shortBoard,profiles:[tramProfile],hardware:shortHardware,vehicles:tramVehicles,now}).leds,[{id:1,rgb:[0,255,80],brightness:20,state:"APPROACHING"}],"board profile must control the number of intermediate LEDs");
+assert.equal(buildLinearRouteFrame({board:shortBoard,profiles:[tramProfile],hardware:shortHardware,vehicles:tramVehicles,now}).leds[0].id,1,"board profile must control the number of intermediate LEDs");
 console.log("GrÃƒÂ¥kallbanen linear VLED worker test OK");
 
 

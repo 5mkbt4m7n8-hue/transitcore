@@ -94,6 +94,19 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
   return { frame: { ...frame, leds: leds.sort((a, b) => a.id - b.id) }, state: next };
 }
 
+export function holdTransientEmptyFrame(frame, previous = null, now = Date.now(), holdMs = 0) {
+  const hasSignals = Array.isArray(frame.leds) && frame.leds.length > 0;
+  if (hasSignals) return { frame, previous: { frame, receivedAt: now } };
+  const age = now - Number(previous?.receivedAt || 0);
+  if (!previous?.frame || age < 0 || age > Math.max(0, Number(holdMs) || 0)) {
+    return { frame, previous };
+  }
+  return {
+    frame: { ...previous.frame, generatedAt: frame.generatedAt, sequence: frame.sequence, ttlSeconds: frame.ttlSeconds },
+    previous
+  };
+}
+
 export function buildSignalTestSequence({
   boardProfile,
   profileRevision = 1,
@@ -236,9 +249,13 @@ export class DeviceStatus {
       return statusJson({ latest: latest || null, lastScheduled: lastScheduled || null, history });
     }
     if (url.pathname === "/motion" && request.method === "POST") {
-      const { frame, now, afterglowMs } = await request.json();
+      const { frame, now, afterglowMs, emptyFrameHoldMs } = await request.json();
+      const timestamp = Number(now) || Date.now();
+      const previousNonEmpty = (await this.state.storage.get("motionLastNonEmpty")) || null;
+      const held = holdTransientEmptyFrame(frame, previousNonEmpty, timestamp, emptyFrameHoldMs);
+      if (held.previous !== previousNonEmpty) await this.state.storage.put("motionLastNonEmpty", held.previous);
       const previous = (await this.state.storage.get("motion")) || {};
-      const result = applyMotionLifecycle(frame, previous, Number(now) || Date.now(), afterglowMs);
+      const result = applyMotionLifecycle(held.frame, previous, timestamp, afterglowMs);
       await this.state.storage.put("motion", result.state);
       return statusJson(result.frame);
     }
@@ -571,7 +588,7 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
         !Number.isFinite(updated) || (now - updated) / 1000 > board.render.freshnessSeconds) continue;
     const previous = dedupe.get(raw.vehicleId);
     if (!previous || updated > previous.updated) dedupe.set(raw.vehicleId, {
-      updated, destination: raw.destinationName || "", lat: Number(raw.location.latitude), lon: Number(raw.location.longitude)
+      vehicleId: String(raw.vehicleId), updated, destination: raw.destinationName || "", lat: Number(raw.location.latitude), lon: Number(raw.location.longitude)
     });
   }
   const strongest = new Map();
@@ -601,7 +618,7 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
     }
     const id = physical.get(logicalLed), previous = strongest.get(id);
     if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" || meters < previous.meters) {
-      strongest.set(id, { id, state, meters, destination: vehicle.destination });
+      strongest.set(id, { id, state, meters, destination: vehicle.destination, vehicleId: vehicle.vehicleId });
     }
   }
   return {
@@ -609,7 +626,8 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
     sequence: Math.floor(now / 1000), ttlSeconds: 30, ledCount: hardware.leds?.count ?? board.leds.count,
     leds: [...strongest.values()].sort((a, b) => a.id - b.id).map(item => ({
       id: item.id, rgb: rgb(color(profile, item.destination)),
-      brightness: Math.min(SIGNAL_POLICY.fullBrightness, hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness), state: item.state
+      brightness: Math.min(SIGNAL_POLICY.fullBrightness, hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness), state: item.state,
+      vehicle: { id: item.vehicleId, line: String(profile.line.publicCode), destination: item.destination, distanceMeters: Math.round(item.meters) }
     }))
   };
 }
@@ -763,11 +781,12 @@ async function stabilizeMotionFrame(env, board, frame, now) {
   const afterglowSeconds = configured == null && board.id === "trondheim-bus-board"
     ? SIGNAL_POLICY.departureAfterglowSeconds
     : Math.max(0, Math.min(SIGNAL_POLICY.departureAfterglowSeconds, Number(configured) || 0));
+  const emptyFrameHoldSeconds = Math.max(0, Math.min(60, Number(board.render?.emptyFrameHoldSeconds) || 0));
   if (!afterglowSeconds || !env.DEVICE_STATUS) return attachSignalPolicy(frame);
   const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(board.id));
   const result = await stub.fetch("https://status.internal/motion", {
     method: "POST",
-    body: JSON.stringify({ frame, now, afterglowMs: afterglowSeconds * 1000 })
+    body: JSON.stringify({ frame, now, afterglowMs: afterglowSeconds * 1000, emptyFrameHoldMs: emptyFrameHoldSeconds * 1000 })
   });
   if (!result.ok) throw Error(`motion state: HTTP ${result.status}`);
   return attachSignalPolicy(await result.json());
