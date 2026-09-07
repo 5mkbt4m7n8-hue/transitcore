@@ -57,29 +57,29 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
   const leds = [];
   const seen = new Set();
   const activeVehicleIds = new Set((frame.leds || []).map(led => String(led.vehicle?.id || "")).filter(Boolean));
-  const currentLedIds = new Set((frame.leds || []).map(led => String(led.id)));
   const previousByVehicle = new Map(Object.entries(previous).filter(([, value]) => value.vehicleId).map(entry => [entry[1].vehicleId, entry]));
 
-  for (const led of frame.leds || []) {
-    const id = String(led.id);
+  for (const incomingLed of frame.leds || []) {
+    let led = incomingLed;
+    let id = String(led.id);
     const vehicleId = String(led.vehicle?.id || "");
+    const previousPosition = previousByVehicle.get(vehicleId);
+    if (frame.boardProfile === "grakallbanen-board" && previousPosition) {
+      const previousId = Number(previousPosition[0]), currentId = Number(id), gap = Math.abs(currentId - previousId);
+      if (Number.isInteger(previousId) && Number.isInteger(currentId) && gap > 1 && gap <= 4) {
+        const interpolatedId = previousId + Math.sign(currentId - previousId);
+        led = {
+          ...led,
+          id: interpolatedId,
+          state: "APPROACHING",
+          occupants: (led.occupants || []).map(occupant => ({ ...occupant, state: "APPROACHING" }))
+        };
+        id = String(interpolatedId);
+      }
+    }
     const distance = Number(led.vehicle?.distanceMeters);
     const before = previous[id];
     const sameVehicle = before && before.vehicleId === vehicleId;
-    const previousPosition = previousByVehicle.get(vehicleId);
-    if (led.state === "APPROACHING" && previousPosition && previousPosition[0] !== id &&
-        !currentLedIds.has(previousPosition[0]) && (previousPosition[1].state === "AT_STOP" || previousPosition[1].state === "PASSED")) {
-      const [passedId, passedBefore] = previousPosition;
-      const expiresAt = passedBefore.state === "PASSED" ? passedBefore.expiresAt : now + afterglowMs;
-      if (expiresAt > now) {
-        const passed = makePassedLed(passedBefore.led);
-        leds.push(passed);
-        next[passedId] = { ...passedBefore, state: "PASSED", expiresAt, led: passed };
-        seen.add(id);
-        seen.add(passedId);
-        continue;
-      }
-    }
     const departing = led.state === "APPROACHING" && sameVehicle &&
       (before.state === "AT_STOP" || before.state === "PASSED" ||
        Number.isFinite(distance) && Number.isFinite(before.distance) && distance > before.distance + 10);
