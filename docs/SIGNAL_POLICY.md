@@ -2,6 +2,13 @@
 
 Policykontrakten har versjon `1`. Worker legger `signalPolicy` i hvert LED-frame med pulstid, etterlystid, lysstyrker og tilstandsprioritet. Universal Board Client v1.0.8 validerer versjonen og bruker `approachPulseMs` direkte. Eldre klienter ignorerer feltet og fortsetter som før.
 
+For lineære GPS-tavler er `PASSED` en posisjonsstyrt stasjonstilstand. En
+mellom-LED bruker bare `APPROACHING`. Etter `AT_STOP` beholder vognen den samme
+stasjons-LED-en som `PASSED` så lenge GPS-posisjonen fortsatt er innenfor
+stasjonens konfigurerte avgangssone. Utenfor sonen flyttes den ene aktive
+vognposisjonen til neste mellom-LED som `APPROACHING`. Manglende GPS-data lager
+ikke et nytt eller ekstra `PASSED`-signal.
+
 Felles LED-oppførsel ligger i `web/shared/signal-policy.js` og den felles animasjonen i `web/shared/signal-policy.css`.
 
 ## Tilstander og prioritet

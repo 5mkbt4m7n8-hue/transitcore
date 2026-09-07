@@ -64,6 +64,21 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     let id = String(led.id);
     const vehicleId = String(led.vehicle?.id || "");
     const previousPosition = previousByVehicle.get(vehicleId);
+    const stationDepartureRadius = Number(frame.motionPolicy?.stationDepartureRadiusMeters);
+    const stationDistance = Number(led.vehicle?.stationDistanceMeters);
+    const nearestStationLed = String(led.vehicle?.nearestStationLed ?? "");
+    if (frame.boardProfile === "grakallbanen-board" && led.state === "APPROACHING" && previousPosition &&
+        previousPosition[0] !== id && (previousPosition[1].state === "AT_STOP" || previousPosition[1].state === "PASSED") &&
+        previousPosition[1].led.vehicle?.positionType === "station" && Number.isFinite(stationDepartureRadius) &&
+        nearestStationLed === previousPosition[0] && Number.isFinite(stationDistance) && stationDistance <= stationDepartureRadius) {
+      const [passedId, passedBefore] = previousPosition;
+      const passed = makePassedLed(passedBefore.led);
+      leds.push(passed);
+      next[passedId] = { ...passedBefore, state: "PASSED", expiresAt: 0, led: passed };
+      seen.add(id);
+      seen.add(passedId);
+      continue;
+    }
     if (frame.boardProfile === "grakallbanen-board" && previousPosition) {
       const previousId = Number(previousPosition[0]), currentId = Number(id), gap = Math.abs(currentId - previousId);
       if (Number.isInteger(previousId) && Number.isInteger(currentId) && gap > 1 && gap <= 4) {
@@ -104,6 +119,9 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     // A vehicle can own only one physical LED. Once it appears at its new
     // position, its old afterglow must disappear instead of creating a clone.
     if (before.vehicleId && activeVehicleIds.has(before.vehicleId)) continue;
+    // A linear GPS board must never invent PASSED on an intermediate LED or
+    // keep a stale vehicle alive without a current position sample.
+    if (frame.boardProfile === "grakallbanen-board") continue;
     const expiresAt = before.state === "PASSED" ? before.expiresAt : now + afterglowMs;
     if (expiresAt <= now) continue;
     const passed = makePassedLed(before.led);
@@ -618,11 +636,14 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
       const meters = distance(vehicle, stop);
       if (meters < stopMeters) { nearestStopIndex = index; stopMeters = meters; }
     });
-    let logicalLed, state, meters;
+    const nearestStationNode = nearestStopIndex >= 0 ? stationByStop.get(profile.stops[nearestStopIndex].id) : null;
+    const nearestStationLed = nearestStationNode ? physical.get(nearestStationNode.led) : null;
+    let logicalLed, state, meters, positionType;
     if (nearestStopIndex >= 0 && stopMeters <= board.render.arrivalRadiusMeters) {
-      logicalLed = stationByStop.get(profile.stops[nearestStopIndex].id)?.led ?? profile.stops[nearestStopIndex].vled;
+      logicalLed = nearestStationNode?.led ?? profile.stops[nearestStopIndex].vled;
       state = "AT_STOP";
       meters = stopMeters;
+      positionType = "station";
     } else {
       const route = nearestRoutePosition(profile, vehicle);
       if (!route || route.meters > board.render.maximumTrackDistanceMeters) continue;
@@ -635,9 +656,10 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
       }
       state = "APPROACHING";
       meters = route.meters;
+      positionType = "segment";
     }
     const id = physical.get(logicalLed);
-    const candidate = { id, state, meters, destination: vehicle.destination, vehicleId: vehicle.vehicleId };
+    const candidate = { id, state, meters, destination: vehicle.destination, vehicleId: vehicle.vehicleId, positionType, stationDistanceMeters: stopMeters, nearestStationLed };
     const occupants = occupantsByLed.get(id) || [];
     occupants.push(candidate);
     occupantsByLed.set(id, occupants);
@@ -649,13 +671,14 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
   return {
     schemaVersion: 1, boardProfile: board.id, profileRevision: board.profileRevision ?? 1, profileFingerprint: board.profileFingerprint || "", generatedAt: new Date(now).toISOString(),
     sequence: Math.floor(now / 1000), ttlSeconds: 30, ledCount: hardware.leds?.count ?? board.leds.count,
+    motionPolicy: { stationDepartureRadiusMeters: Math.max(board.render.arrivalRadiusMeters, Number(board.render.stationDepartureRadiusMeters) || board.render.arrivalRadiusMeters) },
     leds: [...strongest.values()].sort((a, b) => a.id - b.id).map(item => ({
       id: item.id, rgb: rgb(color(profile, item.destination)),
       brightness: Math.min(SIGNAL_POLICY.fullBrightness, hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness), state: item.state,
       // For a linear route, item.meters is lateral GPS error from the track,
       // not distance from a stop. Exposing it as distanceMeters made the
       // shared lifecycle falsely classify a moving tram as PASSED.
-      vehicle: { id: item.vehicleId, line: String(profile.line.publicCode), destination: item.destination },
+      vehicle: { id: item.vehicleId, line: String(profile.line.publicCode), destination: item.destination, positionType: item.positionType, stationDistanceMeters: Math.round(item.stationDistanceMeters), nearestStationLed: item.nearestStationLed },
       occupants: (occupantsByLed.get(item.id) || []).sort((a, b) => {
         const priority = value => value.state === "AT_STOP" ? 2 : value.state === "APPROACHING" ? 1 : 0;
         return priority(b) - priority(a) || a.meters - b.meters || a.vehicleId.localeCompare(b.vehicleId);
