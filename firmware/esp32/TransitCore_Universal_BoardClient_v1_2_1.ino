@@ -11,7 +11,7 @@
 #include "secrets.h"
 #include "board_config.h"
 
-// TransitCore Universal Board Client v1.2.0
+// TransitCore Universal Board Client v1.2.1
 // One stable ESP32 engine; board_config.h selects the physical board.
 // v1.1.6 separates the board LED count from the connected strip length so
 // unused tail pixels are actively held off on full-length test strips.
@@ -19,6 +19,7 @@
 // v1.1.8 continuously retransmits the fixed isolation pattern.
 // v1.1.9 freezes and retransmits the first complete Worker frame.
 // v1.2.0 adds a guarded local button for resetting stored Wi-Fi credentials.
+// v1.2.1 makes APPROACHING pulse smoothly all the way down to off.
 
 #ifndef TRANSITCORE_PHYSICAL_LED_COUNT
 #define TRANSITCORE_PHYSICAL_LED_COUNT LED_COUNT
@@ -203,7 +204,9 @@ uint8_t approachingPulse() {
   const unsigned long triangle =
     phase < halfPeriod ? phase : period - phase;
 
-  return 55 + (uint32_t)triangle * 200 / halfPeriod;
+  // APPROACHING skal puste helt ned til mørkt, uten å endre den felles
+  // 1800 ms policyperioden som eldre tavler allerede validerer.
+  return (uint32_t)triangle * 255 / halfPeriod;
 }
 
 void showStatusColor(uint8_t red, uint8_t green, uint8_t blue) {
@@ -1071,7 +1074,7 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
   document["schemaVersion"] = 1;
   document["deviceId"] = TRANSITCORE_DEVICE_ID;
   document["boardProfile"] = EXPECTED_BOARD_PROFILE;
-  document["firmware"] = "1.2.0";
+  document["firmware"] = "1.2.1";
   document["uptimeSeconds"] = now / 1000UL;
   document["wifiOutages"] = wifiOutageCount;
   document["wifiRecoveries"] = wifiRecoveryCount;
@@ -1201,7 +1204,7 @@ void setup() {
     );
   }
 
-  Serial.println("TransitCore Universal Board Client v1.2.0 starter | Wi-Fi-reset: hold BOOT i 5 sekunder.");
+  Serial.println("TransitCore Universal Board Client v1.2.1 starter | full-fade puls | Wi-Fi-reset: hold BOOT i 5 sekunder.");
   Serial.printf(
     "Board %s | %u tavle-LED-er | %u fysiske stripe-LED-er | hardware %s\n",
     EXPECTED_BOARD_PROFILE,
