@@ -1049,9 +1049,10 @@ export default {
         profiles[0].provider.codespaceId
       );
       if (board.layout === "linear-route-vled") {
-        const frame = buildLinearRouteFrame({ board, profiles, hardware, vehicles, now });
+        const rawFrame = buildLinearRouteFrame({ board, profiles, hardware, vehicles, now });
+        const frame = await stabilizeMotionFrame(env, board, rawFrame, now);
         await recordBoardMonitor(env, boardId, { ...validFrameSummary(frame, boardId), source: monitorSource });
-        return response(attachSignalPolicy(frame));
+        return response(frame);
       }
       const rawFrame = buildFrame({ board, profiles, hardware, vehicles, now });
       const frame = await stabilizeMotionFrame(env, board, rawFrame, now);

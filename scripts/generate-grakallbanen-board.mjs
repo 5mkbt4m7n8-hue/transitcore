@@ -16,7 +16,7 @@ nodes.sort((a, b) => a.led - b.led);
 const board = {
   schemaVersion: 1, id: "grakallbanen-board", name: "GrÃ¥kallbanen", layout: "linear-route-vled",
   positioning: "vehicle-proximity", routes: [profile.id], leds: { count: 47, dataPin: 2, brightnessLimit: 32 }, nodes,
-  render: { collisionMode: "unknown-direction", freshnessSeconds: 120, arrivalRadiusMeters: 65, maximumTrackDistanceMeters: 250 },
+  render: { collisionMode: "unknown-direction", departureAfterglowSeconds: 10, freshnessSeconds: 120, arrivalRadiusMeters: 65, maximumTrackDistanceMeters: 250 },
   status: "worker-boardclient-test-ready"
 };
 const hardware = {

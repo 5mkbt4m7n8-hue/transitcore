@@ -60,6 +60,10 @@ const tramHardware = { schemaVersion: 1, boardProfile: "grakallbanen-board", led
 const tramVehicles = [{ vehicleId: "tram-1", lastUpdated: new Date(now - 5000).toISOString(), destinationName: "Lian", line: { publicCode: "9" }, location: { latitude: 63.40, longitude: 10.3075 } }];
 const tramFrame = buildLinearRouteFrame({ board: tramBoard, profiles: [tramProfile], hardware: tramHardware, vehicles: tramVehicles, now });
 assert.deepEqual(tramFrame.leds, [{ id: 2, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING" }]);
+let stableTram = applyMotionLifecycle(tramFrame, {}, now, 10000);
+stableTram = applyMotionLifecycle({ ...tramFrame, leds: [] }, stableTram.state, now + 1000, 10000);
+assert.equal(stableTram.frame.leds.length, 1, "One empty Gråkallbanen update must not blank the board");
+assert.equal(stableTram.frame.leds[0].lifecycle, "PASSED");
 const lianOnlyBoard={...tramBoard,render:{...tramBoard.render,vehicleDirectionFilters:{"tram-9":{directionId:"lian",destinationMatches:["Lian"]}}}};
 assert.deepEqual(buildLinearRouteFrame({board:lianOnlyBoard,profiles:[tramProfile],hardware:tramHardware,vehicles:[{...tramVehicles[0],destinationName:"Ila"}],now}).leds,[],"opposite Gråkallbanen direction must be excluded");
 const shortBoard={...tramBoard,leds:{count:3},nodes:[tramBoard.nodes[0],{...tramBoard.nodes[1]},{...tramBoard.nodes[3],led:2}]};
