@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_2_0.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_2_1.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -98,5 +98,8 @@ default) for five seconds while the board is running to erase only the stored
 Wi-Fi credentials and restart captive setup. Device identity and board
 configuration are preserved. A product-specific button pin can be selected
 with `TRANSITCORE_WIFI_RESET_BUTTON_PIN`.
+
+Version 1.2.1 keeps the shared 1800 ms approach period and lets the physical
+APPROACHING pulse fade completely off at the bottom of every cycle.
 
 
