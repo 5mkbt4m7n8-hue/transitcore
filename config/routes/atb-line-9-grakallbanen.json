@@ -19,7 +19,7 @@
       "destinationMatches": [
         "Lian"
       ],
-      "color": "#00e66b",
+      "color": "#00ff48",
       "reverseShape": true
     },
     {
@@ -28,7 +28,7 @@
       "destinationMatches": [
         "Ila"
       ],
-      "color": "#18a9ff",
+      "color": "#0050ff",
       "reverseShape": false
     }
   ],

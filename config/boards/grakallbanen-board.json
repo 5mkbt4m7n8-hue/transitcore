@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "grakallbanen-board",
-  "name": "GrÃ¥kallbanen",
+  "name": "Gråkallbanen",
   "layout": "linear-route-vled",
   "positioning": "vehicle-proximity",
   "routes": [
@@ -27,7 +27,7 @@
     },
     {
       "id": "vled-1",
-      "name": "Lian â€“ HerlofsonlÃ¸ypa 1/2",
+      "name": "Lian – Herlofsonløypa 1/2",
       "led": 1,
       "stopIds": [],
       "routes": [
@@ -37,7 +37,7 @@
     },
     {
       "id": "vled-2",
-      "name": "Lian â€“ HerlofsonlÃ¸ypa 2/2",
+      "name": "Lian – Herlofsonløypa 2/2",
       "led": 2,
       "stopIds": [],
       "routes": [
@@ -47,7 +47,7 @@
     },
     {
       "id": "vled-3",
-      "name": "HerlofsonlÃ¸ypa",
+      "name": "Herlofsonløypa",
       "led": 3,
       "stopIds": [
         "NSR:Quay:71253"
@@ -59,7 +59,7 @@
     },
     {
       "id": "vled-4",
-      "name": "HerlofsonlÃ¸ypa â€“ Vestmarka 1/1",
+      "name": "Herlofsonløypa – Vestmarka 1/1",
       "led": 4,
       "stopIds": [],
       "routes": [
@@ -81,7 +81,7 @@
     },
     {
       "id": "vled-6",
-      "name": "Vestmarka â€“ Kyvannet 1/3",
+      "name": "Vestmarka – Kyvannet 1/3",
       "led": 6,
       "stopIds": [],
       "routes": [
@@ -91,7 +91,7 @@
     },
     {
       "id": "vled-7",
-      "name": "Vestmarka â€“ Kyvannet 2/3",
+      "name": "Vestmarka – Kyvannet 2/3",
       "led": 7,
       "stopIds": [],
       "routes": [
@@ -101,7 +101,7 @@
     },
     {
       "id": "vled-8",
-      "name": "Vestmarka â€“ Kyvannet 3/3",
+      "name": "Vestmarka – Kyvannet 3/3",
       "led": 8,
       "stopIds": [],
       "routes": [
@@ -123,7 +123,7 @@
     },
     {
       "id": "vled-10",
-      "name": "Kyvannet â€“ Ugla 1/2",
+      "name": "Kyvannet – Ugla 1/2",
       "led": 10,
       "stopIds": [],
       "routes": [
@@ -133,7 +133,7 @@
     },
     {
       "id": "vled-11",
-      "name": "Kyvannet â€“ Ugla 2/2",
+      "name": "Kyvannet – Ugla 2/2",
       "led": 11,
       "stopIds": [],
       "routes": [
@@ -155,7 +155,7 @@
     },
     {
       "id": "vled-13",
-      "name": "Ugla â€“ Ferstad 1/1",
+      "name": "Ugla – Ferstad 1/1",
       "led": 13,
       "stopIds": [],
       "routes": [
@@ -177,7 +177,7 @@
     },
     {
       "id": "vled-15",
-      "name": "Ferstad â€“ Munkvoll 1/3",
+      "name": "Ferstad – Munkvoll 1/3",
       "led": 15,
       "stopIds": [],
       "routes": [
@@ -187,7 +187,7 @@
     },
     {
       "id": "vled-16",
-      "name": "Ferstad â€“ Munkvoll 2/3",
+      "name": "Ferstad – Munkvoll 2/3",
       "led": 16,
       "stopIds": [],
       "routes": [
@@ -197,7 +197,7 @@
     },
     {
       "id": "vled-17",
-      "name": "Ferstad â€“ Munkvoll 3/3",
+      "name": "Ferstad – Munkvoll 3/3",
       "led": 17,
       "stopIds": [],
       "routes": [
@@ -219,7 +219,7 @@
     },
     {
       "id": "vled-19",
-      "name": "Munkvoll â€“ Rognheim 1/3",
+      "name": "Munkvoll – Rognheim 1/3",
       "led": 19,
       "stopIds": [],
       "routes": [
@@ -229,7 +229,7 @@
     },
     {
       "id": "vled-20",
-      "name": "Munkvoll â€“ Rognheim 2/3",
+      "name": "Munkvoll – Rognheim 2/3",
       "led": 20,
       "stopIds": [],
       "routes": [
@@ -239,7 +239,7 @@
     },
     {
       "id": "vled-21",
-      "name": "Munkvoll â€“ Rognheim 3/3",
+      "name": "Munkvoll – Rognheim 3/3",
       "led": 21,
       "stopIds": [],
       "routes": [
@@ -261,7 +261,7 @@
     },
     {
       "id": "vled-23",
-      "name": "Rognheim â€“ SÃ¸ndre Hoem 1/3",
+      "name": "Rognheim – Søndre Hoem 1/3",
       "led": 23,
       "stopIds": [],
       "routes": [
@@ -271,7 +271,7 @@
     },
     {
       "id": "vled-24",
-      "name": "Rognheim â€“ SÃ¸ndre Hoem 2/3",
+      "name": "Rognheim – Søndre Hoem 2/3",
       "led": 24,
       "stopIds": [],
       "routes": [
@@ -281,7 +281,7 @@
     },
     {
       "id": "vled-25",
-      "name": "Rognheim â€“ SÃ¸ndre Hoem 3/3",
+      "name": "Rognheim – Søndre Hoem 3/3",
       "led": 25,
       "stopIds": [],
       "routes": [
@@ -291,7 +291,7 @@
     },
     {
       "id": "vled-26",
-      "name": "SÃ¸ndre Hoem",
+      "name": "Søndre Hoem",
       "led": 26,
       "stopIds": [
         "NSR:Quay:73562"
@@ -303,7 +303,7 @@
     },
     {
       "id": "vled-27",
-      "name": "SÃ¸ndre Hoem â€“ Nordre Hoem 1/1",
+      "name": "Søndre Hoem – Nordre Hoem 1/1",
       "led": 27,
       "stopIds": [],
       "routes": [
@@ -325,7 +325,7 @@
     },
     {
       "id": "vled-29",
-      "name": "Nordre Hoem â€“ Breidablikk 1/3",
+      "name": "Nordre Hoem – Breidablikk 1/3",
       "led": 29,
       "stopIds": [],
       "routes": [
@@ -335,7 +335,7 @@
     },
     {
       "id": "vled-30",
-      "name": "Nordre Hoem â€“ Breidablikk 2/3",
+      "name": "Nordre Hoem – Breidablikk 2/3",
       "led": 30,
       "stopIds": [],
       "routes": [
@@ -345,7 +345,7 @@
     },
     {
       "id": "vled-31",
-      "name": "Nordre Hoem â€“ Breidablikk 3/3",
+      "name": "Nordre Hoem – Breidablikk 3/3",
       "led": 31,
       "stopIds": [],
       "routes": [
@@ -367,7 +367,7 @@
     },
     {
       "id": "vled-33",
-      "name": "Breidablikk â€“ Belvedere 1/2",
+      "name": "Breidablikk – Belvedere 1/2",
       "led": 33,
       "stopIds": [],
       "routes": [
@@ -377,7 +377,7 @@
     },
     {
       "id": "vled-34",
-      "name": "Breidablikk â€“ Belvedere 2/2",
+      "name": "Breidablikk – Belvedere 2/2",
       "led": 34,
       "stopIds": [],
       "routes": [
@@ -399,7 +399,7 @@
     },
     {
       "id": "vled-36",
-      "name": "Belvedere â€“ Bygrensen 1/1",
+      "name": "Belvedere – Bygrensen 1/1",
       "led": 36,
       "stopIds": [],
       "routes": [
@@ -421,7 +421,7 @@
     },
     {
       "id": "vled-38",
-      "name": "Bygrensen â€“ Nyveibakken 1/3",
+      "name": "Bygrensen – Nyveibakken 1/3",
       "led": 38,
       "stopIds": [],
       "routes": [
@@ -431,7 +431,7 @@
     },
     {
       "id": "vled-39",
-      "name": "Bygrensen â€“ Nyveibakken 2/3",
+      "name": "Bygrensen – Nyveibakken 2/3",
       "led": 39,
       "stopIds": [],
       "routes": [
@@ -441,7 +441,7 @@
     },
     {
       "id": "vled-40",
-      "name": "Bygrensen â€“ Nyveibakken 3/3",
+      "name": "Bygrensen – Nyveibakken 3/3",
       "led": 40,
       "stopIds": [],
       "routes": [
@@ -463,7 +463,7 @@
     },
     {
       "id": "vled-42",
-      "name": "Nyveibakken â€“ Bergsli gate 1/2",
+      "name": "Nyveibakken – Bergsli gate 1/2",
       "led": 42,
       "stopIds": [],
       "routes": [
@@ -473,7 +473,7 @@
     },
     {
       "id": "vled-43",
-      "name": "Nyveibakken â€“ Bergsli gate 2/2",
+      "name": "Nyveibakken – Bergsli gate 2/2",
       "led": 43,
       "stopIds": [],
       "routes": [
@@ -495,7 +495,7 @@
     },
     {
       "id": "vled-45",
-      "name": "Bergsli gate â€“ Ila 1/1",
+      "name": "Bergsli gate – Ila 1/1",
       "led": 45,
       "stopIds": [],
       "routes": [
@@ -526,4 +526,3 @@
   },
   "status": "worker-boardclient-test-ready"
 }
-

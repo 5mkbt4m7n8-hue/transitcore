@@ -92,6 +92,9 @@ assert.equal(motion.frame.leds[0].lifecycle, "PASSED");
 assert.equal(motion.frame.leds[0].brightness, 8);
 motion = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, vehicle: { ...approachingLed.vehicle, id: "following-bus", distanceMeters: 140 } }] }, motion.state, now + 25000);
 assert.equal(motion.frame.leds[0].state, "APPROACHING", "A following bus must replace the first bus after it leaves");
+let singlePosition = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, id: 0, vehicle: { ...approachingLed.vehicle, id: "tram-single" } }] }, {}, now);
+singlePosition = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, id: 1, vehicle: { ...approachingLed.vehicle, id: "tram-single" } }] }, singlePosition.state, now + 1000);
+assert.deepEqual(singlePosition.frame.leds.map(led => led.id), [1], "One vehicle must never own both its current LED and an old afterglow LED");
 console.log("Server motion lifecycle tests OK");
 
 const oppositeDirectionColorFrame = buildFrame({

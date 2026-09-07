@@ -9,12 +9,12 @@ for (let stopIndex = 0; stopIndex < profile.stops.length; stopIndex++) {
   if (!segment) continue;
   for (let offset = 0; offset < segment.vledCount; offset++) {
     const led = segment.vledStart + offset;
-    nodes.push({ id: `vled-${led}`, name: `${stop.name} â€“ ${profile.stops[stopIndex + 1].name} ${offset + 1}/${segment.vledCount}`, led, stopIds: [], routes: [profile.id], type: "segment" });
+    nodes.push({ id: `vled-${led}`, name: `${stop.name} – ${profile.stops[stopIndex + 1].name} ${offset + 1}/${segment.vledCount}`, led, stopIds: [], routes: [profile.id], type: "segment" });
   }
 }
 nodes.sort((a, b) => a.led - b.led);
 const board = {
-  schemaVersion: 1, id: "grakallbanen-board", name: "GrÃ¥kallbanen", layout: "linear-route-vled",
+  schemaVersion: 1, id: "grakallbanen-board", name: "Gråkallbanen", layout: "linear-route-vled",
   positioning: "vehicle-proximity", routes: [profile.id], leds: { count: 47, dataPin: 2, brightnessLimit: 32 }, nodes,
   render: { collisionMode: "unknown-direction", departureAfterglowSeconds: 10, emptyFrameHoldSeconds: 30, freshnessSeconds: 120, arrivalRadiusMeters: 65, maximumTrackDistanceMeters: 250 },
   status: "worker-boardclient-test-ready"
