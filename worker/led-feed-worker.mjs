@@ -57,6 +57,8 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
   const leds = [];
   const seen = new Set();
   const activeVehicleIds = new Set((frame.leds || []).map(led => String(led.vehicle?.id || "")).filter(Boolean));
+  const currentLedIds = new Set((frame.leds || []).map(led => String(led.id)));
+  const previousByVehicle = new Map(Object.entries(previous).filter(([, value]) => value.vehicleId).map(entry => [entry[1].vehicleId, entry]));
 
   for (const led of frame.leds || []) {
     const id = String(led.id);
@@ -64,6 +66,20 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     const distance = Number(led.vehicle?.distanceMeters);
     const before = previous[id];
     const sameVehicle = before && before.vehicleId === vehicleId;
+    const previousPosition = previousByVehicle.get(vehicleId);
+    if (led.state === "APPROACHING" && previousPosition && previousPosition[0] !== id &&
+        !currentLedIds.has(previousPosition[0]) && (previousPosition[1].state === "AT_STOP" || previousPosition[1].state === "PASSED")) {
+      const [passedId, passedBefore] = previousPosition;
+      const expiresAt = passedBefore.state === "PASSED" ? passedBefore.expiresAt : now + afterglowMs;
+      if (expiresAt > now) {
+        const passed = makePassedLed(passedBefore.led);
+        leds.push(passed);
+        next[passedId] = { ...passedBefore, state: "PASSED", expiresAt, led: passed };
+        seen.add(id);
+        seen.add(passedId);
+        continue;
+      }
+    }
     const departing = led.state === "APPROACHING" && sameVehicle &&
       (before.state === "AT_STOP" || before.state === "PASSED" ||
        Number.isFinite(distance) && Number.isFinite(before.distance) && distance > before.distance + 10);
