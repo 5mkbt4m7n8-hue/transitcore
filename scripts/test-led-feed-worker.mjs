@@ -59,7 +59,11 @@ const tramBoard = { id: "grakallbanen-board", layout: "linear-route-vled", posit
 const tramHardware = { schemaVersion: 1, boardProfile: "grakallbanen-board", leds: { count: 4, brightnessLimit: 20 }, assignments: [0, 1, 2, 3].map(led => ({ logicalLed: led, physicalLed: led })) };
 const tramVehicles = [{ vehicleId: "tram-1", lastUpdated: new Date(now - 5000).toISOString(), destinationName: "Lian", line: { publicCode: "9" }, location: { latitude: 63.40, longitude: 10.3075 } }];
 const tramFrame = buildLinearRouteFrame({ board: tramBoard, profiles: [tramProfile], hardware: tramHardware, vehicles: tramVehicles, now });
-assert.deepEqual(tramFrame.leds, [{ id: 2, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING", vehicle: { id: "tram-1", line: "9", destination: "Lian", distanceMeters: 0 } }]);
+assert.deepEqual(tramFrame.leds, [{ id: 2, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING", vehicle: { id: "tram-1", line: "9", destination: "Lian" } }]);
+let movingTram = applyMotionLifecycle(tramFrame, {}, now, 10000);
+movingTram = applyMotionLifecycle(tramFrame, movingTram.state, now + 1000, 10000);
+assert.equal(movingTram.frame.leds[0].state, "APPROACHING", "A moving tram must keep pulsing until its state actually changes");
+assert.equal(movingTram.frame.leds[0].brightness, 20, "A moving tram must not be mistaken for dimmed afterglow");
 let emptyGuard = holdTransientEmptyFrame(tramFrame, null, now, 30000);
 emptyGuard = holdTransientEmptyFrame({ ...tramFrame, leds: [], sequence: 2 }, emptyGuard.previous, now + 10000, 30000);
 assert.equal(emptyGuard.frame.leds.length, 1, "A transient empty source sample must retain the last live frame");

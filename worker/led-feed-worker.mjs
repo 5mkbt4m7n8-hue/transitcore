@@ -631,7 +631,10 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
     leds: [...strongest.values()].sort((a, b) => a.id - b.id).map(item => ({
       id: item.id, rgb: rgb(color(profile, item.destination)),
       brightness: Math.min(SIGNAL_POLICY.fullBrightness, hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness), state: item.state,
-      vehicle: { id: item.vehicleId, line: String(profile.line.publicCode), destination: item.destination, distanceMeters: Math.round(item.meters) }
+      // For a linear route, item.meters is lateral GPS error from the track,
+      // not distance from a stop. Exposing it as distanceMeters made the
+      // shared lifecycle falsely classify a moving tram as PASSED.
+      vehicle: { id: item.vehicleId, line: String(profile.line.publicCode), destination: item.destination }
     }))
   };
 }
