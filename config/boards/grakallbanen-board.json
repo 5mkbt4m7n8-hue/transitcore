@@ -522,6 +522,7 @@
     "emptyFrameHoldSeconds": 30,
     "freshnessSeconds": 120,
     "arrivalRadiusMeters": 65,
+    "stationDepartureRadiusMeters": 110,
     "maximumTrackDistanceMeters": 250
   },
   "status": "worker-boardclient-test-ready"

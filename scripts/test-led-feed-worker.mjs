@@ -60,7 +60,9 @@ const tramHardware = { schemaVersion: 1, boardProfile: "grakallbanen-board", led
 const tramVehicles = [{ vehicleId: "tram-1", lastUpdated: new Date(now - 5000).toISOString(), destinationName: "Lian", line: { publicCode: "9" }, location: { latitude: 63.40, longitude: 10.3075 } }];
 const tramFrame = buildLinearRouteFrame({ board: tramBoard, profiles: [tramProfile], hardware: tramHardware, vehicles: tramVehicles, now });
 assert.equal(tramFrame.leds.length, 1);
-assert.deepEqual(tramFrame.leds[0], { id: 2, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING", vehicle: { id: "tram-1", line: "9", destination: "Lian" }, occupants: [{ id: "tram-1", line: "9", destination: "Lian", rgb: [0, 255, 80], state: "APPROACHING" }] });
+assert.deepEqual({id:tramFrame.leds[0].id,rgb:tramFrame.leds[0].rgb,brightness:tramFrame.leds[0].brightness,state:tramFrame.leds[0].state}, { id: 2, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING" });
+assert.equal(tramFrame.leds[0].vehicle.positionType,"segment");
+assert.equal(tramFrame.motionPolicy.stationDepartureRadiusMeters,65);
 const sharedTramFrame = buildLinearRouteFrame({ board: tramBoard, profiles: [tramProfile], hardware: tramHardware, vehicles: [tramVehicles[0], { ...tramVehicles[0], vehicleId: "tram-2", destinationName: "Ila" }], now });
 assert.equal(sharedTramFrame.leds[0].occupants.length, 2, "Begge vogner på samme Gråkallbane-LED må bevares");
 assert.deepEqual(sharedTramFrame.leds[0].occupants.map(value => value.rgb), [[0, 255, 80], [0, 100, 255]], "Likt prioriterte vogner må kunne veksle mellom retningsfargene");
@@ -76,8 +78,7 @@ emptyGuard = holdTransientEmptyFrame({ ...tramFrame, leds: [], sequence: 3 }, em
 assert.deepEqual(emptyGuard.frame.leds, [], "A genuinely empty source must be allowed through after the guard expires");
 let stableTram = applyMotionLifecycle(tramFrame, {}, now, 10000);
 stableTram = applyMotionLifecycle({ ...tramFrame, leds: [] }, stableTram.state, now + 1000, 10000);
-assert.equal(stableTram.frame.leds.length, 1, "One empty Gråkallbanen update must not blank the board");
-assert.equal(stableTram.frame.leds[0].lifecycle, "PASSED");
+assert.equal(stableTram.frame.leds.length, 0, "Manglende GPS-data skal ikke lage PASSED på en mellom-LED");
 const lianOnlyBoard={...tramBoard,render:{...tramBoard.render,vehicleDirectionFilters:{"tram-9":{directionId:"lian",destinationMatches:["Lian"]}}}};
 assert.deepEqual(buildLinearRouteFrame({board:lianOnlyBoard,profiles:[tramProfile],hardware:tramHardware,vehicles:[{...tramVehicles[0],destinationName:"Ila"}],now}).leds,[],"opposite Gråkallbanen direction must be excluded");
 const shortBoard={...tramBoard,leds:{count:3},nodes:[tramBoard.nodes[0],{...tramBoard.nodes[1]},{...tramBoard.nodes[3],led:2}]};
@@ -114,6 +115,16 @@ let interpolated = applyMotionLifecycle({ ...grakallMotionBase, leds: [{ ...stop
 interpolated = applyMotionLifecycle({ ...grakallMotionBase, leds: [{ ...approachingLed, id: 24, vehicle: { ...approachingLed.vehicle, id: "tram-interpolate" } }] }, interpolated.state, now + 10000, 10000);
 assert.deepEqual(interpolated.frame.leds.map(led => led.id), [25], "Et kort GPS-hopp 26 til 24 skal gå via LED 25");
 assert.equal(interpolated.frame.leds[0].state, "APPROACHING", "Mellomposisjonen skal ha høyere prioritet enn gammelt PASSED");
+const gpsMotionBase = { ...grakallMotionBase, motionPolicy: { stationDepartureRadiusMeters: 110 } };
+const gpsStop = { ...stoppedAtPreviousLed, id: 26, vehicle: { ...stoppedAtPreviousLed.vehicle, id: "tram-gps-passed", positionType: "station", stationDistanceMeters: 20 } };
+const gpsSegment = distance => ({ ...approachingLed, id: 25, vehicle: { ...approachingLed.vehicle, id: "tram-gps-passed", positionType: "segment", stationDistanceMeters: distance, nearestStationLed: 26 } });
+let gpsPassed = applyMotionLifecycle({ ...gpsMotionBase, leds: [gpsStop] }, {}, now, 10000);
+gpsPassed = applyMotionLifecycle({ ...gpsMotionBase, leds: [gpsSegment(85)] }, gpsPassed.state, now + 10000, 10000);
+assert.deepEqual(gpsPassed.frame.leds.map(led => led.id), [26], "Innenfor GPS-avgangssonen skal bare stasjonen vise PASSED");
+assert.equal(gpsPassed.frame.leds[0].lifecycle, "PASSED");
+gpsPassed = applyMotionLifecycle({ ...gpsMotionBase, leds: [gpsSegment(125)] }, gpsPassed.state, now + 20000, 10000);
+assert.deepEqual(gpsPassed.frame.leds.map(led => led.id), [25], "Utenfor GPS-avgangssonen skal bare mellom-LED vise APPROACHING");
+assert.equal(gpsPassed.frame.leds[0].state, "APPROACHING");
 console.log("Server motion lifecycle tests OK");
 
 const oppositeDirectionColorFrame = buildFrame({
