@@ -107,10 +107,13 @@ assert.deepEqual(singlePosition.frame.leds.map(led => led.id), [1], "One vehicle
 const stoppedAtPreviousLed = { ...approachingLed, id: 0, state: "AT_STOP", vehicle: { ...approachingLed.vehicle, id: "tram-passed", distanceMeters: 0 } };
 let passedTransition = applyMotionLifecycle({ ...motionBase, leds: [stoppedAtPreviousLed] }, {}, now, 10000);
 passedTransition = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, id: 1, vehicle: { ...approachingLed.vehicle, id: "tram-passed" } }] }, passedTransition.state, now + 1000, 10000);
-assert.deepEqual(passedTransition.frame.leds.map(led => led.id), [0], "PASSED skal erstatte neste APPROACHING slik at vognen bare vises én gang");
-assert.equal(passedTransition.frame.leds[0].lifecycle, "PASSED");
-passedTransition = applyMotionLifecycle({ ...motionBase, leds: [{ ...approachingLed, id: 2, vehicle: { ...approachingLed.vehicle, id: "tram-passed" } }] }, passedTransition.state, now + 11001, 10000);
-assert.deepEqual(passedTransition.frame.leds.map(led => led.id), [2], "Etter PASSED-perioden skal vognen fortsette på sin nye LED");
+assert.deepEqual(passedTransition.frame.leds.map(led => led.id), [1], "APPROACHING skal erstatte PASSED og vognen skal bare vises én gang");
+assert.equal(passedTransition.frame.leds[0].state, "APPROACHING");
+const grakallMotionBase = { ...motionBase, boardProfile: "grakallbanen-board", ledCount: 47 };
+let interpolated = applyMotionLifecycle({ ...grakallMotionBase, leds: [{ ...stoppedAtPreviousLed, id: 26, vehicle: { ...stoppedAtPreviousLed.vehicle, id: "tram-interpolate" } }] }, {}, now, 10000);
+interpolated = applyMotionLifecycle({ ...grakallMotionBase, leds: [{ ...approachingLed, id: 24, vehicle: { ...approachingLed.vehicle, id: "tram-interpolate" } }] }, interpolated.state, now + 10000, 10000);
+assert.deepEqual(interpolated.frame.leds.map(led => led.id), [25], "Et kort GPS-hopp 26 til 24 skal gå via LED 25");
+assert.equal(interpolated.frame.leds[0].state, "APPROACHING", "Mellomposisjonen skal ha høyere prioritet enn gammelt PASSED");
 console.log("Server motion lifecycle tests OK");
 
 const oppositeDirectionColorFrame = buildFrame({
