@@ -11,7 +11,7 @@
 #include "secrets.h"
 #include "board_config.h"
 
-// TransitCore Universal Board Client v1.2.1
+// TransitCore Universal Board Client v1.2.2
 // One stable ESP32 engine; board_config.h selects the physical board.
 // v1.1.6 separates the board LED count from the connected strip length so
 // unused tail pixels are actively held off on full-length test strips.
@@ -19,6 +19,7 @@
 // v1.1.8 continuously retransmits the fixed isolation pattern.
 // v1.1.9 freezes and retransmits the first complete Worker frame.
 // v1.2.0 adds a guarded local button for resetting stored Wi-Fi credentials.
+// v1.2.2 adds visible PARKED state while keeping PARKED fixed red.
 // v1.2.1 adds full-fade APPROACHING, visible PASSED state and local colour
 // alternation between equal-priority vehicles sharing one physical LED.
 
@@ -101,7 +102,8 @@ enum LedState : uint8_t {
   LED_OFF = 0,
   LED_APPROACHING = 1,
   LED_AT_STOP = 2,
-  LED_PASSED = 3
+  LED_PASSED = 3,
+  LED_PARKED = 4
 };
 
 struct LedPixel {
@@ -721,6 +723,7 @@ bool receiveFeedBody(
 LedState parseState(const char* value) {
   if (strcmp(value, "AT_STOP") == 0) return LED_AT_STOP;
   if (strcmp(value, "PASSED") == 0) return LED_PASSED;
+  if (strcmp(value, "PARKED") == 0) return LED_PARKED;
   if (strcmp(value, "APPROACHING") == 0) {
     return LED_APPROACHING;
   }
@@ -731,11 +734,13 @@ const char* stateName(LedState state) {
   if (state == LED_AT_STOP) return "AT_STOP";
   if (state == LED_APPROACHING) return "APPROACHING";
   if (state == LED_PASSED) return "PASSED";
+  if (state == LED_PARKED) return "PARKED";
   return "OFF";
 }
 
 uint8_t statePriority(LedState state) {
   if (state == LED_AT_STOP) return 3;
+  if (state == LED_PARKED) return 4;
   if (state == LED_APPROACHING) return 2;
   if (state == LED_PASSED) return 1;
   return 0;
@@ -908,9 +913,11 @@ bool parseAndValidateFrame(
     const int brightness = item["brightness"] | -1;
     const char* stateText = item["state"] | "";
     const char* lifecycleText = item["lifecycle"] | "";
-    const LedState state = strcmp(lifecycleText, "PASSED") == 0
-      ? LED_PASSED
-      : parseState(stateText);
+    const LedState state = strcmp(lifecycleText, "PARKED") == 0
+      ? LED_PARKED
+      : strcmp(lifecycleText, "PASSED") == 0
+        ? LED_PASSED
+        : parseState(stateText);
 
     if (
       id < 0 || id >= LED_COUNT || seen[id] ||
@@ -1116,7 +1123,7 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
   document["schemaVersion"] = 1;
   document["deviceId"] = TRANSITCORE_DEVICE_ID;
   document["boardProfile"] = EXPECTED_BOARD_PROFILE;
-  document["firmware"] = "1.2.1";
+  document["firmware"] = "1.2.2";
   document["uptimeSeconds"] = now / 1000UL;
   document["wifiOutages"] = wifiOutageCount;
   document["wifiRecoveries"] = wifiRecoveryCount;
@@ -1246,7 +1253,7 @@ void setup() {
     );
   }
 
-  Serial.println("TransitCore Universal Board Client v1.2.1 starter | full-fade puls | Wi-Fi-reset: hold BOOT i 5 sekunder.");
+  Serial.println("TransitCore Universal Board Client v1.2.2 starter | PARKED-støtte | Wi-Fi-reset: hold BOOT i 5 sekunder.");
   Serial.printf(
     "Board %s | %u tavle-LED-er | %u fysiske stripe-LED-er | hardware %s\n",
     EXPECTED_BOARD_PROFILE,

@@ -4,9 +4,12 @@ export const SIGNAL_POLICY = Object.freeze({
   version: 1,
   approachPulseMs: 1800,
   departureAfterglowSeconds: 10,
+  parkedAfterSeconds: 300,
+  parkedMovementThresholdMeters: 15,
+  parkedRgb: Object.freeze([255, 0, 0]),
   fullBrightness: 32,
   afterglowBrightness: 8,
-  priorities: Object.freeze({ OFF: 0, PASSED: 1, APPROACHING: 2, AT_STOP: 3 })
+  priorities: Object.freeze({ OFF: 0, PASSED: 1, APPROACHING: 2, AT_STOP: 3, PARKED: 4 })
 });
 
 export function attachSignalPolicy(frame) {
@@ -49,6 +52,16 @@ function makePassedLed(led) {
     // Keeping older occupants here made one LED alternate between stale line colours.
     occupants: vehicle ? [vehicle] : []
   };
+}
+
+function makeParkedLed(led) {
+  const rgb = [...SIGNAL_POLICY.parkedRgb];
+  const vehicle = led.vehicle ? { ...led.vehicle, rgb, state: "PARKED" } : null;
+  return { ...led, rgb, state: "AT_STOP", lifecycle: "PARKED", brightness: SIGNAL_POLICY.fullBrightness, occupants: vehicle ? [vehicle] : [] };
+}
+
+function distanceBetweenCoordinates(latitudeA, longitudeA, latitudeB, longitudeB) {
+  return distance({ lat: latitudeA, lon: longitudeA }, { lat: latitudeB, lon: longitudeB });
 }
 
 export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), afterglowMs = SIGNAL_POLICY.departureAfterglowSeconds * 1000) {
@@ -95,6 +108,24 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     const distance = Number(led.vehicle?.distanceMeters);
     const before = previous[id];
     const sameVehicle = before && before.vehicleId === vehicleId;
+    const latitude = Number(led.vehicle?.latitude), longitude = Number(led.vehicle?.longitude);
+    const hasPosition = Number.isFinite(latitude) && Number.isFinite(longitude);
+    const anchorLatitude = Number(before?.stationaryAnchorLatitude);
+    const anchorLongitude = Number(before?.stationaryAnchorLongitude);
+    const movementMeters = sameVehicle && hasPosition && Number.isFinite(anchorLatitude) && Number.isFinite(anchorLongitude)
+      ? distanceBetweenCoordinates(latitude, longitude, anchorLatitude, anchorLongitude)
+      : Infinity;
+    const remainsStationary = sameVehicle && movementMeters <= SIGNAL_POLICY.parkedMovementThresholdMeters;
+    const stationarySince = remainsStationary ? Number(before.stationarySince || now) : now;
+    const stationaryAnchorLatitude = remainsStationary ? anchorLatitude : latitude;
+    const stationaryAnchorLongitude = remainsStationary ? anchorLongitude : longitude;
+    if (hasPosition && now - stationarySince >= SIGNAL_POLICY.parkedAfterSeconds * 1000) {
+      const parked = makeParkedLed(led);
+      leds.push(parked);
+      next[id] = { vehicleId, state: "PARKED", distance, expiresAt: 0, led: parked, latitude, longitude, stationarySince, stationaryAnchorLatitude, stationaryAnchorLongitude };
+      seen.add(id);
+      continue;
+    }
     const departing = led.state === "APPROACHING" && sameVehicle &&
       (before.state === "AT_STOP" || before.state === "PASSED" ||
        Number.isFinite(distance) && Number.isFinite(before.distance) && distance > before.distance + 10);
@@ -105,13 +136,13 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
       if (expiresAt > now) {
         const passed = makePassedLed(led);
         leds.push(passed);
-        next[id] = { vehicleId, state: "PASSED", distance, expiresAt, led: passed };
+        next[id] = { vehicleId, state: "PASSED", distance, expiresAt, led: passed, latitude, longitude, stationarySince, stationaryAnchorLatitude, stationaryAnchorLongitude };
       }
       continue;
     }
 
     leds.push(led);
-    next[id] = { vehicleId, state: led.state, distance, expiresAt: 0, led };
+    next[id] = { vehicleId, state: led.state, distance, expiresAt: 0, led, latitude, longitude, stationarySince, stationaryAnchorLatitude, stationaryAnchorLongitude };
   }
 
   for (const [id, before] of Object.entries(previous)) {
@@ -369,7 +400,7 @@ async function lookupDeviceRegistration(env, deviceId) {
 
 export function cleanStatusPayload(value, deviceId, boardProfile, receivedAt) {
   const firmware = String(value?.firmware || "");
-  if (!value || value.schemaVersion !== 1 || (value.deviceId && value.deviceId !== deviceId) || value.boardProfile !== boardProfile || !["1.0.4","1.0.5","1.0.6","1.0.7","1.0.8","1.0.9","1.0.10","1.1.0","1.1.1","1.1.2","1.1.3","1.1.4","1.1.5","1.1.6","1.1.7","1.1.8","1.1.9","1.2.0","1.2.1"].includes(firmware)) {
+  if (!value || value.schemaVersion !== 1 || (value.deviceId && value.deviceId !== deviceId) || value.boardProfile !== boardProfile || !["1.0.4","1.0.5","1.0.6","1.0.7","1.0.8","1.0.9","1.0.10","1.1.0","1.1.1","1.1.2","1.1.3","1.1.4","1.1.5","1.1.6","1.1.7","1.1.8","1.1.9","1.2.0","1.2.1","1.2.2"].includes(firmware)) {
     throw Error("invalid status payload");
   }
   const profileRevision = Number(value.profileRevision || 0);
@@ -539,7 +570,7 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
     if (!node || meters > approachRadius) continue;
     const state = meters <= arrivalRadius ? "AT_STOP" : "APPROACHING";
     const id = physical.get(node.led);
-    const candidate = { id, profile: vehicle.profile, vehicleId: vehicle.vehicleId, updated: vehicle.updated, destination: vehicle.destination, state, meters };
+    const candidate = { id, profile: vehicle.profile, vehicleId: vehicle.vehicleId, updated: vehicle.updated, destination: vehicle.destination, state, meters, lat: vehicle.lat, lon: vehicle.lon };
     const occupants = occupantsByLed.get(id) || [];
     occupants.push(candidate);
     occupantsByLed.set(id, occupants);
@@ -579,7 +610,9 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
           line: String(item.profile.line.publicCode),
           destination: item.destination,
           ageSeconds: Math.max(0, Math.floor((now - item.updated) / 1000)),
-          distanceMeters: Math.round(item.meters)
+          distanceMeters: Math.round(item.meters),
+          latitude: item.lat,
+          longitude: item.lon
         },
         occupants
       };
@@ -659,7 +692,7 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
       positionType = "segment";
     }
     const id = physical.get(logicalLed);
-    const candidate = { id, state, meters, destination: vehicle.destination, vehicleId: vehicle.vehicleId, positionType, stationDistanceMeters: stopMeters, nearestStationLed };
+    const candidate = { id, state, meters, destination: vehicle.destination, vehicleId: vehicle.vehicleId, positionType, stationDistanceMeters: stopMeters, nearestStationLed, lat: vehicle.lat, lon: vehicle.lon };
     const occupants = occupantsByLed.get(id) || [];
     occupants.push(candidate);
     occupantsByLed.set(id, occupants);
@@ -678,7 +711,7 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
       // For a linear route, item.meters is lateral GPS error from the track,
       // not distance from a stop. Exposing it as distanceMeters made the
       // shared lifecycle falsely classify a moving tram as PASSED.
-      vehicle: { id: item.vehicleId, line: String(profile.line.publicCode), destination: item.destination, positionType: item.positionType, stationDistanceMeters: Math.round(item.stationDistanceMeters), nearestStationLed: item.nearestStationLed },
+      vehicle: { id: item.vehicleId, line: String(profile.line.publicCode), destination: item.destination, positionType: item.positionType, stationDistanceMeters: Math.round(item.stationDistanceMeters), nearestStationLed: item.nearestStationLed, latitude: item.lat, longitude: item.lon },
       occupants: (occupantsByLed.get(item.id) || []).sort((a, b) => {
         const priority = value => value.state === "AT_STOP" ? 2 : value.state === "APPROACHING" ? 1 : 0;
         return priority(b) - priority(a) || a.meters - b.meters || a.vehicleId.localeCompare(b.vehicleId);

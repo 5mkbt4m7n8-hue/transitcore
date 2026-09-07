@@ -13,13 +13,15 @@
     approachPulseSeconds: 1.8,
     reducedMotionPulseSeconds: 3.2,
     departureAfterglowSeconds: 10,
+    parkedAfterSeconds: 300,
+    parkedMovementThresholdMeters: 15,
     collisionCycleSeconds: 1.2,
     fullBrightness: 32,
     afterglowBrightness: 8
   });
 
-  const priorities = Object.freeze({OFF: 0, PASSED: 1, APPROACHING: 2, AT_STOP: 3});
-  const aliases = Object.freeze({"": "OFF", OFF: "OFF", PASSED: "PASSED", AFTERGLOW: "PASSED", APPROACHING: "APPROACHING", AT_STOP: "AT_STOP", "AT-STOP": "AT_STOP"});
+  const priorities = Object.freeze({OFF: 0, PASSED: 1, APPROACHING: 2, AT_STOP: 3, PARKED: 4});
+  const aliases = Object.freeze({"": "OFF", OFF: "OFF", PASSED: "PASSED", AFTERGLOW: "PASSED", APPROACHING: "APPROACHING", AT_STOP: "AT_STOP", "AT-STOP": "AT_STOP", PARKED: "PARKED"});
 
   function normalize(state) {
     return aliases[String(state || "").trim().toUpperCase()] || "OFF";

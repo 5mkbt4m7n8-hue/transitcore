@@ -13,10 +13,13 @@ Felles LED-oppførsel ligger i `web/shared/signal-policy.js` og den felles anima
 
 ## Tilstander og prioritet
 
-1. `AT_STOP` – fast lys, høyeste prioritet.
-2. `APPROACHING` – felles rolig pulsering.
-3. `PASSED` – svakt etterlys, laveste aktive prioritet.
-4. `OFF` – slukket.
+1. `PARKED` – fast rødt lys, høyeste prioritet. Utløses først når samme vogn
+   har holdt seg innenfor en GPS-sone på 15 meter i minst 5 minutter, og
+   oppheves straks vognen beveger seg utenfor sonen.
+2. `AT_STOP` – fast linjefarge.
+3. `APPROACHING` – felles rolig pulsering.
+4. `PASSED` – svakt etterlys, laveste aktive prioritet.
+5. `OFF` – slukket.
 
 Standardinnstillingene er 1,8 sekunders pulssyklus, maksimalt 10 sekunders etterlys, lysstyrke 32 for aktive signaler og 8 for etterlys.
 
