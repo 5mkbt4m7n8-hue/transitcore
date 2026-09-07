@@ -3,6 +3,8 @@ import { SIGNAL_POLICY, applyMotionLifecycle, attachSignalPolicy, buildFrame, bu
 
 assert.equal(SIGNAL_POLICY.version, 1);
 assert.equal(SIGNAL_POLICY.approachPulseMs, 1800);
+assert.equal(SIGNAL_POLICY.parkedAfterSeconds, 300);
+assert.equal(SIGNAL_POLICY.priorities.PARKED, 4);
 assert.deepEqual(attachSignalPolicy({ schemaVersion: 1 }).signalPolicy, SIGNAL_POLICY);
 
 const now = Date.parse("2026-08-11T12:00:00Z");
@@ -20,7 +22,7 @@ assert.equal(frame.schemaVersion, 1);
 assert.equal(frame.boardProfile, "trondheim-bus-board");
 assert.equal(frame.ledCount, 2);
 assert.equal(frame.ttlSeconds, 30);
-assert.deepEqual(frame.leds, [{ id: 1, rgb: [0, 255, 80], brightness: 20, state: "AT_STOP", vehicle: { id: "bus-1", line: "1", destination: "Kattem", ageSeconds: 5, distanceMeters: 0 }, occupants: [{ id: "bus-1", line: "1", destination: "Kattem", rgb: [0, 255, 80], state: "AT_STOP", ageSeconds: 5, distanceMeters: 0 }] }]);
+assert.deepEqual(frame.leds, [{ id: 1, rgb: [0, 255, 80], brightness: 20, state: "AT_STOP", vehicle: { id: "bus-1", line: "1", destination: "Kattem", ageSeconds: 5, distanceMeters: 0, latitude: 63.4305, longitude: 10.3951 }, occupants: [{ id: "bus-1", line: "1", destination: "Kattem", rgb: [0, 255, 80], state: "AT_STOP", ageSeconds: 5, distanceMeters: 0 }] }]);
 const unknownDirectionFrame = buildFrame({
   board, profiles, hardware,
   vehicles: [{ ...vehicles[0], destinationName: "Ukjent endeholdeplass", location: { latitude: 63.4310, longitude: 10.3951 } }],
@@ -126,6 +128,22 @@ gpsPassed = applyMotionLifecycle({ ...gpsMotionBase, leds: [gpsSegment(125)] }, 
 assert.deepEqual(gpsPassed.frame.leds.map(led => led.id), [25], "Utenfor GPS-avgangssonen skal bare mellom-LED vise APPROACHING");
 assert.equal(gpsPassed.frame.leds[0].state, "APPROACHING");
 console.log("Server motion lifecycle tests OK");
+
+const stationaryLed = {
+  ...approachingLed,
+  state: "AT_STOP",
+  vehicle: { ...approachingLed.vehicle, id: "parked-bus", latitude: 63.4305, longitude: 10.3951 }
+};
+let parking = applyMotionLifecycle({ ...motionBase, leds: [stationaryLed] }, {}, now);
+parking = applyMotionLifecycle({ ...motionBase, leds: [{ ...stationaryLed, vehicle: { ...stationaryLed.vehicle, latitude: 63.43055 } }] }, parking.state, now + 299999);
+assert.equal(parking.frame.leds[0].lifecycle, undefined, "GPS-jitter innenfor 15 meter må ikke nullstille parkeringstiden");
+parking = applyMotionLifecycle({ ...motionBase, leds: [stationaryLed] }, parking.state, now + 300000);
+assert.equal(parking.frame.leds[0].lifecycle, "PARKED");
+assert.deepEqual(parking.frame.leds[0].rgb, [255, 0, 0]);
+assert.equal(parking.frame.leds[0].state, "AT_STOP", "Eldre ESP-er skal vise PARKED som fast rødt AT_STOP");
+parking = applyMotionLifecycle({ ...motionBase, leds: [{ ...stationaryLed, vehicle: { ...stationaryLed.vehicle, latitude: 63.4307 } }] }, parking.state, now + 301000);
+assert.equal(parking.frame.leds[0].lifecycle, undefined, "Mer enn 15 meter reell bevegelse skal oppheve PARKED straks");
+console.log("PARKED GPS lifecycle tests OK");
 
 const oppositeDirectionColorFrame = buildFrame({
   board, profiles, hardware,
