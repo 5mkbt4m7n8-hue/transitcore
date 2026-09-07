@@ -595,7 +595,7 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
       vehicleId: String(raw.vehicleId), updated, destination: raw.destinationName || "", lat: Number(raw.location.latitude), lon: Number(raw.location.longitude)
     });
   }
-  const strongest = new Map();
+  const strongest = new Map(), occupantsByLed = new Map();
   for (const vehicle of dedupe.values()) {
     let nearestStopIndex = -1, stopMeters = Infinity;
     profile.stops.forEach((stop, index) => {
@@ -620,9 +620,14 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
       state = "APPROACHING";
       meters = route.meters;
     }
-    const id = physical.get(logicalLed), previous = strongest.get(id);
-    if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" || meters < previous.meters) {
-      strongest.set(id, { id, state, meters, destination: vehicle.destination, vehicleId: vehicle.vehicleId });
+    const id = physical.get(logicalLed);
+    const candidate = { id, state, meters, destination: vehicle.destination, vehicleId: vehicle.vehicleId };
+    const occupants = occupantsByLed.get(id) || [];
+    occupants.push(candidate);
+    occupantsByLed.set(id, occupants);
+    const previous = strongest.get(id);
+    if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" || state === previous.state && meters < previous.meters) {
+      strongest.set(id, candidate);
     }
   }
   return {
@@ -634,7 +639,17 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
       // For a linear route, item.meters is lateral GPS error from the track,
       // not distance from a stop. Exposing it as distanceMeters made the
       // shared lifecycle falsely classify a moving tram as PASSED.
-      vehicle: { id: item.vehicleId, line: String(profile.line.publicCode), destination: item.destination }
+      vehicle: { id: item.vehicleId, line: String(profile.line.publicCode), destination: item.destination },
+      occupants: (occupantsByLed.get(item.id) || []).sort((a, b) => {
+        const priority = value => value.state === "AT_STOP" ? 2 : value.state === "APPROACHING" ? 1 : 0;
+        return priority(b) - priority(a) || a.meters - b.meters || a.vehicleId.localeCompare(b.vehicleId);
+      }).map(value => ({
+        id: value.vehicleId,
+        line: String(profile.line.publicCode),
+        destination: value.destination,
+        rgb: rgb(color(profile, value.destination)),
+        state: value.state
+      }))
     }))
   };
 }

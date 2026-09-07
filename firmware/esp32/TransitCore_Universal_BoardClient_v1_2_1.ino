@@ -19,7 +19,8 @@
 // v1.1.8 continuously retransmits the fixed isolation pattern.
 // v1.1.9 freezes and retransmits the first complete Worker frame.
 // v1.2.0 adds a guarded local button for resetting stored Wi-Fi credentials.
-// v1.2.1 makes APPROACHING pulse smoothly all the way down to off.
+// v1.2.1 adds full-fade APPROACHING, visible PASSED state and local colour
+// alternation between equal-priority vehicles sharing one physical LED.
 
 #ifndef TRANSITCORE_PHYSICAL_LED_COUNT
 #define TRANSITCORE_PHYSICAL_LED_COUNT LED_COUNT
@@ -90,6 +91,8 @@ const uint32_t MAX_CLOCK_SKEW_SECONDS = 15;
 const unsigned long HEALTH_REPORT_INTERVAL_MS = 5UL * 60UL * 1000UL;
 const uint16_t SUPPORTED_SIGNAL_POLICY_VERSION = 1;
 const uint16_t EXPECTED_APPROACH_PULSE_MS = 1800;
+const unsigned long COLLISION_COLOR_CYCLE_MS = 1200;
+const uint8_t MAX_COLLISION_COLORS = 4;
 
 // -----------------------------------------------------------------------------
 // FRAME STORAGE
@@ -97,7 +100,8 @@ const uint16_t EXPECTED_APPROACH_PULSE_MS = 1800;
 enum LedState : uint8_t {
   LED_OFF = 0,
   LED_APPROACHING = 1,
-  LED_AT_STOP = 2
+  LED_AT_STOP = 2,
+  LED_PASSED = 3
 };
 
 struct LedPixel {
@@ -106,6 +110,8 @@ struct LedPixel {
   uint8_t blue;
   uint8_t brightness;
   LedState state;
+  uint8_t collisionColorCount;
+  uint8_t collisionColors[MAX_COLLISION_COLORS][3];
 };
 
 Adafruit_NeoPixel strip(
@@ -170,7 +176,8 @@ bool wifiResetHandled = false;
 // -----------------------------------------------------------------------------
 void clearFrame(LedPixel* frame) {
   for (uint16_t i = 0; i < LED_COUNT; i++) {
-    frame[i] = {0, 0, 0, 0, LED_OFF};
+    memset(&frame[i], 0, sizeof(LedPixel));
+    frame[i].state = LED_OFF;
   }
 }
 
@@ -263,12 +270,18 @@ void renderFrame() {
     const LedPixel& pixel = renderFrameSnapshot[i];
     const uint8_t level =
       pixel.state == LED_APPROACHING ? pulse : 255;
+    const uint8_t colorIndex = pixel.collisionColorCount > 1
+      ? (millis() / COLLISION_COLOR_CYCLE_MS) % pixel.collisionColorCount
+      : 0;
+    const uint8_t red = pixel.collisionColorCount ? pixel.collisionColors[colorIndex][0] : pixel.red;
+    const uint8_t green = pixel.collisionColorCount ? pixel.collisionColors[colorIndex][1] : pixel.green;
+    const uint8_t blue = pixel.collisionColorCount ? pixel.collisionColors[colorIndex][2] : pixel.blue;
 
     strip.setPixelColor(
       i,
-      scaleChannel(pixel.red, pixel.brightness, level),
-      scaleChannel(pixel.green, pixel.brightness, level),
-      scaleChannel(pixel.blue, pixel.brightness, level)
+      scaleChannel(red, pixel.brightness, level),
+      scaleChannel(green, pixel.brightness, level),
+      scaleChannel(blue, pixel.brightness, level)
     );
   }
 
@@ -707,6 +720,7 @@ bool receiveFeedBody(
 
 LedState parseState(const char* value) {
   if (strcmp(value, "AT_STOP") == 0) return LED_AT_STOP;
+  if (strcmp(value, "PASSED") == 0) return LED_PASSED;
   if (strcmp(value, "APPROACHING") == 0) {
     return LED_APPROACHING;
   }
@@ -716,7 +730,15 @@ LedState parseState(const char* value) {
 const char* stateName(LedState state) {
   if (state == LED_AT_STOP) return "AT_STOP";
   if (state == LED_APPROACHING) return "APPROACHING";
+  if (state == LED_PASSED) return "PASSED";
   return "OFF";
+}
+
+uint8_t statePriority(LedState state) {
+  if (state == LED_AT_STOP) return 3;
+  if (state == LED_APPROACHING) return 2;
+  if (state == LED_PASSED) return 1;
+  return 0;
 }
 
 bool parseUtcTimestamp(const char* value, time_t& epoch) {
@@ -885,7 +907,10 @@ bool parseAndValidateFrame(
     JsonArray rgb = item["rgb"].as<JsonArray>();
     const int brightness = item["brightness"] | -1;
     const char* stateText = item["state"] | "";
-    const LedState state = parseState(stateText);
+    const char* lifecycleText = item["lifecycle"] | "";
+    const LedState state = strcmp(lifecycleText, "PASSED") == 0
+      ? LED_PASSED
+      : parseState(stateText);
 
     if (
       id < 0 || id >= LED_COUNT || seen[id] ||
@@ -917,6 +942,23 @@ bool parseAndValidateFrame(
       (uint8_t)brightness,
       state
     };
+    JsonArray occupants = item["occupants"].as<JsonArray>();
+    if (!occupants.isNull()) {
+      for (JsonObject occupant : occupants) {
+        if (candidateFrame[id].collisionColorCount >= MAX_COLLISION_COLORS) break;
+        JsonArray occupantRgb = occupant["rgb"].as<JsonArray>();
+        const LedState occupantState = parseState(occupant["state"] | "");
+        if (occupantRgb.size() != 3 || statePriority(occupantState) != statePriority(state)) continue;
+        const int occupantRed = occupantRgb[0] | -1;
+        const int occupantGreen = occupantRgb[1] | -1;
+        const int occupantBlue = occupantRgb[2] | -1;
+        if (occupantRed < 0 || occupantRed > 255 || occupantGreen < 0 || occupantGreen > 255 || occupantBlue < 0 || occupantBlue > 255) continue;
+        const uint8_t colorSlot = candidateFrame[id].collisionColorCount++;
+        candidateFrame[id].collisionColors[colorSlot][0] = (uint8_t)occupantRed;
+        candidateFrame[id].collisionColors[colorSlot][1] = (uint8_t)occupantGreen;
+        candidateFrame[id].collisionColors[colorSlot][2] = (uint8_t)occupantBlue;
+      }
+    }
     activeCount++;
   }
 

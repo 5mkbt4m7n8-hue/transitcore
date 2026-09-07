@@ -100,6 +100,9 @@ configuration are preserved. A product-specific button pin can be selected
 with `TRANSITCORE_WIFI_RESET_BUTTON_PIN`.
 
 Version 1.2.1 keeps the shared 1800 ms approach period and lets the physical
-APPROACHING pulse fade completely off at the bottom of every cycle.
+APPROACHING pulse fade completely off at the bottom of every cycle. It reports
+dimmed departure afterglow as `PASSED`, and locally alternates the colours of
+vehicles with equal highest priority when they share one physical LED. A higher
+priority state remains the only colour shown.
 
 
