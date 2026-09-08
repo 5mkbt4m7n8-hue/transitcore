@@ -23,6 +23,12 @@ Felles LED-oppførsel ligger i `web/shared/signal-policy.js` og den felles anima
 
 Standardinnstillingene er 1,8 sekunders pulssyklus, maksimalt 10 sekunders etterlys, lysstyrke 32 for aktive signaler og 8 for etterlys.
 
+For GPS-baserte tavler er nærhet til en stasjon ikke alene nok til `AT_STOP`.
+Samme vogn må være innenfor bevegelsestoleransen gjennom én hel
+10-sekunders feedperiode. Frem til dette er bekreftet, fortsetter LED-en å
+pulsere som `APPROACHING`. Et live-signal med flere vogner på samme fysiske LED
+skal aldri erstattes av interpolering eller etterlys for bare én av vognene.
+
 Datakildene kan avgjøre tilstand på ulike måter. Trondheim bruker GPS-avstand, mens rutetabellbaserte kilder kan bruke ankomsttid. Når tilstanden er valgt, skal prioritet, animasjon og lysstyrke være lik på alle tavler.
 
 Kjør `node scripts/test-signal-policy.cjs` etter endringer i policyen.
