@@ -4,6 +4,7 @@ export const SIGNAL_POLICY = Object.freeze({
   version: 1,
   approachPulseMs: 1800,
   departureAfterglowSeconds: 10,
+  atStopConfirmationSeconds: 10,
   parkedAfterSeconds: 300,
   parkedMovementThresholdMeters: 15,
   parkedRgb: Object.freeze([255, 0, 0]),
@@ -76,11 +77,12 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     let led = incomingLed;
     let id = String(led.id);
     const vehicleId = String(led.vehicle?.id || "");
+    const hasCollision = (led.occupants || []).length > 1;
     const previousPosition = previousByVehicle.get(vehicleId);
     const stationDepartureRadius = Number(frame.motionPolicy?.stationDepartureRadiusMeters);
     const stationDistance = Number(led.vehicle?.stationDistanceMeters);
     const nearestStationLed = String(led.vehicle?.nearestStationLed ?? "");
-    if (frame.boardProfile === "grakallbanen-board" && led.state === "APPROACHING" && previousPosition &&
+    if (!hasCollision && frame.boardProfile === "grakallbanen-board" && led.state === "APPROACHING" && previousPosition &&
         previousPosition[0] !== id && (previousPosition[1].state === "AT_STOP" || previousPosition[1].state === "PASSED") &&
         previousPosition[1].led.vehicle?.positionType === "station" && Number.isFinite(stationDepartureRadius) &&
         nearestStationLed === previousPosition[0] && Number.isFinite(stationDistance) && stationDistance <= stationDepartureRadius) {
@@ -92,7 +94,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
       seen.add(passedId);
       continue;
     }
-    if (frame.boardProfile === "grakallbanen-board" && previousPosition) {
+    if (!hasCollision && frame.boardProfile === "grakallbanen-board" && previousPosition) {
       const previousId = Number(previousPosition[0]), currentId = Number(id), gap = Math.abs(currentId - previousId);
       if (Number.isInteger(previousId) && Number.isInteger(currentId) && gap > 1 && gap <= 4) {
         const interpolatedId = previousId + Math.sign(currentId - previousId);
@@ -125,6 +127,21 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
       next[id] = { vehicleId, state: "PARKED", distance, expiresAt: 0, led: parked, latitude, longitude, stationarySince, stationaryAnchorLatitude, stationaryAnchorLongitude };
       seen.add(id);
       continue;
+    }
+    // GPS proximity alone does not prove that a vehicle has stopped. Keep the
+    // station LED pulsing until one complete feed interval confirms that the
+    // same vehicle remains within the stationary tolerance. This also prevents
+    // a moving vehicle from jumping directly from a pulsing segment LED to a
+    // fixed station LED.
+    if (led.state === "AT_STOP" && hasPosition && now - stationarySince < SIGNAL_POLICY.atStopConfirmationSeconds * 1000) {
+      led = {
+        ...led,
+        state: "APPROACHING",
+        occupants: (led.occupants || []).map(occupant => ({
+          ...occupant,
+          state: occupant.state === "AT_STOP" ? "APPROACHING" : occupant.state
+        }))
+      };
     }
     const departing = led.state === "APPROACHING" && sameVehicle &&
       (before.state === "AT_STOP" || before.state === "PASSED" ||

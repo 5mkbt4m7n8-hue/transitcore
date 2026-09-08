@@ -4,6 +4,7 @@ import { SIGNAL_POLICY, applyMotionLifecycle, attachSignalPolicy, buildFrame, bu
 assert.equal(SIGNAL_POLICY.version, 1);
 assert.equal(SIGNAL_POLICY.approachPulseMs, 1800);
 assert.equal(SIGNAL_POLICY.parkedAfterSeconds, 300);
+assert.equal(SIGNAL_POLICY.atStopConfirmationSeconds, 10);
 assert.equal(SIGNAL_POLICY.priorities.PARKED, 4);
 assert.deepEqual(attachSignalPolicy({ schemaVersion: 1 }).signalPolicy, SIGNAL_POLICY);
 
@@ -68,6 +69,8 @@ assert.equal(tramFrame.motionPolicy.stationDepartureRadiusMeters,65);
 const sharedTramFrame = buildLinearRouteFrame({ board: tramBoard, profiles: [tramProfile], hardware: tramHardware, vehicles: [tramVehicles[0], { ...tramVehicles[0], vehicleId: "tram-2", destinationName: "Ila" }], now });
 assert.equal(sharedTramFrame.leds[0].occupants.length, 2, "Begge vogner på samme Gråkallbane-LED må bevares");
 assert.deepEqual(sharedTramFrame.leds[0].occupants.map(value => value.rgb), [[0, 255, 80], [0, 100, 255]], "Likt prioriterte vogner må kunne veksle mellom retningsfargene");
+const sharedLifecycle = applyMotionLifecycle(sharedTramFrame, {}, now, 10000);
+assert.equal(sharedLifecycle.frame.leds[0].occupants.length, 2, "Worker-livssyklusen må ikke fjerne en vogn fra en delt LED");
 let movingTram = applyMotionLifecycle(tramFrame, {}, now, 10000);
 movingTram = applyMotionLifecycle(tramFrame, movingTram.state, now + 1000, 10000);
 assert.equal(movingTram.frame.leds[0].state, "APPROACHING", "A moving tram must keep pulsing until its state actually changes");
@@ -117,6 +120,18 @@ let interpolated = applyMotionLifecycle({ ...grakallMotionBase, leds: [{ ...stop
 interpolated = applyMotionLifecycle({ ...grakallMotionBase, leds: [{ ...approachingLed, id: 24, vehicle: { ...approachingLed.vehicle, id: "tram-interpolate" } }] }, interpolated.state, now + 10000, 10000);
 assert.deepEqual(interpolated.frame.leds.map(led => led.id), [25], "Et kort GPS-hopp 26 til 24 skal gå via LED 25");
 assert.equal(interpolated.frame.leds[0].state, "APPROACHING", "Mellomposisjonen skal ha høyere prioritet enn gammelt PASSED");
+const collisionAtCurrentLed = {
+  ...approachingLed,
+  id: 24,
+  occupants: [
+    { id: "tram-interpolate", rgb: [0, 80, 255], state: "APPROACHING" },
+    { id: "tram-other", rgb: [0, 255, 72], state: "APPROACHING" }
+  ],
+  vehicle: { ...approachingLed.vehicle, id: "tram-interpolate" }
+};
+const collisionPosition = applyMotionLifecycle({ ...grakallMotionBase, leds: [collisionAtCurrentLed] }, interpolated.state, now + 20000, 10000);
+assert.deepEqual(collisionPosition.frame.leds.map(led => led.id), [24], "En delt live-LED må ikke flyttes av interpolering for bare én vogn");
+assert.equal(collisionPosition.frame.leds[0].occupants.length, 2);
 const gpsMotionBase = { ...grakallMotionBase, motionPolicy: { stationDepartureRadiusMeters: 110 } };
 const gpsStop = { ...stoppedAtPreviousLed, id: 26, vehicle: { ...stoppedAtPreviousLed.vehicle, id: "tram-gps-passed", positionType: "station", stationDistanceMeters: 20 } };
 const gpsSegment = distance => ({ ...approachingLed, id: 25, vehicle: { ...approachingLed.vehicle, id: "tram-gps-passed", positionType: "segment", stationDistanceMeters: distance, nearestStationLed: 26 } });
@@ -128,6 +143,19 @@ gpsPassed = applyMotionLifecycle({ ...gpsMotionBase, leds: [gpsSegment(125)] }, 
 assert.deepEqual(gpsPassed.frame.leds.map(led => led.id), [25], "Utenfor GPS-avgangssonen skal bare mellom-LED vise APPROACHING");
 assert.equal(gpsPassed.frame.leds[0].state, "APPROACHING");
 console.log("Server motion lifecycle tests OK");
+
+const arrivingStationLed = {
+  ...approachingLed,
+  id: 1,
+  state: "AT_STOP",
+  vehicle: { ...approachingLed.vehicle, id: "arrival-confirmation", latitude: 63.4305, longitude: 10.3951 },
+  occupants: [{ id: "arrival-confirmation", rgb: [0, 255, 80], state: "AT_STOP" }]
+};
+let confirmedStop = applyMotionLifecycle({ ...motionBase, leds: [arrivingStationLed] }, {}, now);
+assert.equal(confirmedStop.frame.leds[0].state, "APPROACHING", "Første GPS-treff ved stasjonen må fortsette å pulsere");
+assert.equal(confirmedStop.frame.leds[0].occupants[0].state, "APPROACHING");
+confirmedStop = applyMotionLifecycle({ ...motionBase, leds: [arrivingStationLed] }, confirmedStop.state, now + 10000);
+assert.equal(confirmedStop.frame.leds[0].state, "AT_STOP", "Fast lys krever bekreftet stans gjennom en hel feedperiode");
 
 const stationaryLed = {
   ...approachingLed,

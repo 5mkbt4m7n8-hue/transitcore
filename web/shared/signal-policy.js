@@ -13,6 +13,7 @@
     approachPulseSeconds: 1.8,
     reducedMotionPulseSeconds: 3.2,
     departureAfterglowSeconds: 10,
+    atStopConfirmationSeconds: 10,
     parkedAfterSeconds: 300,
     parkedMovementThresholdMeters: 15,
     collisionCycleSeconds: 1.2,

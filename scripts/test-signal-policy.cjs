@@ -16,6 +16,7 @@ assert.equal(policy.settings.departureAfterglowSeconds, 10);
 assert.equal(policy.settings.approachPulseSeconds, 1.8);
 assert.equal(policy.settings.parkedAfterSeconds, 300);
 assert.equal(policy.settings.parkedMovementThresholdMeters, 15);
+assert.equal(policy.settings.atStopConfirmationSeconds, 10);
 assert.match(css,/0%,100%\{opacity:0;/,"nettvisningen skal fade approaching helt ned til av");
 assert.equal(policy.approachAnimationDelayMs(0), 0);
 assert.equal(policy.approachAnimationDelayMs(1000), -1000);
