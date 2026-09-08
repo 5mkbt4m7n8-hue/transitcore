@@ -535,7 +535,7 @@ unsigned long wifiRetryDelayMs() {
 
 void startWifiAttempt(bool resetRadio) {
   if (resetRadio) {
-    Serial.println("Nullstiller Wi-Fi-radio fÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸r nytt forsÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸k.");
+    Serial.println("Nullstiller Wi-Fi-radio før nytt forsøk.");
     WiFi.disconnect(true, false);
     delay(150);
     WiFi.mode(WIFI_STA);
@@ -551,7 +551,7 @@ void startWifiAttempt(bool resetRadio) {
   lastWifiAttemptAtMs = millis();
   if (wifiAttemptCount < UINT16_MAX) wifiAttemptCount++;
   Serial.printf(
-    "Wi-Fi-forsÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸k %u startet | neste tidligst om %lu s\n",
+    "Wi-Fi-forsøk %u startet | neste tidligst om %lu s\n",
     wifiAttemptCount,
     wifiRetryDelayMs() / 1000UL
   );
