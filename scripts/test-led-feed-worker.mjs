@@ -139,6 +139,8 @@ let gpsPassed = applyMotionLifecycle({ ...gpsMotionBase, leds: [gpsStop] }, {}, 
 gpsPassed = applyMotionLifecycle({ ...gpsMotionBase, leds: [gpsSegment(85)] }, gpsPassed.state, now + 10000, 10000);
 assert.deepEqual(gpsPassed.frame.leds.map(led => led.id), [26], "Innenfor GPS-avgangssonen skal bare stasjonen vise PASSED");
 assert.equal(gpsPassed.frame.leds[0].lifecycle, "PASSED");
+gpsPassed = applyMotionLifecycle({ ...gpsMotionBase, leds: [gpsStop] }, gpsPassed.state, now + 15000, 10000);
+assert.equal(gpsPassed.frame.leds[0].lifecycle, "PASSED", "GPS-regresjon må ikke endre samme stasjon fra PASSED tilbake til AT_STOP");
 gpsPassed = applyMotionLifecycle({ ...gpsMotionBase, leds: [gpsSegment(125)] }, gpsPassed.state, now + 20000, 10000);
 assert.deepEqual(gpsPassed.frame.leds.map(led => led.id), [25], "Utenfor GPS-avgangssonen skal bare mellom-LED vise APPROACHING");
 assert.equal(gpsPassed.frame.leds[0].state, "APPROACHING");

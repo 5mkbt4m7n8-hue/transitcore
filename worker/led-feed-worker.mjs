@@ -128,6 +128,29 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
       seen.add(id);
       continue;
     }
+    // Once this vehicle has started leaving a station, a short GPS regression
+    // into the arrival radius must not place it back at the stop. Keep PASSED
+    // latched until the live position advances outside the departure zone.
+    // A genuine later return is unaffected because the vehicle will first have
+    // owned another LED and this old per-LED state will have been removed.
+    if (!hasCollision && led.state === "AT_STOP" && sameVehicle && before.state === "PASSED") {
+      const passed = makePassedLed(led);
+      leds.push(passed);
+      next[id] = {
+        vehicleId,
+        state: "PASSED",
+        distance,
+        expiresAt: before.expiresAt,
+        led: passed,
+        latitude,
+        longitude,
+        stationarySince,
+        stationaryAnchorLatitude,
+        stationaryAnchorLongitude
+      };
+      seen.add(id);
+      continue;
+    }
     // GPS proximity alone does not prove that a vehicle has stopped. Keep the
     // station LED pulsing until one complete feed interval confirms that the
     // same vehicle remains within the stationary tolerance. This also prevents

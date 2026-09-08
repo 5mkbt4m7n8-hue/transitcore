@@ -28,6 +28,9 @@ Samme vogn må være innenfor bevegelsestoleransen gjennom én hel
 10-sekunders feedperiode. Frem til dette er bekreftet, fortsetter LED-en å
 pulsere som `APPROACHING`. Et live-signal med flere vogner på samme fysiske LED
 skal aldri erstattes av interpolering eller etterlys for bare én av vognene.
+Når en vogn først har fått `PASSED` på en stasjon, låses denne avgangsstatusen
+mot korte GPS-regresjoner. Samme vogn kan derfor ikke gå tilbake til `AT_STOP`
+på den samme stasjonen før den har forlatt avgangssonen og senere returnert.
 
 Datakildene kan avgjøre tilstand på ulike måter. Trondheim bruker GPS-avstand, mens rutetabellbaserte kilder kan bruke ankomsttid. Når tilstanden er valgt, skal prioritet, animasjon og lysstyrke være lik på alle tavler.
 
