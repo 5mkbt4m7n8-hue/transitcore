@@ -23,11 +23,13 @@ Felles LED-oppførsel ligger i `web/shared/signal-policy.js` og den felles anima
 
 Standardinnstillingene er 1,8 sekunders pulssyklus, maksimalt 10 sekunders etterlys, lysstyrke 32 for aktive signaler og 8 for etterlys.
 
-For GPS-baserte tavler er nærhet til en stasjon ikke alene nok til `AT_STOP`.
-Samme vogn må være innenfor bevegelsestoleransen gjennom én hel
-10-sekunders feedperiode. Frem til dette er bekreftet, fortsetter LED-en å
-pulsere som `APPROACHING`. Et live-signal med flere vogner på samme fysiske LED
-skal aldri erstattes av interpolering eller etterlys for bare én av vognene.
+For lineære GPS-tavler kan profilen kreve at samme vogn er innenfor
+bevegelsestoleransen gjennom én hel 10-sekunders feedperiode før `AT_STOP`.
+Frem til dette er bekreftet, fortsetter LED-en å pulsere som `APPROACHING`.
+Busstavler med korte stopp bruker ikke denne ekstra ventetiden; første gyldige
+GPS-treff innenfor ankomstsonen gir `AT_STOP`. Et live-signal med flere vogner
+på samme fysiske LED skal aldri erstattes av interpolering eller etterlys for
+bare én av vognene.
 Når en vogn først har fått `PASSED` på en stasjon, låses denne avgangsstatusen
 mot korte GPS-regresjoner. Samme vogn kan derfor ikke gå tilbake til `AT_STOP`
 på den samme stasjonen før den har forlatt avgangssonen og senere returnert.

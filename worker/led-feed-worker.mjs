@@ -67,6 +67,7 @@ function distanceBetweenCoordinates(latitudeA, longitudeA, latitudeB, longitudeB
 
 export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), afterglowMs = SIGNAL_POLICY.departureAfterglowSeconds * 1000) {
   afterglowMs = Math.max(0, Number(afterglowMs) || 0);
+  const atStopConfirmationSeconds = Math.max(0, Number(frame.motionPolicy?.atStopConfirmationSeconds) || 0);
   const next = {};
   const leds = [];
   const seen = new Set();
@@ -156,7 +157,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     // same vehicle remains within the stationary tolerance. This also prevents
     // a moving vehicle from jumping directly from a pulsing segment LED to a
     // fixed station LED.
-    if (led.state === "AT_STOP" && hasPosition && now - stationarySince < SIGNAL_POLICY.atStopConfirmationSeconds * 1000) {
+    if (led.state === "AT_STOP" && hasPosition && atStopConfirmationSeconds > 0 && now - stationarySince < atStopConfirmationSeconds * 1000) {
       led = {
         ...led,
         state: "APPROACHING",
@@ -635,6 +636,7 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
     sequence: Math.floor(now / 1000),
     ttlSeconds: 30,
     ledCount: hardware.leds?.count ?? board.leds.count,
+    motionPolicy: { atStopConfirmationSeconds: Math.max(0, Number(board.render.atStopConfirmationSeconds) || 0) },
     leds: [...strongest.values()].sort((a, b) => a.id - b.id).map(item => {
       const occupants = (occupantsByLed.get(item.id) || []).sort((a, b) => {
         const priority = value => value.state === "AT_STOP" ? 2 : value.state === "APPROACHING" ? 1 : 0;
@@ -744,7 +746,10 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
   return {
     schemaVersion: 1, boardProfile: board.id, profileRevision: board.profileRevision ?? 1, profileFingerprint: board.profileFingerprint || "", generatedAt: new Date(now).toISOString(),
     sequence: Math.floor(now / 1000), ttlSeconds: 30, ledCount: hardware.leds?.count ?? board.leds.count,
-    motionPolicy: { stationDepartureRadiusMeters: Math.max(board.render.arrivalRadiusMeters, Number(board.render.stationDepartureRadiusMeters) || board.render.arrivalRadiusMeters) },
+    motionPolicy: {
+      stationDepartureRadiusMeters: Math.max(board.render.arrivalRadiusMeters, Number(board.render.stationDepartureRadiusMeters) || board.render.arrivalRadiusMeters),
+      atStopConfirmationSeconds: Math.max(0, Number(board.render.atStopConfirmationSeconds ?? SIGNAL_POLICY.atStopConfirmationSeconds) || 0)
+    },
     leds: [...strongest.values()].sort((a, b) => a.id - b.id).map(item => ({
       id: item.id, rgb: rgb(color(profile, item.destination)),
       brightness: Math.min(SIGNAL_POLICY.fullBrightness, hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness), state: item.state,
