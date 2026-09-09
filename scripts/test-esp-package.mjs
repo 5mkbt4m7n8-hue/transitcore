@@ -22,6 +22,9 @@ assert.match(firmwareSource,/return \(uint32_t\)triangle \* 255 \/ halfPeriod;/,
 assert.match(firmwareSource,/strcmp\(lifecycleText, "PASSED"\) == 0/,"ESP skal vise lifecycle PASSED som egen status");
 assert.match(firmwareSource,/strcmp\(lifecycleText, "PARKED"\) == 0/,"ESP skal vise lifecycle PARKED som egen status");
 assert.match(firmwareSource,/statePriority\(occupantState\) != statePriority\(state\)/,"bare farger med høyeste status skal veksles");
+assert.ok(firmwareSource.indexOf("if (state == LED_APPROACHING) return 2;") < firmwareSource.indexOf("if (state == LED_PASSED) return 1;"),"APPROACHING skal ha høyere prioritet enn PASSED");
+assert.match(firmwareSource,/Nullstiller Wi-Fi-radio før nytt forsøk\./,"Wi-Fi-loggen skal være gyldig UTF-8");
+assert.match(firmwareSource,/Wi-Fi-forsøk %u startet/,"Wi-Fi-forsøk skal vises lesbart");
 assert.match(firmwareSource,/millis\(\) \/ COLLISION_COLOR_CYCLE_MS/,"ESP skal veksle likeverdige farger lokalt");
 assert.match(firmwareSource,/WIFI_RESET_HOLD_MS = 5000/);
 assert.match(firmwareSource,/wifiPreferences\.remove\("wifiSsid"\)/);
