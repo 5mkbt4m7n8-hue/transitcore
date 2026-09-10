@@ -123,6 +123,10 @@ commands with newline from Serial Monitor at 115200 baud:
 - `MODE NEXT`: cycle through the four combinations. A future product button
   can call the same `cycleVisualMode()` function.
 - `MODE STATUS` or `HELP`: show the current mode or list the commands.
+- `BRIGHTNESS NEXT`: cycle the complete normal display from 100% to 50%, then
+  10%, then back to 100%. `BRIGHTNESS 100`, `BRIGHTNESS 50` and
+  `BRIGHTNESS 10` select a level directly. A separate product button can call
+  the same `cycleMasterBrightness()` function once per press.
 
 Signal animation is unchanged in warm-white mode. `APPROACHING` still pulses,
 `AT_STOP` remains steady, `PASSED` stays dimmed, and `PARKED` remains fixed red
