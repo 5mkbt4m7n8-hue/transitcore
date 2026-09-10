@@ -92,6 +92,12 @@ assert.deepEqual(buildLinearRouteFrame({board:lianOnlyBoard,profiles:[tramProfil
 const shortBoard={...tramBoard,leds:{count:3},nodes:[tramBoard.nodes[0],{...tramBoard.nodes[1]},{...tramBoard.nodes[3],led:2}]};
 const shortHardware={...tramHardware,leds:{count:3,brightnessLimit:20},assignments:[0,1,2].map(led=>({logicalLed:led,physicalLed:led}))};
 assert.equal(buildLinearRouteFrame({board:shortBoard,profiles:[tramProfile],hardware:shortHardware,vehicles:tramVehicles,now}).leds[0].id,1,"board profile must control the number of intermediate LEDs");
+const stationOnlyBoard={...tramBoard,id:"grakallbanen-prototype-board",leds:{count:2},nodes:[tramBoard.nodes[0],{...tramBoard.nodes[3],led:1}]};
+const stationOnlyHardware={...tramHardware,boardProfile:"grakallbanen-prototype-board",leds:{count:2,brightnessLimit:20},assignments:[0,1].map(led=>({logicalLed:led,physicalLed:led}))};
+const stationOnlyLian=buildLinearRouteFrame({board:stationOnlyBoard,profiles:[tramProfile],hardware:stationOnlyHardware,vehicles:tramVehicles,now});
+assert.deepEqual({id:stationOnlyLian.leds[0].id,state:stationOnlyLian.leds[0].state,positionType:stationOnlyLian.leds[0].vehicle.positionType},{id:0,state:"APPROACHING",positionType:"station-approach"},"uten mellom-LED-er skal stasjonen i kjøreretningen pulsere");
+const stationOnlyIla=buildLinearRouteFrame({board:stationOnlyBoard,profiles:[tramProfile],hardware:stationOnlyHardware,vehicles:[{...tramVehicles[0],destinationName:"Ila"}],now});
+assert.deepEqual({id:stationOnlyIla.leds[0].id,state:stationOnlyIla.leds[0].state},{id:1,state:"APPROACHING"},"motsatt retning skal pulsere motsatt målstasjon");
 console.log("GrÃƒÂ¥kallbanen linear VLED worker test OK");
 
 

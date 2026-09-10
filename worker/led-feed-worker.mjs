@@ -753,14 +753,24 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
       if (!route || route.meters > board.render.maximumTrackDistanceMeters) continue;
       const configured = segmentNodes(route.index), legacy = profile.stops[route.index].segmentToNext;
       if (configured.length) logicalLed = configured[Math.min(configured.length - 1, Math.floor(route.progress * configured.length))].led;
-      else if (stationByStop.size) continue;
+      else if (stationByStop.size) {
+        // A station-only prototype has no physical LEDs between stops. Keep the
+        // tram visible by pulsing the station it is travelling towards.
+        const direction = profile.directions?.find(item =>
+          (item.destinationMatches || []).some(value => String(vehicle.destination || "").toLowerCase().includes(String(value).toLowerCase()))
+        );
+        const targetIndex = direction?.reverseShape ? route.index : route.index + 1;
+        const targetStation = stationByStop.get(profile.stops[targetIndex]?.id);
+        if (!targetStation) continue;
+        logicalLed = targetStation.led;
+      }
       else {
         if (!legacy?.vledCount) continue;
         logicalLed = legacy.vledStart + Math.min(legacy.vledCount - 1, Math.floor(route.progress * legacy.vledCount));
       }
       state = "APPROACHING";
       meters = route.meters;
-      positionType = "segment";
+      positionType = configured.length ? "segment" : "station-approach";
     }
     const id = physical.get(logicalLed);
     const candidate = { id, state, meters, destination: vehicle.destination, vehicleId: vehicle.vehicleId, positionType, stationDistanceMeters: stopMeters, nearestStationLed, lat: vehicle.lat, lon: vehicle.lon };
