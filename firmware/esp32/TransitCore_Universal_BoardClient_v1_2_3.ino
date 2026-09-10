@@ -8,10 +8,11 @@
 #include <Preferences.h>
 #include <WebServer.h>
 #include <time.h>
+#include <esp_system.h>
 #include "secrets.h"
 #include "board_config.h"
 
-// TransitCore Universal Board Client v1.2.2
+// TransitCore Universal Board Client v1.2.3
 // One stable ESP32 engine; board_config.h selects the physical board.
 // v1.1.6 separates the board LED count from the connected strip length so
 // unused tail pixels are actively held off on full-length test strips.
@@ -19,7 +20,8 @@
 // v1.1.8 continuously retransmits the fixed isolation pattern.
 // v1.1.9 freezes and retransmits the first complete Worker frame.
 // v1.2.0 adds a guarded local button for resetting stored Wi-Fi credentials.
-// v1.2.2 adds visible PARKED state while keeping PARKED fixed red.
+// v1.2.3 adds structured, rate-limited device error reporting.
+// v1.2.3 reports structured, rate-limited device errors to the Worker.
 // v1.2.1 adds full-fade APPROACHING, visible PASSED state and local colour
 // alternation between equal-priority vehicles sharing one physical LED.
 
@@ -90,6 +92,7 @@ const char* NTP_SERVER_1 = "pool.ntp.org";
 const char* NTP_SERVER_2 = "time.google.com";
 const uint32_t MAX_CLOCK_SKEW_SECONDS = 15;
 const unsigned long HEALTH_REPORT_INTERVAL_MS = 5UL * 60UL * 1000UL;
+const unsigned long ERROR_REPORT_MIN_INTERVAL_MS = 60UL * 1000UL;
 const uint16_t SUPPORTED_SIGNAL_POLICY_VERSION = 1;
 const uint16_t EXPECTED_APPROACH_PULSE_MS = 1800;
 const unsigned long COLLISION_COLOR_CYCLE_MS = 1200;
@@ -172,10 +175,32 @@ unsigned long startupWaveStepAtMs = 0;
 bool isolationFrameCaptured = false;
 unsigned long wifiResetPressedAtMs = 0;
 bool wifiResetHandled = false;
+String lastDeviceErrorCode = "";
+String lastDeviceErrorDetail = "";
+uint32_t lastDeviceErrorAtUptimeSeconds = 0;
+uint32_t lastDeviceErrorOccurrences = 0;
+unsigned long lastErrorReportAttemptAtMs = 0;
+bool deviceErrorReportPending = false;
+const uint32_t startupResetReason = (uint32_t)esp_reset_reason();
 
 // -----------------------------------------------------------------------------
 // HELPERS
 // -----------------------------------------------------------------------------
+void recordDeviceError(const char* code, const String& detail) {
+  String safeDetail = detail.substring(0, 160);
+  safeDetail.replace("\r", " ");
+  safeDetail.replace("\n", " ");
+  if (lastDeviceErrorCode == code && lastDeviceErrorDetail == safeDetail) {
+    if (lastDeviceErrorOccurrences < UINT32_MAX) lastDeviceErrorOccurrences++;
+  } else {
+    lastDeviceErrorCode = code;
+    lastDeviceErrorDetail = safeDetail;
+    lastDeviceErrorOccurrences = 1;
+  }
+  lastDeviceErrorAtUptimeSeconds = millis() / 1000UL;
+  deviceErrorReportPending = true;
+}
+
 void clearFrame(LedPixel* frame) {
   for (uint16_t i = 0; i < LED_COUNT; i++) {
     memset(&frame[i], 0, sizeof(LedPixel));
@@ -589,6 +614,7 @@ void ensureWifi() {
     wifiDisconnectedAtMs = now;
     wifiAttemptCount = 0;
     if (hasEverConnected) wifiOutageCount++;
+    if (hasEverConnected) recordDeviceError("WIFI_DISCONNECTED", "Wi-Fi-forbindelsen ble brutt");
     Serial.println("Wi-Fi frakoblet. Starter kontrollert gjenoppretting.");
   }
 
@@ -1025,6 +1051,7 @@ bool fetchFrameAttempt(int retryIndex) {
 
   if (!receiveFeedBody(body, httpStatus, error)) {
     Serial.printf("Feed-mottaksfeil: %s\n", error.c_str());
+    recordDeviceError("FEED_RECEIVE", error);
     return false;
   }
 
@@ -1055,6 +1082,7 @@ bool fetchFrameAttempt(int retryIndex) {
     approachPulseMs
   )) {
     Serial.printf("Feed-valideringsfeil: %s\n", error.c_str());
+    recordDeviceError("FRAME_INVALID", error);
     return false;
   }
 
@@ -1066,6 +1094,7 @@ bool fetchFrameAttempt(int retryIndex) {
       (unsigned long)sequence,
       (unsigned long)lastSequence
     );
+    recordDeviceError("FRAME_OLDER", "Mottatt sequence er eldre enn aktiv sequence");
     return false;
   }
 
@@ -1119,11 +1148,12 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
     return true;
   }
 
-  DynamicJsonDocument document(768);
+  DynamicJsonDocument document(1152);
   document["schemaVersion"] = 1;
   document["deviceId"] = TRANSITCORE_DEVICE_ID;
   document["boardProfile"] = EXPECTED_BOARD_PROFILE;
-  document["firmware"] = "1.2.2";
+  document["firmware"] = "1.2.3";
+  document["resetReason"] = startupResetReason;
   document["uptimeSeconds"] = now / 1000UL;
   document["wifiOutages"] = wifiOutageCount;
   document["wifiRecoveries"] = wifiRecoveryCount;
@@ -1136,6 +1166,13 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
   document["signalPolicyVersion"] = activeSignalPolicyVersion;
   document["freeHeap"] = freeHeap;
   document["minimumFreeHeap"] = minimumFreeHeap;
+  if (lastDeviceErrorCode.length() > 0) {
+    JsonObject lastError = document.createNestedObject("lastError");
+    lastError["code"] = lastDeviceErrorCode;
+    lastError["detail"] = lastDeviceErrorDetail;
+    lastError["occurredAtUptimeSeconds"] = lastDeviceErrorAtUptimeSeconds;
+    lastError["occurrences"] = lastDeviceErrorOccurrences;
+  }
   String payload;
   serializeJson(document, payload);
 
@@ -1155,14 +1192,18 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
   const int status = http.POST(payload);
   http.end();
   Serial.printf("STATUS | HTTP %d\n", status);
-  return true;
+  const bool delivered = status >= 200 && status < 300;
+  if (delivered) deviceErrorReportPending = false;
+  return delivered;
 }
 
 void reportHealth() {
   const unsigned long now = millis();
   const uint32_t freeHeap = ESP.getFreeHeap();
   if (freeHeap < minimumFreeHeap) minimumFreeHeap = freeHeap;
-  if (lastHealthReportAtMs != 0 && now - lastHealthReportAtMs < HEALTH_REPORT_INTERVAL_MS) return;
+  const bool urgentErrorReport = deviceErrorReportPending &&
+    (lastErrorReportAttemptAtMs == 0 || now - lastErrorReportAttemptAtMs >= ERROR_REPORT_MIN_INTERVAL_MS);
+  if (lastHealthReportAtMs != 0 && now - lastHealthReportAtMs < HEALTH_REPORT_INTERVAL_MS && !urgentErrorReport) return;
 
   // Log the initial local state once, but do not consume the five-minute
   // interval until Wi-Fi is stable and a status send can be attempted. The
@@ -1193,7 +1234,10 @@ void reportHealth() {
     minimumFreeHeap
   );
   initialHealthLogged = true;
-  if (wifiReady && sendHealthStatus(now, freeHeap)) lastHealthReportAtMs = now;
+  if (wifiReady) {
+    if (urgentErrorReport) lastErrorReportAttemptAtMs = now;
+    if (sendHealthStatus(now, freeHeap)) lastHealthReportAtMs = now;
+  }
 }
 
 void enforceTtl() {
@@ -1202,6 +1246,7 @@ void enforceTtl() {
   if (millis() - lastValidFrameAtMs <= frameTtlMs) return;
 
   ttlExpired = true;
+  recordDeviceError("FRAME_EXPIRED", "Siste gyldige LED-frame overskred TTL");
   portENTER_CRITICAL(&frameMutex);
   clearFrame(activeFrame);
   portEXIT_CRITICAL(&frameMutex);
@@ -1253,7 +1298,7 @@ void setup() {
     );
   }
 
-  Serial.println("TransitCore Universal Board Client v1.2.2 starter | PARKED-støtte | Wi-Fi-reset: hold BOOT i 5 sekunder.");
+  Serial.println("TransitCore Universal Board Client v1.2.3 starter | feilrapportering aktiv | Wi-Fi-reset: hold BOOT i 5 sekunder.");
   Serial.printf(
     "Board %s | %u tavle-LED-er | %u fysiske stripe-LED-er | hardware %s\n",
     EXPECTED_BOARD_PROFILE,
