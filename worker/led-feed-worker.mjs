@@ -977,7 +977,7 @@ const response = (body, status = 200) => new Response(JSON.stringify(body, null,
 
 async function stabilizeMotionFrame(env, board, frame, now) {
   const configured = board.render?.departureAfterglowSeconds;
-  const afterglowSeconds = configured == null && board.id === "trondheim-bus-board"
+  const afterglowSeconds = configured == null && (board.id === "trondheim-bus-board" || GRAKALL_BOARD_IDS.has(board.id))
     ? SIGNAL_POLICY.departureAfterglowSeconds
     : Math.max(0, Math.min(SIGNAL_POLICY.departureAfterglowSeconds, Number(configured) || 0));
   const emptyFrameHoldSeconds = Math.max(0, Math.min(60, Number(board.render?.emptyFrameHoldSeconds) || 0));
