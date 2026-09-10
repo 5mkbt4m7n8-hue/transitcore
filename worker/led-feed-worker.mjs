@@ -21,8 +21,9 @@ const REPOSITORY = "https://raw.githubusercontent.com/5mkbt4m7n8-hue/transitcore
 const BOARD_IDS = new Set([
   "trondheim-bus-board", "oslo-metro-board", "oslo-metro-board-direction-a",
   "oslo-metro-board-direction-b", "oslo-metro-wizard-separate",
-  "oslo-metro-wizard-shared", "grakallbanen-board"
+  "oslo-metro-wizard-shared", "grakallbanen-board", "grakallbanen-prototype-board"
 ]);
+const GRAKALL_BOARD_IDS = new Set(["grakallbanen-board", "grakallbanen-prototype-board"]);
 export const validBoardId = value => typeof value === "string" && /^[a-z0-9-]{3,120}$/.test(value);
 const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
@@ -83,7 +84,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     const stationDepartureRadius = Number(frame.motionPolicy?.stationDepartureRadiusMeters);
     const stationDistance = Number(led.vehicle?.stationDistanceMeters);
     const nearestStationLed = String(led.vehicle?.nearestStationLed ?? "");
-    if (!hasCollision && frame.boardProfile === "grakallbanen-board" && led.state === "APPROACHING" && previousPosition &&
+    if (!hasCollision && GRAKALL_BOARD_IDS.has(frame.boardProfile) && led.state === "APPROACHING" && previousPosition &&
         previousPosition[0] !== id && (previousPosition[1].state === "AT_STOP" || previousPosition[1].state === "PASSED") &&
         previousPosition[1].led.vehicle?.positionType === "station" && Number.isFinite(stationDepartureRadius) &&
         nearestStationLed === previousPosition[0] && Number.isFinite(stationDistance) && stationDistance <= stationDepartureRadius) {
@@ -95,7 +96,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
       seen.add(passedId);
       continue;
     }
-    if (!hasCollision && frame.boardProfile === "grakallbanen-board" && previousPosition) {
+    if (!hasCollision && GRAKALL_BOARD_IDS.has(frame.boardProfile) && previousPosition) {
       const previousId = Number(previousPosition[0]), currentId = Number(id), gap = Math.abs(currentId - previousId);
       if (Number.isInteger(previousId) && Number.isInteger(currentId) && gap > 1 && gap <= 4) {
         const interpolatedId = previousId + Math.sign(currentId - previousId);
@@ -193,7 +194,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     if (before.vehicleId && activeVehicleIds.has(before.vehicleId)) continue;
     // A linear GPS board must never invent PASSED on an intermediate LED or
     // keep a stale vehicle alive without a current position sample.
-    if (frame.boardProfile === "grakallbanen-board") continue;
+    if (GRAKALL_BOARD_IDS.has(frame.boardProfile)) continue;
     const expiresAt = before.state === "PASSED" ? before.expiresAt : now + afterglowMs;
     if (expiresAt <= now) continue;
     const passed = makePassedLed(before.led);
