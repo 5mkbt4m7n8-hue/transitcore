@@ -12,7 +12,7 @@
 #include "secrets.h"
 #include "board_config.h"
 
-// TransitCore Universal Board Client v1.2.3
+// TransitCore Universal Board Client v1.2.4
 // One stable ESP32 engine; board_config.h selects the physical board.
 // v1.1.6 separates the board LED count from the connected strip length so
 // unused tail pixels are actively held off on full-length test strips.
@@ -20,8 +20,8 @@
 // v1.1.8 continuously retransmits the fixed isolation pattern.
 // v1.1.9 freezes and retransmits the first complete Worker frame.
 // v1.2.0 adds a guarded local button for resetting stored Wi-Fi credentials.
-// v1.2.3 adds structured, rate-limited device error reporting.
 // v1.2.3 reports structured, rate-limited device errors to the Worker.
+// v1.2.4 adds runtime-selectable ambient and warm-white vehicle modes.
 // v1.2.1 adds full-fade APPROACHING, visible PASSED state and local colour
 // alternation between equal-priority vehicles sharing one physical LED.
 
@@ -97,6 +97,10 @@ const uint16_t SUPPORTED_SIGNAL_POLICY_VERSION = 1;
 const uint16_t EXPECTED_APPROACH_PULSE_MS = 1800;
 const unsigned long COLLISION_COLOR_CYCLE_MS = 1200;
 const uint8_t MAX_COLLISION_COLORS = 4;
+const uint8_t AMBIENT_WARM_RED = 255;
+const uint8_t AMBIENT_WARM_GREEN = 145;
+const uint8_t AMBIENT_WARM_BLUE = 55;
+const uint8_t AMBIENT_BRIGHTNESS = 9; // 3.5 % of the full 0-255 scale.
 
 // -----------------------------------------------------------------------------
 // FRAME STORAGE
@@ -182,6 +186,9 @@ uint32_t lastDeviceErrorOccurrences = 0;
 unsigned long lastErrorReportAttemptAtMs = 0;
 bool deviceErrorReportPending = false;
 const uint32_t startupResetReason = (uint32_t)esp_reset_reason();
+volatile bool ambientLightingEnabled = false;
+volatile bool warmWhiteVehiclesEnabled = false;
+String serialCommandBuffer;
 
 // -----------------------------------------------------------------------------
 // HELPERS
@@ -214,6 +221,65 @@ void clearHardware() {
   strip.clear();
   strip.show();
   if (ledHardwareMutex != nullptr) xSemaphoreGive(ledHardwareMutex);
+}
+
+void printVisualMode() {
+  Serial.printf(
+    "VISNING | bakgrunn %s | togfarger %s | PARKED rød og aktiv\n",
+    ambientLightingEnabled ? "VARMHVIT 3.5%" : "AV",
+    warmWhiteVehiclesEnabled ? "VARMHVIT" : "LINJEFARGER"
+  );
+}
+
+void setAmbientLighting(bool enabled) {
+  ambientLightingEnabled = enabled;
+  printVisualMode();
+}
+
+void setWarmWhiteVehicles(bool enabled) {
+  warmWhiteVehiclesEnabled = enabled;
+  printVisualMode();
+}
+
+// A product button can call this same function without duplicating display logic.
+void cycleVisualMode() {
+  const uint8_t mode = (ambientLightingEnabled ? 1 : 0) |
+    (warmWhiteVehiclesEnabled ? 2 : 0);
+  const uint8_t next = (mode + 1) & 3;
+  ambientLightingEnabled = (next & 1) != 0;
+  warmWhiteVehiclesEnabled = (next & 2) != 0;
+  printVisualMode();
+}
+
+void handleSerialCommand(String command) {
+  command.trim();
+  command.toUpperCase();
+  if (!command.length()) return;
+  if (command == "AMBIENT ON") setAmbientLighting(true);
+  else if (command == "AMBIENT OFF") setAmbientLighting(false);
+  else if (command == "AMBIENT TOGGLE") setAmbientLighting(!ambientLightingEnabled);
+  else if (command == "TRAINS WARM") setWarmWhiteVehicles(true);
+  else if (command == "TRAINS LINE") setWarmWhiteVehicles(false);
+  else if (command == "MODE NEXT") cycleVisualMode();
+  else if (command == "MODE STATUS") printVisualMode();
+  else if (command == "HELP") {
+    Serial.println("KOMMANDOER | AMBIENT ON/OFF/TOGGLE | TRAINS WARM/LINE | MODE NEXT/STATUS");
+  } else {
+    Serial.println("Ukjent kommando. Skriv HELP.");
+  }
+}
+
+void handleSerialCommands() {
+  while (Serial.available() > 0) {
+    const char value = (char)Serial.read();
+    if (value == '\r') continue;
+    if (value == '\n') {
+      handleSerialCommand(serialCommandBuffer);
+      serialCommandBuffer = "";
+    } else if (serialCommandBuffer.length() < 64) {
+      serialCommandBuffer += value;
+    }
+  }
 }
 
 uint8_t scaleChannel(
@@ -295,14 +361,24 @@ void renderFrame() {
   if (ledHardwareMutex != nullptr) xSemaphoreTake(ledHardwareMutex, portMAX_DELAY);
   for (uint16_t i = 0; i < LED_COUNT; i++) {
     const LedPixel& pixel = renderFrameSnapshot[i];
+    if (pixel.state == LED_OFF) {
+      strip.setPixelColor(
+        i,
+        ambientLightingEnabled ? scaleChannel(AMBIENT_WARM_RED, AMBIENT_BRIGHTNESS, 255) : 0,
+        ambientLightingEnabled ? scaleChannel(AMBIENT_WARM_GREEN, AMBIENT_BRIGHTNESS, 255) : 0,
+        ambientLightingEnabled ? scaleChannel(AMBIENT_WARM_BLUE, AMBIENT_BRIGHTNESS, 255) : 0
+      );
+      continue;
+    }
     const uint8_t level =
       pixel.state == LED_APPROACHING ? pulse : 255;
     const uint8_t colorIndex = pixel.collisionColorCount > 1
       ? (millis() / COLLISION_COLOR_CYCLE_MS) % pixel.collisionColorCount
       : 0;
-    const uint8_t red = pixel.collisionColorCount ? pixel.collisionColors[colorIndex][0] : pixel.red;
-    const uint8_t green = pixel.collisionColorCount ? pixel.collisionColors[colorIndex][1] : pixel.green;
-    const uint8_t blue = pixel.collisionColorCount ? pixel.collisionColors[colorIndex][2] : pixel.blue;
+    const bool useWarmWhite = warmWhiteVehiclesEnabled && pixel.state != LED_PARKED;
+    const uint8_t red = useWarmWhite ? AMBIENT_WARM_RED : pixel.collisionColorCount ? pixel.collisionColors[colorIndex][0] : pixel.red;
+    const uint8_t green = useWarmWhite ? AMBIENT_WARM_GREEN : pixel.collisionColorCount ? pixel.collisionColors[colorIndex][1] : pixel.green;
+    const uint8_t blue = useWarmWhite ? AMBIENT_WARM_BLUE : pixel.collisionColorCount ? pixel.collisionColors[colorIndex][2] : pixel.blue;
 
     strip.setPixelColor(
       i,
@@ -353,8 +429,7 @@ void ledRenderTask(void* parameter) {
       !provisioningActive &&
       !ledTestActive &&
       !startupWaveActive &&
-      hasValidFrame &&
-      !ttlExpired
+      ((hasValidFrame && !ttlExpired) || ambientLightingEnabled)
     ) {
       if (TRANSITCORE_LED_FRAME_ISOLATION_TEST) showFrozenIsolationFrame();
       else renderFrame();
@@ -1152,7 +1227,7 @@ bool sendHealthStatus(unsigned long now, uint32_t freeHeap) {
   document["schemaVersion"] = 1;
   document["deviceId"] = TRANSITCORE_DEVICE_ID;
   document["boardProfile"] = EXPECTED_BOARD_PROFILE;
-  document["firmware"] = "1.2.3";
+  document["firmware"] = "1.2.4";
   document["resetReason"] = startupResetReason;
   document["uptimeSeconds"] = now / 1000UL;
   document["wifiOutages"] = wifiOutageCount;
@@ -1298,7 +1373,7 @@ void setup() {
     );
   }
 
-  Serial.println("TransitCore Universal Board Client v1.2.3 starter | feilrapportering aktiv | Wi-Fi-reset: hold BOOT i 5 sekunder.");
+  Serial.println("TransitCore Universal Board Client v1.2.4 starter | Serial-visningsmoduser | feilrapportering aktiv | Wi-Fi-reset: hold BOOT i 5 sekunder.");
   Serial.printf(
     "Board %s | %u tavle-LED-er | %u fysiske stripe-LED-er | hardware %s\n",
     EXPECTED_BOARD_PROFILE,
@@ -1313,9 +1388,12 @@ void setup() {
   );
   Serial.printf("LED-frame isolasjonstest: %s\n",
     TRANSITCORE_LED_FRAME_ISOLATION_TEST ? "JA" : "NEI");
+  Serial.println("Skriv HELP i Serial Monitor for visningskommandoer.");
+  printVisualMode();
 }
 
 void loop() {
+  handleSerialCommands();
   handleWifiResetButton();
   ensureWifi();
 
