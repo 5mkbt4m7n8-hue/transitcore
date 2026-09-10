@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "id": "grakallbanen-prototype-board-hardware",
+  "name": "Gråkallbanen prototype hardwareprofil",
+  "boardProfile": "grakallbanen-prototype-board",
+  "leds": {
+    "count": 16,
+    "dataPin": 2,
+    "brightnessLimit": 32
+  },
+  "assignments": [
+    {
+      "sourceNodeId": "grakall-station-0",
+      "name": "Lian",
+      "logicalLed": 0,
+      "physicalLed": 15
+    },
+    {
+      "sourceNodeId": "grakall-station-1",
+      "name": "Herlofsonløypa",
+      "logicalLed": 1,
+      "physicalLed": 14
+    },
+    {
+      "sourceNodeId": "grakall-station-2",
+      "name": "Vestmarka",
+      "logicalLed": 2,
+      "physicalLed": 13
+    },
+    {
+      "sourceNodeId": "grakall-station-3",
+      "name": "Kyvannet",
+      "logicalLed": 3,
+      "physicalLed": 12
+    },
+    {
+      "sourceNodeId": "grakall-station-4",
+      "name": "Ugla",
+      "logicalLed": 4,
+      "physicalLed": 11
+    },
+    {
+      "sourceNodeId": "grakall-station-5",
+      "name": "Ferstad",
+      "logicalLed": 5,
+      "physicalLed": 10
+    },
+    {
+      "sourceNodeId": "grakall-station-6",
+      "name": "Munkvoll",
+      "logicalLed": 6,
+      "physicalLed": 9
+    },
+    {
+      "sourceNodeId": "grakall-station-7",
+      "name": "Rognheim",
+      "logicalLed": 7,
+      "physicalLed": 8
+    },
+    {
+      "sourceNodeId": "grakall-station-8",
+      "name": "Søndre Hoem",
+      "logicalLed": 8,
+      "physicalLed": 7
+    },
+    {
+      "sourceNodeId": "grakall-station-9",
+      "name": "Nordre Hoem",
+      "logicalLed": 9,
+      "physicalLed": 6
+    },
+    {
+      "sourceNodeId": "grakall-station-10",
+      "name": "Breidablikk",
+      "logicalLed": 10,
+      "physicalLed": 5
+    },
+    {
+      "sourceNodeId": "grakall-station-11",
+      "name": "Belvedere",
+      "logicalLed": 11,
+      "physicalLed": 4
+    },
+    {
+      "sourceNodeId": "grakall-station-12",
+      "name": "Bygrensen",
+      "logicalLed": 12,
+      "physicalLed": 3
+    },
+    {
+      "sourceNodeId": "grakall-station-13",
+      "name": "Nyveibakken",
+      "logicalLed": 13,
+      "physicalLed": 2
+    },
+    {
+      "sourceNodeId": "grakall-station-14",
+      "name": "Bergsli gate",
+      "logicalLed": 14,
+      "physicalLed": 1
+    },
+    {
+      "sourceNodeId": "grakall-station-15",
+      "name": "Ila",
+      "logicalLed": 15,
+      "physicalLed": 0
+    }
+  ]
+}
