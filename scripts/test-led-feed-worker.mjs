@@ -98,6 +98,13 @@ const stationOnlyLian=buildLinearRouteFrame({board:stationOnlyBoard,profiles:[tr
 assert.deepEqual({id:stationOnlyLian.leds[0].id,state:stationOnlyLian.leds[0].state,positionType:stationOnlyLian.leds[0].vehicle.positionType},{id:0,state:"APPROACHING",positionType:"station-approach"},"uten mellom-LED-er skal stasjonen i kjøreretningen pulsere");
 const stationOnlyIla=buildLinearRouteFrame({board:stationOnlyBoard,profiles:[tramProfile],hardware:stationOnlyHardware,vehicles:[{...tramVehicles[0],destinationName:"Ila"}],now});
 assert.deepEqual({id:stationOnlyIla.leds[0].id,state:stationOnlyIla.leds[0].state},{id:1,state:"APPROACHING"},"motsatt retning skal pulsere motsatt målstasjon");
+const stationOnlyStop={...stationOnlyIla,motionPolicy:{...stationOnlyIla.motionPolicy,atStopConfirmationSeconds:0},leds:[{...stationOnlyIla.leds[0],id:0,state:"AT_STOP",vehicle:{...stationOnlyIla.leds[0].vehicle,id:"station-only-departure",positionType:"station"},occupants:[]}]};
+const stationOnlyNext={...stationOnlyIla,leds:[{...stationOnlyIla.leds[0],id:1,state:"APPROACHING",vehicle:{...stationOnlyIla.leds[0].vehicle,id:"station-only-departure",positionType:"station-approach"},occupants:[]}]};
+let stationOnlyLifecycle=applyMotionLifecycle(stationOnlyStop,{},now,10000);
+stationOnlyLifecycle=applyMotionLifecycle(stationOnlyNext,stationOnlyLifecycle.state,now+1000,10000);
+assert.deepEqual(stationOnlyLifecycle.frame.leds.map(led=>({id:led.id,lifecycle:led.lifecycle,brightness:led.brightness})),[{id:0,lifecycle:"PASSED",brightness:8}],"stasjonsprototypen skal vise dimmet PASSED før vognen flyttes videre");
+stationOnlyLifecycle=applyMotionLifecycle(stationOnlyNext,stationOnlyLifecycle.state,now+11001,10000);
+assert.deepEqual(stationOnlyLifecycle.frame.leds.map(led=>({id:led.id,state:led.state})),[{id:1,state:"APPROACHING"}],"etter PASSED-perioden skal samme vogn bare vises ved neste stasjon");
 console.log("GrÃƒÂ¥kallbanen linear VLED worker test OK");
 
 
