@@ -3,7 +3,7 @@ import fs from "node:fs";
 import vm from "node:vm";
 
 const page=fs.readFileSync(new URL("../web/grakallbanen-editor/index.html",import.meta.url),"utf8");
-const script=[...page.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)?.[1];
+const script=[...page.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(match=>match[1]).join("\n");
 assert.ok(script,"Gråkallbanen-redigereren skal ha et applikasjonsskript");
 new vm.Script(script,{filename:"web/grakallbanen-editor/index.html"});
 assert.match(page,/min="0" max="8"/,"hver strekning skal støtte et valgfritt antall mellom-LED-er");
@@ -14,4 +14,9 @@ assert.match(script,/TransitCoreZip\.createZip\(files\(\)\)/,"redigereren skal l
 assert.match(script,/PREVIEW_STORE/,"pakken skal kunne testes med live-data før publisering");
 assert.match(script,/sourceEditor:\s*"grakallbanen"/,"live-testen skal kunne gå tilbake til Gråkallbanen-editoren");
 assert.match(script,/id:"grakallbanen-prototype-board"/,"prototypen skal ha egen tavle-ID og ikke overskrive 47-LED-tavlen");
+assert.match(page,/Kun holdeplasser \(ingen mellom-LED-er\)/,"prototypen skal kunne bygges helt uten mellom-LED-er");
+assert.match(page,/Lian først · Ila sist/,"monteringsretningen skal navngi første og siste stasjon tydelig");
+assert.match(page,/Ila først · Lian sist/,"hele LED-rekkefølgen skal kunne snus");
+assert.match(script,/planned-track-restoration/,"framtidig sentrumsforlengelse skal lagres deaktivert");
+assert.match(script,/"St\. Olavs gate","Dronningens gate"/,"sentrumsplanen skal følge den avtalte holdeplassrekkefølgen");
 console.log("Gråkallbanen prototype editor syntax and export flow OK");

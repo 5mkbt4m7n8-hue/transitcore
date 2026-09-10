@@ -3,6 +3,8 @@ import fs from "node:fs";
 import vm from "node:vm";
 
 const page=fs.readFileSync(new URL("../web/editor/index.html",import.meta.url),"utf8");
+assert.match(page,/Gråkallbanen – bygg prototype \/ velg mellom-LED-er/,"Gråkallbanen-prototypen skal kunne velges fra tavleredigereren");
+assert.match(page,/direction\?\.reverseShape\?-1:1/,"rutesortering skal følge valgt retning");
 const scripts=[...page.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(match=>match[1]).filter(Boolean);
 for(const [index,script] of scripts.entries())new vm.Script(script,{filename:`web/editor/index.html#${index}`});
 assert.match(page,/id="useSelection"/);
