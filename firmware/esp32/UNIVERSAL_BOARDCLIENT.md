@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_2_2.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_2_3.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -99,11 +99,18 @@ Wi-Fi credentials and restart captive setup. Device identity and board
 configuration are preserved. A product-specific button pin can be selected
 with `TRANSITCORE_WIFI_RESET_BUTTON_PIN`.
 
-Version 1.2.2 keeps the shared 1800 ms approach period, supports the fixed-red
+Version 1.2.3 keeps the shared 1800 ms approach period, supports the fixed-red
 `PARKED` state, and lets the physical
 APPROACHING pulse fade completely off at the bottom of every cycle. It reports
 dimmed departure afterglow as `PASSED`, and locally alternates the colours of
 vehicles with equal highest priority when they share one physical LED. A higher
 priority state remains the only colour shown.
+
+The same version reports operational faults to the Worker using the unit's
+existing device identity. Reports cover Wi-Fi disconnects, feed receive
+failures, invalid or older frames and expired frames. The latest error and a
+bounded error history are available on the TransitCore status page. Repeated
+errors are counted and urgent uploads are limited to one attempt per minute.
+SSID, Wi-Fi password, device token and full feed contents are never included.
 
 

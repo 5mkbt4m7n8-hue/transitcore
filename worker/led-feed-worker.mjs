@@ -371,15 +371,26 @@ export class DeviceStatus {
     }
     if (request.method === "POST") {
       const sample = await request.json();
+      const latest = (await this.state.storage.get("latest")) || null;
       const history = (await this.state.storage.get("history")) || [];
       history.push(sample);
       while (history.length > 288) history.shift();
-      await this.state.storage.put({ latest: sample, history });
+      const errors = (await this.state.storage.get("errors")) || [];
+      const incomingError = sample.lastError;
+      const previousError = latest?.lastError;
+      if (incomingError && (!previousError || incomingError.code !== previousError.code ||
+          incomingError.occurredAtUptimeSeconds !== previousError.occurredAtUptimeSeconds ||
+          incomingError.occurrences !== previousError.occurrences)) {
+        errors.push({ receivedAt: sample.receivedAt, ...incomingError });
+        while (errors.length > 100) errors.shift();
+      }
+      await this.state.storage.put({ latest: sample, history, errors });
       return statusJson({ ok: true });
     }
     const latest = await this.state.storage.get("latest");
     const history = await this.state.storage.get("history") || [];
-    return statusJson({ latest: latest || null, history });
+    const errors = await this.state.storage.get("errors") || [];
+    return statusJson({ latest: latest || null, history, errors });
   }
 }
 
@@ -441,7 +452,7 @@ async function lookupDeviceRegistration(env, deviceId) {
 
 export function cleanStatusPayload(value, deviceId, boardProfile, receivedAt) {
   const firmware = String(value?.firmware || "");
-  if (!value || value.schemaVersion !== 1 || (value.deviceId && value.deviceId !== deviceId) || value.boardProfile !== boardProfile || !["1.0.4","1.0.5","1.0.6","1.0.7","1.0.8","1.0.9","1.0.10","1.1.0","1.1.1","1.1.2","1.1.3","1.1.4","1.1.5","1.1.6","1.1.7","1.1.8","1.1.9","1.2.0","1.2.1","1.2.2"].includes(firmware)) {
+  if (!value || value.schemaVersion !== 1 || (value.deviceId && value.deviceId !== deviceId) || value.boardProfile !== boardProfile || !["1.0.4","1.0.5","1.0.6","1.0.7","1.0.8","1.0.9","1.0.10","1.1.0","1.1.1","1.1.2","1.1.3","1.1.4","1.1.5","1.1.6","1.1.7","1.1.8","1.1.9","1.2.0","1.2.1","1.2.2","1.2.3"].includes(firmware)) {
     throw Error("invalid status payload");
   }
   const profileRevision = Number(value.profileRevision || 0);
@@ -456,11 +467,27 @@ export function cleanStatusPayload(value, deviceId, boardProfile, receivedAt) {
     if (!Number.isFinite(result) || result < 0 || result > max) throw Error(`invalid ${name}`);
     return Math.floor(result);
   };
+  let lastError = null;
+  if (value.lastError != null) {
+    const code = String(value.lastError?.code || "");
+    const detail = String(value.lastError?.detail || "");
+    if (!/^[A-Z][A-Z0-9_]{2,39}$/.test(code) || detail.length > 160 || /[\u0000-\u001f\u007f]/.test(detail)) {
+      throw Error("invalid lastError");
+    }
+    const occurredAtUptimeSeconds = Number(value.lastError.occurredAtUptimeSeconds);
+    const occurrences = Number(value.lastError.occurrences);
+    if (!Number.isInteger(occurredAtUptimeSeconds) || occurredAtUptimeSeconds < 0 ||
+        !Number.isInteger(occurrences) || occurrences < 1 || occurrences > 0xffffffff) {
+      throw Error("invalid lastError counters");
+    }
+    lastError = { code, detail, occurredAtUptimeSeconds, occurrences };
+  }
   return {
     schemaVersion: 1,
     deviceId,
     boardProfile,
     firmware,
+    resetReason: value.resetReason == null ? 0 : number("resetReason", 20),
     profileRevision,
     profileFingerprint,
     receivedAt: new Date(receivedAt).toISOString(),
@@ -472,7 +499,8 @@ export function cleanStatusPayload(value, deviceId, boardProfile, receivedAt) {
     frameAgeSeconds: number("frameAgeSeconds"),
     frameValid: Boolean(value.frameValid),
     freeHeap: number("freeHeap", 1000000),
-    minimumFreeHeap: number("minimumFreeHeap", 1000000)
+    minimumFreeHeap: number("minimumFreeHeap", 1000000),
+    lastError
   };
 }
 
@@ -514,7 +542,7 @@ async function runBackgroundChecks(env) {
   }));
 }
 
-const statusPage = `<!doctype html><html lang="no"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TransitCore status</title><style>body{font:16px system-ui;background:#0b1220;color:#e5edf8;margin:0;padding:24px}.wrap{max-width:720px;margin:auto}h1{margin:0 0 6px}.sub{color:#9fb0c8;margin-bottom:22px}.card{background:#131d2e;border:1px solid #26344b;border-radius:16px;padding:18px;margin:12px 0}.row{display:flex;justify-content:space-between;gap:16px;margin:8px 0}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:8px}.ok{background:#22c55e}.warn{background:#f59e0b}.off{background:#ef4444}.muted{color:#9fb0c8}code{color:#cfe3ff}</style><div class="wrap"><h1>TransitCore status</h1><div class="sub">Oppdateres automatisk hvert 30. sekund</div><div id="cards">Lasterâ€¦</div></div><script>const names={'trondheim-bus-board':'Trondheim buss','oslo-metro-board':'Oslo T-bane','oslo-metro-wizard-separate':'Oslo linje 1 – separate LED-er','grakallbanen-board':'GrÃ¥kallbanen'};function esc(x){return String(x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}async function load(){const data=await fetch('/v1/status',{cache:'no-store'}).then(r=>r.json());cards.innerHTML=data.devices.map(d=>{if(!d.latest)return '<div class="card"><div><span class="dot off"></span>'+esc(names[d.deviceId]||d.deviceId)+'</div><p class="muted">Ingen status mottatt</p></div>';const s=d.latest,age=Math.max(0,Math.floor((Date.now()-Date.parse(s.receivedAt))/1000)),state=age<=420&&s.frameValid?'ok':age<=900?'warn':'off',label=state==='ok'?'Online':state==='warn'?'Varsel':'Frakoblet';return '<div class="card"><div><span class="dot '+state+'"></span><b>'+esc(names[d.deviceId]||d.deviceId)+'</b> Â· '+label+'</div><div class="row"><span>Sist sett</span><span>'+age+' s siden</span></div><div class="row"><span>Firmware</span><code>'+esc(s.firmware)+'</code></div><div class="row"><span>Oppetid</span><span>'+Math.floor(s.uptimeSeconds/60)+' min</span></div><div class="row"><span>Wiâ€‘Fi brudd / tilbake</span><span>'+s.wifiOutages+' / '+s.wifiRecoveries+'</span></div><div class="row"><span>Feed OK / feil</span><span>'+s.feedSuccesses+' / '+s.feedFailures+'</span></div><div class="row"><span>Heap / minimum</span><span>'+s.freeHeap+' / '+s.minimumFreeHeap+'</span></div></div>'}).join('')}load().catch(e=>cards.textContent='Status kunne ikke lastes: '+e.message);setInterval(load,30000)</script></html>`;
+const statusPage = `<!doctype html><html lang="no"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TransitCore status</title><style>body{font:16px system-ui;background:#0b1220;color:#e5edf8;margin:0;padding:24px}.wrap{max-width:720px;margin:auto}h1{margin:0 0 6px}.sub{color:#9fb0c8;margin-bottom:22px}.card{background:#131d2e;border:1px solid #26344b;border-radius:16px;padding:18px;margin:12px 0}.row{display:flex;justify-content:space-between;gap:16px;margin:8px 0}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:8px}.ok{background:#22c55e}.warn{background:#f59e0b}.off{background:#ef4444}.muted{color:#9fb0c8}.device-error{margin-top:12px;padding:10px;border-radius:9px;background:#4b2025;color:#ffb4b4}code{color:#cfe3ff}</style><div class="wrap"><h1>TransitCore status</h1><div class="sub">Oppdateres automatisk hvert 30. sekund</div><div id="cards">Laster…</div></div><script>const names={'trondheim-bus-board':'Trondheim buss','oslo-metro-board':'Oslo T-bane','oslo-metro-wizard-separate':'Oslo linje 1 – separate LED-er','grakallbanen-board':'Gråkallbanen'};function esc(x){return String(x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}function deviceName(d){return d.label||names[d.boardProfile]||names[d.deviceId]||d.deviceId}async function load(){const data=await fetch('/v1/status',{cache:'no-store'}).then(r=>r.json());cards.innerHTML=data.devices.map(d=>{if(!d.latest)return '<div class="card"><div><span class="dot off"></span>'+esc(deviceName(d))+'</div><p class="muted">Ingen status mottatt</p></div>';const s=d.latest,age=Math.max(0,Math.floor((Date.now()-Date.parse(s.receivedAt))/1000)),state=age<=420&&s.frameValid?'ok':age<=900?'warn':'off',label=state==='ok'?'Online':state==='warn'?'Varsel':'Frakoblet',deviceError=s.lastError?'<div class="device-error"><b>Siste feil: '+esc(s.lastError.code)+'</b><br>'+esc(s.lastError.detail)+' · '+s.lastError.occurrences+' gang(er)</div>':'';return '<div class="card"><div><span class="dot '+state+'"></span><b>'+esc(deviceName(d))+'</b> · '+label+'</div><div class="row"><span>Sist sett</span><span>'+age+' s siden</span></div><div class="row"><span>Firmware</span><code>'+esc(s.firmware)+'</code></div><div class="row"><span>Oppetid</span><span>'+Math.floor(s.uptimeSeconds/60)+' min</span></div><div class="row"><span>Wi‑Fi brudd / tilbake</span><span>'+s.wifiOutages+' / '+s.wifiRecoveries+'</span></div><div class="row"><span>Feed OK / feil</span><span>'+s.feedSuccesses+' / '+s.feedFailures+'</span></div><div class="row"><span>Heap / minimum</span><span>'+s.freeHeap+' / '+s.minimumFreeHeap+'</span></div>'+deviceError+'</div>'}).join('')}load().catch(e=>cards.textContent='Status kunne ikke lastes: '+e.message);setInterval(load,30000)</script></html>`;
 
 const rad = value => value * Math.PI / 180;
 function distance(a, b) {
@@ -1130,18 +1158,29 @@ export default {
       return new Response(statusPage, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
     }
     if (url.pathname === "/v1/status" && request.method === "GET") {
-      const deviceIds = ["trondheim-bus-board", "oslo-metro-board", "grakallbanen-board"];
+      const fallbackDevices = ["trondheim-bus-board", "oslo-metro-board", "grakallbanen-board"]
+        .map(deviceId => ({ deviceId, boardProfile: deviceId, label: "" }));
       if (!env.DEVICE_STATUS) {
         return statusJson({
           generatedAt: new Date().toISOString(),
-          devices: deviceIds.map(deviceId => ({ deviceId, latest: null })),
+          devices: fallbackDevices.map(device => ({ ...device, latest: null })),
           statusStorage: "disabled_in_preview"
         });
       }
-      const devices = await Promise.all(deviceIds.map(async deviceId => {
-        const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(deviceId));
+      const registry = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName("__device-registry__"));
+      const registered = await registry.fetch("https://status.internal/registry")
+        .then(response => response.ok ? response.json() : { devices: [] })
+        .catch(() => ({ devices: [] }));
+      const targets = registered.devices?.filter(device => device.enabled !== false).map(device => ({
+        deviceId: device.deviceId,
+        boardProfile: device.boardProfile,
+        label: device.label || ""
+      })) || [];
+      const visibleDevices = targets.length ? targets : fallbackDevices;
+      const devices = await Promise.all(visibleDevices.map(async device => {
+        const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(device.deviceId));
         const stored = await stub.fetch("https://status.internal/").then(response => response.json());
-        return { deviceId, latest: stored.latest };
+        return { ...device, latest: stored.latest, errorCount: stored.errors?.length || 0 };
       }));
       return statusJson({ generatedAt: new Date().toISOString(), devices });
     }
@@ -1169,7 +1208,7 @@ export default {
         return statusJson({ error: "status_not_configured" }, 503);
       }
       if (!registration) return statusJson({ error: "not_found" }, 404);
-      const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(registration.boardProfile));
+      const stub = env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(deviceId));
       if (request.method === "GET") return stub.fetch("https://status.internal/");
       if (request.method !== "POST") return statusJson({ error: "method_not_allowed" }, 405);
       const authorization = request.headers.get("authorization") || "";
