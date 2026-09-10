@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_2_3.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_2_4.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -112,5 +112,20 @@ failures, invalid or older frames and expired frames. The latest error and a
 bounded error history are available on the TransitCore status page. Repeated
 errors are counted and urgent uploads are limited to one attempt per minute.
 SSID, Wi-Fi password, device token and full feed contents are never included.
+
+Version 1.2.4 adds two runtime display options for physical evaluation. Send
+commands with newline from Serial Monitor at 115200 baud:
+
+- `AMBIENT ON` / `AMBIENT OFF`: enable or disable a 3.5% warm-white background
+  on otherwise inactive board LEDs.
+- `TRAINS WARM` / `TRAINS LINE`: show active vehicles in warm white or restore
+  their normal line/direction colours.
+- `MODE NEXT`: cycle through the four combinations. A future product button
+  can call the same `cycleVisualMode()` function.
+- `MODE STATUS` or `HELP`: show the current mode or list the commands.
+
+Signal animation is unchanged in warm-white mode. `APPROACHING` still pulses,
+`AT_STOP` remains steady, `PASSED` stays dimmed, and `PARKED` remains fixed red
+with the highest priority.
 
 
