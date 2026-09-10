@@ -84,6 +84,27 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     const stationDepartureRadius = Number(frame.motionPolicy?.stationDepartureRadiusMeters);
     const stationDistance = Number(led.vehicle?.stationDistanceMeters);
     const nearestStationLed = String(led.vehicle?.nearestStationLed ?? "");
+    const stationOnlyDeparture = frame.boardProfile === "grakallbanen-prototype-board" &&
+      !hasCollision && led.state === "APPROACHING" && previousPosition && previousPosition[0] !== id &&
+      previousPosition[1].led.vehicle?.positionType === "station";
+    if (stationOnlyDeparture && previousPosition[1].state === "AT_STOP") {
+      const [passedId, passedBefore] = previousPosition;
+      const passed = makePassedLed(passedBefore.led);
+      leds.push(passed);
+      next[passedId] = { ...passedBefore, state: "PASSED", expiresAt: now + afterglowMs, led: passed };
+      seen.add(id);
+      seen.add(passedId);
+      continue;
+    }
+    if (stationOnlyDeparture && previousPosition[1].state === "PASSED" && previousPosition[1].expiresAt > now) {
+      const [passedId, passedBefore] = previousPosition;
+      const passed = makePassedLed(passedBefore.led);
+      leds.push(passed);
+      next[passedId] = { ...passedBefore, led: passed };
+      seen.add(id);
+      seen.add(passedId);
+      continue;
+    }
     if (!hasCollision && GRAKALL_BOARD_IDS.has(frame.boardProfile) && led.state === "APPROACHING" && previousPosition &&
         previousPosition[0] !== id && (previousPosition[1].state === "AT_STOP" || previousPosition[1].state === "PASSED") &&
         previousPosition[1].led.vehicle?.positionType === "station" && Number.isFinite(stationDepartureRadius) &&
