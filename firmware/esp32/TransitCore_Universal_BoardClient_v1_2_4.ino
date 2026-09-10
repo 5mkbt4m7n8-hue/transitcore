@@ -188,6 +188,7 @@ bool deviceErrorReportPending = false;
 const uint32_t startupResetReason = (uint32_t)esp_reset_reason();
 volatile bool ambientLightingEnabled = false;
 volatile bool warmWhiteVehiclesEnabled = false;
+volatile uint8_t masterBrightnessPercent = 100;
 String serialCommandBuffer;
 
 // -----------------------------------------------------------------------------
@@ -225,9 +226,10 @@ void clearHardware() {
 
 void printVisualMode() {
   Serial.printf(
-    "VISNING | bakgrunn %s | togfarger %s | PARKED rød og aktiv\n",
+    "VISNING | bakgrunn %s | togfarger %s | hovedlysstyrke %u%% | PARKED rød og aktiv\n",
     ambientLightingEnabled ? "VARMHVIT 3.5%" : "AV",
-    warmWhiteVehiclesEnabled ? "VARMHVIT" : "LINJEFARGER"
+    warmWhiteVehiclesEnabled ? "VARMHVIT" : "LINJEFARGER",
+    masterBrightnessPercent
   );
 }
 
@@ -251,6 +253,19 @@ void cycleVisualMode() {
   printVisualMode();
 }
 
+// A separate product button can call this for 100% -> 50% -> 10% -> 100%.
+void cycleMasterBrightness() {
+  if (masterBrightnessPercent == 100) masterBrightnessPercent = 50;
+  else if (masterBrightnessPercent == 50) masterBrightnessPercent = 10;
+  else masterBrightnessPercent = 100;
+  printVisualMode();
+}
+
+void setMasterBrightness(uint8_t percent) {
+  masterBrightnessPercent = percent;
+  printVisualMode();
+}
+
 void handleSerialCommand(String command) {
   command.trim();
   command.toUpperCase();
@@ -261,9 +276,13 @@ void handleSerialCommand(String command) {
   else if (command == "TRAINS WARM") setWarmWhiteVehicles(true);
   else if (command == "TRAINS LINE") setWarmWhiteVehicles(false);
   else if (command == "MODE NEXT") cycleVisualMode();
+  else if (command == "BRIGHTNESS NEXT") cycleMasterBrightness();
+  else if (command == "BRIGHTNESS 100") setMasterBrightness(100);
+  else if (command == "BRIGHTNESS 50") setMasterBrightness(50);
+  else if (command == "BRIGHTNESS 10") setMasterBrightness(10);
   else if (command == "MODE STATUS") printVisualMode();
   else if (command == "HELP") {
-    Serial.println("KOMMANDOER | AMBIENT ON/OFF/TOGGLE | TRAINS WARM/LINE | MODE NEXT/STATUS");
+    Serial.println("KOMMANDOER | AMBIENT ON/OFF/TOGGLE | TRAINS WARM/LINE | MODE NEXT/STATUS | BRIGHTNESS NEXT/100/50/10");
   } else {
     Serial.println("Ukjent kommando. Skriv HELP.");
   }
@@ -292,8 +311,8 @@ uint8_t scaleChannel(
     LOCAL_BRIGHTNESS_LIMIT
   );
 
-  return (uint32_t)channel * capped * animationLevel /
-    (255UL * 255UL);
+  return (uint32_t)channel * capped * animationLevel * masterBrightnessPercent /
+    (255UL * 255UL * 100UL);
 }
 
 uint8_t approachingPulse() {
