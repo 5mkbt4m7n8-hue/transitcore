@@ -1,0 +1,216 @@
+{
+  "schemaVersion": 1,
+  "id": "grakallbanen-prototype-board",
+  "name": "Gråkallbanen · fysisk prototype",
+  "layout": "linear-route-vled",
+  "positioning": "vehicle-proximity",
+  "routes": [
+    "atb-line-9-grakallbanen"
+  ],
+  "leds": {
+    "count": 16,
+    "dataPin": 2,
+    "brightnessLimit": 32
+  },
+  "nodes": [
+    {
+      "id": "grakall-station-0",
+      "name": "Lian",
+      "led": 0,
+      "stopIds": [
+        "NSR:Quay:73481"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-1",
+      "name": "Herlofsonløypa",
+      "led": 1,
+      "stopIds": [
+        "NSR:Quay:71253"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-2",
+      "name": "Vestmarka",
+      "led": 2,
+      "stopIds": [
+        "NSR:Quay:72110"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-3",
+      "name": "Kyvannet",
+      "led": 3,
+      "stopIds": [
+        "NSR:Quay:73099"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-4",
+      "name": "Ugla",
+      "led": 4,
+      "stopIds": [
+        "NSR:Quay:71779"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-5",
+      "name": "Ferstad",
+      "led": 5,
+      "stopIds": [
+        "NSR:Quay:75148"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-6",
+      "name": "Munkvoll",
+      "led": 6,
+      "stopIds": [
+        "NSR:Quay:73442"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-7",
+      "name": "Rognheim",
+      "led": 7,
+      "stopIds": [
+        "NSR:Quay:71448"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-8",
+      "name": "Søndre Hoem",
+      "led": 8,
+      "stopIds": [
+        "NSR:Quay:73562"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-9",
+      "name": "Nordre Hoem",
+      "led": 9,
+      "stopIds": [
+        "NSR:Quay:74088"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-10",
+      "name": "Breidablikk",
+      "led": 10,
+      "stopIds": [
+        "NSR:Quay:75322"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-11",
+      "name": "Belvedere",
+      "led": 11,
+      "stopIds": [
+        "NSR:Quay:74896"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-12",
+      "name": "Bygrensen",
+      "led": 12,
+      "stopIds": [
+        "NSR:Quay:75517"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-13",
+      "name": "Nyveibakken",
+      "led": 13,
+      "stopIds": [
+        "NSR:Quay:74338"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-14",
+      "name": "Bergsli gate",
+      "led": 14,
+      "stopIds": [
+        "NSR:Quay:75008"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    },
+    {
+      "id": "grakall-station-15",
+      "name": "Ila",
+      "led": 15,
+      "stopIds": [
+        "NSR:Quay:104110"
+      ],
+      "routes": [
+        "atb-line-9-grakallbanen"
+      ],
+      "type": "station"
+    }
+  ],
+  "render": {
+    "collisionMode": "unknown-direction",
+    "freshnessSeconds": 120,
+    "arrivalRadiusMeters": 65,
+    "maximumTrackDistanceMeters": 250
+  },
+  "status": "prototype-editor-ready"
+}
