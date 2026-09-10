@@ -13,4 +13,5 @@ assert.match(script,/physicalLed:reverse\?all\.length-1-node\.led:node\.led/,"DI
 assert.match(script,/TransitCoreZip\.createZip\(files\(\)\)/,"redigereren skal laste ned en komplett prosjektpakke");
 assert.match(script,/PREVIEW_STORE/,"pakken skal kunne testes med live-data før publisering");
 assert.match(script,/sourceEditor:\s*"grakallbanen"/,"live-testen skal kunne gå tilbake til Gråkallbanen-editoren");
+assert.match(script,/id:"grakallbanen-prototype-board"/,"prototypen skal ha egen tavle-ID og ikke overskrive 47-LED-tavlen");
 console.log("Gråkallbanen prototype editor syntax and export flow OK");
