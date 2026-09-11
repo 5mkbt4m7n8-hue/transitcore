@@ -1,0 +1,628 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-79-live",
+  "name": "AtB buss 79",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_79",
+    "publicCode": "79",
+    "mode": "bus",
+    "longName": "Sluppen/Strindheim - Være - Vikhammeråsen"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Vikhammeråsen",
+      "destinationMatches": [
+        "Vikhammeråsen"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Strindheim / Nidarvoll",
+      "destinationMatches": [
+        "Strindheim",
+        "Nidarvoll"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:72265",
+      "name": "Vikhammeråsen snuplass",
+      "lat": 63.431833,
+      "lon": 10.643105,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:71139",
+      "name": "Planetringen",
+      "lat": 63.432516,
+      "lon": 10.637346,
+      "shapeDistanceMeters": 325.0
+    },
+    {
+      "id": "NSR:Quay:72259",
+      "name": "Vikhammeråsen",
+      "lat": 63.43318,
+      "lon": 10.629713,
+      "shapeDistanceMeters": 734.0
+    },
+    {
+      "id": "NSR:Quay:109165",
+      "name": "Vikhammerdalen",
+      "lat": 63.430669,
+      "lon": 10.628017,
+      "shapeDistanceMeters": 1238.0
+    },
+    {
+      "id": "NSR:Quay:72239",
+      "name": "Vikhammer",
+      "lat": 63.437196,
+      "lon": 10.625499,
+      "shapeDistanceMeters": 2069.0
+    },
+    {
+      "id": "NSR:Quay:72646",
+      "name": "Hansensvingen",
+      "lat": 63.435415,
+      "lon": 10.613579,
+      "shapeDistanceMeters": 2717.0
+    },
+    {
+      "id": "NSR:Quay:102741",
+      "name": "Stibakken",
+      "lat": 63.434057,
+      "lon": 10.604733,
+      "shapeDistanceMeters": 3613.0
+    },
+    {
+      "id": "NSR:Quay:102736",
+      "name": "Sigrid Saxedatters veg",
+      "lat": 63.43334,
+      "lon": 10.598052,
+      "shapeDistanceMeters": 4069.0
+    },
+    {
+      "id": "NSR:Quay:102738",
+      "name": "Saksvikkorsen",
+      "lat": 63.433164,
+      "lon": 10.593631,
+      "shapeDistanceMeters": 4320.0
+    },
+    {
+      "id": "NSR:Quay:103141",
+      "name": "Væresbakken",
+      "lat": 63.430731,
+      "lon": 10.584568,
+      "shapeDistanceMeters": 4883.0
+    },
+    {
+      "id": "NSR:Quay:72580",
+      "name": "Være østre",
+      "lat": 63.431842,
+      "lon": 10.578742,
+      "shapeDistanceMeters": 5233.0
+    },
+    {
+      "id": "NSR:Quay:103340",
+      "name": "Væresletta",
+      "lat": 63.430755,
+      "lon": 10.569534,
+      "shapeDistanceMeters": 5709.0
+    },
+    {
+      "id": "NSR:Quay:103341",
+      "name": "Være",
+      "lat": 63.430277,
+      "lon": 10.565436,
+      "shapeDistanceMeters": 5944.0
+    },
+    {
+      "id": "NSR:Quay:72219",
+      "name": "Vikelvveien",
+      "lat": 63.423752,
+      "lon": 10.541108,
+      "shapeDistanceMeters": 7390.0
+    },
+    {
+      "id": "NSR:Quay:71365",
+      "name": "Leangen",
+      "lat": 63.431851,
+      "lon": 10.476167,
+      "shapeDistanceMeters": 11011.0
+    },
+    {
+      "id": "NSR:Quay:75657",
+      "name": "Gildheim",
+      "lat": 63.434481,
+      "lon": 10.460567,
+      "shapeDistanceMeters": 11851.0
+    },
+    {
+      "id": "NSR:Quay:75313",
+      "name": "Brattøra",
+      "lat": 63.437484,
+      "lon": 10.406882,
+      "shapeDistanceMeters": 15061.0
+    },
+    {
+      "id": "NSR:Quay:71418",
+      "name": "Trondheim S",
+      "lat": 63.435996,
+      "lon": 10.400609,
+      "shapeDistanceMeters": 15551.0
+    },
+    {
+      "id": "NSR:Quay:101521",
+      "name": "Olav Tryggvasons gate",
+      "lat": 63.433292,
+      "lon": 10.397798,
+      "shapeDistanceMeters": 15990.0
+    },
+    {
+      "id": "NSR:Quay:71184",
+      "name": "Prinsens gate",
+      "lat": 63.430874,
+      "lon": 10.391899,
+      "shapeDistanceMeters": 16543.0
+    },
+    {
+      "id": "NSR:Quay:71174",
+      "name": "Nidarosdomen",
+      "lat": 63.425815,
+      "lon": 10.393372,
+      "shapeDistanceMeters": 17113.0
+    },
+    {
+      "id": "NSR:Quay:73103",
+      "name": "Studentersamfundet",
+      "lat": 63.422222,
+      "lon": 10.394384,
+      "shapeDistanceMeters": 17519.0
+    },
+    {
+      "id": "NSR:Quay:102719",
+      "name": "Hesthagen",
+      "lat": 63.416799,
+      "lon": 10.3972,
+      "shapeDistanceMeters": 18144.0
+    },
+    {
+      "id": "NSR:Quay:102720",
+      "name": "Lerkendal",
+      "lat": 63.41174,
+      "lon": 10.399045,
+      "shapeDistanceMeters": 18641.0
+    },
+    {
+      "id": "NSR:Quay:71982",
+      "name": "Valøyvegen",
+      "lat": 63.407852,
+      "lon": 10.398032,
+      "shapeDistanceMeters": 19156.0
+    },
+    {
+      "id": "NSR:Quay:72049",
+      "name": "Siemens",
+      "lat": 63.403719,
+      "lon": 10.398836,
+      "shapeDistanceMeters": 19709.0
+    },
+    {
+      "id": "NSR:Quay:73978",
+      "name": "Nidarvoll skole",
+      "lat": 63.398686,
+      "lon": 10.404892,
+      "shapeDistanceMeters": 20360.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.431834,
+      "lon": 10.642951
+    },
+    {
+      "lat": 63.431971,
+      "lon": 10.643229
+    },
+    {
+      "lat": 63.432537,
+      "lon": 10.639229
+    },
+    {
+      "lat": 63.43232,
+      "lon": 10.634134
+    },
+    {
+      "lat": 63.432569,
+      "lon": 10.632544
+    },
+    {
+      "lat": 63.43316,
+      "lon": 10.630677
+    },
+    {
+      "lat": 63.433134,
+      "lon": 10.62976
+    },
+    {
+      "lat": 63.432733,
+      "lon": 10.628914
+    },
+    {
+      "lat": 63.432073,
+      "lon": 10.628788
+    },
+    {
+      "lat": 63.43109,
+      "lon": 10.630215
+    },
+    {
+      "lat": 63.430679,
+      "lon": 10.630265
+    },
+    {
+      "lat": 63.430256,
+      "lon": 10.629638
+    },
+    {
+      "lat": 63.430078,
+      "lon": 10.628532
+    },
+    {
+      "lat": 63.43272,
+      "lon": 10.626017
+    },
+    {
+      "lat": 63.434582,
+      "lon": 10.626142
+    },
+    {
+      "lat": 63.436275,
+      "lon": 10.627282
+    },
+    {
+      "lat": 63.437281,
+      "lon": 10.626877
+    },
+    {
+      "lat": 63.436896,
+      "lon": 10.621341
+    },
+    {
+      "lat": 63.436346,
+      "lon": 10.61866
+    },
+    {
+      "lat": 63.436072,
+      "lon": 10.616154
+    },
+    {
+      "lat": 63.43519,
+      "lon": 10.613097
+    },
+    {
+      "lat": 63.43453,
+      "lon": 10.611737
+    },
+    {
+      "lat": 63.434374,
+      "lon": 10.610568
+    },
+    {
+      "lat": 63.434835,
+      "lon": 10.607936
+    },
+    {
+      "lat": 63.43643,
+      "lon": 10.605164
+    },
+    {
+      "lat": 63.435824,
+      "lon": 10.603508
+    },
+    {
+      "lat": 63.435375,
+      "lon": 10.603175
+    },
+    {
+      "lat": 63.434517,
+      "lon": 10.603835
+    },
+    {
+      "lat": 63.433675,
+      "lon": 10.605287
+    },
+    {
+      "lat": 63.433464,
+      "lon": 10.603626
+    },
+    {
+      "lat": 63.433828,
+      "lon": 10.602166
+    },
+    {
+      "lat": 63.433187,
+      "lon": 10.599741
+    },
+    {
+      "lat": 63.433327,
+      "lon": 10.597792
+    },
+    {
+      "lat": 63.432852,
+      "lon": 10.596133
+    },
+    {
+      "lat": 63.433171,
+      "lon": 10.593044
+    },
+    {
+      "lat": 63.432158,
+      "lon": 10.591267
+    },
+    {
+      "lat": 63.432138,
+      "lon": 10.590122
+    },
+    {
+      "lat": 63.431054,
+      "lon": 10.587609
+    },
+    {
+      "lat": 63.430707,
+      "lon": 10.585612
+    },
+    {
+      "lat": 63.430741,
+      "lon": 10.582652
+    },
+    {
+      "lat": 63.431489,
+      "lon": 10.581665
+    },
+    {
+      "lat": 63.431787,
+      "lon": 10.580076
+    },
+    {
+      "lat": 63.431632,
+      "lon": 10.576652
+    },
+    {
+      "lat": 63.430608,
+      "lon": 10.568453
+    },
+    {
+      "lat": 63.430642,
+      "lon": 10.567764
+    },
+    {
+      "lat": 63.430842,
+      "lon": 10.567429
+    },
+    {
+      "lat": 63.425498,
+      "lon": 10.551458
+    },
+    {
+      "lat": 63.424367,
+      "lon": 10.546135
+    },
+    {
+      "lat": 63.424129,
+      "lon": 10.541982
+    },
+    {
+      "lat": 63.422876,
+      "lon": 10.539993
+    },
+    {
+      "lat": 63.422546,
+      "lon": 10.539012
+    },
+    {
+      "lat": 63.422305,
+      "lon": 10.536944
+    },
+    {
+      "lat": 63.422214,
+      "lon": 10.533391
+    },
+    {
+      "lat": 63.422619,
+      "lon": 10.527468
+    },
+    {
+      "lat": 63.423434,
+      "lon": 10.522679
+    },
+    {
+      "lat": 63.424353,
+      "lon": 10.519445
+    },
+    {
+      "lat": 63.4267,
+      "lon": 10.512696
+    },
+    {
+      "lat": 63.428522,
+      "lon": 10.503359
+    },
+    {
+      "lat": 63.430698,
+      "lon": 10.496423
+    },
+    {
+      "lat": 63.431524,
+      "lon": 10.492472
+    },
+    {
+      "lat": 63.431623,
+      "lon": 10.490609
+    },
+    {
+      "lat": 63.431035,
+      "lon": 10.484229
+    },
+    {
+      "lat": 63.431151,
+      "lon": 10.481876
+    },
+    {
+      "lat": 63.432776,
+      "lon": 10.467844
+    },
+    {
+      "lat": 63.433565,
+      "lon": 10.463796
+    },
+    {
+      "lat": 63.435219,
+      "lon": 10.457121
+    },
+    {
+      "lat": 63.435538,
+      "lon": 10.45472
+    },
+    {
+      "lat": 63.435518,
+      "lon": 10.452172
+    },
+    {
+      "lat": 63.435746,
+      "lon": 10.449868
+    },
+    {
+      "lat": 63.432931,
+      "lon": 10.433603
+    },
+    {
+      "lat": 63.432574,
+      "lon": 10.430277
+    },
+    {
+      "lat": 63.432614,
+      "lon": 10.426386
+    },
+    {
+      "lat": 63.433087,
+      "lon": 10.422966
+    },
+    {
+      "lat": 63.433778,
+      "lon": 10.420458
+    },
+    {
+      "lat": 63.434819,
+      "lon": 10.418736
+    },
+    {
+      "lat": 63.436918,
+      "lon": 10.417451
+    },
+    {
+      "lat": 63.43743,
+      "lon": 10.416277
+    },
+    {
+      "lat": 63.437704,
+      "lon": 10.41491
+    },
+    {
+      "lat": 63.437467,
+      "lon": 10.413184
+    },
+    {
+      "lat": 63.437505,
+      "lon": 10.412031
+    },
+    {
+      "lat": 63.438091,
+      "lon": 10.408336
+    },
+    {
+      "lat": 63.438415,
+      "lon": 10.407385
+    },
+    {
+      "lat": 63.435567,
+      "lon": 10.405664
+    },
+    {
+      "lat": 63.435507,
+      "lon": 10.405318
+    },
+    {
+      "lat": 63.435973,
+      "lon": 10.403179
+    },
+    {
+      "lat": 63.43591,
+      "lon": 10.400034
+    },
+    {
+      "lat": 63.43332,
+      "lon": 10.400204
+    },
+    {
+      "lat": 63.433021,
+      "lon": 10.391594
+    },
+    {
+      "lat": 63.422668,
+      "lon": 10.394307
+    },
+    {
+      "lat": 63.412924,
+      "lon": 10.39898
+    },
+    {
+      "lat": 63.409113,
+      "lon": 10.398711
+    },
+    {
+      "lat": 63.404513,
+      "lon": 10.396692
+    },
+    {
+      "lat": 63.404329,
+      "lon": 10.398723
+    },
+    {
+      "lat": 63.403114,
+      "lon": 10.399354
+    },
+    {
+      "lat": 63.401805,
+      "lon": 10.401446
+    },
+    {
+      "lat": 63.398708,
+      "lon": 10.404993
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Vikhammeråsen snuplass - Nidarvoll skole",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_79",
+    "shapeId": "ATB:JourneyPattern:79_Inbound_251215112494203_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

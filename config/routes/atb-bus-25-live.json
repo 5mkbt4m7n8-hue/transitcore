@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-25-live",
+  "name": "AtB buss 25",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_25",
+    "publicCode": "25",
+    "mode": "bus",
+    "longName": "Vikåsen- Strindheim- Singsaker"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Hurtigbåtterm. / Gløshaugen",
+      "destinationMatches": [
+        "Hurtigbåtterm.",
+        "Gløshaugen"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Vikåsen",
+      "destinationMatches": [
+        "Vikåsen"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": true
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:72691",
+      "name": "Markaplassen skole",
+      "lat": 63.413787,
+      "lon": 10.529864,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:72299",
+      "name": "Vikåsen",
+      "lat": 63.414679,
+      "lon": 10.530556,
+      "shapeDistanceMeters": 131.0
+    },
+    {
+      "id": "NSR:Quay:72303",
+      "name": "Vikåsen nedre",
+      "lat": 63.417095,
+      "lon": 10.533862,
+      "shapeDistanceMeters": 511.0
+    },
+    {
+      "id": "NSR:Quay:72684",
+      "name": "Markaplassen",
+      "lat": 63.415664,
+      "lon": 10.535843,
+      "shapeDistanceMeters": 727.0
+    },
+    {
+      "id": "NSR:Quay:72309",
+      "name": "Vikåsen skole",
+      "lat": 63.412619,
+      "lon": 10.53793,
+      "shapeDistanceMeters": 1143.0
+    },
+    {
+      "id": "NSR:Quay:74580",
+      "name": "Dolpa",
+      "lat": 63.417784,
+      "lon": 10.539679,
+      "shapeDistanceMeters": 1937.0
+    },
+    {
+      "id": "NSR:Quay:72219",
+      "name": "Vikelvveien",
+      "lat": 63.423752,
+      "lon": 10.541108,
+      "shapeDistanceMeters": 2804.0
+    },
+    {
+      "id": "NSR:Quay:71247",
+      "name": "Ranheim fabrikker",
+      "lat": 63.421847,
+      "lon": 10.536042,
+      "shapeDistanceMeters": 3184.0
+    },
+    {
+      "id": "NSR:Quay:74604",
+      "name": "Olderdalen",
+      "lat": 63.422507,
+      "lon": 10.525283,
+      "shapeDistanceMeters": 3783.0
+    },
+    {
+      "id": "NSR:Quay:71161",
+      "name": "Presthus",
+      "lat": 63.423752,
+      "lon": 10.519554,
+      "shapeDistanceMeters": 4101.0
+    },
+    {
+      "id": "NSR:Quay:74672",
+      "name": "Askeladdvegen",
+      "lat": 63.426057,
+      "lon": 10.5079,
+      "shapeDistanceMeters": 4742.0
+    },
+    {
+      "id": "NSR:Quay:102732",
+      "name": "Skovgård",
+      "lat": 63.429671,
+      "lon": 10.493327,
+      "shapeDistanceMeters": 5587.0
+    },
+    {
+      "id": "NSR:Quay:71365",
+      "name": "Leangen",
+      "lat": 63.431851,
+      "lon": 10.476167,
+      "shapeDistanceMeters": 6500.0
+    },
+    {
+      "id": "NSR:Quay:75657",
+      "name": "Gildheim",
+      "lat": 63.434481,
+      "lon": 10.460567,
+      "shapeDistanceMeters": 7340.0
+    },
+    {
+      "id": "NSR:Quay:73034",
+      "name": "Strindheim",
+      "lat": 63.435506,
+      "lon": 10.45548,
+      "shapeDistanceMeters": 7633.0
+    },
+    {
+      "id": "NSR:Quay:74497",
+      "name": "Dalen Hageby",
+      "lat": 63.437512,
+      "lon": 10.448049,
+      "shapeDistanceMeters": 8079.0
+    },
+    {
+      "id": "NSR:Quay:71687",
+      "name": "Rønningsbakken",
+      "lat": 63.437178,
+      "lon": 10.43725,
+      "shapeDistanceMeters": 8636.0
+    },
+    {
+      "id": "NSR:Quay:109685",
+      "name": "Gamle Kongevei",
+      "lat": 63.435651,
+      "lon": 10.429861,
+      "shapeDistanceMeters": 9093.0
+    },
+    {
+      "id": "NSR:Quay:72616",
+      "name": "Weidemannsveien",
+      "lat": 63.433131,
+      "lon": 10.426401,
+      "shapeDistanceMeters": 9456.0
+    },
+    {
+      "id": "NSR:Quay:72405",
+      "name": "Gyldenløves gate",
+      "lat": 63.43071,
+      "lon": 10.420049,
+      "shapeDistanceMeters": 9872.0
+    },
+    {
+      "id": "NSR:Quay:75155",
+      "name": "Festningsgata",
+      "lat": 63.42758,
+      "lon": 10.416348,
+      "shapeDistanceMeters": 10311.0
+    },
+    {
+      "id": "NSR:Quay:74606",
+      "name": "Ankers gate",
+      "lat": 63.42486,
+      "lon": 10.416655,
+      "shapeDistanceMeters": 10625.0
+    },
+    {
+      "id": "NSR:Quay:73880",
+      "name": "Jonsvannsveien",
+      "lat": 63.42271,
+      "lon": 10.413242,
+      "shapeDistanceMeters": 10927.0
+    },
+    {
+      "id": "NSR:Quay:71939",
+      "name": "Høgskoleringen",
+      "lat": 63.420867,
+      "lon": 10.404181,
+      "shapeDistanceMeters": 11543.0
+    },
+    {
+      "id": "NSR:Quay:73100",
+      "name": "Studentersamfundet",
+      "lat": 63.42279,
+      "lon": 10.395173,
+      "shapeDistanceMeters": 12047.0
+    },
+    {
+      "id": "NSR:Quay:71175",
+      "name": "Nidarosdomen",
+      "lat": 63.426072,
+      "lon": 10.393608,
+      "shapeDistanceMeters": 12451.0
+    },
+    {
+      "id": "NSR:Quay:71181",
+      "name": "Prinsens gate",
+      "lat": 63.431194,
+      "lon": 10.392115,
+      "shapeDistanceMeters": 13030.0
+    },
+    {
+      "id": "NSR:Quay:73571",
+      "name": "Søndre gate",
+      "lat": 63.433858,
+      "lon": 10.40033,
+      "shapeDistanceMeters": 13728.0
+    },
+    {
+      "id": "NSR:Quay:71416",
+      "name": "Trondheim S",
+      "lat": 63.435855,
+      "lon": 10.401263,
+      "shapeDistanceMeters": 14019.0
+    },
+    {
+      "id": "NSR:Quay:75314",
+      "name": "Brattøra",
+      "lat": 63.437653,
+      "lon": 10.407343,
+      "shapeDistanceMeters": 14532.0
+    },
+    {
+      "id": "NSR:Quay:71795",
+      "name": "Trondheim hurtigbåtterminal",
+      "lat": 63.43821,
+      "lon": 10.399804,
+      "shapeDistanceMeters": 15190.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.413838,
+      "lon": 10.529854
+    },
+    {
+      "lat": 63.413858,
+      "lon": 10.530653
+    },
+    {
+      "lat": 63.415123,
+      "lon": 10.530416
+    },
+    {
+      "lat": 63.416886,
+      "lon": 10.531648
+    },
+    {
+      "lat": 63.417149,
+      "lon": 10.532483
+    },
+    {
+      "lat": 63.417081,
+      "lon": 10.534637
+    },
+    {
+      "lat": 63.416627,
+      "lon": 10.53552
+    },
+    {
+      "lat": 63.414451,
+      "lon": 10.536624
+    },
+    {
+      "lat": 63.413393,
+      "lon": 10.535623
+    },
+    {
+      "lat": 63.412013,
+      "lon": 10.540097
+    },
+    {
+      "lat": 63.413905,
+      "lon": 10.541273
+    },
+    {
+      "lat": 63.415234,
+      "lon": 10.541467
+    },
+    {
+      "lat": 63.416505,
+      "lon": 10.540907
+    },
+    {
+      "lat": 63.418304,
+      "lon": 10.538935
+    },
+    {
+      "lat": 63.419183,
+      "lon": 10.538712
+    },
+    {
+      "lat": 63.419999,
+      "lon": 10.539592
+    },
+    {
+      "lat": 63.420991,
+      "lon": 10.541836
+    },
+    {
+      "lat": 63.422732,
+      "lon": 10.543209
+    },
+    {
+      "lat": 63.42329,
+      "lon": 10.543153
+    },
+    {
+      "lat": 63.42397,
+      "lon": 10.542363
+    },
+    {
+      "lat": 63.423857,
+      "lon": 10.541463
+    },
+    {
+      "lat": 63.422436,
+      "lon": 10.540306
+    },
+    {
+      "lat": 63.422016,
+      "lon": 10.538906
+    },
+    {
+      "lat": 63.421474,
+      "lon": 10.533341
+    },
+    {
+      "lat": 63.421905,
+      "lon": 10.530422
+    },
+    {
+      "lat": 63.422027,
+      "lon": 10.527268
+    },
+    {
+      "lat": 63.423845,
+      "lon": 10.518489
+    },
+    {
+      "lat": 63.424293,
+      "lon": 10.517571
+    },
+    {
+      "lat": 63.424617,
+      "lon": 10.516081
+    },
+    {
+      "lat": 63.427047,
+      "lon": 10.502
+    },
+    {
+      "lat": 63.429619,
+      "lon": 10.493262
+    },
+    {
+      "lat": 63.430505,
+      "lon": 10.488595
+    },
+    {
+      "lat": 63.430916,
+      "lon": 10.487645
+    },
+    {
+      "lat": 63.431095,
+      "lon": 10.482234
+    },
+    {
+      "lat": 63.432656,
+      "lon": 10.468592
+    },
+    {
+      "lat": 63.433565,
+      "lon": 10.463796
+    },
+    {
+      "lat": 63.435211,
+      "lon": 10.457264
+    },
+    {
+      "lat": 63.435153,
+      "lon": 10.456692
+    },
+    {
+      "lat": 63.435353,
+      "lon": 10.455824
+    },
+    {
+      "lat": 63.437221,
+      "lon": 10.450718
+    },
+    {
+      "lat": 63.437824,
+      "lon": 10.442546
+    },
+    {
+      "lat": 63.437724,
+      "lon": 10.440492
+    },
+    {
+      "lat": 63.437047,
+      "lon": 10.436772
+    },
+    {
+      "lat": 63.436747,
+      "lon": 10.431085
+    },
+    {
+      "lat": 63.436184,
+      "lon": 10.430847
+    },
+    {
+      "lat": 63.435259,
+      "lon": 10.429333
+    },
+    {
+      "lat": 63.433851,
+      "lon": 10.428956
+    },
+    {
+      "lat": 63.432863,
+      "lon": 10.425772
+    },
+    {
+      "lat": 63.429214,
+      "lon": 10.416187
+    },
+    {
+      "lat": 63.425109,
+      "lon": 10.416973
+    },
+    {
+      "lat": 63.423566,
+      "lon": 10.415394
+    },
+    {
+      "lat": 63.422061,
+      "lon": 10.411674
+    },
+    {
+      "lat": 63.420506,
+      "lon": 10.408555
+    },
+    {
+      "lat": 63.420023,
+      "lon": 10.406663
+    },
+    {
+      "lat": 63.420077,
+      "lon": 10.405663
+    },
+    {
+      "lat": 63.421359,
+      "lon": 10.402841
+    },
+    {
+      "lat": 63.422261,
+      "lon": 10.398435
+    },
+    {
+      "lat": 63.422858,
+      "lon": 10.394374
+    },
+    {
+      "lat": 63.433021,
+      "lon": 10.391594
+    },
+    {
+      "lat": 63.43332,
+      "lon": 10.400204
+    },
+    {
+      "lat": 63.43591,
+      "lon": 10.400034
+    },
+    {
+      "lat": 63.435912,
+      "lon": 10.403435
+    },
+    {
+      "lat": 63.435339,
+      "lon": 10.405631
+    },
+    {
+      "lat": 63.438254,
+      "lon": 10.407766
+    },
+    {
+      "lat": 63.4397,
+      "lon": 10.404948
+    },
+    {
+      "lat": 63.437893,
+      "lon": 10.400904
+    },
+    {
+      "lat": 63.437864,
+      "lon": 10.400421
+    },
+    {
+      "lat": 63.438197,
+      "lon": 10.399767
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Markaplassen skole - Trondheim hurtigbåtterminal",
+    "supportedShortTurns": [
+      "Vikåsen skole - Trondheim hurtigbåtterminal"
+    ]
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_25",
+    "shapeId": "ATB:JourneyPattern:25_Outbound_251215112493910_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

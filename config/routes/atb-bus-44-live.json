@@ -1,0 +1,301 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-44-live",
+  "name": "AtB buss 44",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_44",
+    "publicCode": "44",
+    "mode": "bus",
+    "longName": "Ranheim - Være"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Værestrøa",
+      "destinationMatches": [
+        "Værestrøa"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Grillstad",
+      "destinationMatches": [
+        "Grillstad"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": true
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:102726",
+      "name": "Skonnertvegen",
+      "lat": 63.433588,
+      "lon": 10.508181,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:102722",
+      "name": "Anders Søyseths veg",
+      "lat": 63.432493,
+      "lon": 10.510649,
+      "shapeDistanceMeters": 222.0
+    },
+    {
+      "id": "NSR:Quay:71250",
+      "name": "Ranheim idrettsplass",
+      "lat": 63.427672,
+      "lon": 10.52388,
+      "shapeDistanceMeters": 1125.0
+    },
+    {
+      "id": "NSR:Quay:74982",
+      "name": "Ranheim",
+      "lat": 63.424913,
+      "lon": 10.534196,
+      "shapeDistanceMeters": 1858.0
+    },
+    {
+      "id": "NSR:Quay:73777",
+      "name": "Nedre Humlehaugen vest",
+      "lat": 63.426985,
+      "lon": 10.535443,
+      "shapeDistanceMeters": 2209.0
+    },
+    {
+      "id": "NSR:Quay:73787",
+      "name": "Nedre Humlehaugen øst",
+      "lat": 63.428246,
+      "lon": 10.537509,
+      "shapeDistanceMeters": 2402.0
+    },
+    {
+      "id": "NSR:Quay:74935",
+      "name": "Engstrømbakken",
+      "lat": 63.42951,
+      "lon": 10.543244,
+      "shapeDistanceMeters": 2741.0
+    },
+    {
+      "id": "NSR:Quay:74161",
+      "name": "Klokkerplassen",
+      "lat": 63.428542,
+      "lon": 10.551319,
+      "shapeDistanceMeters": 3177.0
+    },
+    {
+      "id": "NSR:Quay:72571",
+      "name": "Være Ranheimsvegen",
+      "lat": 63.430287,
+      "lon": 10.564248,
+      "shapeDistanceMeters": 3924.0
+    },
+    {
+      "id": "NSR:Quay:103339",
+      "name": "Væresletta",
+      "lat": 63.430722,
+      "lon": 10.570127,
+      "shapeDistanceMeters": 4250.0
+    },
+    {
+      "id": "NSR:Quay:72579",
+      "name": "Være østre",
+      "lat": 63.431734,
+      "lon": 10.578989,
+      "shapeDistanceMeters": 4708.0
+    },
+    {
+      "id": "NSR:Quay:72583",
+      "name": "Væresbakken",
+      "lat": 63.431242,
+      "lon": 10.583895,
+      "shapeDistanceMeters": 5074.0
+    },
+    {
+      "id": "NSR:Quay:72601",
+      "name": "Værestrøa",
+      "lat": 63.434001,
+      "lon": 10.586995,
+      "shapeDistanceMeters": 5430.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.43364,
+      "lon": 10.508215
+    },
+    {
+      "lat": 63.433488,
+      "lon": 10.509161
+    },
+    {
+      "lat": 63.432775,
+      "lon": 10.50895
+    },
+    {
+      "lat": 63.432195,
+      "lon": 10.512682
+    },
+    {
+      "lat": 63.430982,
+      "lon": 10.516548
+    },
+    {
+      "lat": 63.428403,
+      "lon": 10.519624
+    },
+    {
+      "lat": 63.427571,
+      "lon": 10.525118
+    },
+    {
+      "lat": 63.427295,
+      "lon": 10.528403
+    },
+    {
+      "lat": 63.427367,
+      "lon": 10.530221
+    },
+    {
+      "lat": 63.426925,
+      "lon": 10.530826
+    },
+    {
+      "lat": 63.426134,
+      "lon": 10.530344
+    },
+    {
+      "lat": 63.425721,
+      "lon": 10.530599
+    },
+    {
+      "lat": 63.4252,
+      "lon": 10.532482
+    },
+    {
+      "lat": 63.424769,
+      "lon": 10.535805
+    },
+    {
+      "lat": 63.424911,
+      "lon": 10.536139
+    },
+    {
+      "lat": 63.425286,
+      "lon": 10.535588
+    },
+    {
+      "lat": 63.426869,
+      "lon": 10.535321
+    },
+    {
+      "lat": 63.427745,
+      "lon": 10.535843
+    },
+    {
+      "lat": 63.428168,
+      "lon": 10.536833
+    },
+    {
+      "lat": 63.428415,
+      "lon": 10.538792
+    },
+    {
+      "lat": 63.428901,
+      "lon": 10.539723
+    },
+    {
+      "lat": 63.429351,
+      "lon": 10.542023
+    },
+    {
+      "lat": 63.429713,
+      "lon": 10.544818
+    },
+    {
+      "lat": 63.429142,
+      "lon": 10.547134
+    },
+    {
+      "lat": 63.428599,
+      "lon": 10.551357
+    },
+    {
+      "lat": 63.428383,
+      "lon": 10.557759
+    },
+    {
+      "lat": 63.430505,
+      "lon": 10.564197
+    },
+    {
+      "lat": 63.430086,
+      "lon": 10.565057
+    },
+    {
+      "lat": 63.430761,
+      "lon": 10.567179
+    },
+    {
+      "lat": 63.430608,
+      "lon": 10.568453
+    },
+    {
+      "lat": 63.431718,
+      "lon": 10.57759
+    },
+    {
+      "lat": 63.431705,
+      "lon": 10.580967
+    },
+    {
+      "lat": 63.431489,
+      "lon": 10.581665
+    },
+    {
+      "lat": 63.430806,
+      "lon": 10.582442
+    },
+    {
+      "lat": 63.430672,
+      "lon": 10.583831
+    },
+    {
+      "lat": 63.431422,
+      "lon": 10.583964
+    },
+    {
+      "lat": 63.432396,
+      "lon": 10.585238
+    },
+    {
+      "lat": 63.432889,
+      "lon": 10.585313
+    },
+    {
+      "lat": 63.434009,
+      "lon": 10.586897
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Skonnertvegen - Værestrøa",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_44",
+    "shapeId": "ATB:JourneyPattern:44_Outbound_251215112494208_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

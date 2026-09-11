@@ -1,0 +1,478 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-85-live",
+  "name": "AtB buss 85",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_85",
+    "publicCode": "85",
+    "mode": "bus",
+    "longName": "Hommelvik- Sneisen"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Sneisen",
+      "destinationMatches": [
+        "Sneisen"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Hommelvik",
+      "destinationMatches": [
+        "Hommelvik"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:73836",
+      "name": "Sneisen",
+      "lat": 63.331175,
+      "lon": 10.808546,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:103146",
+      "name": "Hallvardsplassen",
+      "lat": 63.34015,
+      "lon": 10.794365,
+      "shapeDistanceMeters": 1491.0
+    },
+    {
+      "id": "NSR:Quay:103161",
+      "name": "Verket",
+      "lat": 63.350954,
+      "lon": 10.773326,
+      "shapeDistanceMeters": 3468.0
+    },
+    {
+      "id": "NSR:Quay:74008",
+      "name": "Karlstad",
+      "lat": 63.354945,
+      "lon": 10.779656,
+      "shapeDistanceMeters": 4071.0
+    },
+    {
+      "id": "NSR:Quay:103581",
+      "name": "Bakken snuplass",
+      "lat": 63.36702,
+      "lon": 10.759802,
+      "shapeDistanceMeters": 6166.0
+    },
+    {
+      "id": "NSR:Quay:74801",
+      "name": "Bakken",
+      "lat": 63.368611,
+      "lon": 10.764123,
+      "shapeDistanceMeters": 6466.0
+    },
+    {
+      "id": "NSR:Quay:103151",
+      "name": "Fossmo",
+      "lat": 63.375649,
+      "lon": 10.766937,
+      "shapeDistanceMeters": 7565.0
+    },
+    {
+      "id": "NSR:Quay:103159",
+      "name": "Fossen gård",
+      "lat": 63.378875,
+      "lon": 10.772191,
+      "shapeDistanceMeters": 8024.0
+    },
+    {
+      "id": "NSR:Quay:103157",
+      "name": "Fosslidalen",
+      "lat": 63.380866,
+      "lon": 10.771041,
+      "shapeDistanceMeters": 8260.0
+    },
+    {
+      "id": "NSR:Quay:72515",
+      "name": "Halla",
+      "lat": 63.387537,
+      "lon": 10.776917,
+      "shapeDistanceMeters": 9490.0
+    },
+    {
+      "id": "NSR:Quay:103155",
+      "name": "Buås",
+      "lat": 63.392783,
+      "lon": 10.782885,
+      "shapeDistanceMeters": 10159.0
+    },
+    {
+      "id": "NSR:Quay:103150",
+      "name": "Grindbakken",
+      "lat": 63.397491,
+      "lon": 10.789985,
+      "shapeDistanceMeters": 10793.0
+    },
+    {
+      "id": "NSR:Quay:103148",
+      "name": "Modalen",
+      "lat": 63.399682,
+      "lon": 10.793555,
+      "shapeDistanceMeters": 11112.0
+    },
+    {
+      "id": "NSR:Quay:103154",
+      "name": "Storbergveien",
+      "lat": 63.402195,
+      "lon": 10.794888,
+      "shapeDistanceMeters": 11420.0
+    },
+    {
+      "id": "NSR:Quay:72140",
+      "name": "Isdammen",
+      "lat": 63.405764,
+      "lon": 10.793391,
+      "shapeDistanceMeters": 11855.0
+    },
+    {
+      "id": "NSR:Quay:71578",
+      "name": "Hommelvik stasjon",
+      "lat": 63.411429,
+      "lon": 10.794853,
+      "shapeDistanceMeters": 12503.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.331159,
+      "lon": 10.808308
+    },
+    {
+      "lat": 63.331495,
+      "lon": 10.805586
+    },
+    {
+      "lat": 63.333738,
+      "lon": 10.799696
+    },
+    {
+      "lat": 63.334102,
+      "lon": 10.797661
+    },
+    {
+      "lat": 63.335477,
+      "lon": 10.795485
+    },
+    {
+      "lat": 63.336972,
+      "lon": 10.79218
+    },
+    {
+      "lat": 63.337426,
+      "lon": 10.791754
+    },
+    {
+      "lat": 63.337818,
+      "lon": 10.791854
+    },
+    {
+      "lat": 63.338186,
+      "lon": 10.792366
+    },
+    {
+      "lat": 63.338796,
+      "lon": 10.794237
+    },
+    {
+      "lat": 63.33942,
+      "lon": 10.794655
+    },
+    {
+      "lat": 63.340664,
+      "lon": 10.793716
+    },
+    {
+      "lat": 63.341357,
+      "lon": 10.792278
+    },
+    {
+      "lat": 63.342464,
+      "lon": 10.792262
+    },
+    {
+      "lat": 63.34443,
+      "lon": 10.78937
+    },
+    {
+      "lat": 63.345649,
+      "lon": 10.788427
+    },
+    {
+      "lat": 63.345965,
+      "lon": 10.783984
+    },
+    {
+      "lat": 63.346343,
+      "lon": 10.781883
+    },
+    {
+      "lat": 63.346299,
+      "lon": 10.780622
+    },
+    {
+      "lat": 63.345888,
+      "lon": 10.778387
+    },
+    {
+      "lat": 63.34593,
+      "lon": 10.777677
+    },
+    {
+      "lat": 63.3469,
+      "lon": 10.776062
+    },
+    {
+      "lat": 63.347222,
+      "lon": 10.77388
+    },
+    {
+      "lat": 63.347745,
+      "lon": 10.772496
+    },
+    {
+      "lat": 63.348607,
+      "lon": 10.772213
+    },
+    {
+      "lat": 63.350885,
+      "lon": 10.773363
+    },
+    {
+      "lat": 63.351698,
+      "lon": 10.773219
+    },
+    {
+      "lat": 63.352976,
+      "lon": 10.776316
+    },
+    {
+      "lat": 63.355091,
+      "lon": 10.779544
+    },
+    {
+      "lat": 63.355092,
+      "lon": 10.779255
+    },
+    {
+      "lat": 63.356891,
+      "lon": 10.780963
+    },
+    {
+      "lat": 63.358418,
+      "lon": 10.781257
+    },
+    {
+      "lat": 63.361263,
+      "lon": 10.778667
+    },
+    {
+      "lat": 63.361676,
+      "lon": 10.777868
+    },
+    {
+      "lat": 63.362257,
+      "lon": 10.775536
+    },
+    {
+      "lat": 63.36331,
+      "lon": 10.773915
+    },
+    {
+      "lat": 63.364408,
+      "lon": 10.770592
+    },
+    {
+      "lat": 63.365606,
+      "lon": 10.769913
+    },
+    {
+      "lat": 63.36599,
+      "lon": 10.769227
+    },
+    {
+      "lat": 63.366638,
+      "lon": 10.76622
+    },
+    {
+      "lat": 63.368068,
+      "lon": 10.763415
+    },
+    {
+      "lat": 63.367928,
+      "lon": 10.762002
+    },
+    {
+      "lat": 63.367063,
+      "lon": 10.75988
+    },
+    {
+      "lat": 63.367928,
+      "lon": 10.762002
+    },
+    {
+      "lat": 63.368068,
+      "lon": 10.763415
+    },
+    {
+      "lat": 63.368578,
+      "lon": 10.763881
+    },
+    {
+      "lat": 63.369081,
+      "lon": 10.766425
+    },
+    {
+      "lat": 63.371722,
+      "lon": 10.770502
+    },
+    {
+      "lat": 63.373154,
+      "lon": 10.772006
+    },
+    {
+      "lat": 63.37382,
+      "lon": 10.771386
+    },
+    {
+      "lat": 63.374526,
+      "lon": 10.769001
+    },
+    {
+      "lat": 63.374629,
+      "lon": 10.767307
+    },
+    {
+      "lat": 63.375011,
+      "lon": 10.766794
+    },
+    {
+      "lat": 63.375904,
+      "lon": 10.766959
+    },
+    {
+      "lat": 63.376439,
+      "lon": 10.767555
+    },
+    {
+      "lat": 63.378884,
+      "lon": 10.772202
+    },
+    {
+      "lat": 63.379713,
+      "lon": 10.772153
+    },
+    {
+      "lat": 63.380721,
+      "lon": 10.77121
+    },
+    {
+      "lat": 63.381034,
+      "lon": 10.770411
+    },
+    {
+      "lat": 63.380964,
+      "lon": 10.769709
+    },
+    {
+      "lat": 63.380106,
+      "lon": 10.767441
+    },
+    {
+      "lat": 63.380205,
+      "lon": 10.766994
+    },
+    {
+      "lat": 63.383797,
+      "lon": 10.773375
+    },
+    {
+      "lat": 63.384675,
+      "lon": 10.774089
+    },
+    {
+      "lat": 63.385773,
+      "lon": 10.775832
+    },
+    {
+      "lat": 63.388877,
+      "lon": 10.777834
+    },
+    {
+      "lat": 63.391556,
+      "lon": 10.780486
+    },
+    {
+      "lat": 63.392704,
+      "lon": 10.782689
+    },
+    {
+      "lat": 63.393436,
+      "lon": 10.783395
+    },
+    {
+      "lat": 63.398784,
+      "lon": 10.791788
+    },
+    {
+      "lat": 63.400352,
+      "lon": 10.794745
+    },
+    {
+      "lat": 63.401067,
+      "lon": 10.795541
+    },
+    {
+      "lat": 63.401646,
+      "lon": 10.795515
+    },
+    {
+      "lat": 63.402751,
+      "lon": 10.794417
+    },
+    {
+      "lat": 63.40485,
+      "lon": 10.794802
+    },
+    {
+      "lat": 63.405272,
+      "lon": 10.794416
+    },
+    {
+      "lat": 63.405729,
+      "lon": 10.793337
+    },
+    {
+      "lat": 63.411436,
+      "lon": 10.794828
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Sneisen - Hommelvik stasjon",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_85",
+    "shapeId": "ATB:JourneyPattern:85_Inbound_251215112493863_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

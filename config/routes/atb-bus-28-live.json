@@ -1,0 +1,369 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-28-live",
+  "name": "AtB buss 28",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_28",
+    "publicCode": "28",
+    "mode": "bus",
+    "longName": "Ilsvika-Pirbadet via Singsaker"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Ilsvika",
+      "destinationMatches": [
+        "Ilsvika"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Pirbadet",
+      "destinationMatches": [
+        "Pirbadet"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:72068",
+      "name": "Ilsvika",
+      "lat": 63.431122,
+      "lon": 10.357101,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:72052",
+      "name": "Ila",
+      "lat": 63.429273,
+      "lon": 10.368272,
+      "shapeDistanceMeters": 1220.0
+    },
+    {
+      "id": "NSR:Quay:72212",
+      "name": "Skansen",
+      "lat": 63.429731,
+      "lon": 10.371861,
+      "shapeDistanceMeters": 1406.0
+    },
+    {
+      "id": "NSR:Quay:74264",
+      "name": "Kongens gate",
+      "lat": 63.430542,
+      "lon": 10.391548,
+      "shapeDistanceMeters": 2636.0
+    },
+    {
+      "id": "NSR:Quay:71174",
+      "name": "Nidarosdomen",
+      "lat": 63.425815,
+      "lon": 10.393372,
+      "shapeDistanceMeters": 3195.0
+    },
+    {
+      "id": "NSR:Quay:73102",
+      "name": "Studentersamfundet",
+      "lat": 63.422665,
+      "lon": 10.395227,
+      "shapeDistanceMeters": 3578.0
+    },
+    {
+      "id": "NSR:Quay:71940",
+      "name": "Høgskoleringen",
+      "lat": 63.420675,
+      "lon": 10.404345,
+      "shapeDistanceMeters": 4096.0
+    },
+    {
+      "id": "NSR:Quay:73881",
+      "name": "Jonsvannsveien",
+      "lat": 63.42261,
+      "lon": 10.413398,
+      "shapeDistanceMeters": 4690.0
+    },
+    {
+      "id": "NSR:Quay:74605",
+      "name": "Ankers gate",
+      "lat": 63.42486,
+      "lon": 10.416855,
+      "shapeDistanceMeters": 4997.0
+    },
+    {
+      "id": "NSR:Quay:75156",
+      "name": "Festningsgata",
+      "lat": 63.428185,
+      "lon": 10.416337,
+      "shapeDistanceMeters": 5369.0
+    },
+    {
+      "id": "NSR:Quay:72406",
+      "name": "Gyldenløves gate",
+      "lat": 63.430287,
+      "lon": 10.419199,
+      "shapeDistanceMeters": 5679.0
+    },
+    {
+      "id": "NSR:Quay:72617",
+      "name": "Weidemannsveien",
+      "lat": 63.433598,
+      "lon": 10.428246,
+      "shapeDistanceMeters": 6264.0
+    },
+    {
+      "id": "NSR:Quay:109684",
+      "name": "Gamle Kongevei",
+      "lat": 63.435999,
+      "lon": 10.430682,
+      "shapeDistanceMeters": 6577.0
+    },
+    {
+      "id": "NSR:Quay:103009",
+      "name": "Buran",
+      "lat": 63.436496,
+      "lon": 10.425779,
+      "shapeDistanceMeters": 6930.0
+    },
+    {
+      "id": "NSR:Quay:102714",
+      "name": "Dyre Halses gate",
+      "lat": 63.437025,
+      "lon": 10.413972,
+      "shapeDistanceMeters": 7601.0
+    },
+    {
+      "id": "NSR:Quay:75314",
+      "name": "Brattøra",
+      "lat": 63.437653,
+      "lon": 10.407343,
+      "shapeDistanceMeters": 8582.0
+    },
+    {
+      "id": "NSR:Quay:71134",
+      "name": "Pirbadet",
+      "lat": 63.441077,
+      "lon": 10.402333,
+      "shapeDistanceMeters": 9087.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.431093,
+      "lon": 10.357078
+    },
+    {
+      "lat": 63.431305,
+      "lon": 10.356068
+    },
+    {
+      "lat": 63.431825,
+      "lon": 10.356467
+    },
+    {
+      "lat": 63.431258,
+      "lon": 10.35941
+    },
+    {
+      "lat": 63.43122,
+      "lon": 10.360499
+    },
+    {
+      "lat": 63.430493,
+      "lon": 10.359938
+    },
+    {
+      "lat": 63.429141,
+      "lon": 10.36072
+    },
+    {
+      "lat": 63.427322,
+      "lon": 10.363279
+    },
+    {
+      "lat": 63.427828,
+      "lon": 10.364743
+    },
+    {
+      "lat": 63.428119,
+      "lon": 10.367179
+    },
+    {
+      "lat": 63.428938,
+      "lon": 10.367086
+    },
+    {
+      "lat": 63.4292,
+      "lon": 10.367616
+    },
+    {
+      "lat": 63.42983,
+      "lon": 10.373269
+    },
+    {
+      "lat": 63.43019,
+      "lon": 10.375097
+    },
+    {
+      "lat": 63.430247,
+      "lon": 10.377394
+    },
+    {
+      "lat": 63.431089,
+      "lon": 10.378463
+    },
+    {
+      "lat": 63.431535,
+      "lon": 10.38531
+    },
+    {
+      "lat": 63.432354,
+      "lon": 10.389328
+    },
+    {
+      "lat": 63.430648,
+      "lon": 10.390342
+    },
+    {
+      "lat": 63.430471,
+      "lon": 10.392243
+    },
+    {
+      "lat": 63.422858,
+      "lon": 10.394374
+    },
+    {
+      "lat": 63.422261,
+      "lon": 10.398435
+    },
+    {
+      "lat": 63.421359,
+      "lon": 10.402841
+    },
+    {
+      "lat": 63.420077,
+      "lon": 10.405663
+    },
+    {
+      "lat": 63.420111,
+      "lon": 10.407159
+    },
+    {
+      "lat": 63.420635,
+      "lon": 10.408878
+    },
+    {
+      "lat": 63.422061,
+      "lon": 10.411674
+    },
+    {
+      "lat": 63.423184,
+      "lon": 10.414701
+    },
+    {
+      "lat": 63.424875,
+      "lon": 10.41677
+    },
+    {
+      "lat": 63.425429,
+      "lon": 10.41698
+    },
+    {
+      "lat": 63.429214,
+      "lon": 10.416187
+    },
+    {
+      "lat": 63.432863,
+      "lon": 10.425772
+    },
+    {
+      "lat": 63.433851,
+      "lon": 10.428956
+    },
+    {
+      "lat": 63.435259,
+      "lon": 10.429333
+    },
+    {
+      "lat": 63.436283,
+      "lon": 10.431053
+    },
+    {
+      "lat": 63.436607,
+      "lon": 10.431196
+    },
+    {
+      "lat": 63.436755,
+      "lon": 10.430727
+    },
+    {
+      "lat": 63.436489,
+      "lon": 10.425783
+    },
+    {
+      "lat": 63.435884,
+      "lon": 10.418107
+    },
+    {
+      "lat": 63.436046,
+      "lon": 10.417333
+    },
+    {
+      "lat": 63.436778,
+      "lon": 10.416751
+    },
+    {
+      "lat": 63.437018,
+      "lon": 10.415781
+    },
+    {
+      "lat": 63.436868,
+      "lon": 10.405395
+    },
+    {
+      "lat": 63.436611,
+      "lon": 10.40425
+    },
+    {
+      "lat": 63.435912,
+      "lon": 10.403435
+    },
+    {
+      "lat": 63.435368,
+      "lon": 10.405403
+    },
+    {
+      "lat": 63.435688,
+      "lon": 10.405966
+    },
+    {
+      "lat": 63.43834,
+      "lon": 10.407726
+    },
+    {
+      "lat": 63.441045,
+      "lon": 10.402236
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Ilsvika - Pirbadet",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_28",
+    "shapeId": "ATB:JourneyPattern:28_Inbound_251215112494262_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

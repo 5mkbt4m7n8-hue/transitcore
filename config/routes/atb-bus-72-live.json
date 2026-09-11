@@ -1,0 +1,724 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-72-live",
+  "name": "AtB buss 72",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_72",
+    "publicCode": "72",
+    "mode": "bus",
+    "longName": "Tiller- Sandmoen- Klæbu"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Klæbu",
+      "destinationMatches": [
+        "Klæbu"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Tillerterminalen / Trondheim S / Romolslia",
+      "destinationMatches": [
+        "Tillerterminalen",
+        "Trondheim S",
+        "Romolslia"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": true
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:71491",
+      "name": "Romolslia øvre",
+      "lat": 63.377043,
+      "lon": 10.362715,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:72513",
+      "name": "Skårgangen",
+      "lat": 63.378764,
+      "lon": 10.365466,
+      "shapeDistanceMeters": 361.0
+    },
+    {
+      "id": "NSR:Quay:71485",
+      "name": "Romolslia nedre",
+      "lat": 63.381813,
+      "lon": 10.369255,
+      "shapeDistanceMeters": 782.0
+    },
+    {
+      "id": "NSR:Quay:75629",
+      "name": "Gammel-lina",
+      "lat": 63.383907,
+      "lon": 10.365399,
+      "shapeDistanceMeters": 1239.0
+    },
+    {
+      "id": "NSR:Quay:75365",
+      "name": "Forsøket",
+      "lat": 63.382725,
+      "lon": 10.37056,
+      "shapeDistanceMeters": 1630.0
+    },
+    {
+      "id": "NSR:Quay:71480",
+      "name": "Romolslia",
+      "lat": 63.379509,
+      "lon": 10.368245,
+      "shapeDistanceMeters": 2030.0
+    },
+    {
+      "id": "NSR:Quay:74487",
+      "name": "Okstadøy",
+      "lat": 63.373444,
+      "lon": 10.367617,
+      "shapeDistanceMeters": 2806.0
+    },
+    {
+      "id": "NSR:Quay:74241",
+      "name": "Kolstaddalen",
+      "lat": 63.368643,
+      "lon": 10.366963,
+      "shapeDistanceMeters": 3376.0
+    },
+    {
+      "id": "NSR:Quay:75611",
+      "name": "City Syd",
+      "lat": 63.360978,
+      "lon": 10.379237,
+      "shapeDistanceMeters": 5259.0
+    },
+    {
+      "id": "NSR:Quay:75607",
+      "name": "Tillerterminalen",
+      "lat": 63.360163,
+      "lon": 10.374465,
+      "shapeDistanceMeters": 5612.0
+    },
+    {
+      "id": "NSR:Quay:73860",
+      "name": "Hårstadkrysset",
+      "lat": 63.34706,
+      "lon": 10.369027,
+      "shapeDistanceMeters": 7286.0
+    },
+    {
+      "id": "NSR:Quay:72142",
+      "name": "Isdamvegen",
+      "lat": 63.344898,
+      "lon": 10.377056,
+      "shapeDistanceMeters": 7896.0
+    },
+    {
+      "id": "NSR:Quay:74561",
+      "name": "Djupmyra",
+      "lat": 63.341347,
+      "lon": 10.373591,
+      "shapeDistanceMeters": 8331.0
+    },
+    {
+      "id": "NSR:Quay:72577",
+      "name": "Løvaasveien",
+      "lat": 63.337165,
+      "lon": 10.369796,
+      "shapeDistanceMeters": 8836.0
+    },
+    {
+      "id": "NSR:Quay:71821",
+      "name": "Sandmoen",
+      "lat": 63.333275,
+      "lon": 10.364791,
+      "shapeDistanceMeters": 9377.0
+    },
+    {
+      "id": "NSR:Quay:71236",
+      "name": "Torgaardssletta",
+      "lat": 63.329533,
+      "lon": 10.363635,
+      "shapeDistanceMeters": 9886.0
+    },
+    {
+      "id": "NSR:Quay:71251",
+      "name": "Torgardshaugen",
+      "lat": 63.322643,
+      "lon": 10.376536,
+      "shapeDistanceMeters": 10907.0
+    },
+    {
+      "id": "NSR:Quay:72183",
+      "name": "Sjøla",
+      "lat": 63.317626,
+      "lon": 10.40406,
+      "shapeDistanceMeters": 12542.0
+    },
+    {
+      "id": "NSR:Quay:73666",
+      "name": "Tanemskrysset",
+      "lat": 63.312641,
+      "lon": 10.430236,
+      "shapeDistanceMeters": 14288.0
+    },
+    {
+      "id": "NSR:Quay:75287",
+      "name": "Brannåsen",
+      "lat": 63.306813,
+      "lon": 10.434311,
+      "shapeDistanceMeters": 15193.0
+    },
+    {
+      "id": "NSR:Quay:73663",
+      "name": "Tanem gård",
+      "lat": 63.31349,
+      "lon": 10.435783,
+      "shapeDistanceMeters": 16389.0
+    },
+    {
+      "id": "NSR:Quay:73656",
+      "name": "Tanem bru",
+      "lat": 63.30986,
+      "lon": 10.454191,
+      "shapeDistanceMeters": 17612.0
+    },
+    {
+      "id": "NSR:Quay:73594",
+      "name": "Sørborgen",
+      "lat": 63.303803,
+      "lon": 10.462568,
+      "shapeDistanceMeters": 18481.0
+    },
+    {
+      "id": "NSR:Quay:71157",
+      "name": "Prestgårdskrysset",
+      "lat": 63.298348,
+      "lon": 10.476475,
+      "shapeDistanceMeters": 19430.0
+    },
+    {
+      "id": "NSR:Quay:71330",
+      "name": "Hesttrø",
+      "lat": 63.298166,
+      "lon": 10.483457,
+      "shapeDistanceMeters": 19859.0
+    },
+    {
+      "id": "NSR:Quay:74192",
+      "name": "Klæbu sentrum",
+      "lat": 63.300237,
+      "lon": 10.484723,
+      "shapeDistanceMeters": 20177.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.376939,
+      "lon": 10.362521
+    },
+    {
+      "lat": 63.376545,
+      "lon": 10.362533
+    },
+    {
+      "lat": 63.376925,
+      "lon": 10.364206
+    },
+    {
+      "lat": 63.377345,
+      "lon": 10.364803
+    },
+    {
+      "lat": 63.379357,
+      "lon": 10.365654
+    },
+    {
+      "lat": 63.380125,
+      "lon": 10.367918
+    },
+    {
+      "lat": 63.380929,
+      "lon": 10.369314
+    },
+    {
+      "lat": 63.381795,
+      "lon": 10.369177
+    },
+    {
+      "lat": 63.382802,
+      "lon": 10.367762
+    },
+    {
+      "lat": 63.383034,
+      "lon": 10.366881
+    },
+    {
+      "lat": 63.382971,
+      "lon": 10.364798
+    },
+    {
+      "lat": 63.383157,
+      "lon": 10.364076
+    },
+    {
+      "lat": 63.383501,
+      "lon": 10.363975
+    },
+    {
+      "lat": 63.383655,
+      "lon": 10.364946
+    },
+    {
+      "lat": 63.384353,
+      "lon": 10.366104
+    },
+    {
+      "lat": 63.38438,
+      "lon": 10.366735
+    },
+    {
+      "lat": 63.383829,
+      "lon": 10.36781
+    },
+    {
+      "lat": 63.382995,
+      "lon": 10.370831
+    },
+    {
+      "lat": 63.381359,
+      "lon": 10.37066
+    },
+    {
+      "lat": 63.380492,
+      "lon": 10.370122
+    },
+    {
+      "lat": 63.379311,
+      "lon": 10.368193
+    },
+    {
+      "lat": 63.37843,
+      "lon": 10.368362
+    },
+    {
+      "lat": 63.377677,
+      "lon": 10.367402
+    },
+    {
+      "lat": 63.376824,
+      "lon": 10.36761
+    },
+    {
+      "lat": 63.374999,
+      "lon": 10.365149
+    },
+    {
+      "lat": 63.374604,
+      "lon": 10.365287
+    },
+    {
+      "lat": 63.374122,
+      "lon": 10.366708
+    },
+    {
+      "lat": 63.373123,
+      "lon": 10.368259
+    },
+    {
+      "lat": 63.372167,
+      "lon": 10.368943
+    },
+    {
+      "lat": 63.370232,
+      "lon": 10.368076
+    },
+    {
+      "lat": 63.369185,
+      "lon": 10.367023
+    },
+    {
+      "lat": 63.368177,
+      "lon": 10.367119
+    },
+    {
+      "lat": 63.367187,
+      "lon": 10.366713
+    },
+    {
+      "lat": 63.366456,
+      "lon": 10.365798
+    },
+    {
+      "lat": 63.362499,
+      "lon": 10.36367
+    },
+    {
+      "lat": 63.362851,
+      "lon": 10.364568
+    },
+    {
+      "lat": 63.36428,
+      "lon": 10.365671
+    },
+    {
+      "lat": 63.364551,
+      "lon": 10.367145
+    },
+    {
+      "lat": 63.364063,
+      "lon": 10.368726
+    },
+    {
+      "lat": 63.362973,
+      "lon": 10.37412
+    },
+    {
+      "lat": 63.362441,
+      "lon": 10.379329
+    },
+    {
+      "lat": 63.362164,
+      "lon": 10.380006
+    },
+    {
+      "lat": 63.359849,
+      "lon": 10.378819
+    },
+    {
+      "lat": 63.36013,
+      "lon": 10.374456
+    },
+    {
+      "lat": 63.360426,
+      "lon": 10.373579
+    },
+    {
+      "lat": 63.36056,
+      "lon": 10.372079
+    },
+    {
+      "lat": 63.360476,
+      "lon": 10.371656
+    },
+    {
+      "lat": 63.348987,
+      "lon": 10.370128
+    },
+    {
+      "lat": 63.348042,
+      "lon": 10.369797
+    },
+    {
+      "lat": 63.346563,
+      "lon": 10.368629
+    },
+    {
+      "lat": 63.346309,
+      "lon": 10.372232
+    },
+    {
+      "lat": 63.345835,
+      "lon": 10.374193
+    },
+    {
+      "lat": 63.345411,
+      "lon": 10.3773
+    },
+    {
+      "lat": 63.345227,
+      "lon": 10.377381
+    },
+    {
+      "lat": 63.34334,
+      "lon": 10.37591
+    },
+    {
+      "lat": 63.339221,
+      "lon": 10.371271
+    },
+    {
+      "lat": 63.33452,
+      "lon": 10.36843
+    },
+    {
+      "lat": 63.33355,
+      "lon": 10.366473
+    },
+    {
+      "lat": 63.333094,
+      "lon": 10.363154
+    },
+    {
+      "lat": 63.332976,
+      "lon": 10.363389
+    },
+    {
+      "lat": 63.331936,
+      "lon": 10.362827
+    },
+    {
+      "lat": 63.331355,
+      "lon": 10.362943
+    },
+    {
+      "lat": 63.328718,
+      "lon": 10.364173
+    },
+    {
+      "lat": 63.327209,
+      "lon": 10.365725
+    },
+    {
+      "lat": 63.323252,
+      "lon": 10.374813
+    },
+    {
+      "lat": 63.322432,
+      "lon": 10.37755
+    },
+    {
+      "lat": 63.322136,
+      "lon": 10.377568
+    },
+    {
+      "lat": 63.322251,
+      "lon": 10.378203
+    },
+    {
+      "lat": 63.321646,
+      "lon": 10.379943
+    },
+    {
+      "lat": 63.320096,
+      "lon": 10.382594
+    },
+    {
+      "lat": 63.317893,
+      "lon": 10.388761
+    },
+    {
+      "lat": 63.317697,
+      "lon": 10.39073
+    },
+    {
+      "lat": 63.317736,
+      "lon": 10.393816
+    },
+    {
+      "lat": 63.317337,
+      "lon": 10.398626
+    },
+    {
+      "lat": 63.317798,
+      "lon": 10.405712
+    },
+    {
+      "lat": 63.317701,
+      "lon": 10.408541
+    },
+    {
+      "lat": 63.316857,
+      "lon": 10.411637
+    },
+    {
+      "lat": 63.315129,
+      "lon": 10.413944
+    },
+    {
+      "lat": 63.314379,
+      "lon": 10.416017
+    },
+    {
+      "lat": 63.314198,
+      "lon": 10.417742
+    },
+    {
+      "lat": 63.314298,
+      "lon": 10.421026
+    },
+    {
+      "lat": 63.313807,
+      "lon": 10.42787
+    },
+    {
+      "lat": 63.313224,
+      "lon": 10.430544
+    },
+    {
+      "lat": 63.312971,
+      "lon": 10.430941
+    },
+    {
+      "lat": 63.312148,
+      "lon": 10.430621
+    },
+    {
+      "lat": 63.312302,
+      "lon": 10.429994
+    },
+    {
+      "lat": 63.312763,
+      "lon": 10.430199
+    },
+    {
+      "lat": 63.312788,
+      "lon": 10.430884
+    },
+    {
+      "lat": 63.311505,
+      "lon": 10.430387
+    },
+    {
+      "lat": 63.308957,
+      "lon": 10.430553
+    },
+    {
+      "lat": 63.306614,
+      "lon": 10.432678
+    },
+    {
+      "lat": 63.306687,
+      "lon": 10.434942
+    },
+    {
+      "lat": 63.306821,
+      "lon": 10.434678
+    },
+    {
+      "lat": 63.306644,
+      "lon": 10.43414
+    },
+    {
+      "lat": 63.306614,
+      "lon": 10.432678
+    },
+    {
+      "lat": 63.308657,
+      "lon": 10.43067
+    },
+    {
+      "lat": 63.311236,
+      "lon": 10.430368
+    },
+    {
+      "lat": 63.312971,
+      "lon": 10.430941
+    },
+    {
+      "lat": 63.313507,
+      "lon": 10.43042
+    },
+    {
+      "lat": 63.313814,
+      "lon": 10.430725
+    },
+    {
+      "lat": 63.313326,
+      "lon": 10.438059
+    },
+    {
+      "lat": 63.312796,
+      "lon": 10.440158
+    },
+    {
+      "lat": 63.311896,
+      "lon": 10.442386
+    },
+    {
+      "lat": 63.312238,
+      "lon": 10.444557
+    },
+    {
+      "lat": 63.312297,
+      "lon": 10.446673
+    },
+    {
+      "lat": 63.31303,
+      "lon": 10.447607
+    },
+    {
+      "lat": 63.313114,
+      "lon": 10.448303
+    },
+    {
+      "lat": 63.311639,
+      "lon": 10.450416
+    },
+    {
+      "lat": 63.308319,
+      "lon": 10.457632
+    },
+    {
+      "lat": 63.307027,
+      "lon": 10.458125
+    },
+    {
+      "lat": 63.306629,
+      "lon": 10.460415
+    },
+    {
+      "lat": 63.305107,
+      "lon": 10.460613
+    },
+    {
+      "lat": 63.30417,
+      "lon": 10.461528
+    },
+    {
+      "lat": 63.301688,
+      "lon": 10.469716
+    },
+    {
+      "lat": 63.300538,
+      "lon": 10.471094
+    },
+    {
+      "lat": 63.298749,
+      "lon": 10.475058
+    },
+    {
+      "lat": 63.297899,
+      "lon": 10.478827
+    },
+    {
+      "lat": 63.297517,
+      "lon": 10.482943
+    },
+    {
+      "lat": 63.300373,
+      "lon": 10.485435
+    },
+    {
+      "lat": 63.300453,
+      "lon": 10.484991
+    },
+    {
+      "lat": 63.300199,
+      "lon": 10.484844
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Romolslia øvre - Klæbu sentrum",
+    "supportedShortTurns": [
+      "Tillerterminalen - Klæbu sentrum"
+    ]
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_72",
+    "shapeId": "ATB:JourneyPattern:72_Outbound_251215112494283_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

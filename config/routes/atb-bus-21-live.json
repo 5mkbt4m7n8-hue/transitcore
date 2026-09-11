@@ -1,0 +1,477 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-21-live",
+  "name": "AtB buss 21",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_21",
+    "publicCode": "21",
+    "mode": "bus",
+    "longName": "Brattøra- Sentrum- Trolla"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Trolla / Ilsvika",
+      "destinationMatches": [
+        "Trolla",
+        "Ilsvika"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Pirbadet",
+      "destinationMatches": [
+        "Pirbadet"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:71407",
+      "name": "Trollahaugen 64",
+      "lat": 63.452209,
+      "lon": 10.30454,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:71404",
+      "name": "Trollahaugen 46",
+      "lat": 63.451962,
+      "lon": 10.302676,
+      "shapeDistanceMeters": 319.0
+    },
+    {
+      "id": "NSR:Quay:71393",
+      "name": "Trollahaugen 10",
+      "lat": 63.451293,
+      "lon": 10.300576,
+      "shapeDistanceMeters": 760.0
+    },
+    {
+      "id": "NSR:Quay:71398",
+      "name": "Trollahaugen 2",
+      "lat": 63.450257,
+      "lon": 10.30123,
+      "shapeDistanceMeters": 908.0
+    },
+    {
+      "id": "NSR:Quay:75399",
+      "name": "Brukseier Olsens vei 50",
+      "lat": 63.44984,
+      "lon": 10.304137,
+      "shapeDistanceMeters": 1202.0
+    },
+    {
+      "id": "NSR:Quay:75398",
+      "name": "Brukseier Olsens vei 40",
+      "lat": 63.450497,
+      "lon": 10.30515,
+      "shapeDistanceMeters": 1324.0
+    },
+    {
+      "id": "NSR:Quay:75709",
+      "name": "Gogstadbakken",
+      "lat": 63.450375,
+      "lon": 10.308714,
+      "shapeDistanceMeters": 1639.0
+    },
+    {
+      "id": "NSR:Quay:75397",
+      "name": "Brukseier Olsens vei 1",
+      "lat": 63.450432,
+      "lon": 10.314781,
+      "shapeDistanceMeters": 1979.0
+    },
+    {
+      "id": "NSR:Quay:73416",
+      "name": "Munkaunet",
+      "lat": 63.449165,
+      "lon": 10.319223,
+      "shapeDistanceMeters": 2256.0
+    },
+    {
+      "id": "NSR:Quay:75424",
+      "name": "Brænne",
+      "lat": 63.446209,
+      "lon": 10.327513,
+      "shapeDistanceMeters": 2814.0
+    },
+    {
+      "id": "NSR:Quay:72000",
+      "name": "Høvringen",
+      "lat": 63.445465,
+      "lon": 10.336896,
+      "shapeDistanceMeters": 3312.0
+    },
+    {
+      "id": "NSR:Quay:75063",
+      "name": "Biologen",
+      "lat": 63.440288,
+      "lon": 10.347254,
+      "shapeDistanceMeters": 4174.0
+    },
+    {
+      "id": "NSR:Quay:75091",
+      "name": "Fagervika",
+      "lat": 63.438538,
+      "lon": 10.347987,
+      "shapeDistanceMeters": 4381.0
+    },
+    {
+      "id": "NSR:Quay:74033",
+      "name": "Killingdal",
+      "lat": 63.435403,
+      "lon": 10.348848,
+      "shapeDistanceMeters": 4742.0
+    },
+    {
+      "id": "NSR:Quay:75522",
+      "name": "Bynesveien 16",
+      "lat": 63.429848,
+      "lon": 10.358641,
+      "shapeDistanceMeters": 5613.0
+    },
+    {
+      "id": "NSR:Quay:72052",
+      "name": "Ila",
+      "lat": 63.429273,
+      "lon": 10.368272,
+      "shapeDistanceMeters": 6113.0
+    },
+    {
+      "id": "NSR:Quay:72212",
+      "name": "Skansen",
+      "lat": 63.429731,
+      "lon": 10.371861,
+      "shapeDistanceMeters": 6298.0
+    },
+    {
+      "id": "NSR:Quay:71181",
+      "name": "Prinsens gate",
+      "lat": 63.431194,
+      "lon": 10.392115,
+      "shapeDistanceMeters": 7621.0
+    },
+    {
+      "id": "NSR:Quay:73571",
+      "name": "Søndre gate",
+      "lat": 63.433858,
+      "lon": 10.40033,
+      "shapeDistanceMeters": 8319.0
+    },
+    {
+      "id": "NSR:Quay:71416",
+      "name": "Trondheim S",
+      "lat": 63.435855,
+      "lon": 10.401263,
+      "shapeDistanceMeters": 8610.0
+    },
+    {
+      "id": "NSR:Quay:75314",
+      "name": "Brattøra",
+      "lat": 63.437653,
+      "lon": 10.407343,
+      "shapeDistanceMeters": 9123.0
+    },
+    {
+      "id": "NSR:Quay:71134",
+      "name": "Pirbadet",
+      "lat": 63.441077,
+      "lon": 10.402333,
+      "shapeDistanceMeters": 9628.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.452164,
+      "lon": 10.304464
+    },
+    {
+      "lat": 63.452813,
+      "lon": 10.303239
+    },
+    {
+      "lat": 63.452923,
+      "lon": 10.301664
+    },
+    {
+      "lat": 63.452616,
+      "lon": 10.301387
+    },
+    {
+      "lat": 63.451743,
+      "lon": 10.303061
+    },
+    {
+      "lat": 63.451363,
+      "lon": 10.302901
+    },
+    {
+      "lat": 63.451369,
+      "lon": 10.302235
+    },
+    {
+      "lat": 63.451889,
+      "lon": 10.301568
+    },
+    {
+      "lat": 63.45202,
+      "lon": 10.300922
+    },
+    {
+      "lat": 63.451939,
+      "lon": 10.299195
+    },
+    {
+      "lat": 63.451754,
+      "lon": 10.298824
+    },
+    {
+      "lat": 63.451465,
+      "lon": 10.299054
+    },
+    {
+      "lat": 63.451328,
+      "lon": 10.30054
+    },
+    {
+      "lat": 63.451009,
+      "lon": 10.301339
+    },
+    {
+      "lat": 63.449996,
+      "lon": 10.301204
+    },
+    {
+      "lat": 63.449334,
+      "lon": 10.302723
+    },
+    {
+      "lat": 63.450099,
+      "lon": 10.302917
+    },
+    {
+      "lat": 63.44983,
+      "lon": 10.304987
+    },
+    {
+      "lat": 63.450581,
+      "lon": 10.305114
+    },
+    {
+      "lat": 63.451188,
+      "lon": 10.304659
+    },
+    {
+      "lat": 63.450964,
+      "lon": 10.307178
+    },
+    {
+      "lat": 63.450413,
+      "lon": 10.308736
+    },
+    {
+      "lat": 63.450411,
+      "lon": 10.309368
+    },
+    {
+      "lat": 63.450816,
+      "lon": 10.310248
+    },
+    {
+      "lat": 63.450941,
+      "lon": 10.311136
+    },
+    {
+      "lat": 63.450861,
+      "lon": 10.312678
+    },
+    {
+      "lat": 63.450463,
+      "lon": 10.313864
+    },
+    {
+      "lat": 63.450477,
+      "lon": 10.31562
+    },
+    {
+      "lat": 63.449546,
+      "lon": 10.317768
+    },
+    {
+      "lat": 63.448992,
+      "lon": 10.320609
+    },
+    {
+      "lat": 63.448037,
+      "lon": 10.32325
+    },
+    {
+      "lat": 63.447775,
+      "lon": 10.324938
+    },
+    {
+      "lat": 63.446358,
+      "lon": 10.327108
+    },
+    {
+      "lat": 63.445921,
+      "lon": 10.330866
+    },
+    {
+      "lat": 63.446145,
+      "lon": 10.334299
+    },
+    {
+      "lat": 63.446039,
+      "lon": 10.335477
+    },
+    {
+      "lat": 63.444121,
+      "lon": 10.339794
+    },
+    {
+      "lat": 63.443642,
+      "lon": 10.34269
+    },
+    {
+      "lat": 63.442467,
+      "lon": 10.346575
+    },
+    {
+      "lat": 63.441936,
+      "lon": 10.347314
+    },
+    {
+      "lat": 63.440934,
+      "lon": 10.346834
+    },
+    {
+      "lat": 63.439926,
+      "lon": 10.347828
+    },
+    {
+      "lat": 63.438885,
+      "lon": 10.347756
+    },
+    {
+      "lat": 63.437901,
+      "lon": 10.348832
+    },
+    {
+      "lat": 63.435069,
+      "lon": 10.349027
+    },
+    {
+      "lat": 63.432787,
+      "lon": 10.350261
+    },
+    {
+      "lat": 63.431615,
+      "lon": 10.352041
+    },
+    {
+      "lat": 63.431276,
+      "lon": 10.354992
+    },
+    {
+      "lat": 63.430175,
+      "lon": 10.356854
+    },
+    {
+      "lat": 63.429947,
+      "lon": 10.35774
+    },
+    {
+      "lat": 63.429906,
+      "lon": 10.362008
+    },
+    {
+      "lat": 63.429101,
+      "lon": 10.367095
+    },
+    {
+      "lat": 63.43019,
+      "lon": 10.375097
+    },
+    {
+      "lat": 63.430247,
+      "lon": 10.377394
+    },
+    {
+      "lat": 63.431089,
+      "lon": 10.378463
+    },
+    {
+      "lat": 63.431535,
+      "lon": 10.38531
+    },
+    {
+      "lat": 63.432346,
+      "lon": 10.389298
+    },
+    {
+      "lat": 63.430648,
+      "lon": 10.390342
+    },
+    {
+      "lat": 63.430578,
+      "lon": 10.392009
+    },
+    {
+      "lat": 63.433021,
+      "lon": 10.391594
+    },
+    {
+      "lat": 63.43332,
+      "lon": 10.400204
+    },
+    {
+      "lat": 63.43591,
+      "lon": 10.400034
+    },
+    {
+      "lat": 63.435912,
+      "lon": 10.403435
+    },
+    {
+      "lat": 63.435368,
+      "lon": 10.405403
+    },
+    {
+      "lat": 63.435436,
+      "lon": 10.405751
+    },
+    {
+      "lat": 63.43834,
+      "lon": 10.407726
+    },
+    {
+      "lat": 63.441045,
+      "lon": 10.402236
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Trollahaugen 64 - Pirbadet",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_21",
+    "shapeId": "ATB:JourneyPattern:21_Inbound_251215112494274_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

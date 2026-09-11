@@ -1,0 +1,499 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-45-live",
+  "name": "AtB buss 45",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_45",
+    "publicCode": "45",
+    "mode": "bus",
+    "longName": "Sjetnmarka- Tiller- Tillerringen- Sandmoen"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Sandmoen / Tonstadkrysset",
+      "destinationMatches": [
+        "Sandmoen",
+        "Tonstadkrysset"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Sjetnmarka / Tonstadkrysset",
+      "destinationMatches": [
+        "Sjetnmarka",
+        "Tonstadkrysset"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:71820",
+      "name": "Sandmoen",
+      "lat": 63.33318,
+      "lon": 10.365206,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:74502",
+      "name": "Kvenildsmyra",
+      "lat": 63.335222,
+      "lon": 10.369243,
+      "shapeDistanceMeters": 308.0
+    },
+    {
+      "id": "NSR:Quay:72578",
+      "name": "Løvaasveien",
+      "lat": 63.338034,
+      "lon": 10.370506,
+      "shapeDistanceMeters": 628.0
+    },
+    {
+      "id": "NSR:Quay:74562",
+      "name": "Djupmyra",
+      "lat": 63.342158,
+      "lon": 10.374951,
+      "shapeDistanceMeters": 1141.0
+    },
+    {
+      "id": "NSR:Quay:72144",
+      "name": "Isdamvegen",
+      "lat": 63.345786,
+      "lon": 10.377966,
+      "shapeDistanceMeters": 1576.0
+    },
+    {
+      "id": "NSR:Quay:71317",
+      "name": "Torvtaket",
+      "lat": 63.348407,
+      "lon": 10.377333,
+      "shapeDistanceMeters": 1870.0
+    },
+    {
+      "id": "NSR:Quay:74613",
+      "name": "Ole Ross' veg",
+      "lat": 63.351199,
+      "lon": 10.375769,
+      "shapeDistanceMeters": 2194.0
+    },
+    {
+      "id": "NSR:Quay:71432",
+      "name": "Rognbudalen",
+      "lat": 63.3538,
+      "lon": 10.38134,
+      "shapeDistanceMeters": 2820.0
+    },
+    {
+      "id": "NSR:Quay:74222",
+      "name": "Koieflata",
+      "lat": 63.352825,
+      "lon": 10.38969,
+      "shapeDistanceMeters": 3263.0
+    },
+    {
+      "id": "NSR:Quay:72709",
+      "name": "Martin Kregnes veg",
+      "lat": 63.353813,
+      "lon": 10.397878,
+      "shapeDistanceMeters": 3735.0
+    },
+    {
+      "id": "NSR:Quay:72103",
+      "name": "Ingeborg Ofstads veg",
+      "lat": 63.35737,
+      "lon": 10.399431,
+      "shapeDistanceMeters": 4128.0
+    },
+    {
+      "id": "NSR:Quay:73274",
+      "name": "Moltmyra øst",
+      "lat": 63.360585,
+      "lon": 10.399021,
+      "shapeDistanceMeters": 4591.0
+    },
+    {
+      "id": "NSR:Quay:71308",
+      "name": "Torvmyra",
+      "lat": 63.361336,
+      "lon": 10.391673,
+      "shapeDistanceMeters": 4968.0
+    },
+    {
+      "id": "NSR:Quay:71203",
+      "name": "Tonstadgrenda",
+      "lat": 63.361794,
+      "lon": 10.387116,
+      "shapeDistanceMeters": 5201.0
+    },
+    {
+      "id": "NSR:Quay:72861",
+      "name": "Østre Rosten",
+      "lat": 63.362335,
+      "lon": 10.38175,
+      "shapeDistanceMeters": 5470.0
+    },
+    {
+      "id": "NSR:Quay:71518",
+      "name": "Rostengrenda",
+      "lat": 63.365245,
+      "lon": 10.382018,
+      "shapeDistanceMeters": 5863.0
+    },
+    {
+      "id": "NSR:Quay:71206",
+      "name": "Tonstadkrysset",
+      "lat": 63.370683,
+      "lon": 10.382319,
+      "shapeDistanceMeters": 6561.0
+    },
+    {
+      "id": "NSR:Quay:71517",
+      "name": "Rostengrenda",
+      "lat": 63.365978,
+      "lon": 10.381981,
+      "shapeDistanceMeters": 7145.0
+    },
+    {
+      "id": "NSR:Quay:71202",
+      "name": "Tonstadgrenda",
+      "lat": 63.36186,
+      "lon": 10.38488,
+      "shapeDistanceMeters": 7800.0
+    },
+    {
+      "id": "NSR:Quay:71309",
+      "name": "Torvmyra",
+      "lat": 63.361355,
+      "lon": 10.389915,
+      "shapeDistanceMeters": 8058.0
+    },
+    {
+      "id": "NSR:Quay:73266",
+      "name": "Moltmyra",
+      "lat": 63.360895,
+      "lon": 10.394429,
+      "shapeDistanceMeters": 8297.0
+    },
+    {
+      "id": "NSR:Quay:73272",
+      "name": "Moltmyra øst",
+      "lat": 63.360413,
+      "lon": 10.399281,
+      "shapeDistanceMeters": 8535.0
+    },
+    {
+      "id": "NSR:Quay:72104",
+      "name": "Ingeborg Ofstads veg",
+      "lat": 63.357177,
+      "lon": 10.399166,
+      "shapeDistanceMeters": 8943.0
+    },
+    {
+      "id": "NSR:Quay:72710",
+      "name": "Martin Kregnes veg",
+      "lat": 63.353568,
+      "lon": 10.396017,
+      "shapeDistanceMeters": 9465.0
+    },
+    {
+      "id": "NSR:Quay:74221",
+      "name": "Koieflata",
+      "lat": 63.352965,
+      "lon": 10.386884,
+      "shapeDistanceMeters": 9935.0
+    },
+    {
+      "id": "NSR:Quay:71431",
+      "name": "Rognbudalen",
+      "lat": 63.354256,
+      "lon": 10.379518,
+      "shapeDistanceMeters": 10346.0
+    },
+    {
+      "id": "NSR:Quay:74614",
+      "name": "Ole Ross' veg",
+      "lat": 63.351715,
+      "lon": 10.375342,
+      "shapeDistanceMeters": 10786.0
+    },
+    {
+      "id": "NSR:Quay:71316",
+      "name": "Torvtaket",
+      "lat": 63.348614,
+      "lon": 10.376898,
+      "shapeDistanceMeters": 11180.0
+    },
+    {
+      "id": "NSR:Quay:72142",
+      "name": "Isdamvegen",
+      "lat": 63.344898,
+      "lon": 10.377056,
+      "shapeDistanceMeters": 11613.0
+    },
+    {
+      "id": "NSR:Quay:74561",
+      "name": "Djupmyra",
+      "lat": 63.341347,
+      "lon": 10.373591,
+      "shapeDistanceMeters": 12048.0
+    },
+    {
+      "id": "NSR:Quay:72577",
+      "name": "Løvaasveien",
+      "lat": 63.337165,
+      "lon": 10.369796,
+      "shapeDistanceMeters": 12553.0
+    },
+    {
+      "id": "NSR:Quay:71821",
+      "name": "Sandmoen",
+      "lat": 63.333275,
+      "lon": 10.364791,
+      "shapeDistanceMeters": 13094.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.333273,
+      "lon": 10.365137
+    },
+    {
+      "lat": 63.333758,
+      "lon": 10.367053
+    },
+    {
+      "lat": 63.334768,
+      "lon": 10.368705
+    },
+    {
+      "lat": 63.339221,
+      "lon": 10.371271
+    },
+    {
+      "lat": 63.341815,
+      "lon": 10.374294
+    },
+    {
+      "lat": 63.345346,
+      "lon": 10.377777
+    },
+    {
+      "lat": 63.347677,
+      "lon": 10.37767
+    },
+    {
+      "lat": 63.350346,
+      "lon": 10.375874
+    },
+    {
+      "lat": 63.351731,
+      "lon": 10.375478
+    },
+    {
+      "lat": 63.353067,
+      "lon": 10.375704
+    },
+    {
+      "lat": 63.354489,
+      "lon": 10.376614
+    },
+    {
+      "lat": 63.354107,
+      "lon": 10.380535
+    },
+    {
+      "lat": 63.353015,
+      "lon": 10.384167
+    },
+    {
+      "lat": 63.352816,
+      "lon": 10.391159
+    },
+    {
+      "lat": 63.353507,
+      "lon": 10.39437
+    },
+    {
+      "lat": 63.353441,
+      "lon": 10.397613
+    },
+    {
+      "lat": 63.355909,
+      "lon": 10.398332
+    },
+    {
+      "lat": 63.357507,
+      "lon": 10.399426
+    },
+    {
+      "lat": 63.360198,
+      "lon": 10.400486
+    },
+    {
+      "lat": 63.360282,
+      "lon": 10.400895
+    },
+    {
+      "lat": 63.360467,
+      "lon": 10.400687
+    },
+    {
+      "lat": 63.362435,
+      "lon": 10.380501
+    },
+    {
+      "lat": 63.365254,
+      "lon": 10.381984
+    },
+    {
+      "lat": 63.369239,
+      "lon": 10.382797
+    },
+    {
+      "lat": 63.369434,
+      "lon": 10.382525
+    },
+    {
+      "lat": 63.369542,
+      "lon": 10.381569
+    },
+    {
+      "lat": 63.370417,
+      "lon": 10.381265
+    },
+    {
+      "lat": 63.370772,
+      "lon": 10.382614
+    },
+    {
+      "lat": 63.370096,
+      "lon": 10.383071
+    },
+    {
+      "lat": 63.369708,
+      "lon": 10.382873
+    },
+    {
+      "lat": 63.369312,
+      "lon": 10.382108
+    },
+    {
+      "lat": 63.366593,
+      "lon": 10.382302
+    },
+    {
+      "lat": 63.362379,
+      "lon": 10.380178
+    },
+    {
+      "lat": 63.360348,
+      "lon": 10.400282
+    },
+    {
+      "lat": 63.360198,
+      "lon": 10.400486
+    },
+    {
+      "lat": 63.357507,
+      "lon": 10.399426
+    },
+    {
+      "lat": 63.355909,
+      "lon": 10.398332
+    },
+    {
+      "lat": 63.353961,
+      "lon": 10.397865
+    },
+    {
+      "lat": 63.353441,
+      "lon": 10.397613
+    },
+    {
+      "lat": 63.353558,
+      "lon": 10.394971
+    },
+    {
+      "lat": 63.352824,
+      "lon": 10.391369
+    },
+    {
+      "lat": 63.352876,
+      "lon": 10.388661
+    },
+    {
+      "lat": 63.353015,
+      "lon": 10.384167
+    },
+    {
+      "lat": 63.354107,
+      "lon": 10.380535
+    },
+    {
+      "lat": 63.354515,
+      "lon": 10.376323
+    },
+    {
+      "lat": 63.352066,
+      "lon": 10.375403
+    },
+    {
+      "lat": 63.350346,
+      "lon": 10.375874
+    },
+    {
+      "lat": 63.347161,
+      "lon": 10.377855
+    },
+    {
+      "lat": 63.345661,
+      "lon": 10.377623
+    },
+    {
+      "lat": 63.34334,
+      "lon": 10.37591
+    },
+    {
+      "lat": 63.339221,
+      "lon": 10.371271
+    },
+    {
+      "lat": 63.334768,
+      "lon": 10.368705
+    },
+    {
+      "lat": 63.333758,
+      "lon": 10.367053
+    },
+    {
+      "lat": 63.333224,
+      "lon": 10.364826
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Sandmoen - Sandmoen",
+    "supportedShortTurns": [
+      "Sandmoen - Tonstadkrysset",
+      "Tonstadkrysset - Sandmoen"
+    ]
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_45",
+    "shapeId": "ATB:JourneyPattern:45_Inbound_251215112494092_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

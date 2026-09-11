@@ -222,6 +222,7 @@ def generate(source, args, service_date):
         raise ValueError("canonical pattern has no usable shape")
 
     canonical_names = [names_by_stop_id[row["stop_id"]] for row in canonical["stops"]]
+    canonical_stop_ids = [row["stop_id"] for row in canonical["stops"]]
     reverse_names = list(reversed(canonical_names))
     short_turns = []
     for pattern in patterns:
@@ -283,6 +284,7 @@ def generate(source, args, service_date):
         "serviceVariants": {
             "canonical": f"{canonical_names[0]} - {canonical_names[-1]}",
             "supportedShortTurns": short_turns,
+            "circular": len(set(canonical_stop_ids)) < len(canonical_stop_ids),
         },
         "source": {
             "format": "GTFS",
@@ -297,8 +299,8 @@ def generate(source, args, service_date):
 
 
 def validate_generated(profile):
-    if len(profile["directions"]) < 2:
-        raise ValueError("generated profile has fewer than two directions")
+    if len(profile["directions"]) < 1:
+        raise ValueError("generated profile has no active direction")
     if len(profile["stops"]) < 2 or len(profile["shape"]) < 2:
         raise ValueError("generated profile has insufficient stops or shape points")
     distances = [stop["shapeDistanceMeters"] for stop in profile["stops"]]

@@ -1,0 +1,377 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-82-live",
+  "name": "AtB buss 82",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_82",
+    "publicCode": "82",
+    "mode": "bus",
+    "longName": "Hesttrøa-Brekkåsen"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Hesttrøa",
+      "destinationMatches": [
+        "Hesttrøa"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Brekkåsen",
+      "destinationMatches": [
+        "Brekkåsen"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": true
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:75357",
+      "name": "Brekkåsen snuplass",
+      "lat": 63.268117,
+      "lon": 10.235339,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:75355",
+      "name": "Brekkåsen",
+      "lat": 63.272969,
+      "lon": 10.244845,
+      "shapeDistanceMeters": 746.0
+    },
+    {
+      "id": "NSR:Quay:71510",
+      "name": "Trøndertun",
+      "lat": 63.277615,
+      "lon": 10.250681,
+      "shapeDistanceMeters": 1346.0
+    },
+    {
+      "id": "NSR:Quay:75666",
+      "name": "Gimseflata",
+      "lat": 63.279744,
+      "lon": 10.254152,
+      "shapeDistanceMeters": 1653.0
+    },
+    {
+      "id": "NSR:Quay:75663",
+      "name": "Gimsan",
+      "lat": 63.28256,
+      "lon": 10.253656,
+      "shapeDistanceMeters": 2053.0
+    },
+    {
+      "id": "NSR:Quay:72903",
+      "name": "Melhusbrua",
+      "lat": 63.281056,
+      "lon": 10.26372,
+      "shapeDistanceMeters": 2581.0
+    },
+    {
+      "id": "NSR:Quay:72418",
+      "name": "Gylle",
+      "lat": 63.294003,
+      "lon": 10.280575,
+      "shapeDistanceMeters": 5585.0
+    },
+    {
+      "id": "NSR:Quay:72888",
+      "name": "Melhus skysstasjon",
+      "lat": 63.28467,
+      "lon": 10.278187,
+      "shapeDistanceMeters": 6873.0
+    },
+    {
+      "id": "NSR:Quay:103144",
+      "name": "Høyeggen snuplass",
+      "lat": 63.286581,
+      "lon": 10.295764,
+      "shapeDistanceMeters": 7921.0
+    },
+    {
+      "id": "NSR:Quay:72020",
+      "name": "Høyeggen skole",
+      "lat": 63.285949,
+      "lon": 10.296456,
+      "shapeDistanceMeters": 8002.0
+    },
+    {
+      "id": "NSR:Quay:73576",
+      "name": "Loddgårdstrøa",
+      "lat": 63.285686,
+      "lon": 10.309285,
+      "shapeDistanceMeters": 8681.0
+    },
+    {
+      "id": "NSR:Quay:71785",
+      "name": "Uglevegen",
+      "lat": 63.287769,
+      "lon": 10.317501,
+      "shapeDistanceMeters": 9160.0
+    },
+    {
+      "id": "NSR:Quay:71337",
+      "name": "Hesttrøa",
+      "lat": 63.294615,
+      "lon": 10.332309,
+      "shapeDistanceMeters": 10261.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.268088,
+      "lon": 10.235301
+    },
+    {
+      "lat": 63.268138,
+      "lon": 10.235751
+    },
+    {
+      "lat": 63.269751,
+      "lon": 10.238958
+    },
+    {
+      "lat": 63.270854,
+      "lon": 10.242216
+    },
+    {
+      "lat": 63.273848,
+      "lon": 10.245727
+    },
+    {
+      "lat": 63.275404,
+      "lon": 10.247995
+    },
+    {
+      "lat": 63.277348,
+      "lon": 10.249971
+    },
+    {
+      "lat": 63.278898,
+      "lon": 10.253705
+    },
+    {
+      "lat": 63.279736,
+      "lon": 10.254018
+    },
+    {
+      "lat": 63.282261,
+      "lon": 10.252245
+    },
+    {
+      "lat": 63.282581,
+      "lon": 10.252431
+    },
+    {
+      "lat": 63.282558,
+      "lon": 10.255923
+    },
+    {
+      "lat": 63.282318,
+      "lon": 10.258817
+    },
+    {
+      "lat": 63.280959,
+      "lon": 10.264476
+    },
+    {
+      "lat": 63.280571,
+      "lon": 10.268285
+    },
+    {
+      "lat": 63.280722,
+      "lon": 10.27164
+    },
+    {
+      "lat": 63.281167,
+      "lon": 10.274544
+    },
+    {
+      "lat": 63.281592,
+      "lon": 10.275833
+    },
+    {
+      "lat": 63.283365,
+      "lon": 10.273211
+    },
+    {
+      "lat": 63.285208,
+      "lon": 10.272057
+    },
+    {
+      "lat": 63.286774,
+      "lon": 10.271854
+    },
+    {
+      "lat": 63.291096,
+      "lon": 10.272664
+    },
+    {
+      "lat": 63.292175,
+      "lon": 10.273578
+    },
+    {
+      "lat": 63.293021,
+      "lon": 10.274886
+    },
+    {
+      "lat": 63.296075,
+      "lon": 10.280976
+    },
+    {
+      "lat": 63.296719,
+      "lon": 10.28298
+    },
+    {
+      "lat": 63.296684,
+      "lon": 10.284058
+    },
+    {
+      "lat": 63.292574,
+      "lon": 10.279076
+    },
+    {
+      "lat": 63.292341,
+      "lon": 10.278652
+    },
+    {
+      "lat": 63.2923,
+      "lon": 10.277456
+    },
+    {
+      "lat": 63.292019,
+      "lon": 10.276484
+    },
+    {
+      "lat": 63.29075,
+      "lon": 10.274441
+    },
+    {
+      "lat": 63.289984,
+      "lon": 10.273977
+    },
+    {
+      "lat": 63.288425,
+      "lon": 10.273785
+    },
+    {
+      "lat": 63.287997,
+      "lon": 10.274091
+    },
+    {
+      "lat": 63.285553,
+      "lon": 10.278194
+    },
+    {
+      "lat": 63.285285,
+      "lon": 10.277399
+    },
+    {
+      "lat": 63.284478,
+      "lon": 10.278593
+    },
+    {
+      "lat": 63.284754,
+      "lon": 10.279522
+    },
+    {
+      "lat": 63.284032,
+      "lon": 10.280737
+    },
+    {
+      "lat": 63.2853,
+      "lon": 10.286826
+    },
+    {
+      "lat": 63.285546,
+      "lon": 10.292959
+    },
+    {
+      "lat": 63.286066,
+      "lon": 10.294347
+    },
+    {
+      "lat": 63.286049,
+      "lon": 10.295822
+    },
+    {
+      "lat": 63.286477,
+      "lon": 10.295816
+    },
+    {
+      "lat": 63.286049,
+      "lon": 10.295822
+    },
+    {
+      "lat": 63.285891,
+      "lon": 10.298439
+    },
+    {
+      "lat": 63.286223,
+      "lon": 10.299981
+    },
+    {
+      "lat": 63.286264,
+      "lon": 10.30186
+    },
+    {
+      "lat": 63.285472,
+      "lon": 10.306208
+    },
+    {
+      "lat": 63.285883,
+      "lon": 10.310596
+    },
+    {
+      "lat": 63.286877,
+      "lon": 10.313901
+    },
+    {
+      "lat": 63.287484,
+      "lon": 10.317141
+    },
+    {
+      "lat": 63.287936,
+      "lon": 10.317797
+    },
+    {
+      "lat": 63.287839,
+      "lon": 10.318205
+    },
+    {
+      "lat": 63.29022,
+      "lon": 10.323557
+    },
+    {
+      "lat": 63.294552,
+      "lon": 10.331634
+    },
+    {
+      "lat": 63.294592,
+      "lon": 10.332342
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Brekkåsen snuplass - Hesttrøa",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_82",
+    "shapeId": "ATB:JourneyPattern:82_Outbound_260211095801661_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

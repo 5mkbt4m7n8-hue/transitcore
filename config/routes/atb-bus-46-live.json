@@ -1,0 +1,306 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-46-live",
+  "name": "AtB buss 46",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_46",
+    "publicCode": "46",
+    "mode": "bus",
+    "longName": "Torgård- Lundåsen"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Lundåsen",
+      "destinationMatches": [
+        "Lundåsen"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Torgård",
+      "destinationMatches": [
+        "Torgård"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:73664",
+      "name": "Lundåsen nordre",
+      "lat": 63.354384,
+      "lon": 10.326279,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:73659",
+      "name": "Lundåsen",
+      "lat": 63.351744,
+      "lon": 10.326915,
+      "shapeDistanceMeters": 431.0
+    },
+    {
+      "id": "NSR:Quay:71569",
+      "name": "Østre Lund",
+      "lat": 63.350985,
+      "lon": 10.332491,
+      "shapeDistanceMeters": 778.0
+    },
+    {
+      "id": "NSR:Quay:72756",
+      "name": "Åsheim skole",
+      "lat": 63.3511,
+      "lon": 10.344111,
+      "shapeDistanceMeters": 1364.0
+    },
+    {
+      "id": "NSR:Quay:72955",
+      "name": "Heimdal stasjon",
+      "lat": 63.352173,
+      "lon": 10.357519,
+      "shapeDistanceMeters": 2129.0
+    },
+    {
+      "id": "NSR:Quay:73646",
+      "name": "Lundemobakken",
+      "lat": 63.35234,
+      "lon": 10.360878,
+      "shapeDistanceMeters": 3000.0
+    },
+    {
+      "id": "NSR:Quay:74517",
+      "name": "Breidablikk skole",
+      "lat": 63.34996,
+      "lon": 10.360106,
+      "shapeDistanceMeters": 3268.0
+    },
+    {
+      "id": "NSR:Quay:73852",
+      "name": "Johan Tillers vei",
+      "lat": 63.348059,
+      "lon": 10.359442,
+      "shapeDistanceMeters": 3488.0
+    },
+    {
+      "id": "NSR:Quay:72965",
+      "name": "Mentz Skjetnes vei",
+      "lat": 63.345098,
+      "lon": 10.359359,
+      "shapeDistanceMeters": 3825.0
+    },
+    {
+      "id": "NSR:Quay:74756",
+      "name": "Oppsynsmann Eggens veg",
+      "lat": 63.342176,
+      "lon": 10.360601,
+      "shapeDistanceMeters": 4164.0
+    },
+    {
+      "id": "NSR:Quay:73738",
+      "name": "Terminalen Heimdal",
+      "lat": 63.340689,
+      "lon": 10.356621,
+      "shapeDistanceMeters": 4538.0
+    },
+    {
+      "id": "NSR:Quay:72890",
+      "name": "Heggstadmoen 2",
+      "lat": 63.34002,
+      "lon": 10.353124,
+      "shapeDistanceMeters": 4771.0
+    },
+    {
+      "id": "NSR:Quay:72895",
+      "name": "Heggstadmoen 4",
+      "lat": 63.33879,
+      "lon": 10.353186,
+      "shapeDistanceMeters": 4909.0
+    },
+    {
+      "id": "NSR:Quay:71830",
+      "name": "Sandmoen 2",
+      "lat": 63.332996,
+      "lon": 10.361941,
+      "shapeDistanceMeters": 5943.0
+    },
+    {
+      "id": "NSR:Quay:71820",
+      "name": "Sandmoen",
+      "lat": 63.33318,
+      "lon": 10.365206,
+      "shapeDistanceMeters": 6121.0
+    },
+    {
+      "id": "NSR:Quay:102728",
+      "name": "Torgardstrøa",
+      "lat": 63.330369,
+      "lon": 10.367923,
+      "shapeDistanceMeters": 6504.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.35438,
+      "lon": 10.32628
+    },
+    {
+      "lat": 63.354705,
+      "lon": 10.326545
+    },
+    {
+      "lat": 63.353817,
+      "lon": 10.325303
+    },
+    {
+      "lat": 63.352931,
+      "lon": 10.326842
+    },
+    {
+      "lat": 63.35169,
+      "lon": 10.327075
+    },
+    {
+      "lat": 63.351123,
+      "lon": 10.329275
+    },
+    {
+      "lat": 63.350608,
+      "lon": 10.329865
+    },
+    {
+      "lat": 63.351224,
+      "lon": 10.334911
+    },
+    {
+      "lat": 63.35115,
+      "lon": 10.345342
+    },
+    {
+      "lat": 63.351621,
+      "lon": 10.347733
+    },
+    {
+      "lat": 63.351773,
+      "lon": 10.3496
+    },
+    {
+      "lat": 63.351194,
+      "lon": 10.356622
+    },
+    {
+      "lat": 63.352642,
+      "lon": 10.357641
+    },
+    {
+      "lat": 63.353637,
+      "lon": 10.357683
+    },
+    {
+      "lat": 63.354837,
+      "lon": 10.358756
+    },
+    {
+      "lat": 63.355829,
+      "lon": 10.360748
+    },
+    {
+      "lat": 63.355577,
+      "lon": 10.361336
+    },
+    {
+      "lat": 63.354938,
+      "lon": 10.361849
+    },
+    {
+      "lat": 63.348996,
+      "lon": 10.359849
+    },
+    {
+      "lat": 63.348711,
+      "lon": 10.359481
+    },
+    {
+      "lat": 63.346191,
+      "lon": 10.359046
+    },
+    {
+      "lat": 63.340999,
+      "lon": 10.361183
+    },
+    {
+      "lat": 63.340561,
+      "lon": 10.353175
+    },
+    {
+      "lat": 63.338226,
+      "lon": 10.353328
+    },
+    {
+      "lat": 63.336951,
+      "lon": 10.355304
+    },
+    {
+      "lat": 63.336143,
+      "lon": 10.355807
+    },
+    {
+      "lat": 63.334673,
+      "lon": 10.35562
+    },
+    {
+      "lat": 63.334418,
+      "lon": 10.355881
+    },
+    {
+      "lat": 63.33357,
+      "lon": 10.354715
+    },
+    {
+      "lat": 63.333458,
+      "lon": 10.357232
+    },
+    {
+      "lat": 63.333139,
+      "lon": 10.35904
+    },
+    {
+      "lat": 63.332982,
+      "lon": 10.363341
+    },
+    {
+      "lat": 63.333359,
+      "lon": 10.365682
+    },
+    {
+      "lat": 63.332155,
+      "lon": 10.366995
+    },
+    {
+      "lat": 63.33037,
+      "lon": 10.367989
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Lundåsen nordre - Torgardstrøa",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_46",
+    "shapeId": "ATB:JourneyPattern:46_Inbound_251215112493884_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}
