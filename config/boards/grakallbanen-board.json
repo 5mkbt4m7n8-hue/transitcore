@@ -522,7 +522,7 @@
     "emptyFrameHoldSeconds": 30,
     "freshnessSeconds": 120,
     "arrivalRadiusMeters": 65,
-    "atStopConfirmationSeconds": 10,
+    "atStopConfirmationSeconds": 0,
     "stationDepartureRadiusMeters": 110,
     "maximumTrackDistanceMeters": 250
   },

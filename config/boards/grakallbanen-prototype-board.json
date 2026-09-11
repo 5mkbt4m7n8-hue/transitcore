@@ -210,6 +210,8 @@
     "collisionMode": "unknown-direction",
     "freshnessSeconds": 120,
     "arrivalRadiusMeters": 65,
+    "atStopConfirmationSeconds": 0,
+    "departureAfterglowSeconds": 10,
     "maximumTrackDistanceMeters": 250
   },
   "status": "prototype-editor-ready"
