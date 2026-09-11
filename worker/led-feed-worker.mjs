@@ -7,6 +7,7 @@ export const SIGNAL_POLICY = Object.freeze({
   atStopConfirmationSeconds: 10,
   parkedAfterSeconds: 300,
   parkedMovementThresholdMeters: 15,
+  stationDepartureMovementMeters: 15,
   parkedRgb: Object.freeze([255, 0, 0]),
   fullBrightness: 32,
   afterglowBrightness: 8,
@@ -132,7 +133,9 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
         id = String(interpolatedId);
       }
     }
-    const distance = Number(led.vehicle?.distanceMeters);
+    const reportedDistance = Number(led.vehicle?.distanceMeters);
+    const distanceFromStation = Number(led.vehicle?.stationDistanceMeters);
+    const distance = Number.isFinite(reportedDistance) ? reportedDistance : distanceFromStation;
     const before = previous[id];
     const sameVehicle = before && before.vehicleId === vehicleId;
     const latitude = Number(led.vehicle?.latitude), longitude = Number(led.vehicle?.longitude);
@@ -191,7 +194,11 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
         }))
       };
     }
-    const departing = led.state === "APPROACHING" && sameVehicle &&
+    const departingInsideStation = GRAKALL_BOARD_IDS.has(frame.boardProfile) && led.state === "AT_STOP" &&
+      sameVehicle && before.state === "AT_STOP" && led.vehicle?.positionType === "station" &&
+      before.led.vehicle?.positionType === "station" && Number.isFinite(distance) &&
+      Number.isFinite(before.distance) && distance > before.distance + SIGNAL_POLICY.stationDepartureMovementMeters;
+    const departing = departingInsideStation || led.state === "APPROACHING" && sameVehicle &&
       (before.state === "AT_STOP" || before.state === "PASSED" ||
        Number.isFinite(distance) && Number.isFinite(before.distance) && distance > before.distance + 10);
     seen.add(id);

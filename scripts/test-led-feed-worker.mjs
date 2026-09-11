@@ -4,6 +4,7 @@ import { SIGNAL_POLICY, applyMotionLifecycle, attachSignalPolicy, buildFrame, bu
 assert.equal(SIGNAL_POLICY.version, 1);
 assert.equal(SIGNAL_POLICY.approachPulseMs, 1800);
 assert.equal(SIGNAL_POLICY.parkedAfterSeconds, 300);
+assert.equal(SIGNAL_POLICY.stationDepartureMovementMeters, 15);
 assert.equal(SIGNAL_POLICY.atStopConfirmationSeconds, 10);
 assert.equal(SIGNAL_POLICY.priorities.PARKED, 4);
 assert.deepEqual(attachSignalPolicy({ schemaVersion: 1 }).signalPolicy, SIGNAL_POLICY);
@@ -110,6 +111,13 @@ const afterSkippedStop={...stationOnlyNext,leds:[{...stationOnlyNext.leds[0],veh
 let skippedStopLifecycle=applyMotionLifecycle(skippedStopApproach,{},now,10000);
 skippedStopLifecycle=applyMotionLifecycle(afterSkippedStop,skippedStopLifecycle.state,now+1000,10000);
 assert.deepEqual(skippedStopLifecycle.frame.leds.map(led=>({id:led.id,lifecycle:led.lifecycle})),[{id:0,lifecycle:"PASSED"}],"et GPS-hopp forbi en holdeplass skal vise PASSED før neste holdeplass overtar");
+const insideStation=id=>({...stationOnlyStop,leds:[{...stationOnlyStop.leds[0],state:"AT_STOP",vehicle:{...stationOnlyStop.leds[0].vehicle,id:"precise-departure",positionType:"station",stationDistanceMeters:id},occupants:[]}]});
+let preciseDeparture=applyMotionLifecycle(insideStation(28),{},now,10000);
+preciseDeparture=applyMotionLifecycle(insideStation(12),preciseDeparture.state,now+1000,10000);
+assert.equal(preciseDeparture.frame.leds[0].state,"AT_STOP","mindre avstand til stasjonen er fortsatt ankomst");
+preciseDeparture=applyMotionLifecycle(insideStation(30),preciseDeparture.state,now+2000,10000);
+assert.equal(preciseDeparture.frame.leds[0].lifecycle,"PASSED","tydelig økende avstand skal registrere avgang inne i stasjonssonen");
+assert.equal(preciseDeparture.frame.leds[0].brightness,8,"presis avgang skal vises dimmet");
 console.log("GrÃƒÂ¥kallbanen linear VLED worker test OK");
 
 
