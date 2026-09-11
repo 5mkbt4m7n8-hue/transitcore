@@ -84,10 +84,12 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     const stationDepartureRadius = Number(frame.motionPolicy?.stationDepartureRadiusMeters);
     const stationDistance = Number(led.vehicle?.stationDistanceMeters);
     const nearestStationLed = String(led.vehicle?.nearestStationLed ?? "");
+    const previousPositionType = previousPosition?.[1].led.vehicle?.positionType;
     const stationOnlyDeparture = frame.boardProfile === "grakallbanen-prototype-board" &&
       !hasCollision && led.state === "APPROACHING" && previousPosition && previousPosition[0] !== id &&
-      previousPosition[1].led.vehicle?.positionType === "station";
-    if (stationOnlyDeparture && previousPosition[1].state === "AT_STOP") {
+      (previousPositionType === "station" || previousPositionType === "station-approach");
+    if (stationOnlyDeparture && (previousPosition[1].state === "AT_STOP" ||
+        previousPosition[1].state === "APPROACHING" && previousPositionType === "station-approach")) {
       const [passedId, passedBefore] = previousPosition;
       const passed = makePassedLed(passedBefore.led);
       leds.push(passed);
@@ -808,7 +810,8 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
     sequence: Math.floor(now / 1000), ttlSeconds: 30, ledCount: hardware.leds?.count ?? board.leds.count,
     motionPolicy: {
       stationDepartureRadiusMeters: Math.max(board.render.arrivalRadiusMeters, Number(board.render.stationDepartureRadiusMeters) || board.render.arrivalRadiusMeters),
-      atStopConfirmationSeconds: Math.max(0, Number(board.render.atStopConfirmationSeconds ?? SIGNAL_POLICY.atStopConfirmationSeconds) || 0)
+      atStopConfirmationSeconds: Math.max(0, Number(board.render.atStopConfirmationSeconds ??
+        (GRAKALL_BOARD_IDS.has(board.id) ? 0 : SIGNAL_POLICY.atStopConfirmationSeconds)) || 0)
     },
     leds: [...strongest.values()].sort((a, b) => a.id - b.id).map(item => ({
       id: item.id, rgb: rgb(color(profile, item.destination)),

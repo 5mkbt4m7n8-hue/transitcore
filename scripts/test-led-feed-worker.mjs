@@ -68,7 +68,7 @@ assert.equal(tramFrame.leds.length, 1);
 assert.deepEqual({id:tramFrame.leds[0].id,rgb:tramFrame.leds[0].rgb,brightness:tramFrame.leds[0].brightness,state:tramFrame.leds[0].state}, { id: 2, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING" });
 assert.equal(tramFrame.leds[0].vehicle.positionType,"segment");
 assert.equal(tramFrame.motionPolicy.stationDepartureRadiusMeters,65);
-assert.equal(tramFrame.motionPolicy.atStopConfirmationSeconds,10);
+assert.equal(tramFrame.motionPolicy.atStopConfirmationSeconds,0,"Gråkallbanen skal merke AT_STOP ved første GPS-treff uten ekstra ventetid");
 const sharedTramFrame = buildLinearRouteFrame({ board: tramBoard, profiles: [tramProfile], hardware: tramHardware, vehicles: [tramVehicles[0], { ...tramVehicles[0], vehicleId: "tram-2", destinationName: "Ila" }], now });
 assert.equal(sharedTramFrame.leds[0].occupants.length, 2, "Begge vogner på samme Gråkallbane-LED må bevares");
 assert.deepEqual(sharedTramFrame.leds[0].occupants.map(value => value.rgb), [[0, 255, 80], [0, 100, 255]], "Likt prioriterte vogner må kunne veksle mellom retningsfargene");
@@ -105,6 +105,11 @@ stationOnlyLifecycle=applyMotionLifecycle(stationOnlyNext,stationOnlyLifecycle.s
 assert.deepEqual(stationOnlyLifecycle.frame.leds.map(led=>({id:led.id,lifecycle:led.lifecycle,brightness:led.brightness})),[{id:0,lifecycle:"PASSED",brightness:8}],"stasjonsprototypen skal vise dimmet PASSED før vognen flyttes videre");
 stationOnlyLifecycle=applyMotionLifecycle(stationOnlyNext,stationOnlyLifecycle.state,now+11001,10000);
 assert.deepEqual(stationOnlyLifecycle.frame.leds.map(led=>({id:led.id,state:led.state})),[{id:1,state:"APPROACHING"}],"etter PASSED-perioden skal samme vogn bare vises ved neste stasjon");
+const skippedStopApproach={...stationOnlyStop,leds:[{...stationOnlyStop.leds[0],state:"APPROACHING",vehicle:{...stationOnlyStop.leds[0].vehicle,id:"station-only-skip",positionType:"station-approach"}}]};
+const afterSkippedStop={...stationOnlyNext,leds:[{...stationOnlyNext.leds[0],vehicle:{...stationOnlyNext.leds[0].vehicle,id:"station-only-skip"}}]};
+let skippedStopLifecycle=applyMotionLifecycle(skippedStopApproach,{},now,10000);
+skippedStopLifecycle=applyMotionLifecycle(afterSkippedStop,skippedStopLifecycle.state,now+1000,10000);
+assert.deepEqual(skippedStopLifecycle.frame.leds.map(led=>({id:led.id,lifecycle:led.lifecycle})),[{id:0,lifecycle:"PASSED"}],"et GPS-hopp forbi en holdeplass skal vise PASSED før neste holdeplass overtar");
 console.log("GrÃƒÂ¥kallbanen linear VLED worker test OK");
 
 
