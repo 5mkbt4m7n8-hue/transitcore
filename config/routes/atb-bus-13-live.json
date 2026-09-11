@@ -1,0 +1,532 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-13-live",
+  "name": "AtB buss 13",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_13",
+    "publicCode": "13",
+    "mode": "bus",
+    "longName": "Østmarka - Strindheim - Lerkendal - Havstad"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Havstad",
+      "destinationMatches": [
+        "Havstad"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Østmarka",
+      "destinationMatches": [
+        "Østmarka"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": true
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:72844",
+      "name": "Østmarkneset",
+      "lat": 63.453403,
+      "lon": 10.44968,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:72849",
+      "name": "Østmarkveien",
+      "lat": 63.44989,
+      "lon": 10.451103,
+      "shapeDistanceMeters": 587.0
+    },
+    {
+      "id": "NSR:Quay:71382",
+      "name": "Ringve museum",
+      "lat": 63.449355,
+      "lon": 10.456686,
+      "shapeDistanceMeters": 880.0
+    },
+    {
+      "id": "NSR:Quay:74554",
+      "name": "Olav Engelbrektssons allé",
+      "lat": 63.44708,
+      "lon": 10.457458,
+      "shapeDistanceMeters": 1182.0
+    },
+    {
+      "id": "NSR:Quay:75065",
+      "name": "Jørgen B. Lysholms vei",
+      "lat": 63.444108,
+      "lon": 10.458416,
+      "shapeDistanceMeters": 1618.0
+    },
+    {
+      "id": "NSR:Quay:73128",
+      "name": "Lade allé 80",
+      "lat": 63.44158,
+      "lon": 10.464145,
+      "shapeDistanceMeters": 2020.0
+    },
+    {
+      "id": "NSR:Quay:98649",
+      "name": "Leangenbukta",
+      "lat": 63.440194,
+      "lon": 10.464555,
+      "shapeDistanceMeters": 2206.0
+    },
+    {
+      "id": "NSR:Quay:73038",
+      "name": "Strindheim",
+      "lat": 63.43541,
+      "lon": 10.457176,
+      "shapeDistanceMeters": 2881.0
+    },
+    {
+      "id": "NSR:Quay:73049",
+      "name": "Strindheim skole",
+      "lat": 63.432415,
+      "lon": 10.455516,
+      "shapeDistanceMeters": 3235.0
+    },
+    {
+      "id": "NSR:Quay:75377",
+      "name": "Bromstadvegen",
+      "lat": 63.430307,
+      "lon": 10.452314,
+      "shapeDistanceMeters": 3591.0
+    },
+    {
+      "id": "NSR:Quay:71897",
+      "name": "Valentinlyst",
+      "lat": 63.424496,
+      "lon": 10.440261,
+      "shapeDistanceMeters": 4543.0
+    },
+    {
+      "id": "NSR:Quay:72610",
+      "name": "Magnus Berrføtts veg",
+      "lat": 63.420868,
+      "lon": 10.437895,
+      "shapeDistanceMeters": 4975.0
+    },
+    {
+      "id": "NSR:Quay:72060",
+      "name": "Sigurd Jorsalfars veg",
+      "lat": 63.419254,
+      "lon": 10.43597,
+      "shapeDistanceMeters": 5185.0
+    },
+    {
+      "id": "NSR:Quay:72852",
+      "name": "Østre Berg",
+      "lat": 63.416009,
+      "lon": 10.430124,
+      "shapeDistanceMeters": 5683.0
+    },
+    {
+      "id": "NSR:Quay:74954",
+      "name": "Berg studentby",
+      "lat": 63.413576,
+      "lon": 10.414052,
+      "shapeDistanceMeters": 6585.0
+    },
+    {
+      "id": "NSR:Quay:73415",
+      "name": "Lerkendal gård",
+      "lat": 63.413006,
+      "lon": 10.409538,
+      "shapeDistanceMeters": 6844.0
+    },
+    {
+      "id": "NSR:Quay:73421",
+      "name": "Lerkendal",
+      "lat": 63.412654,
+      "lon": 10.399831,
+      "shapeDistanceMeters": 7340.0
+    },
+    {
+      "id": "NSR:Quay:71204",
+      "name": "Hesthagen",
+      "lat": 63.415486,
+      "lon": 10.398155,
+      "shapeDistanceMeters": 7699.0
+    },
+    {
+      "id": "NSR:Quay:71190",
+      "name": "St. Olavs hospital øst",
+      "lat": 63.420757,
+      "lon": 10.390046,
+      "shapeDistanceMeters": 8625.0
+    },
+    {
+      "id": "NSR:Quay:74057",
+      "name": "St. Olavs hospital vest",
+      "lat": 63.42024,
+      "lon": 10.386214,
+      "shapeDistanceMeters": 8829.0
+    },
+    {
+      "id": "NSR:Quay:72678",
+      "name": "Marienborg stasjon",
+      "lat": 63.417816,
+      "lon": 10.382431,
+      "shapeDistanceMeters": 9234.0
+    },
+    {
+      "id": "NSR:Quay:73745",
+      "name": "Thaulowbakken",
+      "lat": 63.412656,
+      "lon": 10.382222,
+      "shapeDistanceMeters": 9886.0
+    },
+    {
+      "id": "NSR:Quay:75330",
+      "name": "Breidablikkveien",
+      "lat": 63.411228,
+      "lon": 10.38274,
+      "shapeDistanceMeters": 10047.0
+    },
+    {
+      "id": "NSR:Quay:75324",
+      "name": "Breidablikk",
+      "lat": 63.412383,
+      "lon": 10.376708,
+      "shapeDistanceMeters": 10553.0
+    },
+    {
+      "id": "NSR:Quay:72798",
+      "name": "Åsveien skole",
+      "lat": 63.415072,
+      "lon": 10.366014,
+      "shapeDistanceMeters": 11218.0
+    },
+    {
+      "id": "NSR:Quay:75450",
+      "name": "Framveien",
+      "lat": 63.41578,
+      "lon": 10.362682,
+      "shapeDistanceMeters": 11393.0
+    },
+    {
+      "id": "NSR:Quay:75627",
+      "name": "Sverresborg",
+      "lat": 63.417356,
+      "lon": 10.35543,
+      "shapeDistanceMeters": 11796.0
+    },
+    {
+      "id": "NSR:Quay:74393",
+      "name": "Norrkøpingveien",
+      "lat": 63.416462,
+      "lon": 10.35316,
+      "shapeDistanceMeters": 12013.0
+    },
+    {
+      "id": "NSR:Quay:74214",
+      "name": "Nyborg",
+      "lat": 63.413098,
+      "lon": 10.351798,
+      "shapeDistanceMeters": 12393.0
+    },
+    {
+      "id": "NSR:Quay:72851",
+      "name": "Havstad",
+      "lat": 63.405962,
+      "lon": 10.357189,
+      "shapeDistanceMeters": 13463.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.453398,
+      "lon": 10.449714
+    },
+    {
+      "lat": 63.452595,
+      "lon": 10.450276
+    },
+    {
+      "lat": 63.451661,
+      "lon": 10.450027
+    },
+    {
+      "lat": 63.449688,
+      "lon": 10.4484
+    },
+    {
+      "lat": 63.449988,
+      "lon": 10.452821
+    },
+    {
+      "lat": 63.449175,
+      "lon": 10.457858
+    },
+    {
+      "lat": 63.447065,
+      "lon": 10.457519
+    },
+    {
+      "lat": 63.446117,
+      "lon": 10.456666
+    },
+    {
+      "lat": 63.445527,
+      "lon": 10.455319
+    },
+    {
+      "lat": 63.444631,
+      "lon": 10.45691
+    },
+    {
+      "lat": 63.443231,
+      "lon": 10.461011
+    },
+    {
+      "lat": 63.441119,
+      "lon": 10.465098
+    },
+    {
+      "lat": 63.440585,
+      "lon": 10.465175
+    },
+    {
+      "lat": 63.439739,
+      "lon": 10.463961
+    },
+    {
+      "lat": 63.439448,
+      "lon": 10.463069
+    },
+    {
+      "lat": 63.43904,
+      "lon": 10.462851
+    },
+    {
+      "lat": 63.436421,
+      "lon": 10.45869
+    },
+    {
+      "lat": 63.436385,
+      "lon": 10.458257
+    },
+    {
+      "lat": 63.436092,
+      "lon": 10.458212
+    },
+    {
+      "lat": 63.435153,
+      "lon": 10.456692
+    },
+    {
+      "lat": 63.430247,
+      "lon": 10.454474
+    },
+    {
+      "lat": 63.430212,
+      "lon": 10.451066
+    },
+    {
+      "lat": 63.430003,
+      "lon": 10.450941
+    },
+    {
+      "lat": 63.428754,
+      "lon": 10.445654
+    },
+    {
+      "lat": 63.427199,
+      "lon": 10.442363
+    },
+    {
+      "lat": 63.42398,
+      "lon": 10.439922
+    },
+    {
+      "lat": 63.421733,
+      "lon": 10.438906
+    },
+    {
+      "lat": 63.41645,
+      "lon": 10.432777
+    },
+    {
+      "lat": 63.416142,
+      "lon": 10.431813
+    },
+    {
+      "lat": 63.415946,
+      "lon": 10.430133
+    },
+    {
+      "lat": 63.416144,
+      "lon": 10.427449
+    },
+    {
+      "lat": 63.415833,
+      "lon": 10.42526
+    },
+    {
+      "lat": 63.415123,
+      "lon": 10.422603
+    },
+    {
+      "lat": 63.413913,
+      "lon": 10.419974
+    },
+    {
+      "lat": 63.413575,
+      "lon": 10.418347
+    },
+    {
+      "lat": 63.413549,
+      "lon": 10.413485
+    },
+    {
+      "lat": 63.413699,
+      "lon": 10.411928
+    },
+    {
+      "lat": 63.413228,
+      "lon": 10.41089
+    },
+    {
+      "lat": 63.412918,
+      "lon": 10.409204
+    },
+    {
+      "lat": 63.413077,
+      "lon": 10.404041
+    },
+    {
+      "lat": 63.412571,
+      "lon": 10.399267
+    },
+    {
+      "lat": 63.421281,
+      "lon": 10.395075
+    },
+    {
+      "lat": 63.421111,
+      "lon": 10.393376
+    },
+    {
+      "lat": 63.420065,
+      "lon": 10.385129
+    },
+    {
+      "lat": 63.419391,
+      "lon": 10.382601
+    },
+    {
+      "lat": 63.418623,
+      "lon": 10.383135
+    },
+    {
+      "lat": 63.418349,
+      "lon": 10.382401
+    },
+    {
+      "lat": 63.41666,
+      "lon": 10.38249
+    },
+    {
+      "lat": 63.414573,
+      "lon": 10.383479
+    },
+    {
+      "lat": 63.413927,
+      "lon": 10.381807
+    },
+    {
+      "lat": 63.411815,
+      "lon": 10.382811
+    },
+    {
+      "lat": 63.410652,
+      "lon": 10.38269
+    },
+    {
+      "lat": 63.410911,
+      "lon": 10.381015
+    },
+    {
+      "lat": 63.41164,
+      "lon": 10.380143
+    },
+    {
+      "lat": 63.411865,
+      "lon": 10.376665
+    },
+    {
+      "lat": 63.412126,
+      "lon": 10.376271
+    },
+    {
+      "lat": 63.412557,
+      "lon": 10.376527
+    },
+    {
+      "lat": 63.412756,
+      "lon": 10.372795
+    },
+    {
+      "lat": 63.414056,
+      "lon": 10.37061
+    },
+    {
+      "lat": 63.417579,
+      "lon": 10.353695
+    },
+    {
+      "lat": 63.409947,
+      "lon": 10.350545
+    },
+    {
+      "lat": 63.409847,
+      "lon": 10.351243
+    },
+    {
+      "lat": 63.409484,
+      "lon": 10.351633
+    },
+    {
+      "lat": 63.407721,
+      "lon": 10.350437
+    },
+    {
+      "lat": 63.407203,
+      "lon": 10.350698
+    },
+    {
+      "lat": 63.406715,
+      "lon": 10.351617
+    },
+    {
+      "lat": 63.405999,
+      "lon": 10.357213
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Østmarkneset - Havstad",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_13",
+    "shapeId": "ATB:JourneyPattern:13_Outbound_251215112494325_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

@@ -1,0 +1,416 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-12-live",
+  "name": "AtB buss 12",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_12",
+    "publicCode": "12",
+    "mode": "bus",
+    "longName": "Dragvoll-Øya/Marienborg"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Marienborg / Spektrum",
+      "destinationMatches": [
+        "Marienborg",
+        "Spektrum"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Dragvoll",
+      "destinationMatches": [
+        "Dragvoll"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:71438",
+      "name": "Trondheim Spektrum",
+      "lat": 63.426644,
+      "lon": 10.377904,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:72344",
+      "name": "Gudruns gate",
+      "lat": 63.425192,
+      "lon": 10.382576,
+      "shapeDistanceMeters": 340.0
+    },
+    {
+      "id": "NSR:Quay:72655",
+      "name": "Margretes gate",
+      "lat": 63.423815,
+      "lon": 10.386506,
+      "shapeDistanceMeters": 591.0
+    },
+    {
+      "id": "NSR:Quay:73101",
+      "name": "Studentersamfundet",
+      "lat": 63.422596,
+      "lon": 10.394623,
+      "shapeDistanceMeters": 1325.0
+    },
+    {
+      "id": "NSR:Quay:71175",
+      "name": "Nidarosdomen",
+      "lat": 63.426072,
+      "lon": 10.393608,
+      "shapeDistanceMeters": 1718.0
+    },
+    {
+      "id": "NSR:Quay:71181",
+      "name": "Prinsens gate",
+      "lat": 63.431194,
+      "lon": 10.392115,
+      "shapeDistanceMeters": 2297.0
+    },
+    {
+      "id": "NSR:Quay:74205",
+      "name": "Olav Tryggvasons gate",
+      "lat": 63.433295,
+      "lon": 10.401813,
+      "shapeDistanceMeters": 3014.0
+    },
+    {
+      "id": "NSR:Quay:74793",
+      "name": "Bakkegata",
+      "lat": 63.432263,
+      "lon": 10.407305,
+      "shapeDistanceMeters": 3317.0
+    },
+    {
+      "id": "NSR:Quay:73976",
+      "name": "Solsiden",
+      "lat": 63.434093,
+      "lon": 10.413705,
+      "shapeDistanceMeters": 3730.0
+    },
+    {
+      "id": "NSR:Quay:103007",
+      "name": "Buran",
+      "lat": 63.43627,
+      "lon": 10.42478,
+      "shapeDistanceMeters": 4368.0
+    },
+    {
+      "id": "NSR:Quay:71686",
+      "name": "Rønningsbakken",
+      "lat": 63.43738,
+      "lon": 10.43893,
+      "shapeDistanceMeters": 5087.0
+    },
+    {
+      "id": "NSR:Quay:74498",
+      "name": "Dalen Hageby",
+      "lat": 63.43723,
+      "lon": 10.450101,
+      "shapeDistanceMeters": 5659.0
+    },
+    {
+      "id": "NSR:Quay:73033",
+      "name": "Strindheim",
+      "lat": 63.435185,
+      "lon": 10.456301,
+      "shapeDistanceMeters": 6057.0
+    },
+    {
+      "id": "NSR:Quay:73049",
+      "name": "Strindheim skole",
+      "lat": 63.432415,
+      "lon": 10.455516,
+      "shapeDistanceMeters": 6391.0
+    },
+    {
+      "id": "NSR:Quay:73044",
+      "name": "Strindheim Hageby",
+      "lat": 63.429176,
+      "lon": 10.454284,
+      "shapeDistanceMeters": 6762.0
+    },
+    {
+      "id": "NSR:Quay:75376",
+      "name": "Bromstadsvingen",
+      "lat": 63.427456,
+      "lon": 10.459367,
+      "shapeDistanceMeters": 7083.0
+    },
+    {
+      "id": "NSR:Quay:73990",
+      "name": "Solvollvegen",
+      "lat": 63.425047,
+      "lon": 10.457388,
+      "shapeDistanceMeters": 7424.0
+    },
+    {
+      "id": "NSR:Quay:75433",
+      "name": "Brøsetflata",
+      "lat": 63.423466,
+      "lon": 10.454556,
+      "shapeDistanceMeters": 7649.0
+    },
+    {
+      "id": "NSR:Quay:75430",
+      "name": "Brøset Hageby",
+      "lat": 63.42164,
+      "lon": 10.449393,
+      "shapeDistanceMeters": 7977.0
+    },
+    {
+      "id": "NSR:Quay:73716",
+      "name": "Teglverkskrysset",
+      "lat": 63.41833,
+      "lon": 10.448025,
+      "shapeDistanceMeters": 8351.0
+    },
+    {
+      "id": "NSR:Quay:71222",
+      "name": "Henrik Ourens veg",
+      "lat": 63.415012,
+      "lon": 10.445394,
+      "shapeDistanceMeters": 8748.0
+    },
+    {
+      "id": "NSR:Quay:73028",
+      "name": "Strinda kirke",
+      "lat": 63.412776,
+      "lon": 10.44486,
+      "shapeDistanceMeters": 8998.0
+    },
+    {
+      "id": "NSR:Quay:73251",
+      "name": "Moholt Storsenter",
+      "lat": 63.40994,
+      "lon": 10.440126,
+      "shapeDistanceMeters": 9413.0
+    },
+    {
+      "id": "NSR:Quay:72402",
+      "name": "Voll studentby",
+      "lat": 63.409515,
+      "lon": 10.444656,
+      "shapeDistanceMeters": 9843.0
+    },
+    {
+      "id": "NSR:Quay:72872",
+      "name": "Heggdalen",
+      "lat": 63.408045,
+      "lon": 10.449133,
+      "shapeDistanceMeters": 10142.0
+    },
+    {
+      "id": "NSR:Quay:73583",
+      "name": "Lohove",
+      "lat": 63.405333,
+      "lon": 10.456686,
+      "shapeDistanceMeters": 10692.0
+    },
+    {
+      "id": "NSR:Quay:74610",
+      "name": "Dragvoll",
+      "lat": 63.407917,
+      "lon": 10.471679,
+      "shapeDistanceMeters": 11605.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.42664,
+      "lon": 10.3779
+    },
+    {
+      "lat": 63.426494,
+      "lon": 10.377352
+    },
+    {
+      "lat": 63.424795,
+      "lon": 10.38426
+    },
+    {
+      "lat": 63.420914,
+      "lon": 10.393393
+    },
+    {
+      "lat": 63.42113,
+      "lon": 10.395141
+    },
+    {
+      "lat": 63.422858,
+      "lon": 10.394374
+    },
+    {
+      "lat": 63.433021,
+      "lon": 10.391594
+    },
+    {
+      "lat": 63.433317,
+      "lon": 10.402409
+    },
+    {
+      "lat": 63.432035,
+      "lon": 10.408248
+    },
+    {
+      "lat": 63.4357,
+      "lon": 10.417258
+    },
+    {
+      "lat": 63.435884,
+      "lon": 10.418107
+    },
+    {
+      "lat": 63.437047,
+      "lon": 10.436772
+    },
+    {
+      "lat": 63.437827,
+      "lon": 10.441729
+    },
+    {
+      "lat": 63.437221,
+      "lon": 10.450718
+    },
+    {
+      "lat": 63.435272,
+      "lon": 10.455951
+    },
+    {
+      "lat": 63.435153,
+      "lon": 10.456692
+    },
+    {
+      "lat": 63.430163,
+      "lon": 10.454363
+    },
+    {
+      "lat": 63.429077,
+      "lon": 10.454396
+    },
+    {
+      "lat": 63.427154,
+      "lon": 10.460335
+    },
+    {
+      "lat": 63.42585,
+      "lon": 10.458947
+    },
+    {
+      "lat": 63.423164,
+      "lon": 10.454056
+    },
+    {
+      "lat": 63.421619,
+      "lon": 10.449498
+    },
+    {
+      "lat": 63.419685,
+      "lon": 10.448428
+    },
+    {
+      "lat": 63.417828,
+      "lon": 10.447968
+    },
+    {
+      "lat": 63.416924,
+      "lon": 10.446909
+    },
+    {
+      "lat": 63.414599,
+      "lon": 10.445265
+    },
+    {
+      "lat": 63.412303,
+      "lon": 10.444821
+    },
+    {
+      "lat": 63.411816,
+      "lon": 10.444019
+    },
+    {
+      "lat": 63.410957,
+      "lon": 10.441426
+    },
+    {
+      "lat": 63.409343,
+      "lon": 10.439448
+    },
+    {
+      "lat": 63.409178,
+      "lon": 10.441049
+    },
+    {
+      "lat": 63.408579,
+      "lon": 10.442985
+    },
+    {
+      "lat": 63.40969,
+      "lon": 10.444864
+    },
+    {
+      "lat": 63.40739,
+      "lon": 10.450869
+    },
+    {
+      "lat": 63.406891,
+      "lon": 10.451498
+    },
+    {
+      "lat": 63.406139,
+      "lon": 10.45146
+    },
+    {
+      "lat": 63.405087,
+      "lon": 10.45948
+    },
+    {
+      "lat": 63.4047,
+      "lon": 10.460782
+    },
+    {
+      "lat": 63.405451,
+      "lon": 10.463506
+    },
+    {
+      "lat": 63.405879,
+      "lon": 10.467279
+    },
+    {
+      "lat": 63.406671,
+      "lon": 10.470115
+    },
+    {
+      "lat": 63.407152,
+      "lon": 10.471272
+    },
+    {
+      "lat": 63.407926,
+      "lon": 10.471594
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Trondheim Spektrum - Dragvoll",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_12",
+    "shapeId": "ATB:JourneyPattern:12_Inbound_251215112494103_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

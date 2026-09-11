@@ -1,0 +1,570 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-92-live",
+  "name": "AtB buss 92",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_92",
+    "publicCode": "92",
+    "mode": "bus",
+    "longName": "92 StjørdalSt-HusbySnu."
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Husbyåsen / Stjørdal st. / Stjørdal stasjon - Tangen / Stjørdal st.-Ole Vig vgs. Sutterøy",
+      "destinationMatches": [
+        "Husbyåsen",
+        "Stjørdal st.",
+        "Stjørdal stasjon - Tangen",
+        "Stjørdal st.-Ole Vig vgs. Sutterøy"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:76340",
+      "name": "Ole Vig vgs. Sutterøy",
+      "lat": 63.4764,
+      "lon": 10.885681,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:76386",
+      "name": "Tangen nord",
+      "lat": 63.473552,
+      "lon": 10.902541,
+      "shapeDistanceMeters": 1270.0
+    },
+    {
+      "id": "NSR:Quay:110276",
+      "name": "Tangen sør",
+      "lat": 63.469959,
+      "lon": 10.907916,
+      "shapeDistanceMeters": 1770.0
+    },
+    {
+      "id": "NSR:Quay:102047",
+      "name": "Stjørdal stasjon",
+      "lat": 63.471541,
+      "lon": 10.913887,
+      "shapeDistanceMeters": 3110.0
+    },
+    {
+      "id": "NSR:Quay:77616",
+      "name": "Stjørdal torg",
+      "lat": 63.468424,
+      "lon": 10.92365,
+      "shapeDistanceMeters": 3940.0
+    },
+    {
+      "id": "NSR:Quay:76409",
+      "name": "Sigurd Jarls veg",
+      "lat": 63.470542,
+      "lon": 10.935664,
+      "shapeDistanceMeters": 4767.0
+    },
+    {
+      "id": "NSR:Quay:76414",
+      "name": "Stjørdalshallen",
+      "lat": 63.472881,
+      "lon": 10.935503,
+      "shapeDistanceMeters": 5114.0
+    },
+    {
+      "id": "NSR:Quay:77622",
+      "name": "J.P. Holans gate",
+      "lat": 63.475943,
+      "lon": 10.934318,
+      "shapeDistanceMeters": 5471.0
+    },
+    {
+      "id": "NSR:Quay:76425",
+      "name": "Husby",
+      "lat": 63.477808,
+      "lon": 10.946275,
+      "shapeDistanceMeters": 6315.0
+    },
+    {
+      "id": "NSR:Quay:76345",
+      "name": "Terrassehusene øvre",
+      "lat": 63.481003,
+      "lon": 10.951205,
+      "shapeDistanceMeters": 6975.0
+    },
+    {
+      "id": "NSR:Quay:109519",
+      "name": "Eventyrskogen",
+      "lat": 63.477949,
+      "lon": 10.958519,
+      "shapeDistanceMeters": 7975.0
+    },
+    {
+      "id": "NSR:Quay:109522",
+      "name": "Husbyåsen snuplass",
+      "lat": 63.47463,
+      "lon": 10.964701,
+      "shapeDistanceMeters": 8503.0
+    },
+    {
+      "id": "NSR:Quay:109518",
+      "name": "Eventyrskogen",
+      "lat": 63.47795,
+      "lon": 10.958658,
+      "shapeDistanceMeters": 9037.0
+    },
+    {
+      "id": "NSR:Quay:76345",
+      "name": "Terrassehusene øvre",
+      "lat": 63.481003,
+      "lon": 10.951205,
+      "shapeDistanceMeters": 9700.0
+    },
+    {
+      "id": "NSR:Quay:76426",
+      "name": "Husby",
+      "lat": 63.477781,
+      "lon": 10.945937,
+      "shapeDistanceMeters": 10246.0
+    },
+    {
+      "id": "NSR:Quay:76415",
+      "name": "Stjørdalshallen",
+      "lat": 63.472898,
+      "lon": 10.935299,
+      "shapeDistanceMeters": 11396.0
+    },
+    {
+      "id": "NSR:Quay:110275",
+      "name": "Sigurd Jarls veg",
+      "lat": 63.470612,
+      "lon": 10.935291,
+      "shapeDistanceMeters": 11753.0
+    },
+    {
+      "id": "NSR:Quay:77344",
+      "name": "Halsen ungdomsskole",
+      "lat": 63.470696,
+      "lon": 10.92608,
+      "shapeDistanceMeters": 12220.0
+    },
+    {
+      "id": "NSR:Quay:77615",
+      "name": "Stjørdal torg",
+      "lat": 63.468398,
+      "lon": 10.923393,
+      "shapeDistanceMeters": 12591.0
+    },
+    {
+      "id": "NSR:Quay:102047",
+      "name": "Stjørdal stasjon",
+      "lat": 63.471541,
+      "lon": 10.913887,
+      "shapeDistanceMeters": 13613.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.476404,
+      "lon": 10.885697
+    },
+    {
+      "lat": 63.475644,
+      "lon": 10.886496
+    },
+    {
+      "lat": 63.477196,
+      "lon": 10.893678
+    },
+    {
+      "lat": 63.474572,
+      "lon": 10.896317
+    },
+    {
+      "lat": 63.473764,
+      "lon": 10.89677
+    },
+    {
+      "lat": 63.474503,
+      "lon": 10.900348
+    },
+    {
+      "lat": 63.474112,
+      "lon": 10.90064
+    },
+    {
+      "lat": 63.474016,
+      "lon": 10.901525
+    },
+    {
+      "lat": 63.472787,
+      "lon": 10.904564
+    },
+    {
+      "lat": 63.471681,
+      "lon": 10.905714
+    },
+    {
+      "lat": 63.471301,
+      "lon": 10.905758
+    },
+    {
+      "lat": 63.470288,
+      "lon": 10.9072
+    },
+    {
+      "lat": 63.469834,
+      "lon": 10.908481
+    },
+    {
+      "lat": 63.469155,
+      "lon": 10.909507
+    },
+    {
+      "lat": 63.468184,
+      "lon": 10.910219
+    },
+    {
+      "lat": 63.46694,
+      "lon": 10.910553
+    },
+    {
+      "lat": 63.46668,
+      "lon": 10.911631
+    },
+    {
+      "lat": 63.466902,
+      "lon": 10.912435
+    },
+    {
+      "lat": 63.466885,
+      "lon": 10.915409
+    },
+    {
+      "lat": 63.467333,
+      "lon": 10.915039
+    },
+    {
+      "lat": 63.472069,
+      "lon": 10.914416
+    },
+    {
+      "lat": 63.472203,
+      "lon": 10.914123
+    },
+    {
+      "lat": 63.472101,
+      "lon": 10.913826
+    },
+    {
+      "lat": 63.471407,
+      "lon": 10.91392
+    },
+    {
+      "lat": 63.47131,
+      "lon": 10.914549
+    },
+    {
+      "lat": 63.470385,
+      "lon": 10.914644
+    },
+    {
+      "lat": 63.470458,
+      "lon": 10.923628
+    },
+    {
+      "lat": 63.468422,
+      "lon": 10.923499
+    },
+    {
+      "lat": 63.470458,
+      "lon": 10.923628
+    },
+    {
+      "lat": 63.470582,
+      "lon": 10.936221
+    },
+    {
+      "lat": 63.470715,
+      "lon": 10.937275
+    },
+    {
+      "lat": 63.472115,
+      "lon": 10.935764
+    },
+    {
+      "lat": 63.476032,
+      "lon": 10.934255
+    },
+    {
+      "lat": 63.477017,
+      "lon": 10.933421
+    },
+    {
+      "lat": 63.477189,
+      "lon": 10.934628
+    },
+    {
+      "lat": 63.477181,
+      "lon": 10.937807
+    },
+    {
+      "lat": 63.477471,
+      "lon": 10.940232
+    },
+    {
+      "lat": 63.477108,
+      "lon": 10.943265
+    },
+    {
+      "lat": 63.477187,
+      "lon": 10.945932
+    },
+    {
+      "lat": 63.477764,
+      "lon": 10.946052
+    },
+    {
+      "lat": 63.479313,
+      "lon": 10.948337
+    },
+    {
+      "lat": 63.479763,
+      "lon": 10.95119
+    },
+    {
+      "lat": 63.479753,
+      "lon": 10.95348
+    },
+    {
+      "lat": 63.479973,
+      "lon": 10.953487
+    },
+    {
+      "lat": 63.480886,
+      "lon": 10.951581
+    },
+    {
+      "lat": 63.481227,
+      "lon": 10.950569
+    },
+    {
+      "lat": 63.481254,
+      "lon": 10.949432
+    },
+    {
+      "lat": 63.479977,
+      "lon": 10.948762
+    },
+    {
+      "lat": 63.479474,
+      "lon": 10.94902
+    },
+    {
+      "lat": 63.479798,
+      "lon": 10.951708
+    },
+    {
+      "lat": 63.479748,
+      "lon": 10.95409
+    },
+    {
+      "lat": 63.479935,
+      "lon": 10.956638
+    },
+    {
+      "lat": 63.479726,
+      "lon": 10.958055
+    },
+    {
+      "lat": 63.479204,
+      "lon": 10.958891
+    },
+    {
+      "lat": 63.478104,
+      "lon": 10.959314
+    },
+    {
+      "lat": 63.477827,
+      "lon": 10.95819
+    },
+    {
+      "lat": 63.477486,
+      "lon": 10.958142
+    },
+    {
+      "lat": 63.476149,
+      "lon": 10.96002
+    },
+    {
+      "lat": 63.474611,
+      "lon": 10.964671
+    },
+    {
+      "lat": 63.476149,
+      "lon": 10.96002
+    },
+    {
+      "lat": 63.477486,
+      "lon": 10.958142
+    },
+    {
+      "lat": 63.477827,
+      "lon": 10.95819
+    },
+    {
+      "lat": 63.478104,
+      "lon": 10.959314
+    },
+    {
+      "lat": 63.479204,
+      "lon": 10.958891
+    },
+    {
+      "lat": 63.479726,
+      "lon": 10.958055
+    },
+    {
+      "lat": 63.479935,
+      "lon": 10.956638
+    },
+    {
+      "lat": 63.479753,
+      "lon": 10.95348
+    },
+    {
+      "lat": 63.479973,
+      "lon": 10.953487
+    },
+    {
+      "lat": 63.480886,
+      "lon": 10.951581
+    },
+    {
+      "lat": 63.481227,
+      "lon": 10.950569
+    },
+    {
+      "lat": 63.481254,
+      "lon": 10.949432
+    },
+    {
+      "lat": 63.479977,
+      "lon": 10.948762
+    },
+    {
+      "lat": 63.479474,
+      "lon": 10.94902
+    },
+    {
+      "lat": 63.478844,
+      "lon": 10.947375
+    },
+    {
+      "lat": 63.477312,
+      "lon": 10.945543
+    },
+    {
+      "lat": 63.477092,
+      "lon": 10.943736
+    },
+    {
+      "lat": 63.477471,
+      "lon": 10.940232
+    },
+    {
+      "lat": 63.477181,
+      "lon": 10.937807
+    },
+    {
+      "lat": 63.477189,
+      "lon": 10.934628
+    },
+    {
+      "lat": 63.477017,
+      "lon": 10.933421
+    },
+    {
+      "lat": 63.476118,
+      "lon": 10.934117
+    },
+    {
+      "lat": 63.472115,
+      "lon": 10.935764
+    },
+    {
+      "lat": 63.470767,
+      "lon": 10.937189
+    },
+    {
+      "lat": 63.470582,
+      "lon": 10.936221
+    },
+    {
+      "lat": 63.470488,
+      "lon": 10.927179
+    },
+    {
+      "lat": 63.470642,
+      "lon": 10.926792
+    },
+    {
+      "lat": 63.470635,
+      "lon": 10.925066
+    },
+    {
+      "lat": 63.470472,
+      "lon": 10.925083
+    },
+    {
+      "lat": 63.470458,
+      "lon": 10.923628
+    },
+    {
+      "lat": 63.468148,
+      "lon": 10.923484
+    },
+    {
+      "lat": 63.467969,
+      "lon": 10.914953
+    },
+    {
+      "lat": 63.472218,
+      "lon": 10.914343
+    },
+    {
+      "lat": 63.472101,
+      "lon": 10.913826
+    },
+    {
+      "lat": 63.47154,
+      "lon": 10.913902
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Ole Vig vgs. Sutterøy - Stjørdal stasjon",
+    "supportedShortTurns": [
+      "Husbyåsen snuplass - Stjørdal stasjon",
+      "Tangen nord - Husbyåsen snuplass",
+      "Stjørdal stasjon - Husbyåsen snuplass",
+      "Stjørdal stasjon - Stjørdal stasjon"
+    ],
+    "circular": true
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_92",
+    "shapeId": "ATB:JourneyPattern:92_Outbound_260219106439594_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

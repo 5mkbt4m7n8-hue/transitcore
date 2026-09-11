@@ -1,0 +1,758 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-50-live",
+  "name": "AtB buss 50",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_50",
+    "publicCode": "50",
+    "mode": "bus",
+    "longName": "Ila - Sverresborg - Byåsen - Flatåsen - Saupstadringen - Heimdal - Sandmoen"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Sandmoen / Heimdal",
+      "destinationMatches": [
+        "Sandmoen",
+        "Heimdal"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Sverresborg",
+      "destinationMatches": [
+        "Sverresborg"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": true
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:75522",
+      "name": "Bynesveien 16",
+      "lat": 63.429848,
+      "lon": 10.358641,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:72051",
+      "name": "Ila",
+      "lat": 63.428721,
+      "lon": 10.367065,
+      "shapeDistanceMeters": 475.0
+    },
+    {
+      "id": "NSR:Quay:73678",
+      "name": "Møllebakken",
+      "lat": 63.429356,
+      "lon": 10.358337,
+      "shapeDistanceMeters": 1009.0
+    },
+    {
+      "id": "NSR:Quay:75083",
+      "name": "Fagerliveien",
+      "lat": 63.42734,
+      "lon": 10.355837,
+      "shapeDistanceMeters": 1920.0
+    },
+    {
+      "id": "NSR:Quay:71931",
+      "name": "Schiøtz' vei",
+      "lat": 63.425835,
+      "lon": 10.355601,
+      "shapeDistanceMeters": 2189.0
+    },
+    {
+      "id": "NSR:Quay:72626",
+      "name": "Hammersborg",
+      "lat": 63.423683,
+      "lon": 10.357267,
+      "shapeDistanceMeters": 2596.0
+    },
+    {
+      "id": "NSR:Quay:71502",
+      "name": "Trøndelag Folkemuseum",
+      "lat": 63.420943,
+      "lon": 10.356012,
+      "shapeDistanceMeters": 2951.0
+    },
+    {
+      "id": "NSR:Quay:75525",
+      "name": "Sverresborg",
+      "lat": 63.417885,
+      "lon": 10.353646,
+      "shapeDistanceMeters": 3312.0
+    },
+    {
+      "id": "NSR:Quay:74393",
+      "name": "Norrkøpingveien",
+      "lat": 63.416462,
+      "lon": 10.35316,
+      "shapeDistanceMeters": 3473.0
+    },
+    {
+      "id": "NSR:Quay:74214",
+      "name": "Nyborg",
+      "lat": 63.413098,
+      "lon": 10.351798,
+      "shapeDistanceMeters": 3853.0
+    },
+    {
+      "id": "NSR:Quay:75464",
+      "name": "Bukkvollan",
+      "lat": 63.408221,
+      "lon": 10.348668,
+      "shapeDistanceMeters": 4425.0
+    },
+    {
+      "id": "NSR:Quay:72278",
+      "name": "Skavlans veg",
+      "lat": 63.403116,
+      "lon": 10.341957,
+      "shapeDistanceMeters": 5088.0
+    },
+    {
+      "id": "NSR:Quay:71774",
+      "name": "Ugla",
+      "lat": 63.400756,
+      "lon": 10.341032,
+      "shapeDistanceMeters": 5355.0
+    },
+    {
+      "id": "NSR:Quay:74500",
+      "name": "Dalgård",
+      "lat": 63.395423,
+      "lon": 10.336909,
+      "shapeDistanceMeters": 6054.0
+    },
+    {
+      "id": "NSR:Quay:74528",
+      "name": "Ola Setroms veg",
+      "lat": 63.391509,
+      "lon": 10.330713,
+      "shapeDistanceMeters": 6591.0
+    },
+    {
+      "id": "NSR:Quay:74159",
+      "name": "Stavsetvegen",
+      "lat": 63.388241,
+      "lon": 10.327916,
+      "shapeDistanceMeters": 6986.0
+    },
+    {
+      "id": "NSR:Quay:71690",
+      "name": "Rønningstad",
+      "lat": 63.386861,
+      "lon": 10.32702,
+      "shapeDistanceMeters": 7190.0
+    },
+    {
+      "id": "NSR:Quay:73331",
+      "name": "Leirbrua gård",
+      "lat": 63.383724,
+      "lon": 10.321835,
+      "shapeDistanceMeters": 7629.0
+    },
+    {
+      "id": "NSR:Quay:75727",
+      "name": "Granåsen Idrettspark",
+      "lat": 63.37875,
+      "lon": 10.317096,
+      "shapeDistanceMeters": 8426.0
+    },
+    {
+      "id": "NSR:Quay:74256",
+      "name": "Kolsåsdalen",
+      "lat": 63.375673,
+      "lon": 10.322039,
+      "shapeDistanceMeters": 8855.0
+    },
+    {
+      "id": "NSR:Quay:72892",
+      "name": "Øvre Flatåsveg",
+      "lat": 63.373653,
+      "lon": 10.334149,
+      "shapeDistanceMeters": 9590.0
+    },
+    {
+      "id": "NSR:Quay:75228",
+      "name": "Flatåsen senter",
+      "lat": 63.37348,
+      "lon": 10.345699,
+      "shapeDistanceMeters": 10354.0
+    },
+    {
+      "id": "NSR:Quay:71825",
+      "name": "Husebytunet",
+      "lat": 63.368725,
+      "lon": 10.344952,
+      "shapeDistanceMeters": 11017.0
+    },
+    {
+      "id": "NSR:Quay:71912",
+      "name": "Saupstadsenteret",
+      "lat": 63.366987,
+      "lon": 10.348705,
+      "shapeDistanceMeters": 11428.0
+    },
+    {
+      "id": "NSR:Quay:75581",
+      "name": "Casper Lundes veg",
+      "lat": 63.367877,
+      "lon": 10.358316,
+      "shapeDistanceMeters": 11922.0
+    },
+    {
+      "id": "NSR:Quay:73008",
+      "name": "Midteggen",
+      "lat": 63.362544,
+      "lon": 10.357679,
+      "shapeDistanceMeters": 12653.0
+    },
+    {
+      "id": "NSR:Quay:72490",
+      "name": "Skyttervegen",
+      "lat": 63.361651,
+      "lon": 10.349942,
+      "shapeDistanceMeters": 13135.0
+    },
+    {
+      "id": "NSR:Quay:73684",
+      "name": "Lyngvegen",
+      "lat": 63.357497,
+      "lon": 10.355049,
+      "shapeDistanceMeters": 13668.0
+    },
+    {
+      "id": "NSR:Quay:72946",
+      "name": "Heimdal stasjon",
+      "lat": 63.351546,
+      "lon": 10.356846,
+      "shapeDistanceMeters": 14428.0
+    },
+    {
+      "id": "NSR:Quay:74518",
+      "name": "Breidablikk skole",
+      "lat": 63.349324,
+      "lon": 10.360089,
+      "shapeDistanceMeters": 15417.0
+    },
+    {
+      "id": "NSR:Quay:73647",
+      "name": "Lundemobakken",
+      "lat": 63.35229,
+      "lon": 10.36102,
+      "shapeDistanceMeters": 15752.0
+    },
+    {
+      "id": "NSR:Quay:73847",
+      "name": "Johan Nygaardsvolds vei",
+      "lat": 63.354681,
+      "lon": 10.361894,
+      "shapeDistanceMeters": 16021.0
+    },
+    {
+      "id": "NSR:Quay:74973",
+      "name": "Peder Morsets veg",
+      "lat": 63.356167,
+      "lon": 10.361486,
+      "shapeDistanceMeters": 16221.0
+    },
+    {
+      "id": "NSR:Quay:72720",
+      "name": "Martin Linges veg",
+      "lat": 63.359444,
+      "lon": 10.368189,
+      "shapeDistanceMeters": 16716.0
+    },
+    {
+      "id": "NSR:Quay:75606",
+      "name": "Tillerterminalen",
+      "lat": 63.360065,
+      "lon": 10.376227,
+      "shapeDistanceMeters": 17280.0
+    },
+    {
+      "id": "NSR:Quay:71136",
+      "name": "Tiller vgs.",
+      "lat": 63.358636,
+      "lon": 10.378161,
+      "shapeDistanceMeters": 17538.0
+    },
+    {
+      "id": "NSR:Quay:73781",
+      "name": "Ivar Skjånes veg",
+      "lat": 63.35611,
+      "lon": 10.376927,
+      "shapeDistanceMeters": 17834.0
+    },
+    {
+      "id": "NSR:Quay:74614",
+      "name": "Ole Ross' veg",
+      "lat": 63.351715,
+      "lon": 10.375342,
+      "shapeDistanceMeters": 18292.0
+    },
+    {
+      "id": "NSR:Quay:71316",
+      "name": "Torvtaket",
+      "lat": 63.348614,
+      "lon": 10.376898,
+      "shapeDistanceMeters": 18686.0
+    },
+    {
+      "id": "NSR:Quay:72142",
+      "name": "Isdamvegen",
+      "lat": 63.344898,
+      "lon": 10.377056,
+      "shapeDistanceMeters": 19119.0
+    },
+    {
+      "id": "NSR:Quay:74561",
+      "name": "Djupmyra",
+      "lat": 63.341347,
+      "lon": 10.373591,
+      "shapeDistanceMeters": 19554.0
+    },
+    {
+      "id": "NSR:Quay:72577",
+      "name": "Løvaasveien",
+      "lat": 63.337165,
+      "lon": 10.369796,
+      "shapeDistanceMeters": 20059.0
+    },
+    {
+      "id": "NSR:Quay:71821",
+      "name": "Sandmoen",
+      "lat": 63.333275,
+      "lon": 10.364791,
+      "shapeDistanceMeters": 20600.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.42987,
+      "lon": 10.358643
+    },
+    {
+      "lat": 63.429906,
+      "lon": 10.362008
+    },
+    {
+      "lat": 63.429756,
+      "lon": 10.363051
+    },
+    {
+      "lat": 63.429106,
+      "lon": 10.366955
+    },
+    {
+      "lat": 63.428497,
+      "lon": 10.367143
+    },
+    {
+      "lat": 63.428282,
+      "lon": 10.366905
+    },
+    {
+      "lat": 63.428793,
+      "lon": 10.363339
+    },
+    {
+      "lat": 63.428578,
+      "lon": 10.361069
+    },
+    {
+      "lat": 63.429223,
+      "lon": 10.359896
+    },
+    {
+      "lat": 63.429364,
+      "lon": 10.359052
+    },
+    {
+      "lat": 63.428986,
+      "lon": 10.356008
+    },
+    {
+      "lat": 63.429229,
+      "lon": 10.355584
+    },
+    {
+      "lat": 63.430536,
+      "lon": 10.354923
+    },
+    {
+      "lat": 63.430881,
+      "lon": 10.354173
+    },
+    {
+      "lat": 63.430787,
+      "lon": 10.353417
+    },
+    {
+      "lat": 63.429822,
+      "lon": 10.354429
+    },
+    {
+      "lat": 63.428524,
+      "lon": 10.352995
+    },
+    {
+      "lat": 63.428067,
+      "lon": 10.355
+    },
+    {
+      "lat": 63.426052,
+      "lon": 10.357248
+    },
+    {
+      "lat": 63.425729,
+      "lon": 10.356777
+    },
+    {
+      "lat": 63.425747,
+      "lon": 10.354064
+    },
+    {
+      "lat": 63.425219,
+      "lon": 10.353463
+    },
+    {
+      "lat": 63.423298,
+      "lon": 10.358234
+    },
+    {
+      "lat": 63.418729,
+      "lon": 10.354132
+    },
+    {
+      "lat": 63.409706,
+      "lon": 10.350377
+    },
+    {
+      "lat": 63.407337,
+      "lon": 10.347881
+    },
+    {
+      "lat": 63.405326,
+      "lon": 10.344592
+    },
+    {
+      "lat": 63.403028,
+      "lon": 10.341977
+    },
+    {
+      "lat": 63.40108,
+      "lon": 10.3411
+    },
+    {
+      "lat": 63.39911,
+      "lon": 10.341937
+    },
+    {
+      "lat": 63.397872,
+      "lon": 10.341784
+    },
+    {
+      "lat": 63.394004,
+      "lon": 10.334351
+    },
+    {
+      "lat": 63.389586,
+      "lon": 10.328355
+    },
+    {
+      "lat": 63.388459,
+      "lon": 10.32795
+    },
+    {
+      "lat": 63.387445,
+      "lon": 10.328671
+    },
+    {
+      "lat": 63.38686,
+      "lon": 10.32702
+    },
+    {
+      "lat": 63.383367,
+      "lon": 10.321249
+    },
+    {
+      "lat": 63.382762,
+      "lon": 10.317243
+    },
+    {
+      "lat": 63.382274,
+      "lon": 10.315716
+    },
+    {
+      "lat": 63.381843,
+      "lon": 10.315112
+    },
+    {
+      "lat": 63.381147,
+      "lon": 10.314894
+    },
+    {
+      "lat": 63.380166,
+      "lon": 10.315383
+    },
+    {
+      "lat": 63.379915,
+      "lon": 10.315964
+    },
+    {
+      "lat": 63.376583,
+      "lon": 10.319685
+    },
+    {
+      "lat": 63.375907,
+      "lon": 10.321527
+    },
+    {
+      "lat": 63.373401,
+      "lon": 10.330502
+    },
+    {
+      "lat": 63.373811,
+      "lon": 10.331109
+    },
+    {
+      "lat": 63.374079,
+      "lon": 10.332697
+    },
+    {
+      "lat": 63.373568,
+      "lon": 10.33465
+    },
+    {
+      "lat": 63.373593,
+      "lon": 10.335502
+    },
+    {
+      "lat": 63.372822,
+      "lon": 10.336626
+    },
+    {
+      "lat": 63.37248,
+      "lon": 10.338639
+    },
+    {
+      "lat": 63.373025,
+      "lon": 10.343915
+    },
+    {
+      "lat": 63.373031,
+      "lon": 10.345513
+    },
+    {
+      "lat": 63.373356,
+      "lon": 10.345614
+    },
+    {
+      "lat": 63.373425,
+      "lon": 10.34623
+    },
+    {
+      "lat": 63.373625,
+      "lon": 10.34632
+    },
+    {
+      "lat": 63.373641,
+      "lon": 10.345994
+    },
+    {
+      "lat": 63.373038,
+      "lon": 10.34523
+    },
+    {
+      "lat": 63.372606,
+      "lon": 10.34754
+    },
+    {
+      "lat": 63.371371,
+      "lon": 10.345612
+    },
+    {
+      "lat": 63.36703,
+      "lon": 10.344318
+    },
+    {
+      "lat": 63.367081,
+      "lon": 10.351683
+    },
+    {
+      "lat": 63.367941,
+      "lon": 10.358834
+    },
+    {
+      "lat": 63.367772,
+      "lon": 10.36004
+    },
+    {
+      "lat": 63.3673,
+      "lon": 10.360947
+    },
+    {
+      "lat": 63.366621,
+      "lon": 10.361065
+    },
+    {
+      "lat": 63.363472,
+      "lon": 10.359108
+    },
+    {
+      "lat": 63.36246,
+      "lon": 10.357607
+    },
+    {
+      "lat": 63.36202,
+      "lon": 10.355045
+    },
+    {
+      "lat": 63.362349,
+      "lon": 10.350026
+    },
+    {
+      "lat": 63.36165,
+      "lon": 10.34994
+    },
+    {
+      "lat": 63.356972,
+      "lon": 10.3556
+    },
+    {
+      "lat": 63.353108,
+      "lon": 10.356071
+    },
+    {
+      "lat": 63.353123,
+      "lon": 10.357654
+    },
+    {
+      "lat": 63.351531,
+      "lon": 10.356974
+    },
+    {
+      "lat": 63.347817,
+      "lon": 10.353558
+    },
+    {
+      "lat": 63.347651,
+      "lon": 10.353708
+    },
+    {
+      "lat": 63.347617,
+      "lon": 10.355925
+    },
+    {
+      "lat": 63.348562,
+      "lon": 10.356661
+    },
+    {
+      "lat": 63.348852,
+      "lon": 10.357416
+    },
+    {
+      "lat": 63.348622,
+      "lon": 10.359995
+    },
+    {
+      "lat": 63.348996,
+      "lon": 10.359849
+    },
+    {
+      "lat": 63.354938,
+      "lon": 10.361849
+    },
+    {
+      "lat": 63.355303,
+      "lon": 10.361717
+    },
+    {
+      "lat": 63.355829,
+      "lon": 10.360748
+    },
+    {
+      "lat": 63.359612,
+      "lon": 10.368384
+    },
+    {
+      "lat": 63.360312,
+      "lon": 10.368011
+    },
+    {
+      "lat": 63.360798,
+      "lon": 10.368357
+    },
+    {
+      "lat": 63.360105,
+      "lon": 10.376241
+    },
+    {
+      "lat": 63.359668,
+      "lon": 10.378793
+    },
+    {
+      "lat": 63.352327,
+      "lon": 10.375381
+    },
+    {
+      "lat": 63.350346,
+      "lon": 10.375874
+    },
+    {
+      "lat": 63.347161,
+      "lon": 10.377855
+    },
+    {
+      "lat": 63.345661,
+      "lon": 10.377623
+    },
+    {
+      "lat": 63.34334,
+      "lon": 10.37591
+    },
+    {
+      "lat": 63.339221,
+      "lon": 10.371271
+    },
+    {
+      "lat": 63.334768,
+      "lon": 10.368705
+    },
+    {
+      "lat": 63.333758,
+      "lon": 10.367053
+    },
+    {
+      "lat": 63.333224,
+      "lon": 10.364826
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Bynesveien 16 - Sandmoen",
+    "supportedShortTurns": [
+      "Norrkøpingveien - Heimdal stasjon"
+    ]
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_50",
+    "shapeId": "ATB:JourneyPattern:50_Outbound_251215112493868_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

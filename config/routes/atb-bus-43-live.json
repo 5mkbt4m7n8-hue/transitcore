@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-43-live",
+  "name": "AtB buss 43",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_43",
+    "publicCode": "43",
+    "mode": "bus",
+    "longName": "Bergheim/Voll studentby- Blakl"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Blakli",
+      "destinationMatches": [
+        "Blakli"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Voll / Bergheim",
+      "destinationMatches": [
+        "Voll",
+        "Bergheim"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:75202",
+      "name": "Blakli",
+      "lat": 63.394405,
+      "lon": 10.439267,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:74179",
+      "name": "Steinaunet",
+      "lat": 63.396048,
+      "lon": 10.442481,
+      "shapeDistanceMeters": 252.0
+    },
+    {
+      "id": "NSR:Quay:74174",
+      "name": "Steinan",
+      "lat": 63.400881,
+      "lon": 10.445294,
+      "shapeDistanceMeters": 886.0
+    },
+    {
+      "id": "NSR:Quay:72870",
+      "name": "Heggdalen",
+      "lat": 63.407642,
+      "lon": 10.450463,
+      "shapeDistanceMeters": 1797.0
+    },
+    {
+      "id": "NSR:Quay:72401",
+      "name": "Voll studentby",
+      "lat": 63.40927,
+      "lon": 10.443923,
+      "shapeDistanceMeters": 2222.0
+    },
+    {
+      "id": "NSR:Quay:74981",
+      "name": "Bergheim",
+      "lat": 63.409863,
+      "lon": 10.453826,
+      "shapeDistanceMeters": 2819.0
+    },
+    {
+      "id": "NSR:Quay:74994",
+      "name": "Bergheim snuplass",
+      "lat": 63.408785,
+      "lon": 10.456525,
+      "shapeDistanceMeters": 3029.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.394426,
+      "lon": 10.43916
+    },
+    {
+      "lat": 63.395351,
+      "lon": 10.440339
+    },
+    {
+      "lat": 63.396666,
+      "lon": 10.443632
+    },
+    {
+      "lat": 63.397614,
+      "lon": 10.44402
+    },
+    {
+      "lat": 63.398938,
+      "lon": 10.442643
+    },
+    {
+      "lat": 63.399679,
+      "lon": 10.442695
+    },
+    {
+      "lat": 63.40171,
+      "lon": 10.446704
+    },
+    {
+      "lat": 63.403278,
+      "lon": 10.44636
+    },
+    {
+      "lat": 63.405033,
+      "lon": 10.448337
+    },
+    {
+      "lat": 63.405583,
+      "lon": 10.449302
+    },
+    {
+      "lat": 63.405912,
+      "lon": 10.450879
+    },
+    {
+      "lat": 63.406253,
+      "lon": 10.451529
+    },
+    {
+      "lat": 63.407107,
+      "lon": 10.451326
+    },
+    {
+      "lat": 63.408863,
+      "lon": 10.447575
+    },
+    {
+      "lat": 63.40969,
+      "lon": 10.444864
+    },
+    {
+      "lat": 63.40924,
+      "lon": 10.444006
+    },
+    {
+      "lat": 63.40969,
+      "lon": 10.444864
+    },
+    {
+      "lat": 63.408671,
+      "lon": 10.447424
+    },
+    {
+      "lat": 63.409178,
+      "lon": 10.448753
+    },
+    {
+      "lat": 63.410047,
+      "lon": 10.454764
+    },
+    {
+      "lat": 63.409289,
+      "lon": 10.45561
+    },
+    {
+      "lat": 63.408938,
+      "lon": 10.456622
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Blakli - Bergheim snuplass",
+    "supportedShortTurns": [
+      "Voll studentby - Blakli",
+      "Blakli - Voll studentby"
+    ]
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_43",
+    "shapeId": "ATB:JourneyPattern:43_Inbound_251215112493842_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

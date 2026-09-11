@@ -1,0 +1,549 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-22-live",
+  "name": "AtB buss 22",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_22",
+    "publicCode": "22",
+    "mode": "bus",
+    "longName": "Vestlia- Othilienborg- Sentrum"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Tyholt",
+      "destinationMatches": [
+        "Tyholt"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Vestlia",
+      "destinationMatches": [
+        "Vestlia"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": true
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:72101",
+      "name": "Vestlia endeholdeplass",
+      "lat": 63.397219,
+      "lon": 10.440136,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:74641",
+      "name": "Arne Bergsgårds veg",
+      "lat": 63.399418,
+      "lon": 10.438109,
+      "shapeDistanceMeters": 337.0
+    },
+    {
+      "id": "NSR:Quay:74740",
+      "name": "Edgar B. Schieldrops veg",
+      "lat": 63.400572,
+      "lon": 10.435123,
+      "shapeDistanceMeters": 630.0
+    },
+    {
+      "id": "NSR:Quay:71427",
+      "name": "Hoeggen skole",
+      "lat": 63.401354,
+      "lon": 10.433342,
+      "shapeDistanceMeters": 857.0
+    },
+    {
+      "id": "NSR:Quay:73749",
+      "name": "Nardosenteret",
+      "lat": 63.403333,
+      "lon": 10.427098,
+      "shapeDistanceMeters": 1367.0
+    },
+    {
+      "id": "NSR:Quay:75081",
+      "name": "Bjarne Ness' veg",
+      "lat": 63.403824,
+      "lon": 10.429692,
+      "shapeDistanceMeters": 1538.0
+    },
+    {
+      "id": "NSR:Quay:74829",
+      "name": "Einar Øfstis veg",
+      "lat": 63.405012,
+      "lon": 10.43319,
+      "shapeDistanceMeters": 1763.0
+    },
+    {
+      "id": "NSR:Quay:73924",
+      "name": "K.O. Thornæs' veg",
+      "lat": 63.406752,
+      "lon": 10.438447,
+      "shapeDistanceMeters": 2114.0
+    },
+    {
+      "id": "NSR:Quay:74932",
+      "name": "Othilienborg",
+      "lat": 63.406958,
+      "lon": 10.442947,
+      "shapeDistanceMeters": 2347.0
+    },
+    {
+      "id": "NSR:Quay:73923",
+      "name": "K.O. Thornæs' veg",
+      "lat": 63.40668,
+      "lon": 10.436912,
+      "shapeDistanceMeters": 2808.0
+    },
+    {
+      "id": "NSR:Quay:74828",
+      "name": "Einar Øfstis veg",
+      "lat": 63.40509,
+      "lon": 10.4331,
+      "shapeDistanceMeters": 3079.0
+    },
+    {
+      "id": "NSR:Quay:71285",
+      "name": "Tors veg",
+      "lat": 63.404835,
+      "lon": 10.427112,
+      "shapeDistanceMeters": 3507.0
+    },
+    {
+      "id": "NSR:Quay:73741",
+      "name": "Nardokrysset",
+      "lat": 63.40696,
+      "lon": 10.423778,
+      "shapeDistanceMeters": 3796.0
+    },
+    {
+      "id": "NSR:Quay:75050",
+      "name": "Fiolsvingen",
+      "lat": 63.409231,
+      "lon": 10.420476,
+      "shapeDistanceMeters": 4126.0
+    },
+    {
+      "id": "NSR:Quay:74662",
+      "name": "Dybdahls veg",
+      "lat": 63.412757,
+      "lon": 10.414908,
+      "shapeDistanceMeters": 4609.0
+    },
+    {
+      "id": "NSR:Quay:75708",
+      "name": "Gløshaugen",
+      "lat": 63.416835,
+      "lon": 10.407556,
+      "shapeDistanceMeters": 5323.0
+    },
+    {
+      "id": "NSR:Quay:71939",
+      "name": "Høgskoleringen",
+      "lat": 63.420867,
+      "lon": 10.404181,
+      "shapeDistanceMeters": 5836.0
+    },
+    {
+      "id": "NSR:Quay:73100",
+      "name": "Studentersamfundet",
+      "lat": 63.42279,
+      "lon": 10.395173,
+      "shapeDistanceMeters": 6339.0
+    },
+    {
+      "id": "NSR:Quay:71175",
+      "name": "Nidarosdomen",
+      "lat": 63.426072,
+      "lon": 10.393608,
+      "shapeDistanceMeters": 6744.0
+    },
+    {
+      "id": "NSR:Quay:71181",
+      "name": "Prinsens gate",
+      "lat": 63.431194,
+      "lon": 10.392115,
+      "shapeDistanceMeters": 7323.0
+    },
+    {
+      "id": "NSR:Quay:74205",
+      "name": "Olav Tryggvasons gate",
+      "lat": 63.433295,
+      "lon": 10.401813,
+      "shapeDistanceMeters": 8040.0
+    },
+    {
+      "id": "NSR:Quay:74793",
+      "name": "Bakkegata",
+      "lat": 63.432263,
+      "lon": 10.407305,
+      "shapeDistanceMeters": 8343.0
+    },
+    {
+      "id": "NSR:Quay:73976",
+      "name": "Solsiden",
+      "lat": 63.434093,
+      "lon": 10.413705,
+      "shapeDistanceMeters": 8756.0
+    },
+    {
+      "id": "NSR:Quay:103007",
+      "name": "Buran",
+      "lat": 63.43627,
+      "lon": 10.42478,
+      "shapeDistanceMeters": 9393.0
+    },
+    {
+      "id": "NSR:Quay:71686",
+      "name": "Rønningsbakken",
+      "lat": 63.43738,
+      "lon": 10.43893,
+      "shapeDistanceMeters": 10113.0
+    },
+    {
+      "id": "NSR:Quay:74498",
+      "name": "Dalen Hageby",
+      "lat": 63.43723,
+      "lon": 10.450101,
+      "shapeDistanceMeters": 10684.0
+    },
+    {
+      "id": "NSR:Quay:73033",
+      "name": "Strindheim",
+      "lat": 63.435185,
+      "lon": 10.456301,
+      "shapeDistanceMeters": 11083.0
+    },
+    {
+      "id": "NSR:Quay:73049",
+      "name": "Strindheim skole",
+      "lat": 63.432415,
+      "lon": 10.455516,
+      "shapeDistanceMeters": 11417.0
+    },
+    {
+      "id": "NSR:Quay:75377",
+      "name": "Bromstadvegen",
+      "lat": 63.430307,
+      "lon": 10.452314,
+      "shapeDistanceMeters": 11773.0
+    },
+    {
+      "id": "NSR:Quay:111918",
+      "name": "Kristine Bonnevies veg",
+      "lat": 63.428251,
+      "lon": 10.444152,
+      "shapeDistanceMeters": 12257.0
+    },
+    {
+      "id": "NSR:Quay:71897",
+      "name": "Valentinlyst",
+      "lat": 63.424496,
+      "lon": 10.440261,
+      "shapeDistanceMeters": 12725.0
+    },
+    {
+      "id": "NSR:Quay:72610",
+      "name": "Magnus Berrføtts veg",
+      "lat": 63.420868,
+      "lon": 10.437895,
+      "shapeDistanceMeters": 13157.0
+    },
+    {
+      "id": "NSR:Quay:73030",
+      "name": "Strinda vgs.",
+      "lat": 63.422046,
+      "lon": 10.427611,
+      "shapeDistanceMeters": 14082.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.397179,
+      "lon": 10.440093
+    },
+    {
+      "lat": 63.397371,
+      "lon": 10.439648
+    },
+    {
+      "lat": 63.398674,
+      "lon": 10.440308
+    },
+    {
+      "lat": 63.399197,
+      "lon": 10.439824
+    },
+    {
+      "lat": 63.39938,
+      "lon": 10.4386
+    },
+    {
+      "lat": 63.39928,
+      "lon": 10.43602
+    },
+    {
+      "lat": 63.399707,
+      "lon": 10.434752
+    },
+    {
+      "lat": 63.400184,
+      "lon": 10.434593
+    },
+    {
+      "lat": 63.401264,
+      "lon": 10.43566
+    },
+    {
+      "lat": 63.401615,
+      "lon": 10.435163
+    },
+    {
+      "lat": 63.401402,
+      "lon": 10.434479
+    },
+    {
+      "lat": 63.401323,
+      "lon": 10.431561
+    },
+    {
+      "lat": 63.401974,
+      "lon": 10.428315
+    },
+    {
+      "lat": 63.40274,
+      "lon": 10.425909
+    },
+    {
+      "lat": 63.403902,
+      "lon": 10.427955
+    },
+    {
+      "lat": 63.403732,
+      "lon": 10.429134
+    },
+    {
+      "lat": 63.404552,
+      "lon": 10.432545
+    },
+    {
+      "lat": 63.405793,
+      "lon": 10.433942
+    },
+    {
+      "lat": 63.406335,
+      "lon": 10.435343
+    },
+    {
+      "lat": 63.407092,
+      "lon": 10.440953
+    },
+    {
+      "lat": 63.406904,
+      "lon": 10.443668
+    },
+    {
+      "lat": 63.406741,
+      "lon": 10.443836
+    },
+    {
+      "lat": 63.406892,
+      "lon": 10.444096
+    },
+    {
+      "lat": 63.407092,
+      "lon": 10.440953
+    },
+    {
+      "lat": 63.406651,
+      "lon": 10.436807
+    },
+    {
+      "lat": 63.405925,
+      "lon": 10.434193
+    },
+    {
+      "lat": 63.404552,
+      "lon": 10.432545
+    },
+    {
+      "lat": 63.403717,
+      "lon": 10.428815
+    },
+    {
+      "lat": 63.406698,
+      "lon": 10.42418
+    },
+    {
+      "lat": 63.407782,
+      "lon": 10.421269
+    },
+    {
+      "lat": 63.408758,
+      "lon": 10.420801
+    },
+    {
+      "lat": 63.410932,
+      "lon": 10.418307
+    },
+    {
+      "lat": 63.412715,
+      "lon": 10.414803
+    },
+    {
+      "lat": 63.413414,
+      "lon": 10.41219
+    },
+    {
+      "lat": 63.413571,
+      "lon": 10.412373
+    },
+    {
+      "lat": 63.413699,
+      "lon": 10.411928
+    },
+    {
+      "lat": 63.414982,
+      "lon": 10.411406
+    },
+    {
+      "lat": 63.416147,
+      "lon": 10.411471
+    },
+    {
+      "lat": 63.416363,
+      "lon": 10.407978
+    },
+    {
+      "lat": 63.419476,
+      "lon": 10.40477
+    },
+    {
+      "lat": 63.420172,
+      "lon": 10.405397
+    },
+    {
+      "lat": 63.421359,
+      "lon": 10.402841
+    },
+    {
+      "lat": 63.422261,
+      "lon": 10.398435
+    },
+    {
+      "lat": 63.422858,
+      "lon": 10.394374
+    },
+    {
+      "lat": 63.433021,
+      "lon": 10.391594
+    },
+    {
+      "lat": 63.433317,
+      "lon": 10.402409
+    },
+    {
+      "lat": 63.432035,
+      "lon": 10.408248
+    },
+    {
+      "lat": 63.4357,
+      "lon": 10.417258
+    },
+    {
+      "lat": 63.435884,
+      "lon": 10.418107
+    },
+    {
+      "lat": 63.437047,
+      "lon": 10.436772
+    },
+    {
+      "lat": 63.437827,
+      "lon": 10.441729
+    },
+    {
+      "lat": 63.437221,
+      "lon": 10.450718
+    },
+    {
+      "lat": 63.435272,
+      "lon": 10.455951
+    },
+    {
+      "lat": 63.435153,
+      "lon": 10.456692
+    },
+    {
+      "lat": 63.430247,
+      "lon": 10.454474
+    },
+    {
+      "lat": 63.430212,
+      "lon": 10.451066
+    },
+    {
+      "lat": 63.430003,
+      "lon": 10.450941
+    },
+    {
+      "lat": 63.428754,
+      "lon": 10.445654
+    },
+    {
+      "lat": 63.427508,
+      "lon": 10.442826
+    },
+    {
+      "lat": 63.42599,
+      "lon": 10.441233
+    },
+    {
+      "lat": 63.422059,
+      "lon": 10.43914
+    },
+    {
+      "lat": 63.420536,
+      "lon": 10.437623
+    },
+    {
+      "lat": 63.422774,
+      "lon": 10.42654
+    },
+    {
+      "lat": 63.422036,
+      "lon": 10.425322
+    },
+    {
+      "lat": 63.421447,
+      "lon": 10.426554
+    },
+    {
+      "lat": 63.422074,
+      "lon": 10.427534
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Vestlia endeholdeplass - Strinda vgs.",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_22",
+    "shapeId": "ATB:JourneyPattern:22_Outbound_251215112494066_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

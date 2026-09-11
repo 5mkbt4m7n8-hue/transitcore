@@ -36,7 +36,182 @@
     {
       "profile": "rut-metro-5-live.json",
       "enabled": true
+    },
+    {
+      "profile": "atb-bus-10-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-11-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-12-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-13-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-14-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-15-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-16-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-18-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-20-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-21-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-22-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-23-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-25-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-28-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-40-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-41-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-42-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-43-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-44-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-45-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-46-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-50-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-51-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-52-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-53-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-54-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-70-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-71-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-72-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-73-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-74-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-75-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-76-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-77-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-78-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-79-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-80-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-81-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-82-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-83-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-85-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-86-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-91-live.json",
+      "enabled": true
+    },
+    {
+      "profile": "atb-bus-92-live.json",
+      "enabled": true
     }
   ]
 }
-

@@ -1,0 +1,272 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-81-live",
+  "name": "AtB buss 81",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_81",
+    "publicCode": "81",
+    "mode": "bus",
+    "longName": "Bratsberg- Nyjord- Bruråk"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Nyjord / Bruråk",
+      "destinationMatches": [
+        "Nyjord",
+        "Bruråk"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Bratsberg kirke",
+      "destinationMatches": [
+        "Bratsberg kirke"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:75414",
+      "name": "Bruråk",
+      "lat": 63.349317,
+      "lon": 10.497032,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:75277",
+      "name": "Brandhaugen",
+      "lat": 63.370228,
+      "lon": 10.533262,
+      "shapeDistanceMeters": 3039.0
+    },
+    {
+      "id": "NSR:Quay:73360",
+      "name": "Mortensen",
+      "lat": 63.373335,
+      "lon": 10.539335,
+      "shapeDistanceMeters": 3498.0
+    },
+    {
+      "id": "NSR:Quay:74922",
+      "name": "Engelsås",
+      "lat": 63.376705,
+      "lon": 10.539762,
+      "shapeDistanceMeters": 3928.0
+    },
+    {
+      "id": "NSR:Quay:74294",
+      "name": "Nyjord",
+      "lat": 63.379687,
+      "lon": 10.538745,
+      "shapeDistanceMeters": 4273.0
+    },
+    {
+      "id": "NSR:Quay:103142",
+      "name": "Bratsberg skole",
+      "lat": 63.349591,
+      "lon": 10.479109,
+      "shapeDistanceMeters": 9191.0
+    },
+    {
+      "id": "NSR:Quay:75290",
+      "name": "Bratsberg kirke",
+      "lat": 63.346504,
+      "lon": 10.477743,
+      "shapeDistanceMeters": 9581.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.349278,
+      "lon": 10.497008
+    },
+    {
+      "lat": 63.349377,
+      "lon": 10.49607
+    },
+    {
+      "lat": 63.350506,
+      "lon": 10.497905
+    },
+    {
+      "lat": 63.352793,
+      "lon": 10.502394
+    },
+    {
+      "lat": 63.354826,
+      "lon": 10.50752
+    },
+    {
+      "lat": 63.358246,
+      "lon": 10.51308
+    },
+    {
+      "lat": 63.361536,
+      "lon": 10.51985
+    },
+    {
+      "lat": 63.371754,
+      "lon": 10.535036
+    },
+    {
+      "lat": 63.372667,
+      "lon": 10.537708
+    },
+    {
+      "lat": 63.373933,
+      "lon": 10.540511
+    },
+    {
+      "lat": 63.375056,
+      "lon": 10.541154
+    },
+    {
+      "lat": 63.378214,
+      "lon": 10.538517
+    },
+    {
+      "lat": 63.379691,
+      "lon": 10.538702
+    },
+    {
+      "lat": 63.379157,
+      "lon": 10.538624
+    },
+    {
+      "lat": 63.378994,
+      "lon": 10.536217
+    },
+    {
+      "lat": 63.377952,
+      "lon": 10.529271
+    },
+    {
+      "lat": 63.377164,
+      "lon": 10.527348
+    },
+    {
+      "lat": 63.375812,
+      "lon": 10.525808
+    },
+    {
+      "lat": 63.374059,
+      "lon": 10.52241
+    },
+    {
+      "lat": 63.373266,
+      "lon": 10.519381
+    },
+    {
+      "lat": 63.372559,
+      "lon": 10.514756
+    },
+    {
+      "lat": 63.371984,
+      "lon": 10.513194
+    },
+    {
+      "lat": 63.371713,
+      "lon": 10.510818
+    },
+    {
+      "lat": 63.369494,
+      "lon": 10.505556
+    },
+    {
+      "lat": 63.368264,
+      "lon": 10.500885
+    },
+    {
+      "lat": 63.367986,
+      "lon": 10.498538
+    },
+    {
+      "lat": 63.36761,
+      "lon": 10.497437
+    },
+    {
+      "lat": 63.364388,
+      "lon": 10.495395
+    },
+    {
+      "lat": 63.363824,
+      "lon": 10.494179
+    },
+    {
+      "lat": 63.362931,
+      "lon": 10.490516
+    },
+    {
+      "lat": 63.362243,
+      "lon": 10.488938
+    },
+    {
+      "lat": 63.358769,
+      "lon": 10.483815
+    },
+    {
+      "lat": 63.357414,
+      "lon": 10.482642
+    },
+    {
+      "lat": 63.356415,
+      "lon": 10.481292
+    },
+    {
+      "lat": 63.353768,
+      "lon": 10.480109
+    },
+    {
+      "lat": 63.352721,
+      "lon": 10.478793
+    },
+    {
+      "lat": 63.350222,
+      "lon": 10.478515
+    },
+    {
+      "lat": 63.349051,
+      "lon": 10.479321
+    },
+    {
+      "lat": 63.347777,
+      "lon": 10.479376
+    },
+    {
+      "lat": 63.347053,
+      "lon": 10.478106
+    },
+    {
+      "lat": 63.346542,
+      "lon": 10.478156
+    },
+    {
+      "lat": 63.346462,
+      "lon": 10.477787
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Bruråk - Bratsberg kirke",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_81",
+    "shapeId": "ATB:JourneyPattern:81_Inbound_251215112493831_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

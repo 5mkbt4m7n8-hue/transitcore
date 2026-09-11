@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-41-live",
+  "name": "AtB buss 41",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_41",
+    "publicCode": "41",
+    "mode": "bus",
+    "longName": "Ranheim- Reppe"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Reppe",
+      "destinationMatches": [
+        "Reppe"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Ranheim / Ranheim idrettsplass",
+      "destinationMatches": [
+        "Ranheim",
+        "Ranheim idrettsplass"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:71335",
+      "name": "Reppe snuplass",
+      "lat": 63.415995,
+      "lon": 10.557953,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:75577",
+      "name": "Fykenborg",
+      "lat": 63.420115,
+      "lon": 10.554852,
+      "shapeDistanceMeters": 514.0
+    },
+    {
+      "id": "NSR:Quay:74914",
+      "name": "Osvegen",
+      "lat": 63.421421,
+      "lon": 10.548361,
+      "shapeDistanceMeters": 894.0
+    },
+    {
+      "id": "NSR:Quay:72219",
+      "name": "Vikelvveien",
+      "lat": 63.423752,
+      "lon": 10.541108,
+      "shapeDistanceMeters": 1528.0
+    },
+    {
+      "id": "NSR:Quay:71247",
+      "name": "Ranheim fabrikker",
+      "lat": 63.421847,
+      "lon": 10.536042,
+      "shapeDistanceMeters": 1908.0
+    },
+    {
+      "id": "NSR:Quay:74983",
+      "name": "Ranheim",
+      "lat": 63.425209,
+      "lon": 10.533367,
+      "shapeDistanceMeters": 2624.0
+    },
+    {
+      "id": "NSR:Quay:71249",
+      "name": "Ranheim idrettsplass",
+      "lat": 63.427952,
+      "lon": 10.522386,
+      "shapeDistanceMeters": 3426.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.416037,
+      "lon": 10.558053
+    },
+    {
+      "lat": 63.416124,
+      "lon": 10.557475
+    },
+    {
+      "lat": 63.416536,
+      "lon": 10.557
+    },
+    {
+      "lat": 63.418143,
+      "lon": 10.556652
+    },
+    {
+      "lat": 63.419896,
+      "lon": 10.555708
+    },
+    {
+      "lat": 63.420448,
+      "lon": 10.553004
+    },
+    {
+      "lat": 63.420412,
+      "lon": 10.55096
+    },
+    {
+      "lat": 63.421615,
+      "lon": 10.54788
+    },
+    {
+      "lat": 63.422384,
+      "lon": 10.545023
+    },
+    {
+      "lat": 63.42246,
+      "lon": 10.544166
+    },
+    {
+      "lat": 63.422222,
+      "lon": 10.542642
+    },
+    {
+      "lat": 63.42293,
+      "lon": 10.543284
+    },
+    {
+      "lat": 63.424144,
+      "lon": 10.542167
+    },
+    {
+      "lat": 63.42361,
+      "lon": 10.541113
+    },
+    {
+      "lat": 63.422644,
+      "lon": 10.540588
+    },
+    {
+      "lat": 63.422173,
+      "lon": 10.539695
+    },
+    {
+      "lat": 63.421479,
+      "lon": 10.533814
+    },
+    {
+      "lat": 63.42284,
+      "lon": 10.533665
+    },
+    {
+      "lat": 63.423168,
+      "lon": 10.53431
+    },
+    {
+      "lat": 63.425013,
+      "lon": 10.536029
+    },
+    {
+      "lat": 63.42496,
+      "lon": 10.534511
+    },
+    {
+      "lat": 63.42544,
+      "lon": 10.53271
+    },
+    {
+      "lat": 63.425721,
+      "lon": 10.530599
+    },
+    {
+      "lat": 63.426134,
+      "lon": 10.530344
+    },
+    {
+      "lat": 63.426925,
+      "lon": 10.530826
+    },
+    {
+      "lat": 63.427564,
+      "lon": 10.530162
+    },
+    {
+      "lat": 63.427295,
+      "lon": 10.528403
+    },
+    {
+      "lat": 63.427925,
+      "lon": 10.522371
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Reppe snuplass - Ranheim idrettsplass",
+    "supportedShortTurns": [
+      "Reppe snuplass - Ranheim",
+      "Ranheim - Reppe snuplass"
+    ]
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_41",
+    "shapeId": "ATB:JourneyPattern:41_Inbound_251215112494086_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

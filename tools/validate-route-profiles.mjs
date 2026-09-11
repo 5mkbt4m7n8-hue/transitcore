@@ -61,8 +61,8 @@ function validateProfile(file, profile) {
   if (!profile.line?.publicCode || !profile.line?.mode) {
     fail(file, "line publicCode and mode are required");
   }
-  if (!Array.isArray(profile.directions) || profile.directions.length < 2) {
-    fail(file, "at least two directions are required");
+  if (!Array.isArray(profile.directions) || profile.directions.length < 1) {
+    fail(file, "at least one active direction is required");
   } else {
     for (const direction of profile.directions) {
       if (!direction.id || !direction.label || !direction.color ||

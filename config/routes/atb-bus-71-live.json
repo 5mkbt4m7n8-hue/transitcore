@@ -1,0 +1,593 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-71-live",
+  "name": "AtB buss 71",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_71",
+    "publicCode": "71",
+    "mode": "bus",
+    "longName": "MelhusSkyss-Trondheim"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Dora / B Dora / A Dora",
+      "destinationMatches": [
+        "Dora",
+        "B Dora",
+        "A Dora"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Melhus / B Melhus / A Melhus",
+      "destinationMatches": [
+        "Melhus",
+        "B Melhus",
+        "A Melhus"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:74590",
+      "name": "Dora",
+      "lat": 63.438544,
+      "lon": 10.419518,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:73975",
+      "name": "Solsiden",
+      "lat": 63.433946,
+      "lon": 10.412788,
+      "shapeDistanceMeters": 911.0
+    },
+    {
+      "id": "NSR:Quay:74792",
+      "name": "Bakkegata",
+      "lat": 63.432418,
+      "lon": 10.407192,
+      "shapeDistanceMeters": 1267.0
+    },
+    {
+      "id": "NSR:Quay:101521",
+      "name": "Olav Tryggvasons gate",
+      "lat": 63.433292,
+      "lon": 10.397798,
+      "shapeDistanceMeters": 1755.0
+    },
+    {
+      "id": "NSR:Quay:71184",
+      "name": "Prinsens gate",
+      "lat": 63.430874,
+      "lon": 10.391899,
+      "shapeDistanceMeters": 2308.0
+    },
+    {
+      "id": "NSR:Quay:71174",
+      "name": "Nidarosdomen",
+      "lat": 63.425815,
+      "lon": 10.393372,
+      "shapeDistanceMeters": 2878.0
+    },
+    {
+      "id": "NSR:Quay:73103",
+      "name": "Studentersamfundet",
+      "lat": 63.422222,
+      "lon": 10.394384,
+      "shapeDistanceMeters": 3284.0
+    },
+    {
+      "id": "NSR:Quay:102719",
+      "name": "Hesthagen",
+      "lat": 63.416799,
+      "lon": 10.3972,
+      "shapeDistanceMeters": 3909.0
+    },
+    {
+      "id": "NSR:Quay:102720",
+      "name": "Lerkendal",
+      "lat": 63.41174,
+      "lon": 10.399045,
+      "shapeDistanceMeters": 4406.0
+    },
+    {
+      "id": "NSR:Quay:71982",
+      "name": "Valøyvegen",
+      "lat": 63.407852,
+      "lon": 10.398032,
+      "shapeDistanceMeters": 4922.0
+    },
+    {
+      "id": "NSR:Quay:75301",
+      "name": "Bratsbergvegen",
+      "lat": 63.403358,
+      "lon": 10.395995,
+      "shapeDistanceMeters": 5433.0
+    },
+    {
+      "id": "NSR:Quay:107264",
+      "name": "Sluppen",
+      "lat": 63.40095,
+      "lon": 10.39504,
+      "shapeDistanceMeters": 5714.0
+    },
+    {
+      "id": "NSR:Quay:71206",
+      "name": "Tonstadkrysset",
+      "lat": 63.370683,
+      "lon": 10.382319,
+      "shapeDistanceMeters": 9752.0
+    },
+    {
+      "id": "NSR:Quay:71517",
+      "name": "Rostengrenda",
+      "lat": 63.365978,
+      "lon": 10.381981,
+      "shapeDistanceMeters": 10336.0
+    },
+    {
+      "id": "NSR:Quay:75611",
+      "name": "City Syd",
+      "lat": 63.360978,
+      "lon": 10.379237,
+      "shapeDistanceMeters": 10912.0
+    },
+    {
+      "id": "NSR:Quay:75607",
+      "name": "Tillerterminalen",
+      "lat": 63.360163,
+      "lon": 10.374465,
+      "shapeDistanceMeters": 11265.0
+    },
+    {
+      "id": "NSR:Quay:73860",
+      "name": "Hårstadkrysset",
+      "lat": 63.34706,
+      "lon": 10.369027,
+      "shapeDistanceMeters": 12938.0
+    },
+    {
+      "id": "NSR:Quay:71836",
+      "name": "Sandmoen E6",
+      "lat": 63.335029,
+      "lon": 10.357326,
+      "shapeDistanceMeters": 14436.0
+    },
+    {
+      "id": "NSR:Quay:101855",
+      "name": "Klettkrysset",
+      "lat": 63.322136,
+      "lon": 10.301544,
+      "shapeDistanceMeters": 18096.0
+    },
+    {
+      "id": "NSR:Quay:74859",
+      "name": "Ekra",
+      "lat": 63.315639,
+      "lon": 10.29568,
+      "shapeDistanceMeters": 18946.0
+    },
+    {
+      "id": "NSR:Quay:72451",
+      "name": "Skottvoll",
+      "lat": 63.309176,
+      "lon": 10.29114,
+      "shapeDistanceMeters": 19708.0
+    },
+    {
+      "id": "NSR:Quay:75382",
+      "name": "Brubakken",
+      "lat": 63.299191,
+      "lon": 10.28477,
+      "shapeDistanceMeters": 20965.0
+    },
+    {
+      "id": "NSR:Quay:72418",
+      "name": "Gylle",
+      "lat": 63.294003,
+      "lon": 10.280575,
+      "shapeDistanceMeters": 21607.0
+    },
+    {
+      "id": "NSR:Quay:72878",
+      "name": "Melhus sentrum",
+      "lat": 63.287388,
+      "lon": 10.274961,
+      "shapeDistanceMeters": 22506.0
+    },
+    {
+      "id": "NSR:Quay:72888",
+      "name": "Melhus skysstasjon",
+      "lat": 63.28467,
+      "lon": 10.278187,
+      "shapeDistanceMeters": 22895.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.438537,
+      "lon": 10.419521
+    },
+    {
+      "lat": 63.438566,
+      "lon": 10.418077
+    },
+    {
+      "lat": 63.437805,
+      "lon": 10.417011
+    },
+    {
+      "lat": 63.437932,
+      "lon": 10.41539
+    },
+    {
+      "lat": 63.437644,
+      "lon": 10.41465
+    },
+    {
+      "lat": 63.437011,
+      "lon": 10.414925
+    },
+    {
+      "lat": 63.436882,
+      "lon": 10.416481
+    },
+    {
+      "lat": 63.436701,
+      "lon": 10.416887
+    },
+    {
+      "lat": 63.435753,
+      "lon": 10.417028
+    },
+    {
+      "lat": 63.434439,
+      "lon": 10.414204
+    },
+    {
+      "lat": 63.432275,
+      "lon": 10.408472
+    },
+    {
+      "lat": 63.43237,
+      "lon": 10.407137
+    },
+    {
+      "lat": 63.433317,
+      "lon": 10.402409
+    },
+    {
+      "lat": 63.433021,
+      "lon": 10.391594
+    },
+    {
+      "lat": 63.422668,
+      "lon": 10.394307
+    },
+    {
+      "lat": 63.412924,
+      "lon": 10.39898
+    },
+    {
+      "lat": 63.409113,
+      "lon": 10.398711
+    },
+    {
+      "lat": 63.399869,
+      "lon": 10.394556
+    },
+    {
+      "lat": 63.397737,
+      "lon": 10.392999
+    },
+    {
+      "lat": 63.396009,
+      "lon": 10.390998
+    },
+    {
+      "lat": 63.390582,
+      "lon": 10.38245
+    },
+    {
+      "lat": 63.389229,
+      "lon": 10.380707
+    },
+    {
+      "lat": 63.385936,
+      "lon": 10.37754
+    },
+    {
+      "lat": 63.382105,
+      "lon": 10.374996
+    },
+    {
+      "lat": 63.379786,
+      "lon": 10.37453
+    },
+    {
+      "lat": 63.378361,
+      "lon": 10.374797
+    },
+    {
+      "lat": 63.376463,
+      "lon": 10.375836
+    },
+    {
+      "lat": 63.372874,
+      "lon": 10.378638
+    },
+    {
+      "lat": 63.372221,
+      "lon": 10.378475
+    },
+    {
+      "lat": 63.371355,
+      "lon": 10.377014
+    },
+    {
+      "lat": 63.370189,
+      "lon": 10.376651
+    },
+    {
+      "lat": 63.370404,
+      "lon": 10.381461
+    },
+    {
+      "lat": 63.370772,
+      "lon": 10.382614
+    },
+    {
+      "lat": 63.370096,
+      "lon": 10.383071
+    },
+    {
+      "lat": 63.369708,
+      "lon": 10.382873
+    },
+    {
+      "lat": 63.369312,
+      "lon": 10.382108
+    },
+    {
+      "lat": 63.368753,
+      "lon": 10.382377
+    },
+    {
+      "lat": 63.36597,
+      "lon": 10.3821
+    },
+    {
+      "lat": 63.359877,
+      "lon": 10.378901
+    },
+    {
+      "lat": 63.359984,
+      "lon": 10.376015
+    },
+    {
+      "lat": 63.36013,
+      "lon": 10.374456
+    },
+    {
+      "lat": 63.360426,
+      "lon": 10.373579
+    },
+    {
+      "lat": 63.360476,
+      "lon": 10.371656
+    },
+    {
+      "lat": 63.348987,
+      "lon": 10.370128
+    },
+    {
+      "lat": 63.348042,
+      "lon": 10.369797
+    },
+    {
+      "lat": 63.346649,
+      "lon": 10.368597
+    },
+    {
+      "lat": 63.345146,
+      "lon": 10.36887
+    },
+    {
+      "lat": 63.343777,
+      "lon": 10.36794
+    },
+    {
+      "lat": 63.339269,
+      "lon": 10.362245
+    },
+    {
+      "lat": 63.334896,
+      "lon": 10.357285
+    },
+    {
+      "lat": 63.334746,
+      "lon": 10.355638
+    },
+    {
+      "lat": 63.334244,
+      "lon": 10.355744
+    },
+    {
+      "lat": 63.333693,
+      "lon": 10.354647
+    },
+    {
+      "lat": 63.331951,
+      "lon": 10.354406
+    },
+    {
+      "lat": 63.329142,
+      "lon": 10.351557
+    },
+    {
+      "lat": 63.327934,
+      "lon": 10.349666
+    },
+    {
+      "lat": 63.327096,
+      "lon": 10.347525
+    },
+    {
+      "lat": 63.326553,
+      "lon": 10.345263
+    },
+    {
+      "lat": 63.326207,
+      "lon": 10.342449
+    },
+    {
+      "lat": 63.326299,
+      "lon": 10.331982
+    },
+    {
+      "lat": 63.325922,
+      "lon": 10.326717
+    },
+    {
+      "lat": 63.325136,
+      "lon": 10.322608
+    },
+    {
+      "lat": 63.322466,
+      "lon": 10.313778
+    },
+    {
+      "lat": 63.321955,
+      "lon": 10.310481
+    },
+    {
+      "lat": 63.322052,
+      "lon": 10.306147
+    },
+    {
+      "lat": 63.322382,
+      "lon": 10.304366
+    },
+    {
+      "lat": 63.323032,
+      "lon": 10.302626
+    },
+    {
+      "lat": 63.322966,
+      "lon": 10.302277
+    },
+    {
+      "lat": 63.32174,
+      "lon": 10.30126
+    },
+    {
+      "lat": 63.321401,
+      "lon": 10.300145
+    },
+    {
+      "lat": 63.3195,
+      "lon": 10.299012
+    },
+    {
+      "lat": 63.317878,
+      "lon": 10.296324
+    },
+    {
+      "lat": 63.316935,
+      "lon": 10.297228
+    },
+    {
+      "lat": 63.315342,
+      "lon": 10.295485
+    },
+    {
+      "lat": 63.307811,
+      "lon": 10.290275
+    },
+    {
+      "lat": 63.304158,
+      "lon": 10.288854
+    },
+    {
+      "lat": 63.302891,
+      "lon": 10.288736
+    },
+    {
+      "lat": 63.302696,
+      "lon": 10.288126
+    },
+    {
+      "lat": 63.302854,
+      "lon": 10.286621
+    },
+    {
+      "lat": 63.300236,
+      "lon": 10.285053
+    },
+    {
+      "lat": 63.299313,
+      "lon": 10.284865
+    },
+    {
+      "lat": 63.298793,
+      "lon": 10.285161
+    },
+    {
+      "lat": 63.297309,
+      "lon": 10.284775
+    },
+    {
+      "lat": 63.292422,
+      "lon": 10.278871
+    },
+    {
+      "lat": 63.292122,
+      "lon": 10.276724
+    },
+    {
+      "lat": 63.29041,
+      "lon": 10.274111
+    },
+    {
+      "lat": 63.288166,
+      "lon": 10.27391
+    },
+    {
+      "lat": 63.285553,
+      "lon": 10.278194
+    },
+    {
+      "lat": 63.285285,
+      "lon": 10.277399
+    },
+    {
+      "lat": 63.284695,
+      "lon": 10.278274
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Dora - Melhus skysstasjon",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_71",
+    "shapeId": "ATB:JourneyPattern:71_Inbound_251215112493978_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

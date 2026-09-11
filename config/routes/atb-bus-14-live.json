@@ -1,0 +1,485 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-14-live",
+  "name": "AtB buss 14",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_14",
+    "publicCode": "14",
+    "mode": "bus",
+    "longName": "Lerkendal- Brundalen- Strindheim"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Strindheim / A Strindheim",
+      "destinationMatches": [
+        "Strindheim",
+        "A Strindheim"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Tempe / A Tempe",
+      "destinationMatches": [
+        "Tempe",
+        "A Tempe"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": true
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:75300",
+      "name": "Bratsbergvegen",
+      "lat": 63.405387,
+      "lon": 10.397457,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:71981",
+      "name": "Valøyvegen",
+      "lat": 63.409505,
+      "lon": 10.399195,
+      "shapeDistanceMeters": 466.0
+    },
+    {
+      "id": "NSR:Quay:73420",
+      "name": "Lerkendal",
+      "lat": 63.412515,
+      "lon": 10.400432,
+      "shapeDistanceMeters": 852.0
+    },
+    {
+      "id": "NSR:Quay:73414",
+      "name": "Lerkendal gård",
+      "lat": 63.412782,
+      "lon": 10.407832,
+      "shapeDistanceMeters": 1239.0
+    },
+    {
+      "id": "NSR:Quay:74952",
+      "name": "Berg studentby",
+      "lat": 63.413529,
+      "lon": 10.416951,
+      "shapeDistanceMeters": 1723.0
+    },
+    {
+      "id": "NSR:Quay:102730",
+      "name": "Østre Berg",
+      "lat": 63.41512,
+      "lon": 10.431328,
+      "shapeDistanceMeters": 2688.0
+    },
+    {
+      "id": "NSR:Quay:73261",
+      "name": "Moholt studentby",
+      "lat": 63.411162,
+      "lon": 10.434673,
+      "shapeDistanceMeters": 3162.0
+    },
+    {
+      "id": "NSR:Quay:72402",
+      "name": "Voll studentby",
+      "lat": 63.409515,
+      "lon": 10.444656,
+      "shapeDistanceMeters": 3835.0
+    },
+    {
+      "id": "NSR:Quay:72787",
+      "name": "Åsvang skole",
+      "lat": 63.411027,
+      "lon": 10.45505,
+      "shapeDistanceMeters": 4436.0
+    },
+    {
+      "id": "NSR:Quay:71957",
+      "name": "Høyset",
+      "lat": 63.411936,
+      "lon": 10.463225,
+      "shapeDistanceMeters": 4857.0
+    },
+    {
+      "id": "NSR:Quay:73724",
+      "name": "Edvard Bulls veg",
+      "lat": 63.410445,
+      "lon": 10.470303,
+      "shapeDistanceMeters": 5312.0
+    },
+    {
+      "id": "NSR:Quay:74297",
+      "name": "Stokkhaugen",
+      "lat": 63.410049,
+      "lon": 10.481869,
+      "shapeDistanceMeters": 5872.0
+    },
+    {
+      "id": "NSR:Quay:73793",
+      "name": "Jakobslivegen øvre",
+      "lat": 63.412175,
+      "lon": 10.492434,
+      "shapeDistanceMeters": 6527.0
+    },
+    {
+      "id": "NSR:Quay:72034",
+      "name": "Jakobsli Idrettsplass",
+      "lat": 63.415612,
+      "lon": 10.493805,
+      "shapeDistanceMeters": 6941.0
+    },
+    {
+      "id": "NSR:Quay:71167",
+      "name": "Presthusaunet",
+      "lat": 63.418346,
+      "lon": 10.494844,
+      "shapeDistanceMeters": 7250.0
+    },
+    {
+      "id": "NSR:Quay:75595",
+      "name": "Charlottenlund kirke",
+      "lat": 63.420864,
+      "lon": 10.495135,
+      "shapeDistanceMeters": 7531.0
+    },
+    {
+      "id": "NSR:Quay:74274",
+      "name": "Konglevegen",
+      "lat": 63.422916,
+      "lon": 10.489985,
+      "shapeDistanceMeters": 8030.0
+    },
+    {
+      "id": "NSR:Quay:75409",
+      "name": "Brundalen sykehjem",
+      "lat": 63.41616,
+      "lon": 10.486131,
+      "shapeDistanceMeters": 9116.0
+    },
+    {
+      "id": "NSR:Quay:75402",
+      "name": "Brundalen",
+      "lat": 63.417896,
+      "lon": 10.485552,
+      "shapeDistanceMeters": 9311.0
+    },
+    {
+      "id": "NSR:Quay:75404",
+      "name": "Charlottenlund vgs",
+      "lat": 63.420212,
+      "lon": 10.48479,
+      "shapeDistanceMeters": 9570.0
+    },
+    {
+      "id": "NSR:Quay:71577",
+      "name": "Tunvegen",
+      "lat": 63.424177,
+      "lon": 10.484401,
+      "shapeDistanceMeters": 10042.0
+    },
+    {
+      "id": "NSR:Quay:75600",
+      "name": "Churchills veg",
+      "lat": 63.429226,
+      "lon": 10.486973,
+      "shapeDistanceMeters": 10660.0
+    },
+    {
+      "id": "NSR:Quay:73791",
+      "name": "Jakobslivegen nedre",
+      "lat": 63.428432,
+      "lon": 10.494307,
+      "shapeDistanceMeters": 11076.0
+    },
+    {
+      "id": "NSR:Quay:102732",
+      "name": "Skovgård",
+      "lat": 63.429671,
+      "lon": 10.493327,
+      "shapeDistanceMeters": 11424.0
+    },
+    {
+      "id": "NSR:Quay:71365",
+      "name": "Leangen",
+      "lat": 63.431851,
+      "lon": 10.476167,
+      "shapeDistanceMeters": 12336.0
+    },
+    {
+      "id": "NSR:Quay:75657",
+      "name": "Gildheim",
+      "lat": 63.434481,
+      "lon": 10.460567,
+      "shapeDistanceMeters": 13176.0
+    },
+    {
+      "id": "NSR:Quay:73036",
+      "name": "Strindheim",
+      "lat": 63.435672,
+      "lon": 10.45818,
+      "shapeDistanceMeters": 13424.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.405399,
+      "lon": 10.397364
+    },
+    {
+      "lat": 63.409137,
+      "lon": 10.398957
+    },
+    {
+      "lat": 63.41247,
+      "lon": 10.399296
+    },
+    {
+      "lat": 63.412662,
+      "lon": 10.401749
+    },
+    {
+      "lat": 63.413077,
+      "lon": 10.404041
+    },
+    {
+      "lat": 63.412826,
+      "lon": 10.409002
+    },
+    {
+      "lat": 63.413612,
+      "lon": 10.412769
+    },
+    {
+      "lat": 63.413518,
+      "lon": 10.41695
+    },
+    {
+      "lat": 63.413554,
+      "lon": 10.416294
+    },
+    {
+      "lat": 63.413673,
+      "lon": 10.419188
+    },
+    {
+      "lat": 63.41532,
+      "lon": 10.423204
+    },
+    {
+      "lat": 63.416144,
+      "lon": 10.427449
+    },
+    {
+      "lat": 63.415986,
+      "lon": 10.430973
+    },
+    {
+      "lat": 63.413292,
+      "lon": 10.43236
+    },
+    {
+      "lat": 63.410315,
+      "lon": 10.435925
+    },
+    {
+      "lat": 63.409913,
+      "lon": 10.436915
+    },
+    {
+      "lat": 63.409289,
+      "lon": 10.439564
+    },
+    {
+      "lat": 63.409178,
+      "lon": 10.441049
+    },
+    {
+      "lat": 63.408579,
+      "lon": 10.442985
+    },
+    {
+      "lat": 63.410962,
+      "lon": 10.447135
+    },
+    {
+      "lat": 63.410872,
+      "lon": 10.451109
+    },
+    {
+      "lat": 63.411092,
+      "lon": 10.456038
+    },
+    {
+      "lat": 63.412044,
+      "lon": 10.463808
+    },
+    {
+      "lat": 63.411368,
+      "lon": 10.464293
+    },
+    {
+      "lat": 63.411288,
+      "lon": 10.465752
+    },
+    {
+      "lat": 63.410555,
+      "lon": 10.469293
+    },
+    {
+      "lat": 63.409949,
+      "lon": 10.47945
+    },
+    {
+      "lat": 63.410148,
+      "lon": 10.482354
+    },
+    {
+      "lat": 63.411017,
+      "lon": 10.489049
+    },
+    {
+      "lat": 63.411006,
+      "lon": 10.490088
+    },
+    {
+      "lat": 63.41143,
+      "lon": 10.492742
+    },
+    {
+      "lat": 63.413632,
+      "lon": 10.491716
+    },
+    {
+      "lat": 63.415933,
+      "lon": 10.493995
+    },
+    {
+      "lat": 63.417974,
+      "lon": 10.494757
+    },
+    {
+      "lat": 63.420863,
+      "lon": 10.495089
+    },
+    {
+      "lat": 63.423263,
+      "lon": 10.494529
+    },
+    {
+      "lat": 63.422616,
+      "lon": 10.487299
+    },
+    {
+      "lat": 63.422792,
+      "lon": 10.485868
+    },
+    {
+      "lat": 63.423173,
+      "lon": 10.484917
+    },
+    {
+      "lat": 63.422782,
+      "lon": 10.484024
+    },
+    {
+      "lat": 63.416183,
+      "lon": 10.486066
+    },
+    {
+      "lat": 63.422434,
+      "lon": 10.483909
+    },
+    {
+      "lat": 63.422782,
+      "lon": 10.484024
+    },
+    {
+      "lat": 63.423173,
+      "lon": 10.484917
+    },
+    {
+      "lat": 63.423835,
+      "lon": 10.484347
+    },
+    {
+      "lat": 63.42741,
+      "lon": 10.48417
+    },
+    {
+      "lat": 63.428674,
+      "lon": 10.485325
+    },
+    {
+      "lat": 63.429094,
+      "lon": 10.486348
+    },
+    {
+      "lat": 63.42947,
+      "lon": 10.488302
+    },
+    {
+      "lat": 63.429484,
+      "lon": 10.490867
+    },
+    {
+      "lat": 63.429253,
+      "lon": 10.492338
+    },
+    {
+      "lat": 63.428065,
+      "lon": 10.495161
+    },
+    {
+      "lat": 63.428678,
+      "lon": 10.496485
+    },
+    {
+      "lat": 63.429851,
+      "lon": 10.492287
+    },
+    {
+      "lat": 63.430505,
+      "lon": 10.488595
+    },
+    {
+      "lat": 63.430916,
+      "lon": 10.487645
+    },
+    {
+      "lat": 63.431095,
+      "lon": 10.482234
+    },
+    {
+      "lat": 63.432776,
+      "lon": 10.467844
+    },
+    {
+      "lat": 63.435099,
+      "lon": 10.45739
+    },
+    {
+      "lat": 63.435694,
+      "lon": 10.458082
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Bratsbergvegen - Strindheim",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_14",
+    "shapeId": "ATB:JourneyPattern:14_Outbound_251215112493918_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

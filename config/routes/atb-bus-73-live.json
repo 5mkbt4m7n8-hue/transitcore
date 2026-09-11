@@ -1,0 +1,724 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-73-live",
+  "name": "AtB buss 73",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_73",
+    "publicCode": "73",
+    "mode": "bus",
+    "longName": "Lerkendal -Bostad- Klæbu"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Klæbu",
+      "destinationMatches": [
+        "Klæbu"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Tempe",
+      "destinationMatches": [
+        "Tempe"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:103145",
+      "name": "Sørborgen skole",
+      "lat": 63.305472,
+      "lon": 10.465878,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:73594",
+      "name": "Sørborgen",
+      "lat": 63.303803,
+      "lon": 10.462568,
+      "shapeDistanceMeters": 389.0
+    },
+    {
+      "id": "NSR:Quay:74192",
+      "name": "Klæbu sentrum",
+      "lat": 63.300237,
+      "lon": 10.484723,
+      "shapeDistanceMeters": 2086.0
+    },
+    {
+      "id": "NSR:Quay:71574",
+      "name": "Rydland",
+      "lat": 63.302355,
+      "lon": 10.487373,
+      "shapeDistanceMeters": 2407.0
+    },
+    {
+      "id": "NSR:Quay:109680",
+      "name": "Trøåsen",
+      "lat": 63.30794,
+      "lon": 10.48825,
+      "shapeDistanceMeters": 3032.0
+    },
+    {
+      "id": "NSR:Quay:74742",
+      "name": "Aune",
+      "lat": 63.309918,
+      "lon": 10.485439,
+      "shapeDistanceMeters": 3296.0
+    },
+    {
+      "id": "NSR:Quay:73695",
+      "name": "Lysklett",
+      "lat": 63.317314,
+      "lon": 10.47988,
+      "shapeDistanceMeters": 4176.0
+    },
+    {
+      "id": "NSR:Quay:71541",
+      "name": "Holten",
+      "lat": 63.320004,
+      "lon": 10.500333,
+      "shapeDistanceMeters": 5333.0
+    },
+    {
+      "id": "NSR:Quay:73956",
+      "name": "Solem bru",
+      "lat": 63.322259,
+      "lon": 10.508224,
+      "shapeDistanceMeters": 5816.0
+    },
+    {
+      "id": "NSR:Quay:75256",
+      "name": "Bostad",
+      "lat": 63.324304,
+      "lon": 10.508769,
+      "shapeDistanceMeters": 6052.0
+    },
+    {
+      "id": "NSR:Quay:74278",
+      "name": "Nyhus",
+      "lat": 63.328637,
+      "lon": 10.498416,
+      "shapeDistanceMeters": 6828.0
+    },
+    {
+      "id": "NSR:Quay:73348",
+      "name": "Sve",
+      "lat": 63.329509,
+      "lon": 10.49455,
+      "shapeDistanceMeters": 7038.0
+    },
+    {
+      "id": "NSR:Quay:74434",
+      "name": "Storugla",
+      "lat": 63.333357,
+      "lon": 10.492263,
+      "shapeDistanceMeters": 7496.0
+    },
+    {
+      "id": "NSR:Quay:74582",
+      "name": "Amunddal",
+      "lat": 63.334486,
+      "lon": 10.481625,
+      "shapeDistanceMeters": 8145.0
+    },
+    {
+      "id": "NSR:Quay:75288",
+      "name": "Bratsberg Ridesenter",
+      "lat": 63.33982,
+      "lon": 10.46847,
+      "shapeDistanceMeters": 9122.0
+    },
+    {
+      "id": "NSR:Quay:74130",
+      "name": "Nordsetrønningen",
+      "lat": 63.339274,
+      "lon": 10.462246,
+      "shapeDistanceMeters": 9443.0
+    },
+    {
+      "id": "NSR:Quay:73972",
+      "name": "Kambru",
+      "lat": 63.339774,
+      "lon": 10.443688,
+      "shapeDistanceMeters": 10532.0
+    },
+    {
+      "id": "NSR:Quay:73754",
+      "name": "Tiller bru",
+      "lat": 63.349155,
+      "lon": 10.437229,
+      "shapeDistanceMeters": 11673.0
+    },
+    {
+      "id": "NSR:Quay:74854",
+      "name": "Eklestrø",
+      "lat": 63.352776,
+      "lon": 10.435771,
+      "shapeDistanceMeters": 12116.0
+    },
+    {
+      "id": "NSR:Quay:74848",
+      "name": "Eklesbakken",
+      "lat": 63.35732,
+      "lon": 10.440936,
+      "shapeDistanceMeters": 12819.0
+    },
+    {
+      "id": "NSR:Quay:73446",
+      "name": "Lia",
+      "lat": 63.364996,
+      "lon": 10.444061,
+      "shapeDistanceMeters": 13727.0
+    },
+    {
+      "id": "NSR:Quay:75674",
+      "name": "Gisvold",
+      "lat": 63.367573,
+      "lon": 10.44245,
+      "shapeDistanceMeters": 14021.0
+    },
+    {
+      "id": "NSR:Quay:73476",
+      "name": "Lialøkken",
+      "lat": 63.372466,
+      "lon": 10.432771,
+      "shapeDistanceMeters": 14759.0
+    },
+    {
+      "id": "NSR:Quay:74490",
+      "name": "Kvamshaugen",
+      "lat": 63.373805,
+      "lon": 10.430532,
+      "shapeDistanceMeters": 14947.0
+    },
+    {
+      "id": "NSR:Quay:73326",
+      "name": "Leira skole",
+      "lat": 63.376702,
+      "lon": 10.432318,
+      "shapeDistanceMeters": 15313.0
+    },
+    {
+      "id": "NSR:Quay:75143",
+      "name": "Bjørkmyr",
+      "lat": 63.3793,
+      "lon": 10.435075,
+      "shapeDistanceMeters": 15636.0
+    },
+    {
+      "id": "NSR:Quay:71623",
+      "name": "Tverregga",
+      "lat": 63.38316,
+      "lon": 10.433367,
+      "shapeDistanceMeters": 16127.0
+    },
+    {
+      "id": "NSR:Quay:73094",
+      "name": "Stubbanvegen",
+      "lat": 63.385241,
+      "lon": 10.427246,
+      "shapeDistanceMeters": 16521.0
+    },
+    {
+      "id": "NSR:Quay:72902",
+      "name": "Øvre Tvereggen",
+      "lat": 63.385671,
+      "lon": 10.42302,
+      "shapeDistanceMeters": 16731.0
+    },
+    {
+      "id": "NSR:Quay:74839",
+      "name": "Einbakken",
+      "lat": 63.386853,
+      "lon": 10.419703,
+      "shapeDistanceMeters": 16961.0
+    },
+    {
+      "id": "NSR:Quay:71846",
+      "name": "Utleirmark",
+      "lat": 63.38966,
+      "lon": 10.41343,
+      "shapeDistanceMeters": 17418.0
+    },
+    {
+      "id": "NSR:Quay:74700",
+      "name": "Astronomvegen",
+      "lat": 63.393428,
+      "lon": 10.410067,
+      "shapeDistanceMeters": 17944.0
+    },
+    {
+      "id": "NSR:Quay:74513",
+      "name": "Dalsaunevegen",
+      "lat": 63.39525,
+      "lon": 10.408609,
+      "shapeDistanceMeters": 18165.0
+    },
+    {
+      "id": "NSR:Quay:73979",
+      "name": "Nidarvoll skole",
+      "lat": 63.399155,
+      "lon": 10.404734,
+      "shapeDistanceMeters": 18651.0
+    },
+    {
+      "id": "NSR:Quay:72050",
+      "name": "Siemens",
+      "lat": 63.403907,
+      "lon": 10.399158,
+      "shapeDistanceMeters": 19264.0
+    },
+    {
+      "id": "NSR:Quay:75300",
+      "name": "Bratsbergvegen",
+      "lat": 63.405387,
+      "lon": 10.397457,
+      "shapeDistanceMeters": 19516.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.305463,
+      "lon": 10.465965
+    },
+    {
+      "lat": 63.305056,
+      "lon": 10.465798
+    },
+    {
+      "lat": 63.30459,
+      "lon": 10.461767
+    },
+    {
+      "lat": 63.304458,
+      "lon": 10.461154
+    },
+    {
+      "lat": 63.304318,
+      "lon": 10.461307
+    },
+    {
+      "lat": 63.301688,
+      "lon": 10.469716
+    },
+    {
+      "lat": 63.300538,
+      "lon": 10.471094
+    },
+    {
+      "lat": 63.298749,
+      "lon": 10.475058
+    },
+    {
+      "lat": 63.297899,
+      "lon": 10.478827
+    },
+    {
+      "lat": 63.297517,
+      "lon": 10.482943
+    },
+    {
+      "lat": 63.300373,
+      "lon": 10.485435
+    },
+    {
+      "lat": 63.300453,
+      "lon": 10.484991
+    },
+    {
+      "lat": 63.300106,
+      "lon": 10.48479
+    },
+    {
+      "lat": 63.299993,
+      "lon": 10.485081
+    },
+    {
+      "lat": 63.301873,
+      "lon": 10.487038
+    },
+    {
+      "lat": 63.307506,
+      "lon": 10.488405
+    },
+    {
+      "lat": 63.308297,
+      "lon": 10.487764
+    },
+    {
+      "lat": 63.309915,
+      "lon": 10.485329
+    },
+    {
+      "lat": 63.311973,
+      "lon": 10.484355
+    },
+    {
+      "lat": 63.313057,
+      "lon": 10.483191
+    },
+    {
+      "lat": 63.314353,
+      "lon": 10.482872
+    },
+    {
+      "lat": 63.316581,
+      "lon": 10.480956
+    },
+    {
+      "lat": 63.317414,
+      "lon": 10.479493
+    },
+    {
+      "lat": 63.317908,
+      "lon": 10.48085
+    },
+    {
+      "lat": 63.318002,
+      "lon": 10.481761
+    },
+    {
+      "lat": 63.31742,
+      "lon": 10.488328
+    },
+    {
+      "lat": 63.317478,
+      "lon": 10.489622
+    },
+    {
+      "lat": 63.317938,
+      "lon": 10.49172
+    },
+    {
+      "lat": 63.321818,
+      "lon": 10.507417
+    },
+    {
+      "lat": 63.322636,
+      "lon": 10.508546
+    },
+    {
+      "lat": 63.324309,
+      "lon": 10.508895
+    },
+    {
+      "lat": 63.325048,
+      "lon": 10.50799
+    },
+    {
+      "lat": 63.325839,
+      "lon": 10.502789
+    },
+    {
+      "lat": 63.328711,
+      "lon": 10.498289
+    },
+    {
+      "lat": 63.329624,
+      "lon": 10.494089
+    },
+    {
+      "lat": 63.332866,
+      "lon": 10.492769
+    },
+    {
+      "lat": 63.333345,
+      "lon": 10.49237
+    },
+    {
+      "lat": 63.33371,
+      "lon": 10.491562
+    },
+    {
+      "lat": 63.33404,
+      "lon": 10.489303
+    },
+    {
+      "lat": 63.333318,
+      "lon": 10.483662
+    },
+    {
+      "lat": 63.333381,
+      "lon": 10.483142
+    },
+    {
+      "lat": 63.334904,
+      "lon": 10.481098
+    },
+    {
+      "lat": 63.335351,
+      "lon": 10.47997
+    },
+    {
+      "lat": 63.336732,
+      "lon": 10.47835
+    },
+    {
+      "lat": 63.336876,
+      "lon": 10.475012
+    },
+    {
+      "lat": 63.338582,
+      "lon": 10.472954
+    },
+    {
+      "lat": 63.339711,
+      "lon": 10.470104
+    },
+    {
+      "lat": 63.339721,
+      "lon": 10.465592
+    },
+    {
+      "lat": 63.338988,
+      "lon": 10.460983
+    },
+    {
+      "lat": 63.339032,
+      "lon": 10.459276
+    },
+    {
+      "lat": 63.337957,
+      "lon": 10.456546
+    },
+    {
+      "lat": 63.337604,
+      "lon": 10.451271
+    },
+    {
+      "lat": 63.337779,
+      "lon": 10.450348
+    },
+    {
+      "lat": 63.338731,
+      "lon": 10.449126
+    },
+    {
+      "lat": 63.339096,
+      "lon": 10.448142
+    },
+    {
+      "lat": 63.339363,
+      "lon": 10.445165
+    },
+    {
+      "lat": 63.339945,
+      "lon": 10.442663
+    },
+    {
+      "lat": 63.340412,
+      "lon": 10.441664
+    },
+    {
+      "lat": 63.341176,
+      "lon": 10.44103
+    },
+    {
+      "lat": 63.345428,
+      "lon": 10.440214
+    },
+    {
+      "lat": 63.3465,
+      "lon": 10.438999
+    },
+    {
+      "lat": 63.348718,
+      "lon": 10.437708
+    },
+    {
+      "lat": 63.350328,
+      "lon": 10.435772
+    },
+    {
+      "lat": 63.35226,
+      "lon": 10.435003
+    },
+    {
+      "lat": 63.354175,
+      "lon": 10.437356
+    },
+    {
+      "lat": 63.355081,
+      "lon": 10.437498
+    },
+    {
+      "lat": 63.356539,
+      "lon": 10.437063
+    },
+    {
+      "lat": 63.356789,
+      "lon": 10.437647
+    },
+    {
+      "lat": 63.357177,
+      "lon": 10.440429
+    },
+    {
+      "lat": 63.356986,
+      "lon": 10.440937
+    },
+    {
+      "lat": 63.357537,
+      "lon": 10.440834
+    },
+    {
+      "lat": 63.359181,
+      "lon": 10.441769
+    },
+    {
+      "lat": 63.361841,
+      "lon": 10.444547
+    },
+    {
+      "lat": 63.36305,
+      "lon": 10.444997
+    },
+    {
+      "lat": 63.368381,
+      "lon": 10.441609
+    },
+    {
+      "lat": 63.370531,
+      "lon": 10.436185
+    },
+    {
+      "lat": 63.37337,
+      "lon": 10.43098
+    },
+    {
+      "lat": 63.374173,
+      "lon": 10.430086
+    },
+    {
+      "lat": 63.375042,
+      "lon": 10.430043
+    },
+    {
+      "lat": 63.375646,
+      "lon": 10.430431
+    },
+    {
+      "lat": 63.377269,
+      "lon": 10.433172
+    },
+    {
+      "lat": 63.378619,
+      "lon": 10.434606
+    },
+    {
+      "lat": 63.380603,
+      "lon": 10.435252
+    },
+    {
+      "lat": 63.382807,
+      "lon": 10.434949
+    },
+    {
+      "lat": 63.382876,
+      "lon": 10.433932
+    },
+    {
+      "lat": 63.384786,
+      "lon": 10.42898
+    },
+    {
+      "lat": 63.385361,
+      "lon": 10.426478
+    },
+    {
+      "lat": 63.385754,
+      "lon": 10.421707
+    },
+    {
+      "lat": 63.38727,
+      "lon": 10.418907
+    },
+    {
+      "lat": 63.388526,
+      "lon": 10.414642
+    },
+    {
+      "lat": 63.389326,
+      "lon": 10.413845
+    },
+    {
+      "lat": 63.390517,
+      "lon": 10.41166
+    },
+    {
+      "lat": 63.391193,
+      "lon": 10.409535
+    },
+    {
+      "lat": 63.39167,
+      "lon": 10.409191
+    },
+    {
+      "lat": 63.392259,
+      "lon": 10.409724
+    },
+    {
+      "lat": 63.394041,
+      "lon": 10.410056
+    },
+    {
+      "lat": 63.396777,
+      "lon": 10.406416
+    },
+    {
+      "lat": 63.399582,
+      "lon": 10.404336
+    },
+    {
+      "lat": 63.40217,
+      "lon": 10.401121
+    },
+    {
+      "lat": 63.403114,
+      "lon": 10.399354
+    },
+    {
+      "lat": 63.404481,
+      "lon": 10.399036
+    },
+    {
+      "lat": 63.404448,
+      "lon": 10.397954
+    },
+    {
+      "lat": 63.404683,
+      "lon": 10.397244
+    },
+    {
+      "lat": 63.405399,
+      "lon": 10.397364
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Sørborgen skole - Bratsbergvegen",
+    "supportedShortTurns": [
+      "Klæbu sentrum - Bratsbergvegen"
+    ]
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_73",
+    "shapeId": "ATB:JourneyPattern:73_Inbound_251215112494215_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

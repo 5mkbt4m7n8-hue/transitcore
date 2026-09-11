@@ -28,9 +28,10 @@ for(const entry of registry.routes||[]){
   if(!Array.isArray(p.stops)||p.stops.length<2)fail(file,"at least two stops are required");
   if(!Array.isArray(p.shape)||p.shape.length<2)fail(file,"shape must contain at least two points");
   const stopIds=new Set(),directionIds=new Set();let previous=-Infinity;
+  const circular=p.serviceVariants?.circular===true;
   for(const d of p.directions||[]){if(directionIds.has(d.id))fail(file,`duplicate direction id ${d.id}`);directionIds.add(d.id);if(!Array.isArray(d.destinationMatches)||!d.destinationMatches.length)fail(file,`direction ${d.id} has no destinationMatches`)}
   for(const [i,s] of (p.stops||[]).entries()){
-    if(stopIds.has(s.id))fail(file,`duplicate stop id ${s.id}`);stopIds.add(s.id);
+    if(stopIds.has(s.id)&&!circular)fail(file,`duplicate stop id ${s.id}`);stopIds.add(s.id);
     if(!Number.isFinite(s.lat)||!Number.isFinite(s.lon))fail(file,`stop ${i} has invalid coordinates`);
     if(!Number.isFinite(s.shapeDistanceMeters)||s.shapeDistanceMeters<previous)fail(file,`stop ${i} has invalid shapeDistanceMeters`);previous=s.shapeDistanceMeters;
   }

@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-42-live",
+  "name": "AtB buss 42",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_42",
+    "publicCode": "42",
+    "mode": "bus",
+    "longName": "Buenget- Hallset- Munkvoll"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Munkvoll",
+      "destinationMatches": [
+        "Munkvoll"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Buenget",
+      "destinationMatches": [
+        "Buenget"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": true
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:75458",
+      "name": "Buenget",
+      "lat": 63.384982,
+      "lon": 10.357122,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:73532",
+      "name": "Lillerydningen",
+      "lat": 63.387233,
+      "lon": 10.351943,
+      "shapeDistanceMeters": 447.0
+    },
+    {
+      "id": "NSR:Quay:71581",
+      "name": "Rydningen",
+      "lat": 63.38817,
+      "lon": 10.353936,
+      "shapeDistanceMeters": 597.0
+    },
+    {
+      "id": "NSR:Quay:75119",
+      "name": "Fjøslia",
+      "lat": 63.388695,
+      "lon": 10.358296,
+      "shapeDistanceMeters": 823.0
+    },
+    {
+      "id": "NSR:Quay:71987",
+      "name": "Selsbakkflata",
+      "lat": 63.388804,
+      "lon": 10.365501,
+      "shapeDistanceMeters": 1229.0
+    },
+    {
+      "id": "NSR:Quay:72729",
+      "name": "Martin Stokkens veg",
+      "lat": 63.39221,
+      "lon": 10.370477,
+      "shapeDistanceMeters": 1683.0
+    },
+    {
+      "id": "NSR:Quay:102729",
+      "name": "Hallset",
+      "lat": 63.39409,
+      "lon": 10.367062,
+      "shapeDistanceMeters": 2091.0
+    },
+    {
+      "id": "NSR:Quay:73443",
+      "name": "Munkvoll",
+      "lat": 63.397398,
+      "lon": 10.359322,
+      "shapeDistanceMeters": 2844.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.385041,
+      "lon": 10.357272
+    },
+    {
+      "lat": 63.386033,
+      "lon": 10.356437
+    },
+    {
+      "lat": 63.386229,
+      "lon": 10.355809
+    },
+    {
+      "lat": 63.386523,
+      "lon": 10.352276
+    },
+    {
+      "lat": 63.386814,
+      "lon": 10.351434
+    },
+    {
+      "lat": 63.387261,
+      "lon": 10.351828
+    },
+    {
+      "lat": 63.388161,
+      "lon": 10.353929
+    },
+    {
+      "lat": 63.388835,
+      "lon": 10.35889
+    },
+    {
+      "lat": 63.38878,
+      "lon": 10.360392
+    },
+    {
+      "lat": 63.388232,
+      "lon": 10.363112
+    },
+    {
+      "lat": 63.388356,
+      "lon": 10.364444
+    },
+    {
+      "lat": 63.392665,
+      "lon": 10.370953
+    },
+    {
+      "lat": 63.393533,
+      "lon": 10.370526
+    },
+    {
+      "lat": 63.393936,
+      "lon": 10.370865
+    },
+    {
+      "lat": 63.394061,
+      "lon": 10.370565
+    },
+    {
+      "lat": 63.393943,
+      "lon": 10.369682
+    },
+    {
+      "lat": 63.394151,
+      "lon": 10.3642
+    },
+    {
+      "lat": 63.394018,
+      "lon": 10.361426
+    },
+    {
+      "lat": 63.394416,
+      "lon": 10.35944
+    },
+    {
+      "lat": 63.39529,
+      "lon": 10.360684
+    },
+    {
+      "lat": 63.397366,
+      "lon": 10.359249
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Buenget - Munkvoll",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_42",
+    "shapeId": "ATB:JourneyPattern:42_Outbound_251215112493921_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

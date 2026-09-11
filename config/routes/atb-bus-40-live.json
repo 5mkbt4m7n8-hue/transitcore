@@ -1,0 +1,269 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-40-live",
+  "name": "AtB buss 40",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_40",
+    "publicCode": "40",
+    "mode": "bus",
+    "longName": "Flatåsen- Tonstad"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Tonstadkrysset",
+      "destinationMatches": [
+        "Tonstadkrysset"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Flatåstoppen / Nordre Flatåsen",
+      "destinationMatches": [
+        "Flatåstoppen",
+        "Nordre Flatåsen"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:71206",
+      "name": "Tonstadkrysset",
+      "lat": 63.370683,
+      "lon": 10.382319,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:71209",
+      "name": "Tonstadkrysset",
+      "lat": 63.370393,
+      "lon": 10.37405,
+      "shapeDistanceMeters": 684.0
+    },
+    {
+      "id": "NSR:Quay:75175",
+      "name": "Bjørndalsbrua",
+      "lat": 63.370956,
+      "lon": 10.363111,
+      "shapeDistanceMeters": 1234.0
+    },
+    {
+      "id": "NSR:Quay:75178",
+      "name": "Bjørndalstoppen",
+      "lat": 63.370558,
+      "lon": 10.353316,
+      "shapeDistanceMeters": 1725.0
+    },
+    {
+      "id": "NSR:Quay:75228",
+      "name": "Flatåsen senter",
+      "lat": 63.37348,
+      "lon": 10.345699,
+      "shapeDistanceMeters": 2538.0
+    },
+    {
+      "id": "NSR:Quay:74250",
+      "name": "Kolstadhaugen",
+      "lat": 63.375235,
+      "lon": 10.336877,
+      "shapeDistanceMeters": 3352.0
+    },
+    {
+      "id": "NSR:Quay:75561",
+      "name": "Furuhaugen",
+      "lat": 63.376919,
+      "lon": 10.340285,
+      "shapeDistanceMeters": 3612.0
+    },
+    {
+      "id": "NSR:Quay:71929",
+      "name": "Høgreina",
+      "lat": 63.380703,
+      "lon": 10.340318,
+      "shapeDistanceMeters": 4093.0
+    },
+    {
+      "id": "NSR:Quay:71934",
+      "name": "Høgreina øvre",
+      "lat": 63.380589,
+      "lon": 10.335034,
+      "shapeDistanceMeters": 4366.0
+    },
+    {
+      "id": "NSR:Quay:75232",
+      "name": "Flatåstoppen",
+      "lat": 63.377874,
+      "lon": 10.332,
+      "shapeDistanceMeters": 4775.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.370695,
+      "lon": 10.382291
+    },
+    {
+      "lat": 63.37067,
+      "lon": 10.382914
+    },
+    {
+      "lat": 63.370224,
+      "lon": 10.382988
+    },
+    {
+      "lat": 63.369703,
+      "lon": 10.382774
+    },
+    {
+      "lat": 63.369508,
+      "lon": 10.382167
+    },
+    {
+      "lat": 63.369643,
+      "lon": 10.381624
+    },
+    {
+      "lat": 63.370573,
+      "lon": 10.381069
+    },
+    {
+      "lat": 63.370368,
+      "lon": 10.379371
+    },
+    {
+      "lat": 63.370271,
+      "lon": 10.375625
+    },
+    {
+      "lat": 63.370881,
+      "lon": 10.363695
+    },
+    {
+      "lat": 63.370444,
+      "lon": 10.352872
+    },
+    {
+      "lat": 63.370517,
+      "lon": 10.348561
+    },
+    {
+      "lat": 63.371248,
+      "lon": 10.346318
+    },
+    {
+      "lat": 63.371446,
+      "lon": 10.34625
+    },
+    {
+      "lat": 63.372573,
+      "lon": 10.347784
+    },
+    {
+      "lat": 63.372816,
+      "lon": 10.347313
+    },
+    {
+      "lat": 63.373031,
+      "lon": 10.345513
+    },
+    {
+      "lat": 63.373356,
+      "lon": 10.345614
+    },
+    {
+      "lat": 63.373511,
+      "lon": 10.346348
+    },
+    {
+      "lat": 63.373669,
+      "lon": 10.346195
+    },
+    {
+      "lat": 63.373038,
+      "lon": 10.34523
+    },
+    {
+      "lat": 63.37248,
+      "lon": 10.338639
+    },
+    {
+      "lat": 63.372822,
+      "lon": 10.336626
+    },
+    {
+      "lat": 63.373593,
+      "lon": 10.335502
+    },
+    {
+      "lat": 63.374174,
+      "lon": 10.335394
+    },
+    {
+      "lat": 63.374719,
+      "lon": 10.335783
+    },
+    {
+      "lat": 63.37803,
+      "lon": 10.34196
+    },
+    {
+      "lat": 63.378616,
+      "lon": 10.34231
+    },
+    {
+      "lat": 63.379401,
+      "lon": 10.342212
+    },
+    {
+      "lat": 63.380435,
+      "lon": 10.340953
+    },
+    {
+      "lat": 63.380727,
+      "lon": 10.339983
+    },
+    {
+      "lat": 63.380904,
+      "lon": 10.338007
+    },
+    {
+      "lat": 63.380293,
+      "lon": 10.332895
+    },
+    {
+      "lat": 63.37985,
+      "lon": 10.332376
+    },
+    {
+      "lat": 63.378512,
+      "lon": 10.332539
+    },
+    {
+      "lat": 63.377863,
+      "lon": 10.331934
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Tonstadkrysset - Flatåstoppen",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_40",
+    "shapeId": "ATB:JourneyPattern:40_Inbound_251215112493821_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

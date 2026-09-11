@@ -1,0 +1,551 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-77-live",
+  "name": "AtB buss 77",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_77",
+    "publicCode": "77",
+    "mode": "bus",
+    "longName": "Heimdal- Klett- Spongdal"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Spongdal / Klettkrysset",
+      "destinationMatches": [
+        "Spongdal",
+        "Klettkrysset"
+      ],
+      "color": "#ef5350",
+      "reverseShape": false
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Heimdal",
+      "destinationMatches": [
+        "Heimdal"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": true
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:72946",
+      "name": "Heimdal stasjon",
+      "lat": 63.351546,
+      "lon": 10.356846,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:71135",
+      "name": "Heimdalsvegen 73",
+      "lat": 63.343918,
+      "lon": 10.346098,
+      "shapeDistanceMeters": 1069.0
+    },
+    {
+      "id": "NSR:Quay:72880",
+      "name": "Heggstad",
+      "lat": 63.340953,
+      "lon": 10.338596,
+      "shapeDistanceMeters": 1572.0
+    },
+    {
+      "id": "NSR:Quay:72884",
+      "name": "Heggstaddalen",
+      "lat": 63.337309,
+      "lon": 10.33611,
+      "shapeDistanceMeters": 2109.0
+    },
+    {
+      "id": "NSR:Quay:74992",
+      "name": "Esplykkja",
+      "lat": 63.334592,
+      "lon": 10.332038,
+      "shapeDistanceMeters": 2521.0
+    },
+    {
+      "id": "NSR:Quay:73430",
+      "name": "Lersbakken",
+      "lat": 63.331746,
+      "lon": 10.330405,
+      "shapeDistanceMeters": 2906.0
+    },
+    {
+      "id": "NSR:Quay:74979",
+      "name": "Esp meieri",
+      "lat": 63.327967,
+      "lon": 10.323385,
+      "shapeDistanceMeters": 3472.0
+    },
+    {
+      "id": "NSR:Quay:73305",
+      "name": "Leinstrand samfunnshus",
+      "lat": 63.324877,
+      "lon": 10.311267,
+      "shapeDistanceMeters": 4241.0
+    },
+    {
+      "id": "NSR:Quay:101855",
+      "name": "Klettkrysset",
+      "lat": 63.322136,
+      "lon": 10.301544,
+      "shapeDistanceMeters": 4895.0
+    },
+    {
+      "id": "NSR:Quay:101854",
+      "name": "Klettkrysset",
+      "lat": 63.322463,
+      "lon": 10.302161,
+      "shapeDistanceMeters": 5098.0
+    },
+    {
+      "id": "NSR:Quay:74133",
+      "name": "Klett",
+      "lat": 63.325991,
+      "lon": 10.306841,
+      "shapeDistanceMeters": 5658.0
+    },
+    {
+      "id": "NSR:Quay:74303",
+      "name": "Nypan",
+      "lat": 63.330754,
+      "lon": 10.307853,
+      "shapeDistanceMeters": 6218.0
+    },
+    {
+      "id": "NSR:Quay:72377",
+      "name": "Skjetlein",
+      "lat": 63.340386,
+      "lon": 10.301917,
+      "shapeDistanceMeters": 7521.0
+    },
+    {
+      "id": "NSR:Quay:74313",
+      "name": "Nypantunet",
+      "lat": 63.332365,
+      "lon": 10.296944,
+      "shapeDistanceMeters": 9339.0
+    },
+    {
+      "id": "NSR:Quay:105436",
+      "name": "Øvre Eggan",
+      "lat": 63.33683,
+      "lon": 10.28129,
+      "shapeDistanceMeters": 10307.0
+    },
+    {
+      "id": "NSR:Quay:72325",
+      "name": "Skjefstadbakken",
+      "lat": 63.341064,
+      "lon": 10.271367,
+      "shapeDistanceMeters": 10958.0
+    },
+    {
+      "id": "NSR:Quay:73308",
+      "name": "Leinum",
+      "lat": 63.343672,
+      "lon": 10.259922,
+      "shapeDistanceMeters": 11644.0
+    },
+    {
+      "id": "NSR:Quay:73253",
+      "name": "Sundet",
+      "lat": 63.343296,
+      "lon": 10.241457,
+      "shapeDistanceMeters": 12589.0
+    },
+    {
+      "id": "NSR:Quay:106952",
+      "name": "Skogstadvegen",
+      "lat": 63.347485,
+      "lon": 10.213938,
+      "shapeDistanceMeters": 14060.0
+    },
+    {
+      "id": "NSR:Quay:75419",
+      "name": "Brålia",
+      "lat": 63.349016,
+      "lon": 10.186483,
+      "shapeDistanceMeters": 15486.0
+    },
+    {
+      "id": "NSR:Quay:73255",
+      "name": "Larsstu",
+      "lat": 63.34806,
+      "lon": 10.173275,
+      "shapeDistanceMeters": 16231.0
+    },
+    {
+      "id": "NSR:Quay:74207",
+      "name": "Knausen",
+      "lat": 63.350075,
+      "lon": 10.167973,
+      "shapeDistanceMeters": 16749.0
+    },
+    {
+      "id": "NSR:Quay:74045",
+      "name": "Spongdal skole",
+      "lat": 63.355109,
+      "lon": 10.163003,
+      "shapeDistanceMeters": 17561.0
+    },
+    {
+      "id": "NSR:Quay:74037",
+      "name": "Spongdal",
+      "lat": 63.355935,
+      "lon": 10.166852,
+      "shapeDistanceMeters": 17809.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.351531,
+      "lon": 10.356974
+    },
+    {
+      "lat": 63.347782,
+      "lon": 10.353529
+    },
+    {
+      "lat": 63.34695,
+      "lon": 10.353231
+    },
+    {
+      "lat": 63.345367,
+      "lon": 10.350777
+    },
+    {
+      "lat": 63.344263,
+      "lon": 10.346984
+    },
+    {
+      "lat": 63.343253,
+      "lon": 10.344321
+    },
+    {
+      "lat": 63.341904,
+      "lon": 10.342094
+    },
+    {
+      "lat": 63.340818,
+      "lon": 10.338429
+    },
+    {
+      "lat": 63.340327,
+      "lon": 10.338283
+    },
+    {
+      "lat": 63.339482,
+      "lon": 10.339723
+    },
+    {
+      "lat": 63.33892,
+      "lon": 10.339924
+    },
+    {
+      "lat": 63.337672,
+      "lon": 10.337941
+    },
+    {
+      "lat": 63.337447,
+      "lon": 10.336527
+    },
+    {
+      "lat": 63.337005,
+      "lon": 10.33552
+    },
+    {
+      "lat": 63.336632,
+      "lon": 10.335143
+    },
+    {
+      "lat": 63.335386,
+      "lon": 10.334953
+    },
+    {
+      "lat": 63.334562,
+      "lon": 10.332135
+    },
+    {
+      "lat": 63.334119,
+      "lon": 10.33189
+    },
+    {
+      "lat": 63.333188,
+      "lon": 10.332378
+    },
+    {
+      "lat": 63.332327,
+      "lon": 10.332277
+    },
+    {
+      "lat": 63.331167,
+      "lon": 10.328826
+    },
+    {
+      "lat": 63.32884,
+      "lon": 10.3267
+    },
+    {
+      "lat": 63.327648,
+      "lon": 10.322756
+    },
+    {
+      "lat": 63.325024,
+      "lon": 10.318335
+    },
+    {
+      "lat": 63.324756,
+      "lon": 10.30838
+    },
+    {
+      "lat": 63.324909,
+      "lon": 10.307141
+    },
+    {
+      "lat": 63.324077,
+      "lon": 10.305937
+    },
+    {
+      "lat": 63.322966,
+      "lon": 10.302277
+    },
+    {
+      "lat": 63.321696,
+      "lon": 10.301158
+    },
+    {
+      "lat": 63.321513,
+      "lon": 10.301433
+    },
+    {
+      "lat": 63.322586,
+      "lon": 10.302182
+    },
+    {
+      "lat": 63.322826,
+      "lon": 10.302832
+    },
+    {
+      "lat": 63.323292,
+      "lon": 10.303216
+    },
+    {
+      "lat": 63.323984,
+      "lon": 10.305668
+    },
+    {
+      "lat": 63.32478,
+      "lon": 10.307562
+    },
+    {
+      "lat": 63.325153,
+      "lon": 10.306566
+    },
+    {
+      "lat": 63.32539,
+      "lon": 10.306465
+    },
+    {
+      "lat": 63.330416,
+      "lon": 10.308911
+    },
+    {
+      "lat": 63.330759,
+      "lon": 10.307372
+    },
+    {
+      "lat": 63.333514,
+      "lon": 10.306497
+    },
+    {
+      "lat": 63.336175,
+      "lon": 10.308001
+    },
+    {
+      "lat": 63.336741,
+      "lon": 10.307953
+    },
+    {
+      "lat": 63.340528,
+      "lon": 10.3037
+    },
+    {
+      "lat": 63.340689,
+      "lon": 10.302478
+    },
+    {
+      "lat": 63.340342,
+      "lon": 10.301981
+    },
+    {
+      "lat": 63.340689,
+      "lon": 10.302478
+    },
+    {
+      "lat": 63.340528,
+      "lon": 10.3037
+    },
+    {
+      "lat": 63.336741,
+      "lon": 10.307953
+    },
+    {
+      "lat": 63.336175,
+      "lon": 10.308001
+    },
+    {
+      "lat": 63.333514,
+      "lon": 10.306497
+    },
+    {
+      "lat": 63.330759,
+      "lon": 10.307372
+    },
+    {
+      "lat": 63.333113,
+      "lon": 10.29164
+    },
+    {
+      "lat": 63.333932,
+      "lon": 10.28725
+    },
+    {
+      "lat": 63.33475,
+      "lon": 10.284922
+    },
+    {
+      "lat": 63.336832,
+      "lon": 10.281287
+    },
+    {
+      "lat": 63.339933,
+      "lon": 10.274929
+    },
+    {
+      "lat": 63.340645,
+      "lon": 10.272778
+    },
+    {
+      "lat": 63.343571,
+      "lon": 10.261034
+    },
+    {
+      "lat": 63.343617,
+      "lon": 10.257041
+    },
+    {
+      "lat": 63.344165,
+      "lon": 10.250505
+    },
+    {
+      "lat": 63.343885,
+      "lon": 10.246104
+    },
+    {
+      "lat": 63.343151,
+      "lon": 10.240633
+    },
+    {
+      "lat": 63.343167,
+      "lon": 10.238638
+    },
+    {
+      "lat": 63.343375,
+      "lon": 10.237407
+    },
+    {
+      "lat": 63.344612,
+      "lon": 10.233813
+    },
+    {
+      "lat": 63.347922,
+      "lon": 10.210714
+    },
+    {
+      "lat": 63.34901,
+      "lon": 10.201784
+    },
+    {
+      "lat": 63.348678,
+      "lon": 10.194914
+    },
+    {
+      "lat": 63.349006,
+      "lon": 10.184742
+    },
+    {
+      "lat": 63.349376,
+      "lon": 10.181624
+    },
+    {
+      "lat": 63.34853,
+      "lon": 10.17867
+    },
+    {
+      "lat": 63.34896,
+      "lon": 10.175643
+    },
+    {
+      "lat": 63.348211,
+      "lon": 10.174132
+    },
+    {
+      "lat": 63.347658,
+      "lon": 10.172001
+    },
+    {
+      "lat": 63.347787,
+      "lon": 10.168447
+    },
+    {
+      "lat": 63.348166,
+      "lon": 10.167915
+    },
+    {
+      "lat": 63.349275,
+      "lon": 10.168105
+    },
+    {
+      "lat": 63.355604,
+      "lon": 10.16646
+    },
+    {
+      "lat": 63.355109,
+      "lon": 10.162847
+    },
+    {
+      "lat": 63.355646,
+      "lon": 10.166883
+    },
+    {
+      "lat": 63.355969,
+      "lon": 10.166802
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Heimdal stasjon - Spongdal",
+    "supportedShortTurns": [
+      "Klettkrysset - Heimdal stasjon",
+      "Heimdal stasjon - Klettkrysset",
+      "Skjetlein - Heimdal stasjon"
+    ]
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_77",
+    "shapeId": "ATB:JourneyPattern:77_Outbound_251215112494187_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}

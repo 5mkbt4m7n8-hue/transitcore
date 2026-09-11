@@ -1,0 +1,723 @@
+{
+  "schemaVersion": 1,
+  "id": "atb-bus-16-live",
+  "name": "AtB buss 16",
+  "provider": {
+    "codespaceId": "ATB",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "line": {
+    "id": "ATB:Line:2_16",
+    "publicCode": "16",
+    "mode": "bus",
+    "longName": "Flatåsen- Heimdal- Torgård"
+  },
+  "directions": [
+    {
+      "id": "direction-0",
+      "label": "mot Torgård",
+      "destinationMatches": [
+        "Torgård"
+      ],
+      "color": "#ef5350",
+      "reverseShape": true
+    },
+    {
+      "id": "direction-1",
+      "label": "mot Flatåsen",
+      "destinationMatches": [
+        "Flatåsen"
+      ],
+      "color": "#66bb6a",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:102727",
+      "name": "Torgardstrøa",
+      "lat": 63.330804,
+      "lon": 10.36784,
+      "shapeDistanceMeters": 0.0
+    },
+    {
+      "id": "NSR:Quay:74502",
+      "name": "Kvenildsmyra",
+      "lat": 63.335222,
+      "lon": 10.369243,
+      "shapeDistanceMeters": 589.0
+    },
+    {
+      "id": "NSR:Quay:72578",
+      "name": "Løvaasveien",
+      "lat": 63.338034,
+      "lon": 10.370506,
+      "shapeDistanceMeters": 909.0
+    },
+    {
+      "id": "NSR:Quay:74562",
+      "name": "Djupmyra",
+      "lat": 63.342158,
+      "lon": 10.374951,
+      "shapeDistanceMeters": 1422.0
+    },
+    {
+      "id": "NSR:Quay:72144",
+      "name": "Isdamvegen",
+      "lat": 63.345786,
+      "lon": 10.377966,
+      "shapeDistanceMeters": 1857.0
+    },
+    {
+      "id": "NSR:Quay:71317",
+      "name": "Torvtaket",
+      "lat": 63.348407,
+      "lon": 10.377333,
+      "shapeDistanceMeters": 2151.0
+    },
+    {
+      "id": "NSR:Quay:74613",
+      "name": "Ole Ross' veg",
+      "lat": 63.351199,
+      "lon": 10.375769,
+      "shapeDistanceMeters": 2476.0
+    },
+    {
+      "id": "NSR:Quay:71432",
+      "name": "Rognbudalen",
+      "lat": 63.3538,
+      "lon": 10.38134,
+      "shapeDistanceMeters": 3101.0
+    },
+    {
+      "id": "NSR:Quay:74222",
+      "name": "Koieflata",
+      "lat": 63.352825,
+      "lon": 10.38969,
+      "shapeDistanceMeters": 3545.0
+    },
+    {
+      "id": "NSR:Quay:72709",
+      "name": "Martin Kregnes veg",
+      "lat": 63.353813,
+      "lon": 10.397878,
+      "shapeDistanceMeters": 4017.0
+    },
+    {
+      "id": "NSR:Quay:72103",
+      "name": "Ingeborg Ofstads veg",
+      "lat": 63.35737,
+      "lon": 10.399431,
+      "shapeDistanceMeters": 4409.0
+    },
+    {
+      "id": "NSR:Quay:73274",
+      "name": "Moltmyra øst",
+      "lat": 63.360585,
+      "lon": 10.399021,
+      "shapeDistanceMeters": 4872.0
+    },
+    {
+      "id": "NSR:Quay:71308",
+      "name": "Torvmyra",
+      "lat": 63.361336,
+      "lon": 10.391673,
+      "shapeDistanceMeters": 5249.0
+    },
+    {
+      "id": "NSR:Quay:71203",
+      "name": "Tonstadgrenda",
+      "lat": 63.361794,
+      "lon": 10.387116,
+      "shapeDistanceMeters": 5483.0
+    },
+    {
+      "id": "NSR:Quay:75611",
+      "name": "City Syd",
+      "lat": 63.360978,
+      "lon": 10.379237,
+      "shapeDistanceMeters": 6008.0
+    },
+    {
+      "id": "NSR:Quay:75607",
+      "name": "Tillerterminalen",
+      "lat": 63.360163,
+      "lon": 10.374465,
+      "shapeDistanceMeters": 6361.0
+    },
+    {
+      "id": "NSR:Quay:72122",
+      "name": "Vestre Rosten",
+      "lat": 63.360156,
+      "lon": 10.368833,
+      "shapeDistanceMeters": 7778.0
+    },
+    {
+      "id": "NSR:Quay:72158",
+      "name": "Sivert Thonstads vei",
+      "lat": 63.35866,
+      "lon": 10.368473,
+      "shapeDistanceMeters": 7951.0
+    },
+    {
+      "id": "NSR:Quay:72649",
+      "name": "Marcus Thranes vei",
+      "lat": 63.355064,
+      "lon": 10.367064,
+      "shapeDistanceMeters": 8358.0
+    },
+    {
+      "id": "NSR:Quay:75572",
+      "name": "C.J. Hambros vei",
+      "lat": 63.352837,
+      "lon": 10.366533,
+      "shapeDistanceMeters": 8608.0
+    },
+    {
+      "id": "NSR:Quay:72046",
+      "name": "Idrettsveien",
+      "lat": 63.350256,
+      "lon": 10.366668,
+      "shapeDistanceMeters": 8896.0
+    },
+    {
+      "id": "NSR:Quay:75328",
+      "name": "Heimdalshallen",
+      "lat": 63.34775,
+      "lon": 10.364838,
+      "shapeDistanceMeters": 9200.0
+    },
+    {
+      "id": "NSR:Quay:74518",
+      "name": "Breidablikk skole",
+      "lat": 63.349324,
+      "lon": 10.360089,
+      "shapeDistanceMeters": 9640.0
+    },
+    {
+      "id": "NSR:Quay:73647",
+      "name": "Lundemobakken",
+      "lat": 63.35229,
+      "lon": 10.36102,
+      "shapeDistanceMeters": 9974.0
+    },
+    {
+      "id": "NSR:Quay:73847",
+      "name": "Johan Nygaardsvolds vei",
+      "lat": 63.354681,
+      "lon": 10.361894,
+      "shapeDistanceMeters": 10244.0
+    },
+    {
+      "id": "NSR:Quay:72946",
+      "name": "Heimdal stasjon",
+      "lat": 63.351546,
+      "lon": 10.356846,
+      "shapeDistanceMeters": 10946.0
+    },
+    {
+      "id": "NSR:Quay:72755",
+      "name": "Åsheim skole",
+      "lat": 63.351158,
+      "lon": 10.343566,
+      "shapeDistanceMeters": 11661.0
+    },
+    {
+      "id": "NSR:Quay:73873",
+      "name": "John P. Kroglunds veg",
+      "lat": 63.352886,
+      "lon": 10.340496,
+      "shapeDistanceMeters": 12119.0
+    },
+    {
+      "id": "NSR:Quay:74167",
+      "name": "Klokkstein",
+      "lat": 63.355147,
+      "lon": 10.34255,
+      "shapeDistanceMeters": 12389.0
+    },
+    {
+      "id": "NSR:Quay:72484",
+      "name": "Skytterbanen",
+      "lat": 63.358436,
+      "lon": 10.343161,
+      "shapeDistanceMeters": 12757.0
+    },
+    {
+      "id": "NSR:Quay:71903",
+      "name": "Saupstadmyra",
+      "lat": 63.359724,
+      "lon": 10.342831,
+      "shapeDistanceMeters": 12949.0
+    },
+    {
+      "id": "NSR:Quay:74237",
+      "name": "Kolstad kirke",
+      "lat": 63.364709,
+      "lon": 10.343797,
+      "shapeDistanceMeters": 13521.0
+    },
+    {
+      "id": "NSR:Quay:71824",
+      "name": "Husebytunet",
+      "lat": 63.368876,
+      "lon": 10.345141,
+      "shapeDistanceMeters": 13983.0
+    },
+    {
+      "id": "NSR:Quay:73552",
+      "name": "Søndre Flatåsen",
+      "lat": 63.376928,
+      "lon": 10.352308,
+      "shapeDistanceMeters": 14985.0
+    },
+    {
+      "id": "NSR:Quay:74082",
+      "name": "Nordre Flatåsen",
+      "lat": 63.379264,
+      "lon": 10.349993,
+      "shapeDistanceMeters": 15276.0
+    },
+    {
+      "id": "NSR:Quay:74083",
+      "name": "Nordre Flatåsen",
+      "lat": 63.379144,
+      "lon": 10.349502,
+      "shapeDistanceMeters": 15616.0
+    },
+    {
+      "id": "NSR:Quay:73554",
+      "name": "Søndre Flatåsen",
+      "lat": 63.376225,
+      "lon": 10.352198,
+      "shapeDistanceMeters": 16022.0
+    },
+    {
+      "id": "NSR:Quay:75228",
+      "name": "Flatåsen senter",
+      "lat": 63.37348,
+      "lon": 10.345699,
+      "shapeDistanceMeters": 16724.0
+    },
+    {
+      "id": "NSR:Quay:74250",
+      "name": "Kolstadhaugen",
+      "lat": 63.375235,
+      "lon": 10.336877,
+      "shapeDistanceMeters": 17538.0
+    },
+    {
+      "id": "NSR:Quay:75561",
+      "name": "Furuhaugen",
+      "lat": 63.376919,
+      "lon": 10.340285,
+      "shapeDistanceMeters": 17798.0
+    },
+    {
+      "id": "NSR:Quay:71929",
+      "name": "Høgreina",
+      "lat": 63.380703,
+      "lon": 10.340318,
+      "shapeDistanceMeters": 18280.0
+    },
+    {
+      "id": "NSR:Quay:71934",
+      "name": "Høgreina øvre",
+      "lat": 63.380589,
+      "lon": 10.335034,
+      "shapeDistanceMeters": 18552.0
+    },
+    {
+      "id": "NSR:Quay:75232",
+      "name": "Flatåstoppen",
+      "lat": 63.377874,
+      "lon": 10.332,
+      "shapeDistanceMeters": 18961.0
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.330759,
+      "lon": 10.367801
+    },
+    {
+      "lat": 63.33209,
+      "lon": 10.367042
+    },
+    {
+      "lat": 63.333359,
+      "lon": 10.365682
+    },
+    {
+      "lat": 63.333984,
+      "lon": 10.367558
+    },
+    {
+      "lat": 63.334768,
+      "lon": 10.368705
+    },
+    {
+      "lat": 63.339221,
+      "lon": 10.371271
+    },
+    {
+      "lat": 63.341815,
+      "lon": 10.374294
+    },
+    {
+      "lat": 63.345346,
+      "lon": 10.377777
+    },
+    {
+      "lat": 63.347677,
+      "lon": 10.37767
+    },
+    {
+      "lat": 63.350346,
+      "lon": 10.375874
+    },
+    {
+      "lat": 63.351731,
+      "lon": 10.375478
+    },
+    {
+      "lat": 63.353067,
+      "lon": 10.375704
+    },
+    {
+      "lat": 63.354489,
+      "lon": 10.376614
+    },
+    {
+      "lat": 63.354107,
+      "lon": 10.380535
+    },
+    {
+      "lat": 63.353015,
+      "lon": 10.384167
+    },
+    {
+      "lat": 63.352816,
+      "lon": 10.391159
+    },
+    {
+      "lat": 63.353507,
+      "lon": 10.39437
+    },
+    {
+      "lat": 63.353441,
+      "lon": 10.397613
+    },
+    {
+      "lat": 63.355909,
+      "lon": 10.398332
+    },
+    {
+      "lat": 63.357507,
+      "lon": 10.399426
+    },
+    {
+      "lat": 63.360198,
+      "lon": 10.400486
+    },
+    {
+      "lat": 63.360404,
+      "lon": 10.400865
+    },
+    {
+      "lat": 63.362457,
+      "lon": 10.380235
+    },
+    {
+      "lat": 63.359849,
+      "lon": 10.378819
+    },
+    {
+      "lat": 63.359984,
+      "lon": 10.376015
+    },
+    {
+      "lat": 63.36013,
+      "lon": 10.374456
+    },
+    {
+      "lat": 63.360426,
+      "lon": 10.373579
+    },
+    {
+      "lat": 63.360798,
+      "lon": 10.368357
+    },
+    {
+      "lat": 63.361199,
+      "lon": 10.367748
+    },
+    {
+      "lat": 63.363238,
+      "lon": 10.367745
+    },
+    {
+      "lat": 63.36476,
+      "lon": 10.369942
+    },
+    {
+      "lat": 63.364527,
+      "lon": 10.371348
+    },
+    {
+      "lat": 63.363592,
+      "lon": 10.370552
+    },
+    {
+      "lat": 63.359857,
+      "lon": 10.368806
+    },
+    {
+      "lat": 63.359521,
+      "lon": 10.369028
+    },
+    {
+      "lat": 63.353566,
+      "lon": 10.366582
+    },
+    {
+      "lat": 63.349476,
+      "lon": 10.366642
+    },
+    {
+      "lat": 63.348344,
+      "lon": 10.36533
+    },
+    {
+      "lat": 63.347125,
+      "lon": 10.36466
+    },
+    {
+      "lat": 63.348778,
+      "lon": 10.359863
+    },
+    {
+      "lat": 63.354938,
+      "lon": 10.361849
+    },
+    {
+      "lat": 63.355303,
+      "lon": 10.361717
+    },
+    {
+      "lat": 63.355829,
+      "lon": 10.360748
+    },
+    {
+      "lat": 63.355063,
+      "lon": 10.359239
+    },
+    {
+      "lat": 63.355007,
+      "lon": 10.358501
+    },
+    {
+      "lat": 63.354237,
+      "lon": 10.358416
+    },
+    {
+      "lat": 63.353637,
+      "lon": 10.357683
+    },
+    {
+      "lat": 63.352642,
+      "lon": 10.357641
+    },
+    {
+      "lat": 63.351194,
+      "lon": 10.356622
+    },
+    {
+      "lat": 63.351773,
+      "lon": 10.3496
+    },
+    {
+      "lat": 63.351621,
+      "lon": 10.347733
+    },
+    {
+      "lat": 63.35117,
+      "lon": 10.345679
+    },
+    {
+      "lat": 63.351125,
+      "lon": 10.338721
+    },
+    {
+      "lat": 63.356,
+      "lon": 10.34321
+    },
+    {
+      "lat": 63.358985,
+      "lon": 10.343094
+    },
+    {
+      "lat": 63.359035,
+      "lon": 10.342258
+    },
+    {
+      "lat": 63.35978,
+      "lon": 10.342819
+    },
+    {
+      "lat": 63.362566,
+      "lon": 10.342746
+    },
+    {
+      "lat": 63.371041,
+      "lon": 10.345936
+    },
+    {
+      "lat": 63.372083,
+      "lon": 10.346991
+    },
+    {
+      "lat": 63.374983,
+      "lon": 10.351684
+    },
+    {
+      "lat": 63.375911,
+      "lon": 10.352294
+    },
+    {
+      "lat": 63.377048,
+      "lon": 10.352181
+    },
+    {
+      "lat": 63.379209,
+      "lon": 10.350701
+    },
+    {
+      "lat": 63.378924,
+      "lon": 10.346847
+    },
+    {
+      "lat": 63.378752,
+      "lon": 10.34703
+    },
+    {
+      "lat": 63.37896,
+      "lon": 10.347388
+    },
+    {
+      "lat": 63.379209,
+      "lon": 10.350701
+    },
+    {
+      "lat": 63.377048,
+      "lon": 10.352181
+    },
+    {
+      "lat": 63.376221,
+      "lon": 10.352286
+    },
+    {
+      "lat": 63.374862,
+      "lon": 10.351535
+    },
+    {
+      "lat": 63.372817,
+      "lon": 10.347666
+    },
+    {
+      "lat": 63.373031,
+      "lon": 10.345513
+    },
+    {
+      "lat": 63.373356,
+      "lon": 10.345614
+    },
+    {
+      "lat": 63.373511,
+      "lon": 10.346348
+    },
+    {
+      "lat": 63.373668,
+      "lon": 10.346089
+    },
+    {
+      "lat": 63.373038,
+      "lon": 10.34523
+    },
+    {
+      "lat": 63.37248,
+      "lon": 10.338639
+    },
+    {
+      "lat": 63.372936,
+      "lon": 10.336359
+    },
+    {
+      "lat": 63.373593,
+      "lon": 10.335502
+    },
+    {
+      "lat": 63.374174,
+      "lon": 10.335394
+    },
+    {
+      "lat": 63.374939,
+      "lon": 10.336108
+    },
+    {
+      "lat": 63.37803,
+      "lon": 10.34196
+    },
+    {
+      "lat": 63.379094,
+      "lon": 10.342305
+    },
+    {
+      "lat": 63.379922,
+      "lon": 10.341791
+    },
+    {
+      "lat": 63.380664,
+      "lon": 10.34028
+    },
+    {
+      "lat": 63.380895,
+      "lon": 10.338584
+    },
+    {
+      "lat": 63.380858,
+      "lon": 10.336976
+    },
+    {
+      "lat": 63.380373,
+      "lon": 10.333196
+    },
+    {
+      "lat": 63.37985,
+      "lon": 10.332376
+    },
+    {
+      "lat": 63.378632,
+      "lon": 10.332582
+    },
+    {
+      "lat": 63.377863,
+      "lon": 10.331934
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Torgardstrøa - Flatåstoppen",
+    "supportedShortTurns": []
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur ATB aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_atb-aggregated-gtfs.zip",
+    "routeId": "ATB:Line:2_16",
+    "shapeId": "ATB:JourneyPattern:16_Inbound_251215112494151_251215112489847",
+    "checkedDate": "2026-09-11"
+  }
+}
