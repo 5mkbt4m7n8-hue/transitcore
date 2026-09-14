@@ -80,6 +80,12 @@ const terminalTurnFrame={...terminalFrame,leds:[{...terminalFrame.leds[0],vehicl
 terminalLifecycle=applyMotionLifecycle(terminalTurnFrame,terminalLifecycle.state,now+1000,10000);
 assert.equal(terminalLifecycle.frame.leds[0].state,"AT_STOP","vending inne på endestasjonen må ikke feiltolkes som PASSED");
 assert.equal(terminalLifecycle.frame.leds[0].lifecycle,undefined);
+const closeTerminalProfile={...tramProfile,stops:[tramProfile.stops[0],{...tramProfile.stops[1],lon:10.3036},{id:"c",lat:63.40,lon:10.32,vled:4}]};
+const closeTerminalVehicle={...tramVehicles[0],vehicleId:"ila-headsign-turn",destinationName:"Lian",location:{latitude:63.40,longitude:10.3021}};
+const closeTerminalFrame=buildLinearRouteFrame({board:terminalBoard,profiles:[closeTerminalProfile],hardware:tramHardware,vehicles:[closeTerminalVehicle],now});
+assert.equal(closeTerminalFrame.leds[0].id,0,"vognen skal bli på Ila i terminalsonen selv når Bergsli gate er geometrisk nærmere");
+assert.equal(closeTerminalFrame.leds[0].state,"AT_STOP","destinasjonsbytte under vending skal ikke flytte vognen fra Ila");
+assert.equal(closeTerminalFrame.leds[0].vehicle.isTerminalStation,true);
 const sharedTramFrame = buildLinearRouteFrame({ board: tramBoard, profiles: [tramProfile], hardware: tramHardware, vehicles: [tramVehicles[0], { ...tramVehicles[0], vehicleId: "tram-2", destinationName: "Ila" }], now });
 assert.equal(sharedTramFrame.leds[0].occupants.length, 2, "Begge vogner på samme Gråkallbane-LED må bevares");
 assert.deepEqual(sharedTramFrame.leds[0].occupants.map(value => value.rgb), [[0, 255, 80], [0, 100, 255]], "Likt prioriterte vogner må kunne veksle mellom retningsfargene");
