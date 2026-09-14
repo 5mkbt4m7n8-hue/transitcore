@@ -224,7 +224,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
       };
     }
     const departingInsideStation = GRAKALL_BOARD_IDS.has(frame.boardProfile) && led.state === "AT_STOP" &&
-      sameVehicle && before.state === "AT_STOP" && led.vehicle?.positionType === "station" &&
+      sameVehicle && before.state === "AT_STOP" && led.vehicle?.positionType === "station" && !led.vehicle?.isTerminalStation &&
       before.led.vehicle?.positionType === "station" && Number.isFinite(distance) &&
       Number.isFinite(before.distance) && distance > before.distance + SIGNAL_POLICY.stationDepartureMovementMeters;
     const departing = departingInsideStation || led.state === "APPROACHING" && sameVehicle &&
@@ -824,8 +824,13 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
     });
     const nearestStationNode = nearestStopIndex >= 0 ? stationByStop.get(profile.stops[nearestStopIndex].id) : null;
     const nearestStationLed = nearestStationNode ? physical.get(nearestStationNode.led) : null;
+    const isTerminalStation = nearestStopIndex === 0 || nearestStopIndex === profile.stops.length - 1;
+    const arrivalRadius = Number(board.render.arrivalRadiusMeters) || 65;
+    const stationArrivalRadius = isTerminalStation
+      ? Math.max(arrivalRadius, Number(board.render.terminalArrivalRadiusMeters) || arrivalRadius)
+      : arrivalRadius;
     let logicalLed, state, meters, positionType;
-    if (nearestStopIndex >= 0 && stopMeters <= board.render.arrivalRadiusMeters) {
+    if (nearestStopIndex >= 0 && stopMeters <= stationArrivalRadius) {
       logicalLed = nearestStationNode?.led ?? profile.stops[nearestStopIndex].vled;
       state = "AT_STOP";
       meters = stopMeters;
@@ -855,7 +860,7 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
       positionType = configured.length ? "segment" : "station-approach";
     }
     const id = physical.get(logicalLed);
-    const candidate = { id, state, meters, destination: vehicle.destination, vehicleId: vehicle.vehicleId, positionType, stationDistanceMeters: stopMeters, nearestStationLed, lat: vehicle.lat, lon: vehicle.lon };
+    const candidate = { id, state, meters, destination: vehicle.destination, vehicleId: vehicle.vehicleId, positionType, stationDistanceMeters: stopMeters, nearestStationLed, isTerminalStation, lat: vehicle.lat, lon: vehicle.lon };
     const occupants = occupantsByLed.get(id) || [];
     occupants.push(candidate);
     occupantsByLed.set(id, occupants);
@@ -878,7 +883,7 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
       // For a linear route, item.meters is lateral GPS error from the track,
       // not distance from a stop. Exposing it as distanceMeters made the
       // shared lifecycle falsely classify a moving tram as PASSED.
-      vehicle: { id: item.vehicleId, line: String(profile.line.publicCode), destination: item.destination, positionType: item.positionType, stationDistanceMeters: Math.round(item.stationDistanceMeters), nearestStationLed: item.nearestStationLed, latitude: item.lat, longitude: item.lon },
+      vehicle: { id: item.vehicleId, line: String(profile.line.publicCode), destination: item.destination, positionType: item.positionType, stationDistanceMeters: Math.round(item.stationDistanceMeters), nearestStationLed: item.nearestStationLed, isTerminalStation: item.isTerminalStation, latitude: item.lat, longitude: item.lon },
       occupants: (occupantsByLed.get(item.id) || []).sort((a, b) => {
         const priority = value => value.state === "AT_STOP" ? 2 : value.state === "APPROACHING" ? 1 : 0;
         return priority(b) - priority(a) || a.meters - b.meters || a.vehicleId.localeCompare(b.vehicleId);
@@ -891,6 +896,7 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
         distanceMeters: Math.round(value.meters),
         stationDistanceMeters: Math.round(value.stationDistanceMeters),
         nearestStationLed: value.nearestStationLed,
+        isTerminalStation: value.isTerminalStation,
         positionType: value.positionType,
         latitude: value.lat,
         longitude: value.lon

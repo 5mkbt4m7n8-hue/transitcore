@@ -14,6 +14,7 @@ assert.match(script,/TransitCoreZip\.createZip\(files\(\)\)/,"redigereren skal l
 assert.match(script,/PREVIEW_STORE/,"pakken skal kunne testes med live-data før publisering");
 assert.match(script,/sourceEditor:\s*"grakallbanen"/,"live-testen skal kunne gå tilbake til Gråkallbanen-editoren");
 assert.match(script,/id:"grakallbanen-prototype-board"/,"prototypen skal ha egen tavle-ID og ikke overskrive 47-LED-tavlen");
+assert.match(script,/terminalArrivalRadiusMeters:110/,"Ila og Lian skal ha en egen vendesone");
 assert.match(page,/Kun holdeplasser \(ingen mellom-LED-er\)/,"prototypen skal kunne bygges helt uten mellom-LED-er");
 assert.match(page,/Lian først · Ila sist/,"monteringsretningen skal navngi første og siste stasjon tydelig");
 assert.match(page,/Ila først · Lian sist/,"hele LED-rekkefølgen skal kunne snus");

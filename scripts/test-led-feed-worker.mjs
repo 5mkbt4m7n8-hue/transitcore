@@ -70,6 +70,16 @@ assert.deepEqual({id:tramFrame.leds[0].id,rgb:tramFrame.leds[0].rgb,brightness:t
 assert.equal(tramFrame.leds[0].vehicle.positionType,"segment");
 assert.equal(tramFrame.motionPolicy.stationDepartureRadiusMeters,65);
 assert.equal(tramFrame.motionPolicy.atStopConfirmationSeconds,0,"Gråkallbanen skal merke AT_STOP ved første GPS-treff uten ekstra ventetid");
+const terminalBoard={...tramBoard,render:{...tramBoard.render,terminalArrivalRadiusMeters:110}};
+const terminalVehicle={...tramVehicles[0],vehicleId:"terminal-turn",location:{latitude:63.4008,longitude:10.30}};
+const terminalFrame=buildLinearRouteFrame({board:terminalBoard,profiles:[tramProfile],hardware:tramHardware,vehicles:[terminalVehicle],now});
+assert.equal(terminalFrame.leds[0].state,"AT_STOP","endestasjonen skal beholde vognen innenfor den utvidede vendesonen");
+assert.equal(terminalFrame.leds[0].vehicle.isTerminalStation,true);
+let terminalLifecycle=applyMotionLifecycle(terminalFrame,{},now,10000);
+const terminalTurnFrame={...terminalFrame,leds:[{...terminalFrame.leds[0],vehicle:{...terminalFrame.leds[0].vehicle,stationDistanceMeters:108}}]};
+terminalLifecycle=applyMotionLifecycle(terminalTurnFrame,terminalLifecycle.state,now+1000,10000);
+assert.equal(terminalLifecycle.frame.leds[0].state,"AT_STOP","vending inne på endestasjonen må ikke feiltolkes som PASSED");
+assert.equal(terminalLifecycle.frame.leds[0].lifecycle,undefined);
 const sharedTramFrame = buildLinearRouteFrame({ board: tramBoard, profiles: [tramProfile], hardware: tramHardware, vehicles: [tramVehicles[0], { ...tramVehicles[0], vehicleId: "tram-2", destinationName: "Ila" }], now });
 assert.equal(sharedTramFrame.leds[0].occupants.length, 2, "Begge vogner på samme Gråkallbane-LED må bevares");
 assert.deepEqual(sharedTramFrame.leds[0].occupants.map(value => value.rgb), [[0, 255, 80], [0, 100, 255]], "Likt prioriterte vogner må kunne veksle mellom retningsfargene");
@@ -111,7 +121,7 @@ const afterSkippedStop={...stationOnlyNext,leds:[{...stationOnlyNext.leds[0],veh
 let skippedStopLifecycle=applyMotionLifecycle(skippedStopApproach,{},now,10000);
 skippedStopLifecycle=applyMotionLifecycle(afterSkippedStop,skippedStopLifecycle.state,now+1000,10000);
 assert.deepEqual(skippedStopLifecycle.frame.leds.map(led=>({id:led.id,state:led.state,lifecycle:led.lifecycle})),[{id:1,state:"APPROACHING",lifecycle:undefined}],"en holdeplass som bare var APPROACHING skal aldri få PASSED; neste holdeplass skal overta direkte");
-const insideStation=id=>({...stationOnlyStop,leds:[{...stationOnlyStop.leds[0],state:"AT_STOP",vehicle:{...stationOnlyStop.leds[0].vehicle,id:"precise-departure",positionType:"station",stationDistanceMeters:id},occupants:[]}]});
+const insideStation=id=>({...stationOnlyStop,leds:[{...stationOnlyStop.leds[0],state:"AT_STOP",vehicle:{...stationOnlyStop.leds[0].vehicle,id:"precise-departure",positionType:"station",stationDistanceMeters:id,isTerminalStation:false},occupants:[]}]});
 let preciseDeparture=applyMotionLifecycle(insideStation(28),{},now,10000);
 preciseDeparture=applyMotionLifecycle(insideStation(12),preciseDeparture.state,now+1000,10000);
 assert.equal(preciseDeparture.frame.leds[0].state,"AT_STOP","mindre avstand til stasjonen er fortsatt ankomst");
