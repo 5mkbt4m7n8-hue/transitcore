@@ -23,6 +23,7 @@ assert.equal(clean.boardProfile, "trondheim-bus-board");
 assert.equal(clean.ignored, undefined);
 assert.equal(clean.resetReason, 0);
 assert.equal(clean.lastError, null);
+assert.deepEqual(clean.errorQueue, []);
 assert.throws(() => cleanStatusPayload({ ...input, boardProfile: "wrong" }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
 assert.throws(() => cleanStatusPayload({ ...input, freeHeap: -1 }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
 const uniqueToken="0123456789abcdef0123456789abcdef";
@@ -44,6 +45,17 @@ const errorClean = cleanStatusPayload({
 }, "trondheim-bus-001", "trondheim-bus-board", Date.parse("2026-08-13T18:01:00Z"));
 assert.equal(errorClean.resetReason, 3);
 assert.deepEqual(errorClean.lastError, { code: "FEED_RECEIVE", detail: "HTTP status -1", occurredAtUptimeSeconds: 3610, occurrences: 2 });
+const queuedClean = cleanStatusPayload({
+  ...input,
+  firmware: "1.2.5",
+  errorQueue: [
+    { id: 41, code: "WIFI_DISCONNECTED", detail: "Wi-Fi-forbindelsen ble brutt", occurredAtUptimeSeconds: 20, occurrences: 1 },
+    { id: 42, code: "FRAME_EXPIRED", detail: "Siste gyldige LED-frame overskred TTL", occurredAtUptimeSeconds: 80, occurrences: 4 }
+  ]
+}, "trondheim-bus-001", "trondheim-bus-board", Date.parse("2026-08-13T18:02:00Z"));
+assert.equal(queuedClean.errorQueue.length, 2);
+assert.equal(queuedClean.errorQueue[1].id, 42);
+assert.throws(() => cleanStatusPayload({ ...input, firmware:"1.2.5", errorQueue: [{ id: 0, code:"FRAME_EXPIRED", detail:"x", occurredAtUptimeSeconds:1, occurrences:1 }] }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
 assert.throws(() => cleanStatusPayload({ ...input, lastError: { code: "bad", detail: "x", occurredAtUptimeSeconds: 1, occurrences: 1 } }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
 assert.throws(() => cleanStatusPayload({ ...input, lastError: { code: "FRAME_INVALID", detail: "bad\nvalue", occurredAtUptimeSeconds: 1, occurrences: 1 } }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
 
@@ -58,11 +70,14 @@ for (let i = 0; i < 300; i++) {
 }
 await object.fetch(new Request("https://internal/", { method: "POST", body: JSON.stringify(errorClean) }));
 await object.fetch(new Request("https://internal/", { method: "POST", body: JSON.stringify(errorClean) }));
+await object.fetch(new Request("https://internal/", { method: "POST", body: JSON.stringify(queuedClean) }));
+await object.fetch(new Request("https://internal/", { method: "POST", body: JSON.stringify(queuedClean) }));
 const stored = await object.fetch(new Request("https://internal/")).then(response => response.json());
-assert.equal(stored.latest.uptimeSeconds, 3600);
+assert.equal(stored.latest.firmware, "1.2.5");
 assert.equal(stored.history.length, 288);
-assert.equal(stored.history[0].uptimeSeconds, 14);
-assert.equal(stored.errors.length, 1);
+assert.equal(stored.history[0].uptimeSeconds, 16);
+assert.equal(stored.errors.length, 3);
 assert.equal(stored.errors[0].code, "FEED_RECEIVE");
+assert.deepEqual(stored.errors.slice(1).map(error => error.id), [41, 42]);
 console.log("Device status tests OK");
 
