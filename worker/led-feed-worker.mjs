@@ -827,12 +827,28 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
       const meters = distance(vehicle, stop);
       if (meters < stopMeters) { nearestStopIndex = index; stopMeters = meters; }
     });
+    // A tram may change its headsign while it is still turning at Ila or Lian.
+    // Prefer either endpoint throughout the wider terminal zone, even after
+    // the adjacent stop becomes geometrically closer. This prevents a parked
+    // tram at Ila from jumping to Bergsli gate merely because its headsign
+    // has already changed to Lian.
+    const arrivalRadius = Number(board.render.arrivalRadiusMeters) || 65;
+    const terminalArrivalRadius = Math.max(arrivalRadius, Number(board.render.terminalArrivalRadiusMeters) || arrivalRadius);
+    const terminalIndexes = profile.stops.length > 1 ? [0, profile.stops.length - 1] : [0];
+    let nearestTerminalIndex = -1, terminalMeters = Infinity;
+    for (const index of terminalIndexes) {
+      const meters = distance(vehicle, profile.stops[index]);
+      if (meters < terminalMeters) { nearestTerminalIndex = index; terminalMeters = meters; }
+    }
+    if (nearestTerminalIndex >= 0 && terminalMeters <= terminalArrivalRadius) {
+      nearestStopIndex = nearestTerminalIndex;
+      stopMeters = terminalMeters;
+    }
     const nearestStationNode = nearestStopIndex >= 0 ? stationByStop.get(profile.stops[nearestStopIndex].id) : null;
     const nearestStationLed = nearestStationNode ? physical.get(nearestStationNode.led) : null;
     const isTerminalStation = nearestStopIndex === 0 || nearestStopIndex === profile.stops.length - 1;
-    const arrivalRadius = Number(board.render.arrivalRadiusMeters) || 65;
     const stationArrivalRadius = isTerminalStation
-      ? Math.max(arrivalRadius, Number(board.render.terminalArrivalRadiusMeters) || arrivalRadius)
+      ? terminalArrivalRadius
       : arrivalRadius;
     let logicalLed, state, meters, positionType;
     if (nearestStopIndex >= 0 && stopMeters <= stationArrivalRadius) {
