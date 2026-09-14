@@ -110,7 +110,7 @@ const skippedStopApproach={...stationOnlyStop,leds:[{...stationOnlyStop.leds[0],
 const afterSkippedStop={...stationOnlyNext,leds:[{...stationOnlyNext.leds[0],vehicle:{...stationOnlyNext.leds[0].vehicle,id:"station-only-skip"}}]};
 let skippedStopLifecycle=applyMotionLifecycle(skippedStopApproach,{},now,10000);
 skippedStopLifecycle=applyMotionLifecycle(afterSkippedStop,skippedStopLifecycle.state,now+1000,10000);
-assert.deepEqual(skippedStopLifecycle.frame.leds.map(led=>({id:led.id,lifecycle:led.lifecycle})),[{id:0,lifecycle:"PASSED"}],"et GPS-hopp forbi en holdeplass skal vise PASSED før neste holdeplass overtar");
+assert.deepEqual(skippedStopLifecycle.frame.leds.map(led=>({id:led.id,state:led.state,lifecycle:led.lifecycle})),[{id:1,state:"APPROACHING",lifecycle:undefined}],"en holdeplass som bare var APPROACHING skal aldri få PASSED; neste holdeplass skal overta direkte");
 const insideStation=id=>({...stationOnlyStop,leds:[{...stationOnlyStop.leds[0],state:"AT_STOP",vehicle:{...stationOnlyStop.leds[0].vehicle,id:"precise-departure",positionType:"station",stationDistanceMeters:id},occupants:[]}]});
 let preciseDeparture=applyMotionLifecycle(insideStation(28),{},now,10000);
 preciseDeparture=applyMotionLifecycle(insideStation(12),preciseDeparture.state,now+1000,10000);
