@@ -47,7 +47,7 @@ assert.equal(errorClean.resetReason, 3);
 assert.deepEqual(errorClean.lastError, { code: "FEED_RECEIVE", detail: "HTTP status -1", occurredAtUptimeSeconds: 3610, occurrences: 2 });
 const queuedClean = cleanStatusPayload({
   ...input,
-  firmware: "1.2.5",
+  firmware: "1.2.6",
   errorQueue: [
     { id: 41, code: "WIFI_DISCONNECTED", detail: "Wi-Fi-forbindelsen ble brutt", occurredAtUptimeSeconds: 20, occurrences: 1 },
     { id: 42, code: "FRAME_EXPIRED", detail: "Siste gyldige LED-frame overskred TTL", occurredAtUptimeSeconds: 80, occurrences: 4 }
@@ -55,7 +55,7 @@ const queuedClean = cleanStatusPayload({
 }, "trondheim-bus-001", "trondheim-bus-board", Date.parse("2026-08-13T18:02:00Z"));
 assert.equal(queuedClean.errorQueue.length, 2);
 assert.equal(queuedClean.errorQueue[1].id, 42);
-assert.throws(() => cleanStatusPayload({ ...input, firmware:"1.2.5", errorQueue: [{ id: 0, code:"FRAME_EXPIRED", detail:"x", occurredAtUptimeSeconds:1, occurrences:1 }] }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
+assert.throws(() => cleanStatusPayload({ ...input, firmware:"1.2.6", errorQueue: [{ id: 0, code:"FRAME_EXPIRED", detail:"x", occurredAtUptimeSeconds:1, occurrences:1 }] }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
 assert.throws(() => cleanStatusPayload({ ...input, lastError: { code: "bad", detail: "x", occurredAtUptimeSeconds: 1, occurrences: 1 } }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
 assert.throws(() => cleanStatusPayload({ ...input, lastError: { code: "FRAME_INVALID", detail: "bad\nvalue", occurredAtUptimeSeconds: 1, occurrences: 1 } }, "trondheim-bus-001", "trondheim-bus-board", Date.now()));
 
@@ -73,7 +73,7 @@ await object.fetch(new Request("https://internal/", { method: "POST", body: JSON
 await object.fetch(new Request("https://internal/", { method: "POST", body: JSON.stringify(queuedClean) }));
 await object.fetch(new Request("https://internal/", { method: "POST", body: JSON.stringify(queuedClean) }));
 const stored = await object.fetch(new Request("https://internal/")).then(response => response.json());
-assert.equal(stored.latest.firmware, "1.2.5");
+assert.equal(stored.latest.firmware, "1.2.6");
 assert.equal(stored.history.length, 288);
 assert.equal(stored.history[0].uptimeSeconds, 16);
 assert.equal(stored.errors.length, 3);
