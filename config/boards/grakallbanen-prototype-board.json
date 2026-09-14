@@ -210,6 +210,7 @@
     "collisionMode": "unknown-direction",
     "freshnessSeconds": 120,
     "arrivalRadiusMeters": 65,
+    "terminalArrivalRadiusMeters": 110,
     "atStopConfirmationSeconds": 0,
     "departureAfterglowSeconds": 10,
     "maximumTrackDistanceMeters": 250
