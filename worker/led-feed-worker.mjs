@@ -63,6 +63,36 @@ function makeParkedLed(led) {
   return { ...led, rgb, state: "AT_STOP", lifecycle: "PARKED", brightness: SIGNAL_POLICY.fullBrightness, occupants: vehicle ? [vehicle] : [] };
 }
 
+function promoteRemainingOccupant(led, departingVehicleId) {
+  const priority = value => SIGNAL_POLICY.priorities[value?.state] || 0;
+  const remaining = (led.occupants || [])
+    .filter(value => String(value.id || "") !== departingVehicleId && priority(value) > SIGNAL_POLICY.priorities.PASSED)
+    .sort((a, b) => priority(b) - priority(a) || Number(a.distanceMeters ?? Infinity) - Number(b.distanceMeters ?? Infinity));
+  if (!remaining.length) return null;
+  const winner = remaining[0], highest = priority(winner);
+  const occupants = remaining.filter(value => priority(value) === highest);
+  return {
+    ...led,
+    rgb: Array.isArray(winner.rgb) ? winner.rgb : led.rgb,
+    brightness: SIGNAL_POLICY.fullBrightness,
+    state: winner.state,
+    lifecycle: undefined,
+    vehicle: {
+      ...led.vehicle,
+      id: winner.id,
+      line: winner.line,
+      destination: winner.destination,
+      distanceMeters: winner.distanceMeters,
+      stationDistanceMeters: winner.stationDistanceMeters,
+      nearestStationLed: winner.nearestStationLed,
+      positionType: winner.positionType,
+      latitude: winner.latitude,
+      longitude: winner.longitude
+    },
+    occupants
+  };
+}
+
 function distanceBetweenCoordinates(latitudeA, longitudeA, latitudeB, longitudeB) {
   return distance({ lat: latitudeA, lon: longitudeA }, { lat: latitudeB, lon: longitudeB });
 }
@@ -204,6 +234,29 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     seen.add(id);
 
     if (departing) {
+      // Lifecycle is tracked by the leading vehicle, but one physical LED may
+      // contain another live vehicle. When the leader departs, that remaining
+      // APPROACHING/AT_STOP vehicle must replace PASSED instead of disappearing
+      // behind the departing vehicle's afterglow.
+      const replacement = promoteRemainingOccupant(led, vehicleId);
+      if (replacement) {
+        const replacementVehicleId = String(replacement.vehicle?.id || "");
+        const replacementDistance = Number(replacement.vehicle?.distanceMeters ?? replacement.vehicle?.stationDistanceMeters);
+        leds.push(replacement);
+        next[id] = {
+          vehicleId: replacementVehicleId,
+          state: replacement.state,
+          distance: replacementDistance,
+          expiresAt: 0,
+          led: replacement,
+          latitude: Number(replacement.vehicle?.latitude),
+          longitude: Number(replacement.vehicle?.longitude),
+          stationarySince: now,
+          stationaryAnchorLatitude: Number(replacement.vehicle?.latitude),
+          stationaryAnchorLongitude: Number(replacement.vehicle?.longitude)
+        };
+        continue;
+      }
       const expiresAt = before.state === "PASSED" ? before.expiresAt : now + afterglowMs;
       if (expiresAt > now) {
         const passed = makePassedLed(led);
@@ -835,7 +888,13 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
         line: String(profile.line.publicCode),
         destination: value.destination,
         rgb: rgb(color(profile, value.destination)),
-        state: value.state
+        state: value.state,
+        distanceMeters: Math.round(value.meters),
+        stationDistanceMeters: Math.round(value.stationDistanceMeters),
+        nearestStationLed: value.nearestStationLed,
+        positionType: value.positionType,
+        latitude: value.lat,
+        longitude: value.lon
       }))
     }))
   };
