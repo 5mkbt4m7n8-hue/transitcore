@@ -161,6 +161,31 @@ const collisionAtCurrentLed = {
 const collisionPosition = applyMotionLifecycle({ ...grakallMotionBase, leds: [collisionAtCurrentLed] }, interpolated.state, now + 20000, 10000);
 assert.deepEqual(collisionPosition.frame.leds.map(led => led.id), [24], "En delt live-LED må ikke flyttes av interpolering for bare én vogn");
 assert.equal(collisionPosition.frame.leds[0].occupants.length, 2);
+const sharedStopBlue = {
+  ...stoppedAtPreviousLed,
+  id: 11,
+  rgb: [0, 80, 255],
+  vehicle: { ...stoppedAtPreviousLed.vehicle, id: "blue-tram", distanceMeters: 10, latitude: 63.42, longitude: 10.39 },
+  occupants: [
+    { id: "blue-tram", rgb: [0, 80, 255], state: "AT_STOP", distanceMeters: 10, latitude: 63.42, longitude: 10.39 },
+    { id: "green-tram", rgb: [0, 255, 72], state: "APPROACHING", distanceMeters: 70, latitude: 63.421, longitude: 10.391 }
+  ]
+};
+let sharedPriority = applyMotionLifecycle({ ...grakallMotionBase, leds: [sharedStopBlue] }, {}, now, 10000);
+const blueDepartsWhileGreenApproaches = {
+  ...sharedStopBlue,
+  state: "APPROACHING",
+  vehicle: { ...sharedStopBlue.vehicle, distanceMeters: 35 },
+  occupants: [
+    { ...sharedStopBlue.occupants[0], state: "APPROACHING", distanceMeters: 35 },
+    sharedStopBlue.occupants[1]
+  ]
+};
+sharedPriority = applyMotionLifecycle({ ...grakallMotionBase, leds: [blueDepartsWhileGreenApproaches] }, sharedPriority.state, now + 10000, 10000);
+assert.equal(sharedPriority.frame.leds[0].state, "APPROACHING", "APPROACHING must replace a departing vehicle's PASSED state on a shared LED");
+assert.deepEqual(sharedPriority.frame.leds[0].rgb, [0, 255, 72], "The remaining approaching vehicle must own the shared LED colour");
+assert.equal(sharedPriority.frame.leds[0].vehicle.id, "green-tram");
+assert.deepEqual(sharedPriority.frame.leds[0].occupants.map(value => value.id), ["green-tram"], "PASSED colour must not alternate with an approaching vehicle");
 const gpsMotionBase = { ...grakallMotionBase, motionPolicy: { stationDepartureRadiusMeters: 110 } };
 const gpsStop = { ...stoppedAtPreviousLed, id: 26, vehicle: { ...stoppedAtPreviousLed.vehicle, id: "tram-gps-passed", positionType: "station", stationDistanceMeters: 20 } };
 const gpsSegment = distance => ({ ...approachingLed, id: 25, vehicle: { ...approachingLed.vehicle, id: "tram-gps-passed", positionType: "segment", stationDistanceMeters: distance, nearestStationLed: 26 } });
