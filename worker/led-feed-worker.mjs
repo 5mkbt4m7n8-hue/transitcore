@@ -119,8 +119,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     const stationOnlyDeparture = frame.boardProfile === "grakallbanen-prototype-board" &&
       !hasCollision && led.state === "APPROACHING" && previousPosition && previousPosition[0] !== id &&
       (previousPositionType === "station" || previousPositionType === "station-approach");
-    if (stationOnlyDeparture && (previousPosition[1].state === "AT_STOP" ||
-        previousPosition[1].state === "APPROACHING" && previousPositionType === "station-approach")) {
+    if (stationOnlyDeparture && previousPosition[1].state === "AT_STOP") {
       const [passedId, passedBefore] = previousPosition;
       const passed = makePassedLed(passedBefore.led);
       leds.push(passed);
