@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_2_4.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_2_5.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -131,5 +131,13 @@ commands with newline from Serial Monitor at 115200 baud:
 Signal animation is unchanged in warm-white mode. `APPROACHING` still pulses,
 `AT_STOP` remains steady, `PASSED` stays dimmed, and `PARKED` remains fixed red
 with the highest priority.
+
+Version 1.2.5 keeps the ten most recent distinct device errors in ESP32 NVS.
+The queue survives power loss and network outages, is uploaded after the
+connection returns, and is cleared only after the Worker acknowledges it.
+Repeated identical failures share one entry and increment a counter. Counter
+writes are exponentially reduced to limit flash wear. The Worker deduplicates
+retried event IDs, retains the bounded server-side history, and keeps the most
+recent stored error visible on the status page after the ESP clears its queue.
 
 
