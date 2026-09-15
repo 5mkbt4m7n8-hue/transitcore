@@ -20,5 +20,6 @@ assert.match(page,/Lian først · Ila sist/,"monteringsretningen skal navngi fø
 assert.match(page,/Ila først · Lian sist/,"hele LED-rekkefølgen skal kunne snus");
 assert.match(script,/planned-track-restoration/,"framtidig sentrumsforlengelse skal lagres deaktivert");
 assert.match(script,/departureAfterglowSeconds:10/,"Gråkallbanen-prototypen skal aktivere PASSED i ti sekunder");
+assert.match(script,/emptyFrameHoldSeconds:30/,"Gråkallbanen-prototypen skal holde siste gyldige frame gjennom korte dataglimt");
 assert.match(script,/"St\. Olavs gate","Dronningens gate"/,"sentrumsplanen skal følge den avtalte holdeplassrekkefølgen");
 console.log("Gråkallbanen prototype editor syntax and export flow OK");

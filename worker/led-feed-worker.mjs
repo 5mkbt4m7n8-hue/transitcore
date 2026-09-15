@@ -97,6 +97,31 @@ function distanceBetweenCoordinates(latitudeA, longitudeA, latitudeB, longitudeB
   return distance({ lat: latitudeA, lon: longitudeA }, { lat: latitudeB, lon: longitudeB });
 }
 
+export function normalizeLedEntries(entries = [], ledCount = Infinity) {
+  const byId = new Map();
+  const effectiveState = led => led?.lifecycle || led?.state || "OFF";
+  const priority = led => SIGNAL_POLICY.priorities[effectiveState(led)] || 0;
+  const occupants = led => Array.isArray(led?.occupants) && led.occupants.length
+    ? led.occupants
+    : led?.vehicle ? [{ ...led.vehicle, rgb: led.rgb, state: effectiveState(led) }] : [];
+
+  for (const led of entries) {
+    const id = Number(led?.id);
+    if (!Number.isInteger(id) || id < 0 || id >= ledCount) continue;
+    const current = byId.get(id);
+    if (!current || priority(led) > priority(current)) {
+      byId.set(id, { ...led, id });
+      continue;
+    }
+    if (priority(led) < priority(current)) continue;
+
+    const mergedOccupants = [...occupants(current), ...occupants(led)];
+    const uniqueOccupants = [...new Map(mergedOccupants.map(value => [String(value?.id || JSON.stringify(value)), value])).values()];
+    byId.set(id, { ...current, occupants: uniqueOccupants });
+  }
+  return [...byId.values()].sort((a, b) => a.id - b.id);
+}
+
 export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), afterglowMs = SIGNAL_POLICY.departureAfterglowSeconds * 1000) {
   afterglowMs = Math.max(0, Number(afterglowMs) || 0);
   const atStopConfirmationSeconds = Math.max(0, Number(frame.motionPolicy?.atStopConfirmationSeconds) || 0);
@@ -287,7 +312,16 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     next[id] = { ...before, state: "PASSED", expiresAt, led: passed };
   }
 
-  return { frame: { ...frame, leds: leds.sort((a, b) => a.id - b.id) }, state: next };
+  const normalizedLeds = normalizeLedEntries(leds, Number(frame.ledCount) || Infinity);
+  const normalizedState = {};
+  for (const led of normalizedLeds) {
+    const id = String(led.id), vehicleId = String(led.vehicle?.id || "");
+    const matching = Object.values(next).find(value => value.vehicleId === vehicleId) || next[id];
+    normalizedState[id] = matching
+      ? { ...matching, vehicleId, state: led.lifecycle || led.state, led }
+      : { vehicleId, state: led.lifecycle || led.state, expiresAt: 0, led };
+  }
+  return { frame: { ...frame, leds: normalizedLeds }, state: normalizedState };
 }
 
 export function holdTransientEmptyFrame(frame, previous = null, now = Date.now(), holdMs = 0) {

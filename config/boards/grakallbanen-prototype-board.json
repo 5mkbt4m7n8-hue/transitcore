@@ -213,6 +213,7 @@
     "terminalArrivalRadiusMeters": 110,
     "atStopConfirmationSeconds": 0,
     "departureAfterglowSeconds": 10,
+    "emptyFrameHoldSeconds": 30,
     "maximumTrackDistanceMeters": 250
   },
   "status": "prototype-editor-ready"
