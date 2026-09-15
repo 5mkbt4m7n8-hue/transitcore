@@ -227,9 +227,12 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
       sameVehicle && before.state === "AT_STOP" && led.vehicle?.positionType === "station" && !led.vehicle?.isTerminalStation &&
       before.led.vehicle?.positionType === "station" && Number.isFinite(distance) &&
       Number.isFinite(before.distance) && distance > before.distance + SIGNAL_POLICY.stationDepartureMovementMeters;
+    // APPROACHING means the vehicle has not reached this point yet. GPS
+    // movement away from an approach target must therefore not manufacture a
+    // PASSED event. PASSED is allowed only after this vehicle was actually
+    // AT_STOP at the same station (or is already in its latched PASSED state).
     const departing = departingInsideStation || led.state === "APPROACHING" && sameVehicle &&
-      (before.state === "AT_STOP" || before.state === "PASSED" ||
-       Number.isFinite(distance) && Number.isFinite(before.distance) && distance > before.distance + 10);
+      (before.state === "AT_STOP" || before.state === "PASSED");
     seen.add(id);
 
     if (departing) {
