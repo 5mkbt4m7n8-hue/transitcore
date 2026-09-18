@@ -70,6 +70,13 @@ Når isolasjonstesten er aktiv, hentes og valideres Worker-feed som normalt.
 Den første ekte Worker-framen fryses og sendes kontinuerlig til stripen. Senere
 Worker-frames logges, men vises ikke. Slå testen av etter feilsøkingen.
 
+OTA-beredskap
+-------------
+Firmwareklienten kontrollerer TransitCore-manifestet etter to minutter og
+deretter hver sjette time. Worker svarer «ingen oppdatering» inntil en kontrollert
+release publiseres, så funksjonen endrer ikke dagens drift. Før kommersielt salg
+skal signerte firmwarebilder og rollback være ferdig verifisert.
+
 Forventet kontroll
 ------------------
 Board ${board.id} | ${hardware.leds.count} LED-er
@@ -87,7 +94,7 @@ function createFiles({board,hardware,boardConfig,firmware,device,physicalLedCoun
   if(!board?.id||!Number.isInteger(hardware?.leds?.count)||!boardConfig||!firmware)throw Error("ESP-pakken mangler påkrevde data");
   physicalLedCount=Number(physicalLedCount);
   if(!Number.isInteger(physicalLedCount)||physicalLedCount<hardware.leds.count||physicalLedCount>2048)throw Error(`Fysisk stripelengde må være mellom ${hardware.leds.count} og 2048`);
-  const configuredBoard=boardConfig.replace(/\s*$/,"\n")+`\n#define TRANSITCORE_PHYSICAL_LED_COUNT ${physicalLedCount}\n#define TRANSITCORE_LED_FRAME_ISOLATION_TEST ${isolationTest?1:0}\n`;
+  const configuredBoard=boardConfig.replace(/\s*$/,"\n")+`\n#define TRANSITCORE_PHYSICAL_LED_COUNT ${physicalLedCount}\n#define TRANSITCORE_LED_FRAME_ISOLATION_TEST ${isolationTest?1:0}\n#define TRANSITCORE_OTA_ENABLED 1\n#define TRANSITCORE_OTA_MANIFEST_URL "https://transitcore-led-feed.lgb84.workers.dev/v1/firmware/manifest"\n`;
   const folder=sketchName(board.id),prefix=`${folder}/`;
   return{
     filename:`${board.id}-esp32-v${FIRMWARE_VERSION}.zip`,

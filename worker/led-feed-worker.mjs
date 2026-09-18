@@ -1318,6 +1318,27 @@ async function handlePreview(request,env){
  }catch(error){console.error("preview failed",error);return publishResponse({error:"preview_failed",message:error.message},400)}
 }
 
+async function handleOtaManifest(request,env){
+ if(request.method!=="GET")return statusJson({error:"method_not_allowed"},405);
+ const deviceId=String(request.headers.get("x-transitcore-device")||""),boardProfile=String(request.headers.get("x-transitcore-board")||""),authorization=request.headers.get("authorization")||"";
+ if(!deviceId||!validBoardId(boardProfile)||!authorization.startsWith("Bearer "))return statusJson({error:"unauthorized"},401);
+ let registration;
+ try{registration=await lookupDeviceRegistration(env,deviceId)}catch{return statusJson({error:"ota_not_configured"},503)}
+ if(!registration||registration.boardProfile!==boardProfile)return statusJson({error:"unauthorized"},401);
+ const suppliedToken=authorization.slice(7),authenticated=registration.tokenHash
+  ?await secureTokenEquals(await tokenHash(suppliedToken),registration.tokenHash)
+  :await secureTokenEquals(suppliedToken,registration.token);
+ if(!authenticated)return statusJson({error:"unauthorized"},401);
+ if(!env.OTA_RELEASE_MANIFEST)return new Response(null,{status:204,headers:{"cache-control":"no-store"}});
+ try{
+  const releases=JSON.parse(env.OTA_RELEASE_MANIFEST),release=releases?.[boardProfile]||releases?.["*"];
+  if(!release)return new Response(null,{status:204,headers:{"cache-control":"no-store"}});
+  if(!/^\d+\.\d+\.\d+$/.test(String(release.version||""))||!String(release.url||"").startsWith("https://"))throw Error("invalid release entry");
+  const binaryUrl=String(release.url).replaceAll("{deviceId}",encodeURIComponent(deviceId));
+  return statusJson({version:release.version,boardProfile,url:binaryUrl});
+ }catch(error){console.error("Invalid OTA_RELEASE_MANIFEST",error);return statusJson({error:"ota_manifest_invalid"},503)}
+}
+
 export default {
   async scheduled(controller, env) {
     console.log("Scheduled background checks started", new Date(controller.scheduledTime).toISOString());
@@ -1339,6 +1360,7 @@ export default {
     if (url.pathname === "/v1/admin/devices") return handleDevices(request, env);
     if (url.pathname === "/v1/admin/signal-test") return handleSignalTest(request, env);
     if (url.pathname === "/v1/admin/preview") return handlePreview(request, env);
+    if (url.pathname === "/v1/firmware/manifest") return handleOtaManifest(request, env);
     if (url.pathname === "/status" && request.method === "GET") {
       return new Response(efficientStatusPage, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
     }
