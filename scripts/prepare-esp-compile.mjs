@@ -35,8 +35,8 @@ const char* EXPECTED_BOARD_PROFILE = "${board.id}";
 const char* FEED_URL =
   "https://transitcore-led-feed.lgb84.workers.dev/"
   "v1/boards/${board.id}/frame";
-#define TRANSITCORE_OTA_ENABLED 0
-#define TRANSITCORE_OTA_MANIFEST_URL ""
+#define TRANSITCORE_OTA_ENABLED 1
+#define TRANSITCORE_OTA_MANIFEST_URL "https://transitcore-led-feed.lgb84.workers.dev/v1/firmware/manifest"
 `;
 }
 

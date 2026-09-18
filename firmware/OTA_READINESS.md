@@ -1,16 +1,16 @@
 # TransitCore OTA-beredskap
 
-OTA-klienten finnes i Universal Board Client, men er avslått som standard.
-Dette gjør at dagens prototype beholder identisk oppførsel fram til en kontrollert
-utgivelseskanal er på plass.
+OTA-klienten finnes i Universal Board Client og kontrollerer et autentisert
+manifest. Worker svarer HTTP 204 fram til en kontrollert utgivelseskanal er på
+plass, så dagens prototype beholder identisk LED-oppførsel.
 
 ## Aktivering
 
-En OTA-klar førstegangsinstallasjon må flashes over USB med:
+En OTA-klar førstegangsinstallasjon flashes over USB med:
 
 ```cpp
 #define TRANSITCORE_OTA_ENABLED 1
-#define TRANSITCORE_OTA_MANIFEST_URL "https://example.invalid/v1/firmware/manifest"
+#define TRANSITCORE_OTA_MANIFEST_URL "https://transitcore-led-feed.lgb84.workers.dev/v1/firmware/manifest"
 ```
 
 Klienten venter to minutter etter oppstart og kontrollerer deretter hver sjette
