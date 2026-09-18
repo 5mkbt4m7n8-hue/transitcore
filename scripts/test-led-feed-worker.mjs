@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { SIGNAL_POLICY, applyMotionLifecycle, attachSignalPolicy, buildFrame, buildLinearRouteFrame, buildSignalTestSequence, holdTransientEmptyFrame, matchesDirection, validateConfiguration, vehicleAllowedByBoard } from "../worker/led-feed-worker.mjs";
+import { SIGNAL_POLICY, applyMotionLifecycle, attachSignalPolicy, buildFrame, buildLinearRouteFrame, buildSignalTestSequence, holdTransientEmptyFrame, matchesDirection, normalizeLedEntries, validateConfiguration, vehicleAllowedByBoard } from "../worker/led-feed-worker.mjs";
 
 assert.equal(SIGNAL_POLICY.version, 1);
 assert.equal(SIGNAL_POLICY.approachPulseMs, 1800);
@@ -8,6 +8,17 @@ assert.equal(SIGNAL_POLICY.stationDepartureMovementMeters, 15);
 assert.equal(SIGNAL_POLICY.atStopConfirmationSeconds, 10);
 assert.equal(SIGNAL_POLICY.priorities.PARKED, 4);
 assert.deepEqual(attachSignalPolicy({ schemaVersion: 1 }).signalPolicy, SIGNAL_POLICY);
+const normalizedCollision=normalizeLedEntries([
+  {id:3,state:"AT_STOP",lifecycle:"PASSED",rgb:[0,80,255],vehicle:{id:"departed"},occupants:[{id:"departed",state:"PASSED",rgb:[0,80,255]}]},
+  {id:3,state:"APPROACHING",rgb:[0,255,72],vehicle:{id:"arriving"},occupants:[{id:"arriving",state:"APPROACHING",rgb:[0,255,72]}]}
+],16);
+assert.equal(normalizedCollision.length,1,"Worker må aldri sende to oppføringer for samme fysiske LED");
+assert.equal(normalizedCollision[0].state,"APPROACHING","høyeste reelle status skal vinne når duplikater slås sammen");
+const normalizedEqual=normalizeLedEntries([
+  {id:4,state:"APPROACHING",rgb:[0,80,255],vehicle:{id:"blue"},occupants:[{id:"blue",state:"APPROACHING",rgb:[0,80,255]}]},
+  {id:4,state:"APPROACHING",rgb:[0,255,72],vehicle:{id:"green"},occupants:[{id:"green",state:"APPROACHING",rgb:[0,255,72]}]}
+],16);
+assert.deepEqual(normalizedEqual[0].occupants.map(value=>value.id),["blue","green"],"likeverdige vogner skal beholdes for lokal fargeveksling");
 
 const now = Date.parse("2026-08-11T12:00:00Z");
 const board = { id: "trondheim-bus-board", leds: { count: 2 }, routes: ["route-1"], render: { freshnessSeconds: 120, approachRadiusMeters: 250, arrivalRadiusMeters: 85 }, nodes: [

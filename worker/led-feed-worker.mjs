@@ -29,6 +29,8 @@ export const validBoardId = value => typeof value === "string" && /^[a-z0-9-]{3,
 const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
 const configCache = new Map();
+const LIVE_VEHICLE_TTL_MS = 8 * 1000;
+const liveVehicleCache = new Map();
 
 const statusJson = (body, status = 200) => new Response(
   JSON.stringify(body, null, 2) + "\n",
@@ -95,6 +97,31 @@ function promoteRemainingOccupant(led, departingVehicleId) {
 
 function distanceBetweenCoordinates(latitudeA, longitudeA, latitudeB, longitudeB) {
   return distance({ lat: latitudeA, lon: longitudeA }, { lat: latitudeB, lon: longitudeB });
+}
+
+export function normalizeLedEntries(entries = [], ledCount = Infinity) {
+  const byId = new Map();
+  const effectiveState = led => led?.lifecycle || led?.state || "OFF";
+  const priority = led => SIGNAL_POLICY.priorities[effectiveState(led)] || 0;
+  const occupants = led => Array.isArray(led?.occupants) && led.occupants.length
+    ? led.occupants
+    : led?.vehicle ? [{ ...led.vehicle, rgb: led.rgb, state: effectiveState(led) }] : [];
+
+  for (const led of entries) {
+    const id = Number(led?.id);
+    if (!Number.isInteger(id) || id < 0 || id >= ledCount) continue;
+    const current = byId.get(id);
+    if (!current || priority(led) > priority(current)) {
+      byId.set(id, { ...led, id });
+      continue;
+    }
+    if (priority(led) < priority(current)) continue;
+
+    const mergedOccupants = [...occupants(current), ...occupants(led)];
+    const uniqueOccupants = [...new Map(mergedOccupants.map(value => [String(value?.id || JSON.stringify(value)), value])).values()];
+    byId.set(id, { ...current, occupants: uniqueOccupants });
+  }
+  return [...byId.values()].sort((a, b) => a.id - b.id);
 }
 
 export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), afterglowMs = SIGNAL_POLICY.departureAfterglowSeconds * 1000) {
@@ -287,7 +314,16 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     next[id] = { ...before, state: "PASSED", expiresAt, led: passed };
   }
 
-  return { frame: { ...frame, leds: leds.sort((a, b) => a.id - b.id) }, state: next };
+  const normalizedLeds = normalizeLedEntries(leds, Number(frame.ledCount) || Infinity);
+  const normalizedState = {};
+  for (const led of normalizedLeds) {
+    const id = String(led.id), vehicleId = String(led.vehicle?.id || "");
+    const matching = Object.values(next).find(value => value.vehicleId === vehicleId) || next[id];
+    normalizedState[id] = matching
+      ? { ...matching, vehicleId, state: led.lifecycle || led.state, led }
+      : { vehicleId, state: led.lifecycle || led.state, expiresAt: 0, led };
+  }
+  return { frame: { ...frame, leds: normalizedLeds }, state: normalizedState };
 }
 
 export function holdTransientEmptyFrame(frame, previous = null, now = Date.now(), holdMs = 0) {
@@ -634,6 +670,10 @@ async function runBackgroundChecks(env) {
 }
 
 const statusPage = `<!doctype html><html lang="no"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TransitCore status</title><style>body{font:16px system-ui;background:#0b1220;color:#e5edf8;margin:0;padding:24px}.wrap{max-width:720px;margin:auto}h1{margin:0 0 6px}.sub{color:#9fb0c8;margin-bottom:22px}.card{background:#131d2e;border:1px solid #26344b;border-radius:16px;padding:18px;margin:12px 0}.row{display:flex;justify-content:space-between;gap:16px;margin:8px 0}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:8px}.ok{background:#22c55e}.warn{background:#f59e0b}.off{background:#ef4444}.muted{color:#9fb0c8}.device-error{margin-top:12px;padding:10px;border-radius:9px;background:#4b2025;color:#ffb4b4}code{color:#cfe3ff}</style><div class="wrap"><h1>TransitCore status</h1><div class="sub">Oppdateres automatisk hvert 30. sekund</div><div id="cards">Laster…</div></div><script>const names={'trondheim-bus-board':'Trondheim buss','oslo-metro-board':'Oslo T-bane','oslo-metro-wizard-separate':'Oslo linje 1 – separate LED-er','grakallbanen-board':'Gråkallbanen'};function esc(x){return String(x).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}function deviceName(d){return d.label||names[d.boardProfile]||names[d.deviceId]||d.deviceId}async function load(){const data=await fetch('/v1/status',{cache:'no-store'}).then(r=>r.json());cards.innerHTML=data.devices.map(d=>{if(!d.latest)return '<div class="card"><div><span class="dot off"></span>'+esc(deviceName(d))+'</div><p class="muted">Ingen status mottatt</p></div>';const s=d.latest,age=Math.max(0,Math.floor((Date.now()-Date.parse(s.receivedAt))/1000)),state=age<=420&&s.frameValid?'ok':age<=900?'warn':'off',label=state==='ok'?'Online':state==='warn'?'Varsel':'Frakoblet',lastError=s.lastError||d.mostRecentError,deviceError=lastError?'<div class="device-error"><b>Siste feil: '+esc(lastError.code)+'</b><br>'+esc(lastError.detail)+' · '+lastError.occurrences+' gang(er) · '+d.errorCount+' lagret</div>':'';return '<div class="card"><div><span class="dot '+state+'"></span><b>'+esc(deviceName(d))+'</b> · '+label+'</div><div class="row"><span>Sist sett</span><span>'+age+' s siden</span></div><div class="row"><span>Firmware</span><code>'+esc(s.firmware)+'</code></div><div class="row"><span>Oppetid</span><span>'+Math.floor(s.uptimeSeconds/60)+' min</span></div><div class="row"><span>Wi‑Fi brudd / tilbake</span><span>'+s.wifiOutages+' / '+s.wifiRecoveries+'</span></div><div class="row"><span>Feed OK / feil</span><span>'+s.feedSuccesses+' / '+s.feedFailures+'</span></div><div class="row"><span>Heap / minimum</span><span>'+s.freeHeap+' / '+s.minimumFreeHeap+'</span></div>'+deviceError+'</div>'}).join('')}load().catch(e=>cards.textContent='Status kunne ikke lastes: '+e.message);setInterval(load,30000)</script></html>`;
+
+const efficientStatusPage = statusPage
+  .replace("Oppdateres automatisk hvert 30. sekund", "Oppdateres automatisk hvert 2. minutt mens fanen er synlig")
+  .replace("setInterval(load,30000)", "let timer=setInterval(()=>{if(!document.hidden)load()},120000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()})");
 
 const rad = value => value * Math.PI / 180;
 function distance(a, b) {
@@ -988,10 +1028,25 @@ async function configuration(boardId, now) {
 }
 
 async function liveVehicles(endpoint, codespaceId) {
+  const cacheKey = `${endpoint}|${codespaceId}`;
+  const now = Date.now();
+  const cached = liveVehicleCache.get(cacheKey);
+  if (cached && now - cached.loadedAt < LIVE_VEHICLE_TTL_MS) return cached.value;
+  if (cached?.pending) return cached.pending;
   const query = `{vehicles(codespaceId:"${codespaceId}"){vehicleId lastUpdated destinationName line{publicCode} location{latitude longitude}}}`;
-  const data = await fetchJson(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "ET-Client-Name": CLIENT_NAME }, body: JSON.stringify({ query }) });
-  if (data.errors?.length) throw Error(data.errors[0].message);
-  return data.data?.vehicles || [];
+  const pending = fetchJson(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "ET-Client-Name": CLIENT_NAME }, body: JSON.stringify({ query }) })
+    .then(data => {
+      if (data.errors?.length) throw Error(data.errors[0].message);
+      const value = data.data?.vehicles || [];
+      liveVehicleCache.set(cacheKey, { loadedAt: Date.now(), value });
+      return value;
+    })
+    .catch(error => {
+      if (liveVehicleCache.get(cacheKey)?.pending === pending) liveVehicleCache.delete(cacheKey);
+      throw error;
+    });
+  liveVehicleCache.set(cacheKey, { loadedAt: 0, pending });
+  return pending;
 }
 
 async function liveStationArrivals(board, profiles, now) {
@@ -1285,7 +1340,7 @@ export default {
     if (url.pathname === "/v1/admin/signal-test") return handleSignalTest(request, env);
     if (url.pathname === "/v1/admin/preview") return handlePreview(request, env);
     if (url.pathname === "/status" && request.method === "GET") {
-      return new Response(statusPage, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+      return new Response(efficientStatusPage, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
     }
     if (url.pathname === "/v1/status" && request.method === "GET") {
       const fallbackDevices = ["trondheim-bus-board", "oslo-metro-board", "grakallbanen-board"]

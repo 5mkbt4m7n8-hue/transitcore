@@ -60,7 +60,8 @@ function render(){
  if(sound&&bad.length)beep();
 }
 function beep(){try{const c=new AudioContext,o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);g.gain.value=.04;o.frequency.value=660;o.start();o.stop(c.currentTime+.12)}catch(_){}}
-async function refresh(){clearTimeout(timer);try{lastFrame=await json(FEED);render()}catch(e){$("hero").className="hero bad";$("heroTitle").textContent="Kan ikke kontrollere feeden";$("heroText").textContent=e.message;$("status").textContent="Feedfeil"}timer=setTimeout(refresh,10000)}
+async function refresh(){clearTimeout(timer);if(document.hidden)return;try{lastFrame=await json(FEED);render()}catch(e){$("hero").className="hero bad";$("heroTitle").textContent="Kan ikke kontrollere feeden";$("heroText").textContent=e.message;$("status").textContent="Feedfeil"}if(!document.hidden)timer=setTimeout(refresh,10000)}
+document.addEventListener("visibilitychange",()=>{clearTimeout(timer);if(!document.hidden)refresh()});
 $("refresh").onclick=refresh;$("lineFilter").onchange=render;$("sound").onclick=()=>{sound=!sound;$("sound").textContent="Varsellyd: "+(sound?"PÅ":"AV")};
 Promise.all([json(BASE+"boards/trondheim-bus-board.json"),json(BASE+"hardware/trondheim-bus-board-hardware.json")]).then(async x=>{[board,hardware]=x;profiles=await Promise.all(board.routes.map(id=>json(BASE+"routes/"+id+".json")));routeByLine=new Map(profiles.map(p=>[String(p.line.publicCode),p]));nodeById=new Map(board.nodes.map(n=>[n.id,n]));assignmentByPhysical=new Map(hardware.assignments.map(a=>[String(a.physicalLed),a]));refresh()}).catch(e=>{$("heroTitle").textContent="Oppstartsfeil";$("heroText").textContent=e.message});
 </script></body></html>

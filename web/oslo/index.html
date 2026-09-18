@@ -125,8 +125,10 @@ function showDetail(name){
 }
 async function refresh(){
   clearTimeout(refreshTimer);
-  try{const response=await fetch(FRAME_URL,{cache:"no-store"}),next=await response.json();if(!response.ok)throw Error(`Worker HTTP ${response.status}`);if(next.boardProfile!==board.id||next.ledCount!==board.leds.count)throw Error("Worker-profilen samsvarer ikke med kartet");frame=next;paint()}catch(error){console.error(error);$("status").className="status error";$("status").textContent=`Livefeil: ${error.message}`}finally{refreshTimer=setTimeout(refresh,10000)}
+  if(document.hidden)return;
+  try{const response=await fetch(FRAME_URL,{cache:"no-store"}),next=await response.json();if(!response.ok)throw Error(`Worker HTTP ${response.status}`);if(next.boardProfile!==board.id||next.ledCount!==board.leds.count)throw Error("Worker-profilen samsvarer ikke med kartet");frame=next;paint()}catch(error){console.error(error);$("status").className="status error";$("status").textContent=`Livefeil: ${error.message}`}finally{if(!document.hidden)refreshTimer=setTimeout(refresh,10000)}
 }
+document.addEventListener("visibilitychange",()=>{clearTimeout(refreshTimer);if(!document.hidden&&board)refresh()});
 function renderLegend(){$("legend").innerHTML=Object.entries(lineColors).map(([line,color])=>`<span class="line-key"><i class="line-dot" style="--line-color:${color}">${line}</i></span>`).join("")+'<span class="line-key">A/B = retning</span>'}
 function validate(){
   const names=new Set(corridors.flatMap(corridor=>corridor.stations)),boardNames=new Set(board.nodes.map(node=>node.name));
