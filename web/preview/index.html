@@ -91,12 +91,13 @@ function render(frame){
  $("leds").innerHTML=rows().map(({assignment:a,node:n})=>{const led=active.get(a.physicalLed),rgb=led?.rgb?.join(",")||"80,90,105",afterglow=led?.lifecycle==="PASSED",state=afterglow?"ETTERLYS":led?.state||"AV",klass=led?"on "+(afterglow?"afterglow":led.state==="APPROACHING"?"approaching":""):"";return '<div class="led '+(selectedPhysical===a.physicalLed?"selected":"")+'" data-led="'+a.physicalLed+'"><span class="num">'+String(a.physicalLed).padStart(3,"0")+'</span><span class="lamp '+klass+'" style="--rgb:'+rgb+'"></span><span><div class="name">'+esc(a.name||n.name)+'</div><div class="detail">'+esc(a.direction||n.directionSide||"Felles")+' · '+esc(state)+'</div></span></div>'}).join("")
 }
 async function poll(){
- if(!project||!token)return;
+ if(!project||!token||document.hidden)return;
  $("status").className="status";$("status").textContent="Henter live-data …";
  try{const response=await fetch(ENDPOINT,{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+token},body:JSON.stringify({board:project.board,hardware:project.hardware})}),result=await response.json();if(!response.ok)throw Error(result.message||result.error||("HTTP "+response.status));render(result);renderReadiness(result);$("status").className="status ok";$("status").textContent="LIVE · "+(result.leds||[]).length+" aktive LED-er · oppdatert "+new Date(result.generatedAt).toLocaleTimeString("no-NO")}
  catch(error){lastFrameValid=false;$("publish").disabled=true;$("status").className="status bad";$("status").textContent="Live-test feilet: "+error.message}
 }
 $("start").onclick=()=>{token=$("token").value.trim();if(!token){$("status").className="status bad";$("status").textContent="Skriv inn administratornøkkelen.";return}$("token").value="";poll();clearInterval(timer);timer=setInterval(poll,10000)};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&project&&token)poll()});
 $("refresh").onclick=poll;
 $("leds").onclick=event=>{const row=event.target.closest(".led");if(!row)return;selectedPhysical=Number(row.dataset.led);$("signalTest").disabled=!token;render({leds:[]});$("status").className="status";$("status").textContent="Valgt fysisk LED "+selectedPhysical+" · klar for isolert signaltest."};
 $("signalTest").onclick=async()=>{
