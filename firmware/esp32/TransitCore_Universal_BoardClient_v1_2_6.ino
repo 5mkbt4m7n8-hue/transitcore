@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
+#include <HTTPUpdate.h>
 #include <ArduinoJson.h>
 #include <Adafruit_NeoPixel.h>
 #include <DNSServer.h>
@@ -37,6 +38,16 @@
 
 #ifndef TRANSITCORE_WIFI_RESET_BUTTON_PIN
 #define TRANSITCORE_WIFI_RESET_BUTTON_PIN 0
+#endif
+
+// OTA is deliberately opt-in until a signed production release channel is
+// configured. Existing boards continue exactly as before when this is 0.
+#ifndef TRANSITCORE_OTA_ENABLED
+#define TRANSITCORE_OTA_ENABLED 0
+#endif
+
+#ifndef TRANSITCORE_OTA_MANIFEST_URL
+#define TRANSITCORE_OTA_MANIFEST_URL ""
 #endif
 
 static_assert(TRANSITCORE_PHYSICAL_LED_COUNT >= LED_COUNT,
@@ -95,6 +106,9 @@ const char* NTP_SERVER_2 = "time.google.com";
 const uint32_t MAX_CLOCK_SKEW_SECONDS = 15;
 const unsigned long HEALTH_REPORT_INTERVAL_MS = 5UL * 60UL * 1000UL;
 const unsigned long ERROR_REPORT_MIN_INTERVAL_MS = 60UL * 1000UL;
+const char* TRANSITCORE_FIRMWARE_VERSION = "1.2.6";
+const unsigned long OTA_FIRST_CHECK_DELAY_MS = 2UL * 60UL * 1000UL;
+const unsigned long OTA_CHECK_INTERVAL_MS = 6UL * 60UL * 60UL * 1000UL;
 const uint16_t SUPPORTED_SIGNAL_POLICY_VERSION = 1;
 const uint16_t EXPECTED_APPROACH_PULSE_MS = 1800;
 const unsigned long COLLISION_COLOR_CYCLE_MS = 1200;
@@ -158,6 +172,8 @@ uint32_t wifiOutageCount = 0;
 uint32_t wifiRecoveryCount = 0;
 uint32_t minimumFreeHeap = UINT32_MAX;
 unsigned long lastHealthReportAtMs = 0;
+unsigned long lastOtaCheckAtMs = 0;
+bool otaCheckAttempted = false;
 bool initialHealthLogged = false;
 uint32_t activeProfileRevision = 0;
 String activeProfileFingerprint = "";
@@ -1480,6 +1496,86 @@ void enforceTtl() {
   Serial.println("LED-frame utlÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸pt. Tavlen er slukket.");
 }
 
+bool newerFirmwareVersion(const String& candidate) {
+  unsigned int currentMajor = 0, currentMinor = 0, currentPatch = 0;
+  unsigned int nextMajor = 0, nextMinor = 0, nextPatch = 0;
+  if (sscanf(TRANSITCORE_FIRMWARE_VERSION, "%u.%u.%u", &currentMajor, &currentMinor, &currentPatch) != 3) return false;
+  if (sscanf(candidate.c_str(), "%u.%u.%u", &nextMajor, &nextMinor, &nextPatch) != 3) return false;
+  if (nextMajor != currentMajor) return nextMajor > currentMajor;
+  if (nextMinor != currentMinor) return nextMinor > currentMinor;
+  return nextPatch > currentPatch;
+}
+
+void checkForOtaUpdate(unsigned long now) {
+  if (!TRANSITCORE_OTA_ENABLED || strlen(TRANSITCORE_OTA_MANIFEST_URL) == 0) return;
+  if (WiFi.status() != WL_CONNECTED || now < OTA_FIRST_CHECK_DELAY_MS) return;
+  if (otaCheckAttempted && now - lastOtaCheckAtMs < OTA_CHECK_INTERVAL_MS) return;
+  otaCheckAttempted = true;
+  lastOtaCheckAtMs = now;
+
+  TransitCoreSecureClient manifestClient;
+  manifestClient.useSystemCaBundle();
+  manifestClient.setHandshakeTimeout(HTTP_CONNECT_TIMEOUT_MS / 1000);
+  HTTPClient manifestHttp;
+  manifestHttp.setConnectTimeout(HTTP_CONNECT_TIMEOUT_MS);
+  manifestHttp.setTimeout(HTTP_RESPONSE_TIMEOUT_MS);
+  if (!manifestHttp.begin(manifestClient, TRANSITCORE_OTA_MANIFEST_URL)) {
+    recordDeviceError("OTA_MANIFEST", "Kunne ikke starte manifestforespørsel");
+    return;
+  }
+  manifestHttp.addHeader("Authorization", String("Bearer ") + TRANSITCORE_DEVICE_TOKEN);
+  manifestHttp.addHeader("X-TransitCore-Device", TRANSITCORE_DEVICE_ID);
+  manifestHttp.addHeader("X-TransitCore-Board", EXPECTED_BOARD_PROFILE);
+  manifestHttp.addHeader("X-TransitCore-Firmware", TRANSITCORE_FIRMWARE_VERSION);
+  const int status = manifestHttp.GET();
+  if (status == HTTP_CODE_NO_CONTENT || status == HTTP_CODE_NOT_MODIFIED) {
+    manifestHttp.end();
+    Serial.println("OTA | ingen nyere firmware.");
+    return;
+  }
+  if (status != HTTP_CODE_OK) {
+    manifestHttp.end();
+    recordDeviceError("OTA_MANIFEST", String("HTTP ") + status);
+    return;
+  }
+  if (manifestHttp.getSize() > 4096) {
+    manifestHttp.end();
+    recordDeviceError("OTA_MANIFEST", "Manifestet er for stort");
+    return;
+  }
+
+  DynamicJsonDocument manifest(2048);
+  const DeserializationError jsonError = deserializeJson(manifest, manifestHttp.getString());
+  manifestHttp.end();
+  if (jsonError) {
+    recordDeviceError("OTA_MANIFEST", "Ugyldig JSON");
+    return;
+  }
+  const String version = manifest["version"] | "";
+  const String binaryUrl = manifest["url"] | "";
+  const String boardProfile = manifest["boardProfile"] | "";
+  if (!newerFirmwareVersion(version)) {
+    Serial.printf("OTA | versjon %s gir ingen oppdatering fra %s.\n", version.c_str(), TRANSITCORE_FIRMWARE_VERSION);
+    return;
+  }
+  if (!binaryUrl.startsWith("https://") || (boardProfile.length() > 0 && boardProfile != EXPECTED_BOARD_PROFILE)) {
+    recordDeviceError("OTA_MANIFEST", "Manifestet har ugyldig URL eller tavleprofil");
+    return;
+  }
+
+  Serial.printf("OTA | installerer %s over verifisert TLS.\n", version.c_str());
+  TransitCoreSecureClient binaryClient;
+  binaryClient.useSystemCaBundle();
+  binaryClient.setHandshakeTimeout(HTTP_CONNECT_TIMEOUT_MS / 1000);
+  httpUpdate.rebootOnUpdate(true);
+  const t_httpUpdate_return result = httpUpdate.update(binaryClient, binaryUrl, TRANSITCORE_FIRMWARE_VERSION);
+  if (result == HTTP_UPDATE_FAILED) {
+    recordDeviceError("OTA_UPDATE", String("Feil ") + httpUpdate.getLastError() + ": " + httpUpdate.getLastErrorString());
+  } else if (result == HTTP_UPDATE_NO_UPDATES) {
+    Serial.println("OTA | binærendepunktet meldte ingen oppdatering.");
+  }
+}
+
 // -----------------------------------------------------------------------------
 // ARDUINO
 // -----------------------------------------------------------------------------
@@ -1541,6 +1637,9 @@ void setup() {
   );
   Serial.printf("LED-frame isolasjonstest: %s\n",
     TRANSITCORE_LED_FRAME_ISOLATION_TEST ? "JA" : "NEI");
+  Serial.printf("OTA: %s | firmware %s\n",
+    TRANSITCORE_OTA_ENABLED ? "AKTIV" : "KLAR, MEN AVSLÅTT",
+    TRANSITCORE_FIRMWARE_VERSION);
   Serial.println("Skriv HELP i Serial Monitor for visningskommandoer.");
   printVisualMode();
 }
@@ -1584,6 +1683,7 @@ void loop() {
 
   enforceTtl();
   reportHealth();
+  checkForOtaUpdate(now);
   delay(20);
 }
 

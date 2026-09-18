@@ -70,6 +70,16 @@ Når isolasjonstesten er aktiv, hentes og valideres Worker-feed som normalt.
 Den første ekte Worker-framen fryses og sendes kontinuerlig til stripen. Senere
 Worker-frames logges, men vises ikke. Slå testen av etter feilsøkingen.
 
+OTA-beredskap
+-------------
+Firmwareklienten er klargjort for HTTPS-basert OTA, men funksjonen er avslått
+som standard. Dette er tilsiktet: aktivering skal først skje når et kontrollert
+manifest- og binærendepunkt er publisert. Når infrastrukturen er klar, settes
+TRANSITCORE_OTA_ENABLED til 1 og TRANSITCORE_OTA_MANIFEST_URL til den oppgitte
+HTTPS-adressen i board_config.h. Enheten kontrollerer da etter nyere versjon
+etter to minutter og deretter hver sjette time. Før kommersielt salg skal
+signerte firmwarebilder og rollback være ferdig verifisert.
+
 Forventet kontroll
 ------------------
 Board ${board.id} | ${hardware.leds.count} LED-er
@@ -87,7 +97,7 @@ function createFiles({board,hardware,boardConfig,firmware,device,physicalLedCoun
   if(!board?.id||!Number.isInteger(hardware?.leds?.count)||!boardConfig||!firmware)throw Error("ESP-pakken mangler påkrevde data");
   physicalLedCount=Number(physicalLedCount);
   if(!Number.isInteger(physicalLedCount)||physicalLedCount<hardware.leds.count||physicalLedCount>2048)throw Error(`Fysisk stripelengde må være mellom ${hardware.leds.count} og 2048`);
-  const configuredBoard=boardConfig.replace(/\s*$/,"\n")+`\n#define TRANSITCORE_PHYSICAL_LED_COUNT ${physicalLedCount}\n#define TRANSITCORE_LED_FRAME_ISOLATION_TEST ${isolationTest?1:0}\n`;
+  const configuredBoard=boardConfig.replace(/\s*$/,"\n")+`\n#define TRANSITCORE_PHYSICAL_LED_COUNT ${physicalLedCount}\n#define TRANSITCORE_LED_FRAME_ISOLATION_TEST ${isolationTest?1:0}\n#define TRANSITCORE_OTA_ENABLED 0\n#define TRANSITCORE_OTA_MANIFEST_URL ""\n`;
   const folder=sketchName(board.id),prefix=`${folder}/`;
   return{
     filename:`${board.id}-esp32-v${FIRMWARE_VERSION}.zip`,
