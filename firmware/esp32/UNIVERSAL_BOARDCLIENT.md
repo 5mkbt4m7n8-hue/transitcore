@@ -154,4 +154,7 @@ Version 1.2.8 records the configured LED data GPIO in the startup log. The
 Gråkallbanen physical prototype profile uses GPIO 14 on its ESP32-S3, matching
 the prototype wiring instead of the earlier GPIO 2 default.
 
-
+Version 1.2.9 makes the ESP package generator authoritative for the LED data
+GPIO. It replaces a stale `LED_DATA_PIN` embedded in an older editor project
+with the pin from the current hardware profile. This prevents regenerated
+Gråkallbanen prototype packages from silently reverting to GPIO 2.

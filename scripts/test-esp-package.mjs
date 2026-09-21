@@ -3,7 +3,7 @@ import fs from "node:fs";
 import vm from "node:vm";
 
 const source=fs.readFileSync(new URL("../web/publish/esp-package.js",import.meta.url),"utf8");
-const firmwareSource=fs.readFileSync(new URL("../firmware/esp32/TransitCore_Universal_BoardClient_v1_2_8.ino",import.meta.url),"utf8");
+const firmwareSource=fs.readFileSync(new URL("../firmware/esp32/TransitCore_Universal_BoardClient_v1_2_9.ino",import.meta.url),"utf8");
 const osloBoard=JSON.parse(fs.readFileSync(new URL("../config/boards/oslo-metro-wizard-separate.json",import.meta.url),"utf8"));
 const osloHardware=JSON.parse(fs.readFileSync(new URL("../config/hardware/oslo-metro-wizard-separate-hardware.json",import.meta.url),"utf8"));
 const grakallPrototype=JSON.parse(fs.readFileSync(new URL("../config/boards/grakallbanen-prototype-board.json",import.meta.url),"utf8"));
@@ -11,8 +11,8 @@ const grakallPrototypeHardware=JSON.parse(fs.readFileSync(new URL("../config/har
 const context={};context.globalThis=context;vm.runInNewContext(source,context);
 const api=context.TransitCoreEspPackage;
 
-assert.equal(api.FIRMWARE_VERSION,"1.2.8");
-assert.equal(api.FIRMWARE_FILE,"TransitCore_Universal_BoardClient_v1_2_8.ino");
+assert.equal(api.FIRMWARE_VERSION,"1.2.9");
+assert.equal(api.FIRMWARE_FILE,"TransitCore_Universal_BoardClient_v1_2_9.ino");
 assert.equal(grakallPrototype.leds.dataPin,14,"Gråkallbanen-prototypen bruker fysisk GPIO 14");
 assert.equal(grakallPrototypeHardware.leds.dataPin,14,"hardwareprofilen må bruke samme GPIO 14");
 assert.match(firmwareSource,/datapin GPIO %u/,"oppstartsloggen skal vise valgt datapinne");
@@ -22,7 +22,7 @@ assert.match(firmwareSource,/TransitCore-/);
 assert.match(firmwareSource,/provisioningDns\.start\(53/);
 assert.match(firmwareSource,/WiFi\.softAP\(provisioningApName\.c_str\(\)\)/);
 assert.match(firmwareSource,/wifiPreferences\.putString\("wifiSsid"/);
-assert.match(firmwareSource,/document\["firmware"\] = "1\.2\.8"/);
+assert.match(firmwareSource,/document\["firmware"\] = "1\.2\.9"/);
 assert.match(firmwareSource,/candidateDirectionLabels\[LED_COUNT\]/,"retning skal lagres per LED");
 assert.match(firmwareSource,/occupant\["destination"\]/,"retning skal hentes for alle likeverdige kjøretøy");
 assert.match(firmwareSource,/"mot " \+ candidateDirectionLabels\[id\]/,"Serial-loggen skal vise retning");
@@ -85,12 +85,12 @@ assert.equal(osloHardware.assignments.length,201);
 
 const result=api.createFiles({
   board:{id:"test-board",name:"Test",leds:{count:2,dataPin:2}},
-  hardware:{leds:{count:2}},
-  boardConfig:"#pragma once\n",
+  hardware:{leds:{count:2,dataPin:14}},
+  boardConfig:"#pragma once\nconst uint8_t LED_DATA_PIN = 2;\n",
   firmware:"void setup(){}\nvoid loop(){}\n"
 });
 assert.equal(result.files.length,4);
-assert.equal(result.filename,"test-board-esp32-v1.2.8.zip");
+assert.equal(result.filename,"test-board-esp32-v1.2.9.zip");
 assert.deepEqual(Array.from(result.files,file=>file.name),[
   "TransitCore_test_board_ESP32/TransitCore_test_board_ESP32.ino",
   "TransitCore_test_board_ESP32/board_config.h",
@@ -102,6 +102,9 @@ assert.match(result.files[2].content,/TRANSITCORE_DEVICE_TOKEN/);
 assert.match(result.files[3].content,/STATUS \| HTTP 200/);
 assert.match(result.files[3].content,/LED_STARTUP_TEST_ENABLED/);
 assert.match(result.files[1].content,/TRANSITCORE_PHYSICAL_LED_COUNT 2/);
+assert.match(result.files[1].content,/const uint8_t LED_DATA_PIN = 14;/,"maskinvareprofilen skal overstyre gammel GPIO i prosjektpakken");
+assert.doesNotMatch(result.files[1].content,/const uint8_t LED_DATA_PIN = 2;/,"gammel GPIO må ikke følge med i ny ESP-pakke");
+assert.match(result.files[3].content,/Datapin: GPIO 14/);
 const longStrip=api.createFiles({board:{id:"test-board",leds:{count:2}},hardware:{leds:{count:2}},boardConfig:"#pragma once\n",firmware:"void setup(){}",physicalLedCount:300});
 assert.match(longStrip.files[1].content,/TRANSITCORE_PHYSICAL_LED_COUNT 300/);
 assert.match(longStrip.files[1].content,/TRANSITCORE_LED_FRAME_ISOLATION_TEST 0/);
@@ -116,4 +119,4 @@ const enrolled=api.createFiles({
 });
 assert.match(enrolled.files[2].content,/TRANSITCORE_DEVICE_ID "test-board-unit-001"/);
 assert.match(enrolled.files[2].content,/TRANSITCORE_DEVICE_TOKEN "private-device-token"/);
-console.log("ESP package builder OK: 4 safe files for Board Client v1.2.8");
+console.log("ESP package builder OK: 4 safe files for Board Client v1.2.9");
