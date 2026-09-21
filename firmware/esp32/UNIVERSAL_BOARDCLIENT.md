@@ -160,3 +160,9 @@ with the pin from the current hardware profile. This prevents regenerated
 Gråkallbanen prototype packages from silently reverting to GPIO 2. Health
 report attempts are also rate-limited when the server rejects a report, so a
 configuration error cannot create a rapid retry loop or exhaust Worker quotas.
+
+Version 1.2.10 keeps the ESP32-S3 NeoPixel/RMT transport stable by removing the
+30-second unconditional driver restart. The render task already retransmits the
+complete frame continuously, which restores a repowered strip without tearing
+down a healthy driver. Manual `LED RECOVER` now calls `strip.end()` before
+reinitialization so resources are released correctly.
