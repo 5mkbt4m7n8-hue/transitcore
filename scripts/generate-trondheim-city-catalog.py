@@ -30,10 +30,10 @@ if len(sys.argv) != 2:
 registry = json.loads((ROUTES_DIR / "routes.json").read_text(encoding="utf-8"))
 profile_files = [
     item["profile"] for item in registry["routes"]
-    if item.get("enabled") and re.fullmatch(r"atb-bus-\d+-live\.json", item.get("profile", ""))
+    if item.get("enabled") and re.fullmatch(r"(?:atb-bus-\d+|flybuss-trondheim-fb73)-live\.json", item.get("profile", ""))
 ]
 profiles = [json.loads((ROUTES_DIR / name).read_text(encoding="utf-8")) for name in profile_files]
-profiles.sort(key=lambda profile: int(profile["line"]["publicCode"]))
+profiles.sort(key=lambda profile: (not profile["line"]["publicCode"].isdigit(), int(profile["line"]["publicCode"]) if profile["line"]["publicCode"].isdigit() else profile["line"]["publicCode"]))
 profile_by_gtfs_route = {profile["line"]["id"]: profile for profile in profiles}
 
 with zipfile.ZipFile(sys.argv[1]) as archive:
@@ -83,7 +83,7 @@ with zipfile.ZipFile(sys.argv[1]) as archive:
 nodes = sorted(quays.values(), key=lambda node: (node["name"].casefold(), node["quayId"]))
 station_groups = defaultdict(list)
 for node in nodes:
-    node["routes"].sort(key=lambda value: int(value.split("-")[2]))
+    node["routes"].sort()
     station_groups[node["stationId"]].append(node)
 for group in station_groups.values():
     for track, node in enumerate(group, start=1):

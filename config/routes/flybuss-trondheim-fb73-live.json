@@ -1,0 +1,320 @@
+{
+  "schemaVersion": 1,
+  "id": "flybuss-trondheim-fb73-live",
+  "name": "Værnesekspressen FB73",
+  "provider": {
+    "codespaceId": "UNI",
+    "vehicleEndpoint": "https://api.entur.io/realtime/v2/vehicles/graphql"
+  },
+  "positioning": {
+    "strategy": "estimated-station-calls",
+    "endpoint": "https://api.entur.io/journey-planner/v3/graphql",
+    "pollIntervalMs": 30000,
+    "lookBehindSeconds": 75,
+    "lookAheadSeconds": 600,
+    "stationWindowSeconds": 45
+  },
+  "line": {
+    "id": "UNI:Line:FB73",
+    "publicCode": "FB73",
+    "mode": "bus",
+    "longName": "Nidarvoll - Moholt - Trondheim sentrum - Værnes",
+    "color": "#f4a024"
+  },
+  "directions": [
+    {
+      "id": "airport",
+      "label": "mot Værnes",
+      "destinationMatches": [
+        "Flybuss Værnes",
+        "Trondheim lufthavn",
+        "Værnes"
+      ],
+      "color": "#f4a024",
+      "reverseShape": true
+    },
+    {
+      "id": "city",
+      "label": "mot Trondheim/Nidarvoll",
+      "destinationMatches": [
+        "Flybuss Ekspress Trondheim",
+        "Nidarvoll skole",
+        "Trondheim"
+      ],
+      "color": "#42a5f5",
+      "reverseShape": false
+    }
+  ],
+  "stops": [
+    {
+      "id": "NSR:Quay:73978",
+      "name": "Nidarvoll skole",
+      "lat": 63.398686,
+      "lon": 10.404892,
+      "shapeDistanceMeters": 0
+    },
+    {
+      "id": "NSR:Quay:74657",
+      "name": "Omkjøringsveien Nardo",
+      "lat": 63.407197,
+      "lon": 10.42069,
+      "shapeDistanceMeters": 1231
+    },
+    {
+      "id": "NSR:Quay:72401",
+      "name": "Voll studentby",
+      "lat": 63.40927,
+      "lon": 10.443923,
+      "shapeDistanceMeters": 2410
+    },
+    {
+      "id": "NSR:Quay:73261",
+      "name": "Moholt studentby",
+      "lat": 63.411162,
+      "lon": 10.434673,
+      "shapeDistanceMeters": 2916
+    },
+    {
+      "id": "NSR:Quay:72853",
+      "name": "Østre Berg",
+      "lat": 63.416079,
+      "lon": 10.432208,
+      "shapeDistanceMeters": 3476
+    },
+    {
+      "id": "NSR:Quay:74952",
+      "name": "Berg studentby",
+      "lat": 63.413529,
+      "lon": 10.416951,
+      "shapeDistanceMeters": 4287
+    },
+    {
+      "id": "NSR:Quay:73414",
+      "name": "Lerkendal gård",
+      "lat": 63.412782,
+      "lon": 10.407832,
+      "shapeDistanceMeters": 4748
+    },
+    {
+      "id": "NSR:Quay:73420",
+      "name": "Lerkendal",
+      "lat": 63.412515,
+      "lon": 10.400432,
+      "shapeDistanceMeters": 5117
+    },
+    {
+      "id": "NSR:Quay:102719",
+      "name": "Hesthagen",
+      "lat": 63.416799,
+      "lon": 10.3972,
+      "shapeDistanceMeters": 5620
+    },
+    {
+      "id": "NSR:Quay:73103",
+      "name": "Studentersamfundet",
+      "lat": 63.422222,
+      "lon": 10.394384,
+      "shapeDistanceMeters": 6239
+    },
+    {
+      "id": "NSR:Quay:71174",
+      "name": "Nidarosdomen",
+      "lat": 63.425815,
+      "lon": 10.393372,
+      "shapeDistanceMeters": 6642
+    },
+    {
+      "id": "NSR:Quay:107493",
+      "name": "Prinsens gate",
+      "lat": 63.432227,
+      "lon": 10.391672,
+      "shapeDistanceMeters": 7360
+    },
+    {
+      "id": "NSR:Quay:101521",
+      "name": "Olav Tryggvasons gate",
+      "lat": 63.433292,
+      "lon": 10.397798,
+      "shapeDistanceMeters": 7687
+    },
+    {
+      "id": "NSR:Quay:74792",
+      "name": "Bakkegata",
+      "lat": 63.432418,
+      "lon": 10.407192,
+      "shapeDistanceMeters": 8164
+    },
+    {
+      "id": "NSR:Quay:73975",
+      "name": "Solsiden",
+      "lat": 63.433946,
+      "lon": 10.412788,
+      "shapeDistanceMeters": 8490
+    },
+    {
+      "id": "NSR:Quay:103009",
+      "name": "Buran",
+      "lat": 63.436496,
+      "lon": 10.425779,
+      "shapeDistanceMeters": 9196
+    },
+    {
+      "id": "NSR:Quay:71687",
+      "name": "Rønningsbakken",
+      "lat": 63.437178,
+      "lon": 10.43725,
+      "shapeDistanceMeters": 9771
+    },
+    {
+      "id": "NSR:Quay:74497",
+      "name": "Dalen Hageby",
+      "lat": 63.437512,
+      "lon": 10.448049,
+      "shapeDistanceMeters": 10309
+    },
+    {
+      "id": "NSR:Quay:73034",
+      "name": "Strindheim",
+      "lat": 63.435506,
+      "lon": 10.45548,
+      "shapeDistanceMeters": 10741
+    },
+    {
+      "id": "NSR:Quay:75657",
+      "name": "Gildheim",
+      "lat": 63.434481,
+      "lon": 10.460567,
+      "shapeDistanceMeters": 11018
+    },
+    {
+      "id": "NSR:Quay:71365",
+      "name": "Leangen",
+      "lat": 63.431851,
+      "lon": 10.476167,
+      "shapeDistanceMeters": 11847
+    },
+    {
+      "id": "NSR:Quay:71247",
+      "name": "Ranheim fabrikker",
+      "lat": 63.421847,
+      "lon": 10.536042,
+      "shapeDistanceMeters": 15027
+    },
+    {
+      "id": "NSR:Quay:100211",
+      "name": "Trondheim lufthavn",
+      "lat": 63.454109,
+      "lon": 10.915934,
+      "shapeDistanceMeters": 34253
+    }
+  ],
+  "shape": [
+    {
+      "lat": 63.398686,
+      "lon": 10.404892
+    },
+    {
+      "lat": 63.407197,
+      "lon": 10.42069
+    },
+    {
+      "lat": 63.40927,
+      "lon": 10.443923
+    },
+    {
+      "lat": 63.411162,
+      "lon": 10.434673
+    },
+    {
+      "lat": 63.416079,
+      "lon": 10.432208
+    },
+    {
+      "lat": 63.413529,
+      "lon": 10.416951
+    },
+    {
+      "lat": 63.412782,
+      "lon": 10.407832
+    },
+    {
+      "lat": 63.412515,
+      "lon": 10.400432
+    },
+    {
+      "lat": 63.416799,
+      "lon": 10.3972
+    },
+    {
+      "lat": 63.422222,
+      "lon": 10.394384
+    },
+    {
+      "lat": 63.425815,
+      "lon": 10.393372
+    },
+    {
+      "lat": 63.432227,
+      "lon": 10.391672
+    },
+    {
+      "lat": 63.433292,
+      "lon": 10.397798
+    },
+    {
+      "lat": 63.432418,
+      "lon": 10.407192
+    },
+    {
+      "lat": 63.433946,
+      "lon": 10.412788
+    },
+    {
+      "lat": 63.436496,
+      "lon": 10.425779
+    },
+    {
+      "lat": 63.437178,
+      "lon": 10.43725
+    },
+    {
+      "lat": 63.437512,
+      "lon": 10.448049
+    },
+    {
+      "lat": 63.435506,
+      "lon": 10.45548
+    },
+    {
+      "lat": 63.434481,
+      "lon": 10.460567
+    },
+    {
+      "lat": 63.431851,
+      "lon": 10.476167
+    },
+    {
+      "lat": 63.421847,
+      "lon": 10.536042
+    },
+    {
+      "lat": 63.454109,
+      "lon": 10.915934
+    }
+  ],
+  "display": {
+    "layout": "route-live"
+  },
+  "serviceVariants": {
+    "canonical": "Trondheim lufthavn - Trondheim sentrum - Moholt - Nidarvoll",
+    "supportedShortTurns": [
+      "Trondheim lufthavn - Hesthagen"
+    ]
+  },
+  "source": {
+    "format": "GTFS",
+    "dataset": "Entur Norway aggregated",
+    "url": "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_norway-aggregated-gtfs.zip",
+    "routeId": "UNI:Line:FB73"
+  }
+}

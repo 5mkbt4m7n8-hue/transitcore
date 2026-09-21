@@ -1049,6 +1049,25 @@ async function liveVehicles(endpoint, codespaceId) {
   return pending;
 }
 
+export function vehicleProviderGroups(profiles) {
+  const groups = new Map();
+  for (const profile of profiles) {
+    const endpoint = profile.provider?.vehicleEndpoint;
+    const codespaceId = profile.provider?.codespaceId;
+    if (!endpoint || !codespaceId) throw Error(`Vehicle provider missing for ${profile.id}`);
+    const key = `${endpoint}|${codespaceId}`;
+    if (!groups.has(key)) groups.set(key, { endpoint, codespaceId });
+  }
+  return [...groups.values()];
+}
+
+async function liveVehiclesForProfiles(profiles) {
+  const batches = await Promise.all(vehicleProviderGroups(profiles).map(provider =>
+    liveVehicles(provider.endpoint, provider.codespaceId)
+  ));
+  return batches.flat();
+}
+
 async function liveStationArrivals(board, profiles, now) {
   const endpoint = profiles[0].positioning.endpoint;
   const lookBehind = Math.max(...profiles.map(profile => profile.positioning.lookBehindSeconds || 75));
@@ -1123,6 +1142,27 @@ function frameFromStationArrivals(board, hardware, arrivals, now) {
       vehicle: { id: item.vehicleId }
     }))
   };
+}
+
+async function liveFrameForConfiguration(board, profiles, hardware, now) {
+  const arrivalProfiles = profiles.filter(profile => profile.positioning?.strategy === "estimated-station-calls");
+  const vehicleProfiles = profiles.filter(profile => profile.positioning?.strategy !== "estimated-station-calls");
+  const frames = [];
+  if (vehicleProfiles.length) {
+    const vehicles = await liveVehiclesForProfiles(vehicleProfiles);
+    frames.push(board.layout === "linear-route-vled"
+      ? buildLinearRouteFrame({ board, profiles: vehicleProfiles, hardware, vehicles, now })
+      : buildFrame({ board, profiles: vehicleProfiles, hardware, vehicles, now }));
+  }
+  if (arrivalProfiles.length) {
+    board.hardware = hardware;
+    const arrivals = await liveStationArrivals(board, arrivalProfiles, now);
+    frames.push(frameFromStationArrivals(board, hardware, arrivals, now));
+  }
+  if (!frames.length) throw Error("No live positioning strategy configured");
+  const frame = frames[0];
+  if (frames.length > 1) frame.leds = normalizeLedEntries(frames.flatMap(value => value.leds), frame.ledCount);
+  return frame;
 }
 
 const headers = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" };
@@ -1304,16 +1344,7 @@ async function handlePreview(request,env){
   const payload=await request.json(),board=payload.board,hardware=payload.hardware;validatePublishProfiles(board,hardware);
   const profiles=await Promise.all(board.routes.map(id=>fetchJson(`${REPOSITORY}/config/routes/${id}.json`)));
   const now=Date.now(),resolvedBoard=board.layout==="linear-route-vled"?board:addNodeCoordinates(board,profiles);await attachProfileIdentity(resolvedBoard,hardware);
-  if(resolvedBoard.positioning!=="vehicle-proximity"){
-   resolvedBoard.hardware=hardware;
-   const arrivals=await liveStationArrivals(resolvedBoard,profiles,now);
-   const frame=frameFromStationArrivals(resolvedBoard,hardware,arrivals,now);
-   return publishResponse(await stabilizeMotionFrame(env,resolvedBoard,frame,now));
-  }
-  const vehicles=await liveVehicles(profiles[0].provider.vehicleEndpoint,profiles[0].provider.codespaceId);
-  const frame=resolvedBoard.layout==="linear-route-vled"
-   ?buildLinearRouteFrame({board:resolvedBoard,profiles,hardware,vehicles,now})
-   :buildFrame({board:resolvedBoard,profiles,hardware,vehicles,now});
+  const frame=await liveFrameForConfiguration(resolvedBoard,profiles,hardware,now);
   return publishResponse(await stabilizeMotionFrame(env,resolvedBoard,frame,now));
  }catch(error){console.error("preview failed",error);return publishResponse({error:"preview_failed",message:error.message},400)}
 }
@@ -1441,27 +1472,10 @@ export default {
     const monitorSource = request.headers.get("x-transitcore-monitor") === "scheduled" ? "scheduled" : "request";
     try {
       const now = Date.now(), { board, profiles, hardware } = await configuration(boardId, now);
-      if (board.positioning !== "vehicle-proximity") {
-        board.hardware = hardware;
-        const arrivals = await liveStationArrivals(board, profiles, now);
-        const frame = await stabilizeMotionFrame(env, board, frameFromStationArrivals(board, hardware, arrivals, now), now);
-        await recordBoardMonitor(env, boardId, { ...validFrameSummary(frame, boardId), source: monitorSource });
-        return response(attachSignalPolicy(frame));
-      }
-      const vehicles = await liveVehicles(
-        profiles[0].provider.vehicleEndpoint,
-        profiles[0].provider.codespaceId
-      );
-      if (board.layout === "linear-route-vled") {
-        const rawFrame = buildLinearRouteFrame({ board, profiles, hardware, vehicles, now });
-        const frame = await stabilizeMotionFrame(env, board, rawFrame, now);
-        await recordBoardMonitor(env, boardId, { ...validFrameSummary(frame, boardId), source: monitorSource });
-        return response(frame);
-      }
-      const rawFrame = buildFrame({ board, profiles, hardware, vehicles, now });
+      const rawFrame = await liveFrameForConfiguration(board, profiles, hardware, now);
       const frame = await stabilizeMotionFrame(env, board, rawFrame, now);
       await recordBoardMonitor(env, boardId, { ...validFrameSummary(frame, boardId), source: monitorSource });
-      return response(attachSignalPolicy(frame));
+      return response(frame);
     } catch (error) {
       console.error(error);
       await recordBoardMonitor(env, boardId, { state: "FEED_ERROR", detail: error.message, activeLeds: 0, source: monitorSource });
