@@ -37,6 +37,9 @@ assert.equal(resolveDeviceRegistration({DEVICE_INGEST_TOKENS:JSON.stringify({"cu
 
 const currentFirmware = cleanStatusPayload({ ...input, firmware:"1.1.9" }, "oslo-shared-001", "trondheim-bus-board", Date.now());
 assert.equal(currentFirmware.firmware,"1.1.9");
+for (const firmware of ["1.2.7", "1.2.8", "1.2.9"]) {
+  assert.equal(cleanStatusPayload({ ...input, firmware }, "trondheim-bus-001", "trondheim-bus-board", Date.now()).firmware, firmware);
+}
 const errorClean = cleanStatusPayload({
   ...input,
   firmware: "1.2.3",
