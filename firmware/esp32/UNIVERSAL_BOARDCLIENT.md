@@ -150,4 +150,8 @@ current frame. Frame TTL is enforced by the LED task, so a blocked HTTPS call
 cannot leave stale vehicle lights latched. `LED RECOVER` triggers recovery
 immediately from Serial, and network timeouts are shortened to seven seconds.
 
+Version 1.2.8 records the configured LED data GPIO in the startup log. The
+Gråkallbanen physical prototype profile uses GPIO 14 on its ESP32-S3, matching
+the prototype wiring instead of the earlier GPIO 2 default.
+
 
