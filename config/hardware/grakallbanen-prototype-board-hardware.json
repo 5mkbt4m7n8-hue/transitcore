@@ -5,7 +5,7 @@
   "boardProfile": "grakallbanen-prototype-board",
   "leds": {
     "count": 16,
-    "dataPin": 2,
+    "dataPin": 14,
     "brightnessLimit": 32
   },
   "assignments": [
