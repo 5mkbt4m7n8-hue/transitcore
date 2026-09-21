@@ -5,7 +5,7 @@ configuration changes.
 
 ## Arduino setup
 
-1. Put `TransitCore_Universal_BoardClient_v1_2_6.ino` in a sketch folder with
+1. Put `TransitCore_Universal_BoardClient_v1_2_7.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
 2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
@@ -143,5 +143,11 @@ recent stored error visible on the status page after the ESP clears its queue.
 Version 1.2.6 adds the destination direction to every active LED line in the
 Serial simulator. If several vehicles of equal status share one LED, their
 directions are listed together in the same order used for colour cycling.
+
+Version 1.2.7 adds a 30-second LED-bus watchdog. It recreates the NeoPixel
+transport after strip power or data loss and then retransmits the complete
+current frame. Frame TTL is enforced by the LED task, so a blocked HTTPS call
+cannot leave stale vehicle lights latched. `LED RECOVER` triggers recovery
+immediately from Serial, and network timeouts are shortened to seven seconds.
 
 
