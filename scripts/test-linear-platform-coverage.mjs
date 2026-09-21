@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import vm from "node:vm";
 
 const load = path => readFile(new URL(path, import.meta.url), "utf8").then(JSON.parse);
 const board = await load("../config/boards/trondheim-bus-board.json");
+const flybuss = await load("../config/routes/flybuss-trondheim-fb73-live.json");
 const routeIds = ["atb-bus-1-live", "atb-bus-3-live"];
 
 for (const routeId of routeIds) {
@@ -34,3 +36,12 @@ for (const routeId of routeIds) {
 }
 
 console.log("Linear platform coverage tests OK");
+assert.equal(flybuss.line.publicCode,"FB73");
+assert.equal(flybuss.positioning.strategy,"estimated-station-calls");
+assert(flybuss.stops.every(stop=>stop.quayIds?.length),"Every FB73 track stop needs at least one quay");
+assert(flybuss.stops.filter(stop=>stop.directionQuayIds?.["0"]&&stop.directionQuayIds?.["1"]).length>=20,"Most FB73 stops need both directional quays");
+const linearHtml=await readFile(new URL("../web/linear/index.html",import.meta.url),"utf8");
+assert.match(linearHtml,/FLYBUSS="flybuss-trondheim-fb73-live"/);
+assert.match(linearHtml,/fetchFlybussFrame/);
+[...linearHtml.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach((match,index)=>new vm.Script(match[1],{filename:`linear-${index}.js`}));
+console.log(`Flybussen FB73 live track OK: ${flybuss.stops.length} track rows with directional quays.`);

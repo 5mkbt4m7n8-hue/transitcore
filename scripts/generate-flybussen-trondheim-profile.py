@@ -8,6 +8,7 @@ import math
 import sys
 import zipfile
 from collections import Counter, defaultdict
+from difflib import SequenceMatcher
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,9 +49,29 @@ for trip_id, sequence in sequences.items():
     direction = trips[trip_id].get("direction_id", "")
     by_direction[direction][tuple(stop_id for _, stop_id in sorted(sequence))] += 1
 
-# Direction 0 runs from Trondheim to the airport and contains the full city branch.
-outbound = list(by_direction["0"].most_common(1)[0][0])
-canonical = list(reversed(outbound))
+direction_stops = {
+    direction: list(patterns.most_common(1)[0][0])
+    for direction, patterns in by_direction.items()
+}
+# Align both directions from Nidarvoll towards the airport. Three city stops use
+# different streets in opposite directions, so the display route keeps both.
+aligned = {
+    "0": list(reversed(direction_stops["0"])),
+    "1": list(direction_stops["1"]),
+}
+names = {direction: [stops[stop_id]["stop_name"].casefold() for stop_id in stop_ids] for direction, stop_ids in aligned.items()}
+canonical = []
+for operation, a0, a1, b0, b1 in SequenceMatcher(None, names["0"], names["1"]).get_opcodes():
+    if operation == "equal":
+        canonical.extend(aligned["0"][a0:a1])
+    else:
+        for stop_id in aligned["0"][a0:a1] + aligned["1"][b0:b1]:
+            if stops[stop_id]["stop_name"].casefold() not in {stops[value]["stop_name"].casefold() for value in canonical}:
+                canonical.append(stop_id)
+quays_by_name = defaultdict(dict)
+for direction, stop_ids in direction_stops.items():
+    for stop_id in stop_ids:
+        quays_by_name[stops[stop_id]["stop_name"].casefold()][direction] = stop_id
 distance_meters = 0.0
 profile_stops = []
 shape = []
@@ -63,6 +84,8 @@ for stop_id in canonical:
     profile_stops.append({
         "id": stop_id,
         "name": stop["stop_name"],
+        "quayIds": list(dict.fromkeys(quays_by_name[stop["stop_name"].casefold()].values())),
+        "directionQuayIds": quays_by_name[stop["stop_name"].casefold()],
         **point,
         "shapeDistanceMeters": round(distance_meters),
     })
@@ -111,7 +134,7 @@ profile = {
     "shape": shape,
     "display": {"layout": "route-live"},
     "serviceVariants": {
-        "canonical": "Trondheim lufthavn - Trondheim sentrum - Moholt - Nidarvoll",
+        "canonical": "Nidarvoll - Moholt - Trondheim sentrum - Trondheim lufthavn",
         "supportedShortTurns": ["Trondheim lufthavn - Hesthagen"],
     },
     "source": {
