@@ -1,12 +1,18 @@
 (function(root){
 "use strict";
 
-const FIRMWARE_VERSION="1.2.8";
+const FIRMWARE_VERSION="1.2.9";
 const FIRMWARE_FILE=`TransitCore_Universal_BoardClient_v${FIRMWARE_VERSION.replaceAll(".","_")}.ino`;
 
 function sketchName(boardId){
   const safe=String(boardId||"board").replace(/[^a-zA-Z0-9_]/g,"_");
   return `TransitCore_${safe}_ESP32`;
+}
+
+function resolveDataPin(board,hardware){
+  if(Number.isInteger(hardware?.leds?.dataPin))return hardware.leds.dataPin;
+  if(Number.isInteger(board?.leds?.dataPin))return board.leds.dataPin;
+  return 2;
 }
 
 function secretsExample(deviceId,deviceToken="YOUR_UNIQUE_DEVICE_TOKEN"){return `#pragma once
@@ -30,7 +36,7 @@ Firmware: Universal Board Client v${FIRMWARE_VERSION}
 Tavle-LED-er: ${hardware.leds.count}
 LED-er på tilkoblet stripe: ${physicalLedCount}
 LED-frame isolasjonstest: ${isolationTest?"JA":"NEI"}
-Datapin: ${board.leds?.dataPin??2}
+Datapin: GPIO ${resolveDataPin(board,hardware)}
 
 Innhold
 -------
@@ -94,7 +100,12 @@ function createFiles({board,hardware,boardConfig,firmware,device,physicalLedCoun
   if(!board?.id||!Number.isInteger(hardware?.leds?.count)||!boardConfig||!firmware)throw Error("ESP-pakken mangler påkrevde data");
   physicalLedCount=Number(physicalLedCount);
   if(!Number.isInteger(physicalLedCount)||physicalLedCount<hardware.leds.count||physicalLedCount>2048)throw Error(`Fysisk stripelengde må være mellom ${hardware.leds.count} og 2048`);
-  const configuredBoard=boardConfig.replace(/\s*$/,"\n")+`\n#define TRANSITCORE_PHYSICAL_LED_COUNT ${physicalLedCount}\n#define TRANSITCORE_LED_FRAME_ISOLATION_TEST ${isolationTest?1:0}\n#define TRANSITCORE_OTA_ENABLED 1\n#define TRANSITCORE_OTA_MANIFEST_URL "https://transitcore-led-feed.lgb84.workers.dev/v1/firmware/manifest"\n`;
+  const dataPin=resolveDataPin(board,hardware);
+  const pinDeclaration=/const\s+uint8_t\s+LED_DATA_PIN\s*=\s*\d+\s*;/;
+  const normalizedBoard=pinDeclaration.test(boardConfig)
+    ?boardConfig.replace(pinDeclaration,`const uint8_t LED_DATA_PIN = ${dataPin};`)
+    :`const uint8_t LED_DATA_PIN = ${dataPin};\n${boardConfig}`;
+  const configuredBoard=normalizedBoard.replace(/\s*$/,"\n")+`\n#define TRANSITCORE_PHYSICAL_LED_COUNT ${physicalLedCount}\n#define TRANSITCORE_LED_FRAME_ISOLATION_TEST ${isolationTest?1:0}\n#define TRANSITCORE_OTA_ENABLED 1\n#define TRANSITCORE_OTA_MANIFEST_URL "https://transitcore-led-feed.lgb84.workers.dev/v1/firmware/manifest"\n`;
   const folder=sketchName(board.id),prefix=`${folder}/`;
   return{
     filename:`${board.id}-esp32-v${FIRMWARE_VERSION}.zip`,
