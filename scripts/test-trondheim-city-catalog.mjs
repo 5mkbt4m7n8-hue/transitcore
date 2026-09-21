@@ -6,8 +6,9 @@ import { fileURLToPath } from "node:url";
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const board=JSON.parse(fs.readFileSync(path.join(root,"config/boards/trondheim-city-lines-catalog.json"),"utf8"));
 const expected="1 2 3 10 11 12 13 14 15 16 18 20 21 22 23 25 28 40 41 42 43 44 45 46 50 51 52 53 54 70 71 72 73 74 75 76 77 78 79 80 81 82 83 85 86 91 92".split(" ");
-const actual=board.routes.map(id=>id.match(/atb-bus-(\d+)-live/)?.[1]);
+const actual=board.routes.filter(id=>id.startsWith("atb-bus-")).map(id=>id.match(/atb-bus-(\d+)-live/)?.[1]);
 if(JSON.stringify(actual)!==JSON.stringify(expected))throw Error(`Wrong city-line catalog: ${actual.join(", ")}`);
+if(!board.routes.includes("flybuss-trondheim-fb73-live"))throw Error("Flybussen FB73 is missing from Trondheim catalog");
 if(board.schemaVersion!==2||!board.directionalPlatforms)throw Error("Catalog must retain directional quay data");
 if(board.leds.count!==board.nodes.length)throw Error("Catalog LED count does not match its nodes");
 const nodeIds=new Set,leds=new Set,stations=new Map;
@@ -23,4 +24,4 @@ const html=fs.readFileSync(path.join(root,"web/trondheim-wizard/index.html"),"ut
 const scripts=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(match=>match[1]);
 if(!scripts.length)throw Error("Wizard has no script");
 scripts.forEach((script,index)=>new vm.Script(script,{filename:`trondheim-wizard-${index}.js`}));
-console.log(`Trondheim city catalog OK: ${actual.length} lines, ${stations.size} stops, ${shared} shared stops.`);
+console.log(`Trondheim city catalog OK: ${actual.length} city lines plus FB73, ${stations.size} stops, ${shared} shared stops.`);

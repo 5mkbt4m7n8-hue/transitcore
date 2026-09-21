@@ -212,6 +212,10 @@
     {
       "profile": "atb-bus-92-live.json",
       "enabled": true
+    },
+    {
+      "profile": "flybuss-trondheim-fb73-live.json",
+      "enabled": true
     }
   ]
 }

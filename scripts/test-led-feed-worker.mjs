@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { SIGNAL_POLICY, applyMotionLifecycle, attachSignalPolicy, buildFrame, buildLinearRouteFrame, buildSignalTestSequence, holdTransientEmptyFrame, matchesDirection, normalizeLedEntries, validateConfiguration, vehicleAllowedByBoard } from "../worker/led-feed-worker.mjs";
+import { SIGNAL_POLICY, applyMotionLifecycle, attachSignalPolicy, buildFrame, buildLinearRouteFrame, buildSignalTestSequence, holdTransientEmptyFrame, matchesDirection, normalizeLedEntries, validateConfiguration, vehicleAllowedByBoard, vehicleProviderGroups } from "../worker/led-feed-worker.mjs";
 
 assert.equal(SIGNAL_POLICY.version, 1);
 assert.equal(SIGNAL_POLICY.approachPulseMs, 1800);
@@ -8,6 +8,14 @@ assert.equal(SIGNAL_POLICY.stationDepartureMovementMeters, 15);
 assert.equal(SIGNAL_POLICY.atStopConfirmationSeconds, 10);
 assert.equal(SIGNAL_POLICY.priorities.PARKED, 4);
 assert.deepEqual(attachSignalPolicy({ schemaVersion: 1 }).signalPolicy, SIGNAL_POLICY);
+assert.deepEqual(vehicleProviderGroups([
+  {id:"atb",provider:{vehicleEndpoint:"https://vehicles",codespaceId:"ATB"}},
+  {id:"atb-2",provider:{vehicleEndpoint:"https://vehicles",codespaceId:"ATB"}},
+  {id:"flybuss",provider:{vehicleEndpoint:"https://vehicles",codespaceId:"UNI"}},
+]),[
+  {endpoint:"https://vehicles",codespaceId:"ATB"},
+  {endpoint:"https://vehicles",codespaceId:"UNI"},
+],"en tavle med bybuss og flybuss skal hente begge Entur-codespaces én gang");
 const normalizedCollision=normalizeLedEntries([
   {id:3,state:"AT_STOP",lifecycle:"PASSED",rgb:[0,80,255],vehicle:{id:"departed"},occupants:[{id:"departed",state:"PASSED",rgb:[0,80,255]}]},
   {id:3,state:"APPROACHING",rgb:[0,255,72],vehicle:{id:"arriving"},occupants:[{id:"arriving",state:"APPROACHING",rgb:[0,255,72]}]}
