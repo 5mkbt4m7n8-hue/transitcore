@@ -31,6 +31,7 @@ assert.match(firmwareSource,/loadDeviceErrorQueue\(\)/);
 assert.match(firmwareSource,/createNestedArray\("errorQueue"\)/);
 assert.match(firmwareSource,/clearDeliveredDeviceErrors\(\)/);
 assert.match(firmwareSource,/ERROR_REPORT_MIN_INTERVAL_MS/);
+assert.match(firmwareSource,/lastHealthReportAtMs = now;\s*sendHealthStatus\(now, freeHeap\);/,"mislykket helsestatus skal ikke gi en rask retry-sløyfe");
 assert.match(firmwareSource,/recordDeviceError\("FEED_RECEIVE"/);
 assert.match(firmwareSource,/recordDeviceError\("FRAME_INVALID"/);
 assert.match(firmwareSource,/recordDeviceError\("FRAME_EXPIRED"/);

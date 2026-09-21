@@ -157,4 +157,6 @@ the prototype wiring instead of the earlier GPIO 2 default.
 Version 1.2.9 makes the ESP package generator authoritative for the LED data
 GPIO. It replaces a stale `LED_DATA_PIN` embedded in an older editor project
 with the pin from the current hardware profile. This prevents regenerated
-Gråkallbanen prototype packages from silently reverting to GPIO 2.
+Gråkallbanen prototype packages from silently reverting to GPIO 2. Health
+report attempts are also rate-limited when the server rejects a report, so a
+configuration error cannot create a rapid retry loop or exhaust Worker quotas.

@@ -1520,7 +1520,10 @@ void reportHealth() {
   initialHealthLogged = true;
   if (wifiReady) {
     if (urgentErrorReport) lastErrorReportAttemptAtMs = now;
-    if (sendHealthStatus(now, freeHeap)) lastHealthReportAtMs = now;
+    // Rate-limit attempts, not only successful deliveries. A rejected report
+    // must never turn into a tight retry loop that exhausts Worker quotas.
+    lastHealthReportAtMs = now;
+    sendHealthStatus(now, freeHeap);
   }
 }
 
