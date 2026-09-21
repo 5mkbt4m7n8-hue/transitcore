@@ -166,3 +166,7 @@ Version 1.2.10 keeps the ESP32-S3 NeoPixel/RMT transport stable by removing the
 complete frame continuously, which restores a repowered strip without tearing
 down a healthy driver. Manual `LED RECOVER` now calls `strip.end()` before
 reinitialization so resources are released correctly.
+
+Version 1.2.11 removes the unsupported `Adafruit_NeoPixel::end()` call. Manual
+recovery now sends a reset frame through the existing transport, then the
+continuous render task restores the latest complete frame.
