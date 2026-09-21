@@ -1,7 +1,7 @@
 (function(root){
 "use strict";
 
-const FIRMWARE_VERSION="1.2.11";
+const FIRMWARE_VERSION="1.2.12";
 const FIRMWARE_FILE=`TransitCore_Universal_BoardClient_v${FIRMWARE_VERSION.replaceAll(".","_")}.ino`;
 
 function sketchName(boardId){
@@ -52,7 +52,7 @@ Arduino-oppsett
 3. Wi-Fi kan fylles inn i secrets.h som reserve. Uten gyldig nettverk starter
    tavlen «TransitCore-XXXXXX». Koble telefonen til dette nettet, åpne
    http://192.168.4.1 og velg kundens Wi-Fi. Opplysningene lagres lokalt på ESP.
-4. Installer bibliotekene ArduinoJson og Adafruit NeoPixel i Arduino IDE.
+4. Installer ESP32-kjerne 3.3.11 eller nyere og bibliotekene ArduinoJson og Adafruit NeoPixel i Arduino IDE.
 5. Åpne ${folder}.ino og velg riktig ESP32-kort og port.
 6. Kjør Verify og deretter Upload.
 7. Åpne Serial Monitor på 115200 baud.

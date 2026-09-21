@@ -1,4 +1,5 @@
 import { mtaLine7Response } from "./mta-line7.mjs";
+import { diagnosticsRequest, selectOtaRelease } from "./device-diagnostics.mjs";
 
 export const SIGNAL_POLICY = Object.freeze({
   version: 1,
@@ -415,6 +416,8 @@ export class DeviceStatus {
 
   async fetch(request) {
     const url = new URL(request.url);
+    if (url.pathname === "/logs" || url.pathname === "/logs/session")
+      return diagnosticsRequest(this.state.storage, request);
     if (url.pathname === "/registry") {
       if (request.method === "GET") {
         const stored = await this.state.storage.list({ prefix: "device:" });
@@ -507,7 +510,8 @@ export class DeviceStatus {
       }
       while (errors.length > 100) errors.shift();
       await this.state.storage.put({ latest: sample, history, errors });
-      return statusJson({ ok: true });
+      const logUntil = Number(await this.state.storage.get("logUntil") || 0);
+      return statusJson({ ok: true, logSeconds: Math.max(0, Math.min(900, Math.ceil((logUntil-Date.now())/1000))) });
     }
     const latest = await this.state.storage.get("latest");
     const history = await this.state.storage.get("history") || [];
@@ -574,7 +578,7 @@ async function lookupDeviceRegistration(env, deviceId) {
 
 export function cleanStatusPayload(value, deviceId, boardProfile, receivedAt) {
   const firmware = String(value?.firmware || "");
-  if (!value || value.schemaVersion !== 1 || (value.deviceId && value.deviceId !== deviceId) || value.boardProfile !== boardProfile || !["1.0.4","1.0.5","1.0.6","1.0.7","1.0.8","1.0.9","1.0.10","1.1.0","1.1.1","1.1.2","1.1.3","1.1.4","1.1.5","1.1.6","1.1.7","1.1.8","1.1.9","1.2.0","1.2.1","1.2.2","1.2.3","1.2.4","1.2.5","1.2.6","1.2.7","1.2.8","1.2.9","1.2.10","1.2.11"].includes(firmware)) {
+  if (!value || value.schemaVersion !== 1 || (value.deviceId && value.deviceId !== deviceId) || value.boardProfile !== boardProfile || !["1.0.4","1.0.5","1.0.6","1.0.7","1.0.8","1.0.9","1.0.10","1.1.0","1.1.1","1.1.2","1.1.3","1.1.4","1.1.5","1.1.6","1.1.7","1.1.8","1.1.9","1.2.0","1.2.1","1.2.2","1.2.3","1.2.4","1.2.5","1.2.6","1.2.7","1.2.8","1.2.9","1.2.10","1.2.11","1.2.12"].includes(firmware)) {
     throw Error("invalid status payload");
   }
   const profileRevision = Number(value.profileRevision || 0);
@@ -1362,11 +1366,9 @@ async function handleOtaManifest(request,env){
  if(!authenticated)return statusJson({error:"unauthorized"},401);
  if(!env.OTA_RELEASE_MANIFEST)return new Response(null,{status:204,headers:{"cache-control":"no-store"}});
  try{
-  const releases=JSON.parse(env.OTA_RELEASE_MANIFEST),release=releases?.[boardProfile]||releases?.["*"];
+  const releases=JSON.parse(env.OTA_RELEASE_MANIFEST),release=selectOtaRelease(releases,deviceId,boardProfile,request.headers);
   if(!release)return new Response(null,{status:204,headers:{"cache-control":"no-store"}});
-  if(!/^\d+\.\d+\.\d+$/.test(String(release.version||""))||!String(release.url||"").startsWith("https://"))throw Error("invalid release entry");
-  const binaryUrl=String(release.url).replaceAll("{deviceId}",encodeURIComponent(deviceId));
-  return statusJson({version:release.version,boardProfile,url:binaryUrl});
+  return statusJson(release);
  }catch(error){console.error("Invalid OTA_RELEASE_MANIFEST",error);return statusJson({error:"ota_manifest_invalid"},503)}
 }
 
@@ -1392,6 +1394,32 @@ export default {
     if (url.pathname === "/v1/admin/signal-test") return handleSignalTest(request, env);
     if (url.pathname === "/v1/admin/preview") return handlePreview(request, env);
     if (url.pathname === "/v1/firmware/manifest") return handleOtaManifest(request, env);
+    const logMatch = url.pathname.match(/^\/v1\/devices\/([a-z0-9-]{3,120})\/logs(\/session)?$/);
+    if (logMatch) {
+      const cors = {"access-control-allow-origin":"*", "access-control-allow-headers":"Authorization, Content-Type",
+        "access-control-allow-methods":"GET, POST, OPTIONS", "cache-control":"no-store"};
+      if (request.method === "OPTIONS") return new Response(null,{status:204,headers:cors});
+      if (!env.DEVICE_STATUS) return statusJson({error:"status_storage_unavailable"},503);
+      const authorization=request.headers.get("authorization")||"";
+      if (!authorization.startsWith("Bearer ")) return statusJson({error:"unauthorized"},401);
+      const supplied=authorization.slice(7);
+      const admin=Boolean(env.PUBLISH_ADMIN_TOKEN) && await secureTokenEquals(supplied,env.PUBLISH_ADMIN_TOKEN);
+      const deviceId=logMatch[1];
+      const registration=await lookupDeviceRegistration(env,deviceId);
+      if (!registration) return statusJson({error:"not_found"},404);
+      let device=false;
+      if (!logMatch[2] && request.method==="POST" && supplied) device=registration.tokenHash
+        ?await secureTokenEquals(await tokenHash(supplied),registration.tokenHash)
+        :await secureTokenEquals(supplied,registration.token);
+      if (!admin && !device) return statusJson({error:"unauthorized"},401);
+      if (request.method==="POST" && (Number(request.headers.get("content-length")||0)>12000))
+        return statusJson({error:"body_too_large"},413);
+      const body=request.method==="POST"?await request.text():undefined;
+      if (body && body.length>12000) return statusJson({error:"body_too_large"},413);
+      const stub=env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(deviceId));
+      const result=await stub.fetch("https://status.internal/logs"+(logMatch[2]||""),{method:request.method,body});
+      return new Response(result.body,{status:result.status,headers:{...cors,"content-type":"application/json"}});
+    }
     if (url.pathname === "/status" && request.method === "GET") {
       return new Response(efficientStatusPage, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
     }

@@ -9,6 +9,8 @@ on:
       - "web/publish/esp-package.js"
       - "scripts/prepare-esp-compile.mjs"
       - "scripts/test-esp-package.mjs"
+      - "scripts/test-device-diagnostics.mjs"
+      - "worker/device-diagnostics.mjs"
       - ".github/workflows/esp32-compile.yml"
   push:
     branches: [main]
@@ -19,6 +21,8 @@ on:
       - "web/publish/esp-package.js"
       - "scripts/prepare-esp-compile.mjs"
       - "scripts/test-esp-package.mjs"
+      - "scripts/test-device-diagnostics.mjs"
+      - "worker/device-diagnostics.mjs"
       - ".github/workflows/esp32-compile.yml"
   workflow_dispatch:
 
@@ -28,7 +32,7 @@ permissions:
 jobs:
   compile:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,7 +41,10 @@ jobs:
       - uses: arduino/setup-arduino-cli@v2
 
       - name: Validate downloadable package builder
-        run: node scripts/test-esp-package.mjs
+        run: |
+          node scripts/test-esp-package.mjs
+          node scripts/test-device-diagnostics.mjs
+          node scripts/test-device-status.mjs
 
       - name: Prepare profile-specific sketches
         run: node scripts/prepare-esp-compile.mjs "$RUNNER_TEMP/esp-sketches"
@@ -46,7 +53,7 @@ jobs:
         run: |
           arduino-cli config init
           arduino-cli core update-index
-          arduino-cli core install esp32:esp32
+          arduino-cli core install esp32:esp32@3.3.11
           arduino-cli lib install ArduinoJson "Adafruit NeoPixel"
 
       - name: Compile every published board profile
@@ -55,4 +62,5 @@ jobs:
           for sketch in "$RUNNER_TEMP"/esp-sketches/*; do
             echo "Compiling $(basename "$sketch")"
             arduino-cli compile --fqbn esp32:esp32:esp32doit-devkit-v1 "$sketch"
+            arduino-cli compile --fqbn esp32:esp32:esp32s3 "$sketch"
           done
