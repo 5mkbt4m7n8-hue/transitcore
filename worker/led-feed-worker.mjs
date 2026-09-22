@@ -1,5 +1,6 @@
 import { mtaLine7Response } from "./mta-line7.mjs";
 import { diagnosticsRequest, selectOtaRelease } from "./device-diagnostics.mjs";
+import { boundedOperation, boundedFetchJson, FRAME_BUDGET_MS, MONITOR_TIMEOUT_MS } from "./feed-timing.mjs";
 
 export const SIGNAL_POLICY = Object.freeze({
   version: 1,
@@ -655,21 +656,10 @@ function validFrameSummary(frame, boardId) {
   };
 }
 
-const MONITOR_ORIGIN = "https://transitcore-led-feed.lgb84.workers.dev";
-
 async function runBackgroundChecks(env) {
   await Promise.all([...BOARD_IDS].map(async boardId => {
-    try {
-      const result = await fetch(`${MONITOR_ORIGIN}/v1/boards/${encodeURIComponent(boardId)}/frame`, {
-        headers: { "x-transitcore-monitor": "scheduled" }
-      });
-      if (!result.ok) console.error(`Background check ${boardId}: HTTP ${result.status}`);
-    } catch (error) {
-      console.error(`Background check ${boardId}:`, error);
-      await recordBoardMonitor(env, boardId, {
-        state: "FEED_ERROR", detail: `Bakgrunnskontroll: ${error.message}`, activeLeds: 0, source: "scheduled"
-      });
-    }
+    // Run the same pipeline directly; workers.dev self-fetches can return 404.
+    await boardFrameResponse(boardId, env, "scheduled");
   }));
 }
 
@@ -974,9 +964,7 @@ export function buildLinearRouteFrame({ board, profiles, hardware, vehicles, now
 }
 
 async function fetchJson(url, options) {
-  const response = await fetch(url, options);
-  if (!response.ok) throw Error(`${url}: HTTP ${response.status}`);
-  return response.json();
+  return boundedFetchJson(url, options);
 }
 
 function defaultHardware(board) {
@@ -1171,6 +1159,34 @@ async function liveFrameForConfiguration(board, profiles, hardware, now) {
 
 const headers = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" };
 const response = (body, status = 200) => new Response(JSON.stringify(body, null, 2) + "\n", { status, headers });
+
+async function boardFrameResponse(boardId, env, source) {
+  const now = Date.now(), deadline = now + FRAME_BUDGET_MS;
+  let stage = "configuration";
+  const step = (name, operation) => {
+    stage = name;
+    return boundedOperation(name, operation, deadline - Date.now(), { boardId, source });
+  };
+  let result, sample;
+  try {
+    const { board, profiles, hardware } = await step("configuration", () => configuration(boardId, now));
+    const rawFrame = await step("live_data", () => liveFrameForConfiguration(board, profiles, hardware, now));
+    const frame = await step("motion", () => stabilizeMotionFrame(env, board, rawFrame, now));
+    sample = { ...validFrameSummary(frame, boardId), source };
+    result = response(frame);
+  } catch (error) {
+    console.error(JSON.stringify({ event: "feed_request_failed", boardId, source, stage,
+      elapsedMs: Date.now() - now, code: error.code || "FEED_ERROR" }));
+    sample = { state: "FEED_ERROR", detail: `${stage}: ${error.message}`, activeLeds: 0, source };
+    result = response({ error: "feed_unavailable", stage, generatedAt: new Date().toISOString() }, 503);
+  }
+  // A monitoring-storage problem must not discard a valid LED frame.
+  try {
+    await boundedOperation("monitor", () => recordBoardMonitor(env, boardId, sample),
+      MONITOR_TIMEOUT_MS, { boardId, source });
+  } catch { /* The bounded operation already logged the monitoring failure. */ }
+  return result;
+}
 
 async function stabilizeMotionFrame(env, board, frame, now) {
   const configured = board.render?.departureAfterglowSeconds;
@@ -1498,17 +1514,7 @@ export default {
     const boardId = match?.[1];
     if (!validBoardId(boardId)) return response({ error: "not_found" }, 404);
     const monitorSource = request.headers.get("x-transitcore-monitor") === "scheduled" ? "scheduled" : "request";
-    try {
-      const now = Date.now(), { board, profiles, hardware } = await configuration(boardId, now);
-      const rawFrame = await liveFrameForConfiguration(board, profiles, hardware, now);
-      const frame = await stabilizeMotionFrame(env, board, rawFrame, now);
-      await recordBoardMonitor(env, boardId, { ...validFrameSummary(frame, boardId), source: monitorSource });
-      return response(frame);
-    } catch (error) {
-      console.error(error);
-      await recordBoardMonitor(env, boardId, { state: "FEED_ERROR", detail: error.message, activeLeds: 0, source: monitorSource });
-      return response({ error: "feed_unavailable", message: error.message, generatedAt: new Date().toISOString() }, 503);
-    }
+    return boardFrameResponse(boardId, env, monitorSource);
   }
 };
 
