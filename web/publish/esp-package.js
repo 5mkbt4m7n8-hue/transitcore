@@ -1,7 +1,7 @@
 (function(root){
 "use strict";
 
-const FIRMWARE_VERSION="1.2.12";
+const FIRMWARE_VERSION="1.2.13";
 const FIRMWARE_FILE=`TransitCore_Universal_BoardClient_v${FIRMWARE_VERSION.replaceAll(".","_")}.ino`;
 
 function sketchName(boardId){
@@ -12,7 +12,7 @@ function sketchName(boardId){
 function resolveDataPin(board,hardware){
   if(Number.isInteger(hardware?.leds?.dataPin))return hardware.leds.dataPin;
   if(Number.isInteger(board?.leds?.dataPin))return board.leds.dataPin;
-  return 2;
+  return 14;
 }
 
 function secretsExample(deviceId,deviceToken="YOUR_UNIQUE_DEVICE_TOKEN"){return `#pragma once
@@ -42,12 +42,12 @@ Innhold
 -------
 ${folder}.ino       Stabil, universell ESP32-motor.
 board_config.h      Tavle-ID, feed-adresse, datapin og LED-antall.
-secrets.example.h   Reserveverdier og unik enhetsidentitet.
+secrets.h   Reserveverdier og unik enhetsidentitet.
 
 Arduino-oppsett
 ---------------
 1. Pakk ut ZIP-filen uten å endre mappenavnet «${folder}».
-2. Kopier secrets.example.h til secrets.h i samme mappe. Enhets-ID og token er
+2. secrets.h er klar til bruk i samme mappe. Enhets-ID og token er
    allerede fylt inn i en registrert pakke.
 3. Wi-Fi kan fylles inn i secrets.h som reserve. Uten gyldig nettverk starter
    tavlen «TransitCore-XXXXXX». Koble telefonen til dette nettet, åpne
@@ -113,7 +113,7 @@ function createFiles({board,hardware,boardConfig,firmware,device,physicalLedCoun
     files:[
       {name:`${prefix}${folder}.ino`,content:firmware},
       {name:`${prefix}board_config.h`,content:configuredBoard},
-      {name:`${prefix}secrets.example.h`,content:secretsExample(device?.deviceId||board.id,device?.token)},
+      {name:`${prefix}secrets.h`,content:secretsExample(device?.deviceId||board.id,device?.token)},
       {name:`${prefix}README.txt`,content:readme(board,hardware,folder,physicalLedCount,isolationTest)}
     ]
   };

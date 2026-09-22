@@ -3,7 +3,7 @@ import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
 const outputRoot = path.resolve(process.argv[2] || path.join(root, ".build", "esp-sketches"));
-const firmwarePath = path.join(root, "firmware", "esp32", "TransitCore_Universal_BoardClient_v1_2_12.ino");
+const firmwarePath = path.join(root, "firmware", "esp32", "TransitCore_Universal_BoardClient_v1_2_13.ino");
 const firmware = fs.readFileSync(firmwarePath, "utf8");
 const boardIds = [
   "grakallbanen-board",
@@ -23,7 +23,7 @@ function boardConfig(board, hardware) {
   const count = hardware.leds?.count;
   const dataPin = Number.isInteger(hardware.leds?.dataPin)
     ? hardware.leds.dataPin
-    : Number.isInteger(board.leds?.dataPin) ? board.leds.dataPin : 2;
+    : Number.isInteger(board.leds?.dataPin) ? board.leds.dataPin : 14;
   if (!Number.isInteger(count) || count < 1 || count !== board.nodes?.length) {
     throw new Error(`${board.id}: board and hardware LED counts do not match`);
   }
