@@ -7,7 +7,7 @@ configuration changes.
 
 1. Put `TransitCore_Universal_BoardClient_v1_2_7.ino` in a sketch folder with
    `secrets.h` and `board_config.h`.
-2. Copy `secrets.example.h` to `secrets.h` and enter local Wi-Fi credentials.
+2. Generated ESP packages include `secrets.h` ready to use. Enter local Wi-Fi credentials there if needed; never commit this device-specific file. For a manual source checkout, copy the placeholder `secrets.example.h` to `secrets.h`.
 3. Copy the relevant file from `board-configs/` to `board_config.h`:
    - `grakallbanen-board.h`
    - `oslo-metro-board.h`

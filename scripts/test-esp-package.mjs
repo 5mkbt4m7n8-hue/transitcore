@@ -3,7 +3,7 @@ import fs from "node:fs";
 import vm from "node:vm";
 
 const source=fs.readFileSync(new URL("../web/publish/esp-package.js",import.meta.url),"utf8");
-const firmwareSource=fs.readFileSync(new URL("../firmware/esp32/TransitCore_Universal_BoardClient_v1_2_12.ino",import.meta.url),"utf8");
+const firmwareSource=fs.readFileSync(new URL("../firmware/esp32/TransitCore_Universal_BoardClient_v1_2_13.ino",import.meta.url),"utf8");
 const osloBoard=JSON.parse(fs.readFileSync(new URL("../config/boards/oslo-metro-wizard-separate.json",import.meta.url),"utf8"));
 const osloHardware=JSON.parse(fs.readFileSync(new URL("../config/hardware/oslo-metro-wizard-separate-hardware.json",import.meta.url),"utf8"));
 const grakallPrototype=JSON.parse(fs.readFileSync(new URL("../config/boards/grakallbanen-prototype-board.json",import.meta.url),"utf8"));
@@ -11,8 +11,8 @@ const grakallPrototypeHardware=JSON.parse(fs.readFileSync(new URL("../config/har
 const context={};context.globalThis=context;vm.runInNewContext(source,context);
 const api=context.TransitCoreEspPackage;
 
-assert.equal(api.FIRMWARE_VERSION,"1.2.12");
-assert.equal(api.FIRMWARE_FILE,"TransitCore_Universal_BoardClient_v1_2_12.ino");
+assert.equal(api.FIRMWARE_VERSION,"1.2.13");
+assert.equal(api.FIRMWARE_FILE,"TransitCore_Universal_BoardClient_v1_2_13.ino");
 assert.equal(grakallPrototype.leds.dataPin,14,"Gråkallbanen-prototypen bruker fysisk GPIO 14");
 assert.equal(grakallPrototypeHardware.leds.dataPin,14,"hardwareprofilen må bruke samme GPIO 14");
 assert.match(firmwareSource,/datapin GPIO %u/,"oppstartsloggen skal vise valgt datapinne");
@@ -22,7 +22,7 @@ assert.match(firmwareSource,/TransitCore-/);
 assert.match(firmwareSource,/provisioningDns\.start\(53/);
 assert.match(firmwareSource,/WiFi\.softAP\(provisioningApName\.c_str\(\)\)/);
 assert.match(firmwareSource,/wifiPreferences\.putString\("wifiSsid"/);
-assert.match(firmwareSource,/document\["firmware"\] = "1\.2\.12"/);
+assert.match(firmwareSource,/document\["firmware"\] = "1\.2\.13"/);
 assert.match(firmwareSource,/candidateDirectionLabels\[LED_COUNT\]/,"retning skal lagres per LED");
 assert.match(firmwareSource,/occupant\["destination"\]/,"retning skal hentes for alle likeverdige kjøretøy");
 assert.match(firmwareSource,/"mot " \+ candidateDirectionLabels\[id\]/,"Serial-loggen skal vise retning");
@@ -93,11 +93,11 @@ const result=api.createFiles({
   firmware:"void setup(){}\nvoid loop(){}\n"
 });
 assert.equal(result.files.length,4);
-assert.equal(result.filename,"test-board-esp32-v1.2.12.zip");
+assert.equal(result.filename,"test-board-esp32-v1.2.13.zip");
 assert.deepEqual(Array.from(result.files,file=>file.name),[
   "TransitCore_test_board_ESP32/TransitCore_test_board_ESP32.ino",
   "TransitCore_test_board_ESP32/board_config.h",
-  "TransitCore_test_board_ESP32/secrets.example.h",
+  "TransitCore_test_board_ESP32/secrets.h",
   "TransitCore_test_board_ESP32/README.txt"
 ]);
 assert.match(result.files[2].content,/TRANSITCORE_DEVICE_ID "test-board"/);
@@ -110,6 +110,9 @@ assert.doesNotMatch(result.files[1].content,/const uint8_t LED_DATA_PIN = 2;/,"g
 assert.match(result.files[3].content,/Datapin: GPIO 14/);
 const longStrip=api.createFiles({board:{id:"test-board",leds:{count:2}},hardware:{leds:{count:2}},boardConfig:"#pragma once\n",firmware:"void setup(){}",physicalLedCount:300});
 assert.match(longStrip.files[1].content,/TRANSITCORE_PHYSICAL_LED_COUNT 300/);
+assert.match(longStrip.files[1].content,/LED_DATA_PIN = 14;/);
+assert.match(firmwareSource,/vogn %s/);
+assert.match(firmwareSource,/candidateVehicleIds\[LED_COUNT\]/);
 assert.match(longStrip.files[1].content,/TRANSITCORE_LED_FRAME_ISOLATION_TEST 0/);
 assert.match(longStrip.files[1].content,/TRANSITCORE_OTA_ENABLED 1/);
 assert.match(longStrip.files[1].content,/\/v1\/firmware\/manifest/);
@@ -122,4 +125,4 @@ const enrolled=api.createFiles({
 });
 assert.match(enrolled.files[2].content,/TRANSITCORE_DEVICE_ID "test-board-unit-001"/);
 assert.match(enrolled.files[2].content,/TRANSITCORE_DEVICE_TOKEN "private-device-token"/);
-console.log("ESP package builder OK: 4 safe files for Board Client v1.2.12");
+console.log("ESP package builder OK: 4 safe files for Board Client v1.2.13");
