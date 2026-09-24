@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {selectArrivals} from '../web/shared/arrival-selection.mjs';
+import {frameFromStationArrivals} from '../worker/led-feed-worker.mjs';
+const profile={line:{publicCode:'FB73',color:'#ff0000'},directions:[{destinationMatches:['city'],color:'#0000ff'},{destinationMatches:['airport'],color:'#00ff00'}]};
+const c=(vehicleId,id,state,deltaSeconds,destination='city')=>({vehicleId,id,state,deltaSeconds,destination,profile});
+const input=[c('a',0,'APPROACHING',70),c('a',1,'AT_STOP',3),c('a',2,'AT_STOP',20),c('b',1,'AT_STOP',8,'airport'),c('c',1,'APPROACHING',80),c('d',3,'PASSED',-20),c('e',3,'APPROACHING',90),c('',4,'AT_STOP',0)];
+const selected=selectArrivals(input);
+assert.deepEqual(selected.map(g=>g.map(v=>v.vehicleId)),[['a','b'],['e']]);
+assert.deepEqual(selectArrivals([...input].reverse()),selected,'source order must not move vehicles');
+assert.equal(selectArrivals([c('a',0,'APPROACHING',60),c('a',1,'APPROACHING',90)]).length,1);
+assert.equal(selectArrivals([c('a',0,'AT_STOP',0),c('a',0,'AT_STOP',0)])[0].length,1);
+const frame=frameFromStationArrivals({id:'test',leds:{count:4}},{leds:{count:4,brightnessLimit:16}},selected,Date.now());
+assert.equal(frame.positioning,'estimated-station-calls');
+assert.equal(frame.leds[0].brightness,16);
+assert.deepEqual(frame.leds[0].occupants.map(v=>v.rgb),[[0,0,255],[0,255,0]]);
+assert.equal(frame.leds[1].state,'APPROACHING');
+assert.equal(frame.leds.flatMap(l=>l.occupants).length,3);
+console.log('Arrival identity, collision priority, direction colours and estimated-frame tests passed');

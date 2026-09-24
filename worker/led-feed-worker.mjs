@@ -1,4 +1,5 @@
 import { mtaLine7Response } from "./mta-line7.mjs";
+import { selectArrivals } from "../web/shared/arrival-selection.mjs";
 import { diagnosticsRequest, selectOtaRelease } from "./device-diagnostics.mjs";
 import { boundedOperation, boundedFetchJson, FRAME_BUDGET_MS, MONITOR_TIMEOUT_MS } from "./feed-timing.mjs";
 
@@ -1127,7 +1128,7 @@ async function liveStationArrivals(board, profiles, now) {
   const byPublicCode = new Map(profiles.map(profile => [String(profile.line.publicCode), profile]));
   const byLineId = new Map(profiles.map(profile => [String(profile.line.id), profile]));
   const physical = new Map(board.hardware.assignments.map(item => [item.logicalLed, item.physicalLed]));
-  const strongest = new Map();
+  const candidates = [];
   targets.forEach((target, index) => {
     for (const call of data.data?.[`q${index}`]?.estimatedCalls || []) {
       const line = call.serviceJourney?.journeyPattern?.line;
@@ -1144,15 +1145,13 @@ async function liveStationArrivals(board, profiles, now) {
         id, profile, destination, state, deltaSeconds,
         vehicleId: String(call.serviceJourney?.id || "")
       };
-      const previous = strongest.get(id);
-      if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" ||
-          state === previous.state && Math.abs(deltaSeconds) < Math.abs(previous.deltaSeconds)) strongest.set(id, candidate);
+      candidates.push(candidate);
     }
   });
-  return [...strongest.values()];
+  return selectArrivals(candidates);
 }
 
-function frameFromStationArrivals(board, hardware, arrivals, now) {
+export function frameFromStationArrivals(board, hardware, arrivals, now) {
   return {
     schemaVersion: 1,
     boardProfile: board.id,
@@ -1162,13 +1161,16 @@ function frameFromStationArrivals(board, hardware, arrivals, now) {
     sequence: Math.floor(now / 1000),
     ttlSeconds: 30,
     ledCount: hardware.leds?.count ?? board.leds.count,
-    leds: arrivals.sort((a, b) => a.id - b.id).map(item => ({
-      id: item.id,
-      rgb: rgb(item.profile.line.color || color(item.profile, item.destination)),
-      brightness: Math.min(SIGNAL_POLICY.fullBrightness, hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness),
-      state: item.state,
-      vehicle: { id: item.vehicleId }
-    }))
+    positioning: "estimated-station-calls",
+    leds: arrivals.map(group => {
+      const item = group[0];
+      const occupants = group.map(value => ({id:value.vehicleId,
+        line:value.profile.line.publicCode, destination:value.destination, state:value.state,
+        rgb:rgb(color(value.profile,value.destination) || value.profile.line.color)}));
+      return {id:item.id, rgb:occupants[0].rgb, state:item.state,
+        brightness:Math.min(SIGNAL_POLICY.fullBrightness,hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness),
+        vehicle:occupants[0], occupants};
+    })
   };
 }
 
