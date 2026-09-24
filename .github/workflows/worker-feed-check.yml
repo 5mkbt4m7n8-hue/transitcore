@@ -19,5 +19,7 @@ jobs:
       - run: |
           node scripts/test-feed-timing.mjs
           node scripts/test-led-feed-worker.mjs
+          node scripts/test-departure-memory.mjs
+          node scripts/test-empty-feed-hold.mjs
           node scripts/test-device-status.mjs
           node scripts/test-device-diagnostics.mjs

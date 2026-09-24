@@ -127,6 +127,10 @@ export function normalizeLedEntries(entries = [], ledCount = Infinity) {
 }
 
 export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), afterglowMs = SIGNAL_POLICY.departureAfterglowSeconds * 1000) {
+  // Invisible departure memory is independent of the visible afterglow.
+  // Bound its lifetime so missing vehicles cannot remain latched indefinitely.
+  previous = Object.fromEntries(Object.entries(previous).filter(([, value]) =>
+    !value.hiddenUntil || value.hiddenUntil > now));
   afterglowMs = Math.max(0, Number(afterglowMs) || 0);
   const atStopConfirmationSeconds = Math.max(0, Number(frame.motionPolicy?.atStopConfirmationSeconds) || 0);
   const next = {};
@@ -196,6 +200,12 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     const distance = Number.isFinite(reportedDistance) ? reportedDistance : distanceFromStation;
     const before = previous[id];
     const sameVehicle = before && before.vehicleId === vehicleId;
+    if (!hasCollision && sameVehicle && before.state === "PASSED" &&
+        before.expiresAt > 0 && before.expiresAt <= now) {
+      next[id] = { ...before, hiddenUntil: before.hiddenUntil || now + 120000 };
+      seen.add(id);
+      continue;
+    }
     const latitude = Number(led.vehicle?.latitude), longitude = Number(led.vehicle?.longitude);
     const hasPosition = Number.isFinite(latitude) && Number.isFinite(longitude);
     const anchorLatitude = Number(before?.stationaryAnchorLatitude);
@@ -293,6 +303,8 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
         const passed = makePassedLed(led);
         leds.push(passed);
         next[id] = { vehicleId, state: "PASSED", distance, expiresAt, led: passed, latitude, longitude, stationarySince, stationaryAnchorLatitude, stationaryAnchorLongitude };
+      } else {
+        next[id] = { ...before, hiddenUntil: before.hiddenUntil || now + 120000 };
       }
       continue;
     }
@@ -308,7 +320,12 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     if (before.vehicleId && activeVehicleIds.has(before.vehicleId)) continue;
     // A linear GPS board must never invent PASSED on an intermediate LED or
     // keep a stale vehicle alive without a current position sample.
-    if (GRAKALL_BOARD_IDS.has(frame.boardProfile)) continue;
+    if (GRAKALL_BOARD_IDS.has(frame.boardProfile)) {
+      if (before.state === "PASSED") next[id] = {
+        ...before, hiddenUntil: before.hiddenUntil || now + 120000
+      };
+      continue;
+    }
     const expiresAt = before.state === "PASSED" ? before.expiresAt : now + afterglowMs;
     if (expiresAt <= now) continue;
     const passed = makePassedLed(before.led);
@@ -318,6 +335,11 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
 
   const normalizedLeds = normalizeLedEntries(leds, Number(frame.ledCount) || Infinity);
   const normalizedState = {};
+  for (const [id, value] of Object.entries(next)) {
+    if (value.hiddenUntil && !normalizedLeds.some(led => String(led.id) === id)) {
+      normalizedState[id] = value;
+    }
+  }
   for (const led of normalizedLeds) {
     const id = String(led.id), vehicleId = String(led.vehicle?.id || "");
     const matching = Object.values(next).find(value => value.vehicleId === vehicleId) || next[id];
@@ -332,11 +354,15 @@ export function holdTransientEmptyFrame(frame, previous = null, now = Date.now()
   const hasSignals = Array.isArray(frame.leds) && frame.leds.length > 0;
   if (hasSignals) return { frame, previous: { frame, receivedAt: now } };
   const age = now - Number(previous?.receivedAt || 0);
-  if (!previous?.frame || age < 0 || age > Math.max(0, Number(holdMs) || 0)) {
+  if (!previous?.frame || previous.frame.profileFingerprint !== frame.profileFingerprint ||
+      previous.frame.ledCount !== frame.ledCount || age < 0 || age > Math.max(0, Number(holdMs) || 0)) {
     return { frame, previous };
   }
   return {
-    frame: { ...previous.frame, generatedAt: frame.generatedAt, sequence: frame.sequence, ttlSeconds: frame.ttlSeconds },
+    frame: { ...previous.frame, generatedAt: frame.generatedAt, sequence: frame.sequence,
+      ttlSeconds: Math.max(10, Math.min(frame.ttlSeconds, Math.ceil((holdMs - age) / 1000))),
+      dataQuality: { state: "held", reason: "empty_feed", ageSeconds: Math.floor(age / 1000),
+        lastLiveAt: new Date(previous.receivedAt).toISOString() } },
     previous
   };
 }
@@ -488,10 +514,19 @@ export class DeviceStatus {
       const { frame, now, afterglowMs, emptyFrameHoldMs } = await request.json();
       const timestamp = Number(now) || Date.now();
       const previousNonEmpty = (await this.state.storage.get("motionLastNonEmpty")) || null;
-      const held = holdTransientEmptyFrame(frame, previousNonEmpty, timestamp, emptyFrameHoldMs);
-      if (held.previous !== previousNonEmpty) await this.state.storage.put("motionLastNonEmpty", held.previous);
+      const holdMs = GRAKALL_BOARD_IDS.has(frame.boardProfile) ? 300000 : emptyFrameHoldMs;
+      const rendered = await this.state.storage.get("motionLastRendered");
+      const held = holdTransientEmptyFrame(frame, rendered || previousNonEmpty, timestamp, holdMs);
+      if (held.frame.dataQuality?.state === "held") {
+        // Do not replay old GPS samples through motion/parked detection.
+        return statusJson(held.frame);
+      }
       const previous = (await this.state.storage.get("motion")) || {};
       const result = applyMotionLifecycle(held.frame, previous, timestamp, afterglowMs);
+      if (GRAKALL_BOARD_IDS.has(frame.boardProfile)) result.frame.ttlSeconds = 300;
+      if (frame.leds?.length && result.frame.leds.length) {
+        await this.state.storage.put("motionLastRendered", { frame: result.frame, receivedAt: timestamp });
+      }
       await this.state.storage.put("motion", result.state);
       return statusJson(result.frame);
     }
@@ -1029,7 +1064,8 @@ async function liveVehicles(endpoint, codespaceId) {
   const pending = fetchJson(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "ET-Client-Name": CLIENT_NAME }, body: JSON.stringify({ query }) })
     .then(data => {
       if (data.errors?.length) throw Error(data.errors[0].message);
-      const value = data.data?.vehicles || [];
+      if (!Array.isArray(data.data?.vehicles)) throw Error("Invalid vehicle response: missing vehicles array");
+      const value = data.data.vehicles;
       liveVehicleCache.set(cacheKey, { loadedAt: Date.now(), value });
       return value;
     })
