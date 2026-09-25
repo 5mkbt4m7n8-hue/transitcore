@@ -202,7 +202,9 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
     const sameVehicle = before && before.vehicleId === vehicleId;
     if (!hasCollision && sameVehicle && before.state === "PASSED" &&
         before.expiresAt > 0 && before.expiresAt <= now) {
-      next[id] = { ...before, hiddenUntil: before.hiddenUntil || now + 120000 };
+      // Continued observations at the same point are not evidence of a new
+      // arrival. Expire this memory only after observations stop, or advance.
+      next[id] = { ...before, hiddenUntil: now + 120000 };
       seen.add(id);
       continue;
     }
@@ -262,15 +264,13 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
         }))
       };
     }
-    const departingInsideStation = GRAKALL_BOARD_IDS.has(frame.boardProfile) && led.state === "AT_STOP" &&
-      sameVehicle && before.state === "AT_STOP" && led.vehicle?.positionType === "station" && !led.vehicle?.isTerminalStation &&
-      before.led.vehicle?.positionType === "station" && Number.isFinite(distance) &&
-      Number.isFinite(before.distance) && distance > before.distance + SIGNAL_POLICY.stationDepartureMovementMeters;
+    // Distance can increase while a stationary tram's GPS wanders inside the
+    // station radius. Only a change out of AT_STOP may begin departure.
     // APPROACHING means the vehicle has not reached this point yet. GPS
     // movement away from an approach target must therefore not manufacture a
     // PASSED event. PASSED is allowed only after this vehicle was actually
     // AT_STOP at the same station (or is already in its latched PASSED state).
-    const departing = departingInsideStation || led.state === "APPROACHING" && sameVehicle &&
+    const departing = led.state === "APPROACHING" && sameVehicle &&
       (before.state === "AT_STOP" || before.state === "PASSED");
     seen.add(id);
 
@@ -524,11 +524,16 @@ export class DeviceStatus {
       const previous = (await this.state.storage.get("motion")) || {};
       const result = applyMotionLifecycle(held.frame, previous, timestamp, afterglowMs);
       if (GRAKALL_BOARD_IDS.has(frame.boardProfile)) result.frame.ttlSeconds = 300;
+      // Lifecycle suppression can make a nonempty input produce an empty
+      // display. Guard that output too, without rolling back motion memory.
+      const display = GRAKALL_BOARD_IDS.has(frame.boardProfile)
+        ? holdTransientEmptyFrame(result.frame, rendered, timestamp, holdMs).frame
+        : result.frame;
       if (frame.leds?.length && result.frame.leds.length) {
         await this.state.storage.put("motionLastRendered", { frame: result.frame, receivedAt: timestamp });
       }
       await this.state.storage.put("motion", result.state);
-      return statusJson(result.frame);
+      return statusJson(display);
     }
     if (request.method === "POST") {
       const sample = await request.json();
@@ -1164,7 +1169,7 @@ function frameFromStationArrivals(board, hardware, arrivals, now) {
     ledCount: hardware.leds?.count ?? board.leds.count,
     leds: arrivals.sort((a, b) => a.id - b.id).map(item => ({
       id: item.id,
-      rgb: rgb(item.profile.line.color || color(item.profile, item.destination)),
+      rgb: rgb(board.render.lineColors?.[item.profile.line.publicCode] || item.profile.line.color || color(item.profile, item.destination)),
       brightness: Math.min(SIGNAL_POLICY.fullBrightness, hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness),
       state: item.state,
       vehicle: { id: item.vehicleId }
@@ -1553,5 +1558,4 @@ export default {
     return boardFrameResponse(boardId, env, monitorSource);
   }
 };
-
 
