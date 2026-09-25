@@ -810,7 +810,7 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
     id: item.vehicleId,
     line: String(item.profile.line.publicCode),
     destination: item.destination,
-    rgb: rgb(item.profile.line.color || color(item.profile, item.destination)),
+    rgb: rgb(board.render.lineColors?.[item.profile.line.publicCode] || item.profile.line.color || color(item.profile, item.destination)),
     state: item.state,
     ageSeconds: Math.max(0, Math.floor((now - item.updated) / 1000)),
     distanceMeters: Math.round(item.meters)
@@ -832,7 +832,7 @@ export function buildFrame({ board, profiles, hardware, vehicles, now = Date.now
       }).map(occupantJson);
       return {
         id: item.id,
-        rgb: rgb(item.profile.line.color || color(item.profile, item.destination)),
+        rgb: rgb(board.render.lineColors?.[item.profile.line.publicCode] || item.profile.line.color || color(item.profile, item.destination)),
         brightness: Math.min(SIGNAL_POLICY.fullBrightness, hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness),
         state: item.state,
         vehicle: {
@@ -1553,4 +1553,5 @@ export default {
     return boardFrameResponse(boardId, env, monitorSource);
   }
 };
+
 
