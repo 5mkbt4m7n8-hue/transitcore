@@ -27,3 +27,9 @@ state = {};
 step(0, 'AT_STOP'); step(10000, 'APPROACHING'); step(20000, null);
 assert.deepEqual(step(141000, 'AT_STOP'), ['AT_STOP'], 'Memory is bounded');
 console.log('Departure memory tests passed');
+state = {};
+step(0, 'AT_STOP'); step(10000, 'APPROACHING');
+for (let time = 20000; time <= 300000; time += 10000) {
+  assert.deepEqual(step(time, 'AT_STOP'), [], 'Continuous reports must not reset PASSED after two minutes');
+}
+assert.deepEqual(step(310000, 'APPROACHING', 8), ['APPROACHING']);

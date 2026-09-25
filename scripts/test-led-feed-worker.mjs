@@ -156,8 +156,8 @@ let preciseDeparture=applyMotionLifecycle(insideStation(28),{},now,10000);
 preciseDeparture=applyMotionLifecycle(insideStation(12),preciseDeparture.state,now+1000,10000);
 assert.equal(preciseDeparture.frame.leds[0].state,"AT_STOP","mindre avstand til stasjonen er fortsatt ankomst");
 preciseDeparture=applyMotionLifecycle(insideStation(30),preciseDeparture.state,now+2000,10000);
-assert.equal(preciseDeparture.frame.leds[0].lifecycle,"PASSED","tydelig økende avstand skal registrere avgang inne i stasjonssonen");
-assert.equal(preciseDeparture.frame.leds[0].brightness,8,"presis avgang skal vises dimmet");
+assert.equal(preciseDeparture.frame.leds[0].lifecycle,undefined,"GPS-avstand alene inne i stasjonssonen skal ikke registrere avgang");
+assert.equal(preciseDeparture.frame.leds[0].state,"AT_STOP","stasjonssonen er fortsatt aktiv");
 console.log("GrÃƒÂ¥kallbanen linear VLED worker test OK");
 
 

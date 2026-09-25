@@ -23,3 +23,9 @@ for (const time of [110000, 250000, 399000]) {
 assert.equal((await send(411000, [])).leds.length, 0, 'Night shutdown remains bounded');
 assert.equal((await send(420000, [led])).dataQuality, undefined);
 console.log('Empty feed hold tests passed');
+await send(430000, [{ ...led, state: 'APPROACHING' }]);
+const guarded = await send(440000, [{ ...led, state: 'APPROACHING' }]);
+assert.equal(guarded.leds.length, 1, 'Lifecycle suppression must not black out the entire board');
+assert.equal(guarded.leds[0].lifecycle, 'PASSED');
+assert.equal(guarded.dataQuality.state, 'held');
+assert.ok(data.get('motion')['9'].hiddenUntil, 'Keep hidden motion memory while holding display');
