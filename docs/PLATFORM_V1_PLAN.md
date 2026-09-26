@@ -270,3 +270,24 @@ adapter/validator med kompatibilitetsfixtures. Ingen stor filflytting først.
 - Før fase C: avklar observasjonskvalitet/stopCalls, behold provider-cache og
   feilsemantikk, og bruk ekvivalenstester ved første runtimeintegrasjon. Intern
   default TTL 30 er ikke en erstatning for eksisterende runtime hold-policy.
+
+## Fase C — gjennomført 2026-09-26
+
+- Basert på main a5811d1 (PR 193). Ingen avhengighet til PR 190.
+- Entur GPS-query/cache flyttet til `core/providers/entur/entur-provider.mjs`.
+  Normalizer, provider-kontrakt og lossless raw-adapter lagt til ved siden av.
+- Worker bruker én provider-instans per isolate og samme endpoint/codespace-key,
+  8 sekunders cache, in-flight deling og bounded JSON-transport. Ingen nye kall,
+  polling-løkker eller retries. ProviderError bevarer melding/timeoutkode.
+- TransitVehicle-observasjoner har null for ukjent informasjon og eksplisitt
+  vehicle-position-type. Eksisterende motorer bruker fortsatt raw via adapter;
+  data uten gyldig identitet beholdes som ugyldige observasjoner, ikke gjettes
+  eller filtreres stille. Dette må avklares før rådata fjernes i fase D.
+- Estimated calls og deres eksisterende timing forblir separat og uendret.
+  Ingen Flybussen-provider, API-, registry-, OTA- eller firmwareendring.
+- Nye dokumenter: PROVIDER_LAYER_V1.md og PROVIDER_DATA_SEMANTICS.md.
+- 28 testskript bestått. 18 deterministiske før/etter-frame-sammenligninger
+  for Gråkallbanen 47/16 og Trondheim buss er serialisert identiske, også med
+  duplikater, stale/manglende data og tom liste. Cache/feil testes separat.
+- Risiko før D: malformed-observation-policy, GPS/ETA-semantikk og global
+  identitet må avklares. Testresultat er ikke en fysisk/live-sertifisering.
