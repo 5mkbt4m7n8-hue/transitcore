@@ -1,4 +1,6 @@
 import { mtaLine7Response } from "./mta-line7.mjs";
+import { createEnturProvider } from "../core/providers/entur/entur-provider.mjs";
+import { toLegacyEnturVehicles } from "../core/providers/entur/entur-normalizer.mjs";
 import { diagnosticsRequest, selectOtaRelease } from "./device-diagnostics.mjs";
 import { boundedOperation, boundedFetchJson, FRAME_BUDGET_MS, MONITOR_TIMEOUT_MS } from "./feed-timing.mjs";
 
@@ -32,7 +34,7 @@ const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
 const configCache = new Map();
 const LIVE_VEHICLE_TTL_MS = 8 * 1000;
-const liveVehicleCache = new Map();
+const enturProvider = createEnturProvider({fetchJson,clientName:CLIENT_NAME,ttlMs:LIVE_VEHICLE_TTL_MS});
 
 const statusJson = (body, status = 200) => new Response(
   JSON.stringify(body, null, 2) + "\n",
@@ -1060,26 +1062,7 @@ async function configuration(boardId, now) {
 }
 
 async function liveVehicles(endpoint, codespaceId) {
-  const cacheKey = `${endpoint}|${codespaceId}`;
-  const now = Date.now();
-  const cached = liveVehicleCache.get(cacheKey);
-  if (cached && now - cached.loadedAt < LIVE_VEHICLE_TTL_MS) return cached.value;
-  if (cached?.pending) return cached.pending;
-  const query = `{vehicles(codespaceId:"${codespaceId}"){vehicleId lastUpdated destinationName line{publicCode} location{latitude longitude}}}`;
-  const pending = fetchJson(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "ET-Client-Name": CLIENT_NAME }, body: JSON.stringify({ query }) })
-    .then(data => {
-      if (data.errors?.length) throw Error(data.errors[0].message);
-      if (!Array.isArray(data.data?.vehicles)) throw Error("Invalid vehicle response: missing vehicles array");
-      const value = data.data.vehicles;
-      liveVehicleCache.set(cacheKey, { loadedAt: Date.now(), value });
-      return value;
-    })
-    .catch(error => {
-      if (liveVehicleCache.get(cacheKey)?.pending === pending) liveVehicleCache.delete(cacheKey);
-      throw error;
-    });
-  liveVehicleCache.set(cacheKey, { loadedAt: 0, pending });
-  return pending;
+  return toLegacyEnturVehicles(await enturProvider.loadVehicles({endpoint,codespaceId}));
 }
 
 export function vehicleProviderGroups(profiles) {
