@@ -289,5 +289,5 @@ adapter/validator med kompatibilitetsfixtures. Ingen stor filflytting først.
 - 28 testskript bestått. 18 deterministiske før/etter-frame-sammenligninger
   for Gråkallbanen 47/16 og Trondheim buss er serialisert identiske, også med
   duplikater, stale/manglende data og tom liste. Cache/feil testes separat.
-- Risiko før D: malformed-observation-policy, GPS/ETA-sem antikk og global
+- Risiko før D: malformed-observation-policy, GPS/ETA-semantikk og global
   identitet må avklares. Testresultat er ikke en fysisk/live-sertifisering.
