@@ -8,13 +8,23 @@ export function normalizeEnturVehicle(raw) {
   let longitude=number(raw?.location?.longitude,-180,180);
   if(latitude===null||longitude===null)latitude=longitude=null;
   const timestamp=text(raw?.lastUpdated);
-  return {
+  const value = {
     id:text(raw?.vehicleId),provider:'entur',mode:null,lineId:null,
     publicCode:text(raw?.line?.publicCode),destination:text(raw?.destinationName),
     latitude,longitude,heading:null,speed:null,
     timestamp:timestamp&&/(Z|[+-]\d\d:\d\d)$/.test(timestamp)&&Number.isFinite(Date.parse(timestamp))?timestamp:null,
     state:null,raw,observationType:'vehicle-position'
   };
+  // Preserve pre-platform treatment of malformed observations at the provider
+  // boundary. Valid observations need no compatibility view. Engines never
+  // access raw; this can be retired only with an explicit data-quality policy.
+  const legacy = {id: raw?.vehicleId, publicCode: raw?.line?.publicCode,
+    destination: raw?.destinationName, timestamp: raw?.lastUpdated,
+    latitude: raw?.location?.latitude, longitude: raw?.location?.longitude};
+  if (Object.entries(legacy).some(([key, field]) => field !== value[key])) {
+    value.frameCompatibility = legacy;
+  }
+  return value;
 }
 
 export function toLegacyEnturVehicles(vehicles) {

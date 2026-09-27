@@ -15,6 +15,8 @@ import {isObject, issue, result} from './common.mjs';
  * @property {?string} [timestamp] ISO timestamp with timezone; null means unknown.
  * @property {?string} [state] Source state, not a PixelFrame state decision.
  * @property {*} [raw] Internal only; never implicitly serialized into frames/logs.
+ * @property {Object} [frameCompatibility] Transitional canonical-name projection
+ * of malformed source fields; preserves pre-platform coercion only. Not wire data.
  */
 export function validateTransitVehicle(value) {
   const errors=[];

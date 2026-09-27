@@ -5,6 +5,7 @@ import {normalizeEnturVehicle,toLegacyEnturVehicles} from '../core/providers/ent
 import {validateTransitVehicle} from '../core/models/transit-vehicle.mjs';
 import {ProviderError} from '../core/providers/provider-contract.mjs';
 import {buildFrame,buildLinearRouteFrame,applyMotionLifecycle} from '../worker/led-feed-worker.mjs';
+import * as reference from './fixtures/phase-c-frame-reference.mjs';
 
 const time=Date.parse('2026-09-26T12:00:00Z');
 const raw={vehicleId:'test-1',lastUpdated:new Date(time-5000).toISOString(),destinationName:'Lian',line:{publicCode:'9'},location:{latitude:63.4,longitude:10.3},extra:{preserved:true}};
@@ -69,7 +70,8 @@ for(const id of ['grakallbanen-board','grakallbanen-prototype-board','trondheim-
  const fresh=build({board,profiles,hardware,vehicles:[vehicle],now:time});
  assert.ok(fresh.leds.length>0,`${id}: regression must contain active LEDs`);
  for(const input of [[vehicle],[vehicle,{...vehicle,lastUpdated:new Date(time-10000).toISOString()}],[{...vehicle,lastUpdated:new Date(time-600000).toISOString()}],[{...vehicle,destinationName:undefined}],[{...vehicle,location:{}}],[]]){
-   const before=build({board,profiles,hardware,vehicles:input,now:time});
+   const oldBuild=board.layout==='linear-route-vled'?reference.buildLinearRouteFrame:reference.buildFrame;
+   const before=oldBuild({board,profiles,hardware,vehicles:input,now:time});
    const p=createEnturProvider({fetchJson:async()=>({data:{vehicles:input}}),clientName:'test'});
    const after=build({board,profiles,hardware,vehicles:toLegacyEnturVehicles(await p.loadVehicles(context)),now:time});
    assert.equal(JSON.stringify(after),JSON.stringify(before),id+' serialized frame equality');
