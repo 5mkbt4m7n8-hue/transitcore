@@ -1,4 +1,6 @@
 import { mtaLine7Response } from "./mta-line7.mjs";
+import { apiV1 } from "./api/v1.mjs";
+import { validateDeviceSettings } from "../core/models/device-config.mjs";
 import { createEnturProvider } from "../core/providers/entur/entur-provider.mjs";
 import { normalizeEnturVehicle } from "../core/providers/entur/entur-normalizer.mjs";
 import { buildPixelFrame } from "../core/frame/build-frame.mjs";
@@ -476,6 +478,15 @@ export class DeviceStatus {
           return statusJson({ ok: true });
         }
         if (!current) return statusJson({ error: "not_found" }, 404);
+        if (command.action === "configure") {
+          if (!validBoardId(command.hardwareProfile) || !validateDeviceSettings(command.deviceConfig).valid)
+            return statusJson({ error: "invalid_device_config" }, 400);
+          const {pollIntervalSeconds,statusIntervalSeconds,brightnessLimit,otaEnabled,featureFlags}=command.deviceConfig;
+          await this.state.storage.put(key, {...current, hardwareProfile:command.hardwareProfile,
+            deviceConfig:{pollIntervalSeconds,statusIntervalSeconds,brightnessLimit,otaEnabled,featureFlags},
+            configuredAt:command.changedAt});
+          return statusJson({ok:true});
+        }
         if (command.action === "rotate") {
           await this.state.storage.put(key, { ...current, tokenHash: command.tokenHash, enabled: true, rotatedAt: command.changedAt });
           return statusJson({ ok: true });
@@ -1011,6 +1022,22 @@ export async function handleDevices(request,env){
   }
   const deviceId=String(payload.deviceId||"");
   if(!/^[a-z0-9_-]{3,120}$/.test(deviceId))return publishResponse({error:"invalid_device_id"},400);
+  if(action==="configure"){
+   if(!validBoardId(payload.hardwareProfile)||!validateDeviceSettings(payload.deviceConfig).valid)
+    return publishResponse({error:"invalid_device_config"},400);
+   const found=await registry.fetch(`https://status.internal/registry/${encodeURIComponent(deviceId)}`);
+   if(!found.ok)return publishResponse({error:"not_found"},found.status);
+   const entry=await found.json();
+   let resolved;
+   try{resolved=await configuration(entry.boardProfile,Date.now())}
+   catch{return publishResponse({error:"board_configuration_unavailable"},503)}
+   if(resolved.hardware.id!==payload.hardwareProfile)return publishResponse({error:"profile_mismatch"},409);
+   if(payload.deviceConfig.brightnessLimit>(resolved.hardware.leds?.brightnessLimit??32))
+    return publishResponse({error:"brightness_exceeds_hardware_limit"},409);
+   const response=await registry.fetch("https://status.internal/registry",{method:"POST",body:JSON.stringify({
+    action,deviceId,hardwareProfile:payload.hardwareProfile,deviceConfig:payload.deviceConfig,changedAt})});
+   return publishResponse(await response.json(),response.status);
+  }
   if(action==="rotate"){
    const token=randomCredential(32),response=await registry.fetch("https://status.internal/registry",{method:"POST",body:JSON.stringify({action,deviceId,tokenHash:await tokenHash(token),changedAt})});
    if(!response.ok)return publishResponse(await response.json(),response.status);
@@ -1107,6 +1134,7 @@ async function handleOtaManifest(request,env){
   ?await secureTokenEquals(await tokenHash(suppliedToken),registration.tokenHash)
   :await secureTokenEquals(suppliedToken,registration.token);
  if(!authenticated)return statusJson({error:"unauthorized"},401);
+ if(registration.deviceConfig?.otaEnabled===false)return new Response(null,{status:204,headers:{"cache-control":"no-store"}});
  if(!env.OTA_RELEASE_MANIFEST)return new Response(null,{status:204,headers:{"cache-control":"no-store"}});
  try{
   const releases=JSON.parse(env.OTA_RELEASE_MANIFEST),release=selectOtaRelease(releases,deviceId,boardProfile,request.headers);
@@ -1115,13 +1143,26 @@ async function handleOtaManifest(request,env){
  }catch(error){console.error("Invalid OTA_RELEASE_MANIFEST",error);return statusJson({error:"ota_manifest_invalid"},503)}
 }
 
-export default {
+const worker = {
   async scheduled(controller, env) {
     console.log("Scheduled background checks started", new Date(controller.scheduledTime).toISOString());
     await runBackgroundChecks(env);
     console.log("Scheduled background checks completed");
   },
   async fetch(request, env) {
+    const v1=await apiV1(request,env,{
+      legacy: forwarded=>worker.fetch(forwarded,env),
+      configuration: boardId=>configuration(boardId,Date.now()),
+      cachedProfiles: ()=>configCache.size,
+      registration: async deviceId=>{
+        const response=await deviceRegistry(env).fetch(`https://status.internal/registry/${encodeURIComponent(deviceId)}`);
+        if(response.status===404)return null;
+        if(!response.ok)throw Error("Registry unavailable");
+        return response.json();
+      },
+      authenticate: async (token,entry)=>secureTokenEquals(await tokenHash(token),entry.tokenHash)
+    });
+    if(v1)return v1;
     const url = new URL(request.url);
     if (url.pathname === "/v1/international/nyc-subway-7" && request.method === "GET") {
       try {
@@ -1244,4 +1285,5 @@ export default {
     return boardFrameResponse(boardId, env, monitorSource);
   }
 };
+export default worker;
 

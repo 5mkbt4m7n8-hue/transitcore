@@ -306,3 +306,18 @@ adapter/validator med kompatibilitetsfixtures. Ingen stor filflytting først.
 - Ingen ekstra provider-kall eller cachelag. Lokal måling viser sammenlignbar
   byggetid; Cloudflare CPU/heap er ikke produksjonsmålt.
 - Ingen merge/deploy. Fase E starter først etter eksplisitt godkjenning.
+
+## Fase E — implementert 2026-09-27, avventer PR-godkjenning
+
+- Basert på main 0729ed1 / merget PR 195. Fem additive /api/v1-ruter med
+  gjenbruk av eksisterende frame-, status- og OTA-handlere; ingen self-fetch.
+- DeviceConfig v1 har eksplisitt registry-provisionering via admin configure.
+  Ingen hardware-gjetting for eldre registreringer; statiske klienter fortsetter.
+- Health er billig liveness/capability, ikke en uverifisert upstream-friskmelding.
+- API_V1.md, DEVICE_CONFIG_V1.md og DEVICE_PROTOCOL_V1.md beskriver kontrakt,
+  overgang, sikkerhetsgrenser og nødvendig fremtidig firmwarearbeid.
+- 30 testskript består, inkludert API/auth/config/alias/cache/OTA-regresjon.
+  Fase D sine 18+57 sammenligninger består fortsatt.
+- Provider, frame pipeline, board-konfigurasjoner og firmware 1.2.13 er uendret.
+  Ingen merge/deploy. Før F: håndter migrering av gamle registry-poster eksplisitt
+  og ikke forveksle hardwareprofil-ID med validert fysisk hardwareidentitet.
