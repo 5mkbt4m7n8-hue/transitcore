@@ -291,3 +291,18 @@ adapter/validator med kompatibilitetsfixtures. Ingen stor filflytting først.
   duplikater, stale/manglende data og tom liste. Cache/feil testes separat.
 - Risiko før D: malformed-observation-policy, GPS/ETA-semantikk og global
   identitet må avklares. Testresultat er ikke en fysisk/live-sertifisering.
+
+## Fase D — implementert 2026-09-27, avventer PR-godkjenning
+
+- Basert på main 6ae617e / PR 194. FrameContext, posisjonstolkning, logisk/fysisk
+  mapping og rendering er skilt ut. Worker beholder transport/cache/lifecycle.
+- GPS bruker TransitVehicle direkte, uten raw-adapter i produksjonsflyten.
+  Malformed-observasjoner har eksplisitt kompatibilitetsprojeksjon; estimated
+  calls tolkes fortsatt separat i Worker. Se FRAME_PIPELINE_V1.md for grensene.
+- PixelFrame v1, konfigurasjonsfiler, API, registry, OTA og firmware 1.2.13 er
+  uendret. Validering fra B er opt-in, aktiv i nye tester.
+- 29 testskript består. 18 eksisterende og 57 nye før/etter-kontroller bruker
+  frosset fase-C-referanse; vellykkede frames er strukturelt/serialisert like.
+- Ingen ekstra provider-kall eller cachelag. Lokal måling viser sammenlignbar
+  byggetid; Cloudflare CPU/heap er ikke produksjonsmålt.
+- Ingen merge/deploy. Fase E starter først etter eksplisitt godkjenning.
