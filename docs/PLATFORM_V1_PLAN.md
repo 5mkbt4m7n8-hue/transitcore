@@ -321,3 +321,21 @@ adapter/validator med kompatibilitetsfixtures. Ingen stor filflytting først.
 - Provider, frame pipeline, board-konfigurasjoner og firmware 1.2.13 er uendret.
   Ingen merge/deploy. Før F: håndter migrering av gamle registry-poster eksplisitt
   og ikke forveksle hardwareprofil-ID med validert fysisk hardwareidentitet.
+
+## Fase F — implementert, avventer PR-godkjenning
+
+- Basert på main1f8488d / PR196. Kartlegging i PHASE_F_ANALYSIS.md.
+- Samme registry og per-device Durable Objects; ingen parallell datalagring.
+  DeviceRecord er en sikker join/projeksjon, ikke global heartbeat-duplisering.
+- Optional HealthStatus v1, eksplisitte capabilities, sentral konfigurerbar
+  statuspolicy og delta-baserte feilindikatorer. Firmware1.2.13 er urørt.
+- Transaksjonelt duplikatvern, mottaksbegrensning, kort sampling-historikk og
+  separate feil med levetid/opptelling. Ingen provider/frame-kall på status.
+- Admin-beskyttet paginert /api/v1/devices og detaljvisning klare for fase G.
+- 31 testskript består, inklusive full/legacy, auth, states, reboot,
+  duplikater/samtidighet, retention og hemmeligheter/paginering.
+- Legacy historikktest er justert eksplisitt for ny sampling/deduplisering;
+  ingen firmware-/provider-/frame-/PixelFrame-/OTA-policyendring.
+- Før G: kost-/lasttest i Cloudflare, edge-ratebegrensning og legacy offentlig
+  status-tilgang må vurderes. Uptime-basert reboot uten bootId er usikker.
+  Ingen deploy/merge; eksplisitt godkjenning kreves.

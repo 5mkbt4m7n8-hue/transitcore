@@ -56,3 +56,18 @@ A new config URL alone does not make old firmware dynamically configurable.
 
 See API_V1.md for route/error compatibility and DEVICE_CONFIG_V1.md for
 provisioning and schema.
+
+## Phase F health transition
+
+Both status URLs now normalize optional HealthStatus v1 into the existing
+per-device storage. Legacy1.2.13 names/body/reply remain supported; canonical
+clients can use firmwareVersion and partial optional measurements.
+See HEALTH_STATUS_V1.md for aliases, active errors, derived status, deduplication,
+429/Retry-After and retention. No firmware reporting interval is changed.
+
+GET /api/v1/devices and /api/v1/devices/{deviceId} are admin-only fleet data
+projections, not public status pages. See DEVICE_REGISTRY_V1.md for auth,
+pagination and bounded fan-out. Existing legacy public status access remains
+a security limitation; private health/deduplication metadata is not added there.
+Non-404 registry failure is fail-closed. Firmware gaps and reboot ambiguity are
+explicitly listed in FIRMWARE_TELEMETRY_GAPS.md.

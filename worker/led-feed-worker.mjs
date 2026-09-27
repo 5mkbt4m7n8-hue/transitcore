@@ -1,4 +1,8 @@
 import { mtaLine7Response } from "./mta-line7.mjs";
+import { normalizeHealthStatus } from "../core/models/health-status.mjs";
+import { healthPolicy } from "../core/models/device-record.mjs";
+import { storeTelemetry, publicSample, publicEvent } from "./devices/telemetry.mjs";
+import { fleetResponse } from "./devices/fleet.mjs";
 import { apiV1 } from "./api/v1.mjs";
 import { validateDeviceSettings } from "../core/models/device-config.mjs";
 import { createEnturProvider } from "../core/providers/entur/entur-provider.mjs";
@@ -452,6 +456,13 @@ export class DeviceStatus {
     const url = new URL(request.url);
     if (url.pathname === "/logs" || url.pathname === "/logs/session")
       return diagnosticsRequest(this.state.storage, request);
+    if (url.pathname === "/registry-page" && request.method === "GET") {
+      const limit=Math.max(1,Math.min(50,Number(url.searchParams.get("limit"))||20));
+      const after=url.searchParams.get("after")||"";
+      const values=await this.state.storage.list({prefix:"device:",limit:limit+1,...(after?{startAfter:"device:"+after}:{})});
+      const entries=[...values.values()];
+      return statusJson({devices:entries.slice(0,limit),nextCursor:entries.length>limit?entries[limit-1].deviceId:null});
+    }
     if (url.pathname === "/registry") {
       if (request.method === "GET") {
         const stored = await this.state.storage.list({ prefix: "device:" });
@@ -551,29 +562,25 @@ export class DeviceStatus {
       await this.state.storage.put("motion", result.state);
       return statusJson(display);
     }
+    if (url.pathname === "/telemetry" && request.method === "GET") {
+      const stored=await this.state.storage.get("latest")||null;
+      const latest=stored?{...publicSample(stored),health:stored.health,
+        _telemetry:{deltas:stored._telemetry?.deltas,reboots:stored._telemetry?.reboots}}:null;
+      if(url.searchParams.get("detail")!=="1")return statusJson({latest});
+      const history=await this.state.storage.get("history")||[];
+      const errors=await this.state.storage.get("errors")||[];
+      return statusJson({latest,history,errors});
+    }
     if (request.method === "POST") {
-      const sample = await request.json();
-      const latest = (await this.state.storage.get("latest")) || null;
-      const history = (await this.state.storage.get("history")) || [];
-      history.push(sample);
-      while (history.length > 288) history.shift();
-      const errors = (await this.state.storage.get("errors")) || [];
-      const incomingErrors = sample.errorQueue?.length ? sample.errorQueue : sample.lastError ? [sample.lastError] : [];
-      for (const incomingError of incomingErrors) {
-        const duplicate = incomingError.id != null
-          ? errors.some(error => error.id === incomingError.id)
-          : errors.some(error => error.code === incomingError.code && error.occurredAtUptimeSeconds === incomingError.occurredAtUptimeSeconds && error.occurrences === incomingError.occurrences);
-        if (!duplicate) errors.push({ receivedAt: sample.receivedAt, ...incomingError });
-      }
-      while (errors.length > 100) errors.shift();
-      await this.state.storage.put({ latest: sample, history, errors });
-      const logUntil = Number(await this.state.storage.get("logUntil") || 0);
-      return statusJson({ ok: true, logSeconds: Math.max(0, Math.min(900, Math.ceil((logUntil-Date.now())/1000))) });
+      const result=await storeTelemetry(this.state.storage,await request.json());
+      const response=statusJson(result.body,result.status);
+      if(result.retryAfter)response.headers.set("retry-after",String(result.retryAfter));
+      return response;
     }
     const latest = await this.state.storage.get("latest");
     const history = await this.state.storage.get("history") || [];
     const errors = await this.state.storage.get("errors") || [];
-    return statusJson({ latest: latest || null, history, errors });
+    return statusJson({ latest: publicSample(latest), history: history.map(publicSample), errors:errors.map(publicEvent) });
   }
 }
 
@@ -629,6 +636,7 @@ async function lookupDeviceRegistration(env, deviceId) {
       }
       return null;
     }
+    if(response.status!==404)throw Error("Device registry unavailable");
   }
   return resolveDeviceRegistration(env, deviceId);
 }
@@ -1154,6 +1162,9 @@ const worker = {
       legacy: forwarded=>worker.fetch(forwarded,env),
       configuration: boardId=>configuration(boardId,Date.now()),
       cachedProfiles: ()=>configCache.size,
+      fleet: (request)=>fleetResponse(request,env,{registry:()=>deviceRegistry(env),
+        authenticate:token=>secureTokenEquals(token,env.PUBLISH_ADMIN_TOKEN),
+        policy:()=>healthPolicy(JSON.parse(env.HEALTH_POLICY||"{}"))}),
       registration: async deviceId=>{
         const response=await deviceRegistry(env).fetch(`https://status.internal/registry/${encodeURIComponent(deviceId)}`);
         if(response.status===404)return null;
@@ -1270,8 +1281,27 @@ const worker = {
         return statusJson({ error: "unauthorized" }, 401);
       }
       try {
-        const sample = cleanStatusPayload(await request.json(), deviceId, registration.boardProfile, Date.now());
-        return stub.fetch("https://status.internal/", { method: "POST", body: JSON.stringify(sample) });
+        if(Number(request.headers.get("content-length")||0)>32768)return statusJson({error:"body_too_large"},413);
+        const body=await request.text();
+        if(body.length>32768)return statusJson({error:"body_too_large"},413);
+        const raw=JSON.parse(body),now=Date.now();
+        const health=normalizeHealthStatus(raw,registration,now);
+        const sample=raw.firmware!=null?cleanStatusPayload(raw,deviceId,registration.boardProfile,now):{
+          schemaVersion:1,deviceId,boardProfile:registration.boardProfile,firmware:health.firmwareVersion,
+          receivedAt:health.receivedAt,uptimeSeconds:health.uptimeSeconds,frameValid:health.frameValid,
+          frameAgeSeconds:health.lastFrameAgeSeconds,freeHeap:health.freeHeap,minimumFreeHeap:health.minimumFreeHeap,
+          feedSuccesses:health.successfulPolls,feedFailures:health.failedPolls,
+          wifiOutages:health.wifiOutages,wifiRecoveries:health.wifiRecoveries};
+        let policy;
+        try{
+          const configured=JSON.parse(env.HEALTH_POLICY||"{}");
+          policy=healthPolicy({...configured,heartbeatSeconds:registration.deviceConfig?.statusIntervalSeconds||configured.heartbeatSeconds||300});
+        }catch{return statusJson({error:"health_policy_invalid"},503)}
+        sample.health=health;sample._healthPolicy=policy;
+        try{
+          return await boundedOperation("telemetry_write",()=>stub.fetch("https://status.internal/", {
+            method:"POST",body:JSON.stringify(sample)}),1500);
+        }catch{return statusJson({error:"status_storage_unavailable"},503)}
       } catch (error) {
         return statusJson({ error: "invalid_status", message: error.message }, 400);
       }

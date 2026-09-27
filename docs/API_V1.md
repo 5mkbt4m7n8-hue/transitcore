@@ -10,6 +10,8 @@ cache policy or deployment is introduced. Firmware baseline is 1.2.13.
 | GET /api/v1/device/config/{deviceId} | Authenticated DeviceConfig v1 |
 | GET /api/v1/ota/{deviceId} | Registry policy check, then existing OTA handler |
 | GET /api/v1/platform/health | Cheap liveness/capability snapshot; no IO |
+| GET /api/v1/devices | Admin-only paginated DeviceRecord list (Phase F) |
+| GET /api/v1/devices/{deviceId} | Admin-only health/history/errors (Phase F) |
 
 JSON responses use no-store. Frame response retains existing headers/body and
 TTL. Aliases invoke the same handler in-process, not a second Worker HTTP
@@ -89,3 +91,8 @@ Use existing diagnostics/monitor history for actual operational health.
 API v1, DeviceConfig schemaVersion 1 and PixelFrame schemaVersion 1 are separate.
 Additive response fields can be ignored. An incompatible contract requires a
 new version/migration plan, not a silent change to v1.
+
+Phase F adds optional canonical HealthStatus names to both status paths while
+keeping legacy1.2.13 payloads. Distinct excessive posts may return429 with
+Retry-After; retries are deduplicated. See HEALTH_STATUS_V1.md for retention and
+DEVICE_REGISTRY_V1.md for the admin-only read contract.
