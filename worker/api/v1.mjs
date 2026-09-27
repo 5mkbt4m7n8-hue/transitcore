@@ -16,6 +16,8 @@ export async function apiV1(request, env, services) {
     return services.legacy(new Request(target,{method:request.method,headers,
       ...(body===undefined?{}:{body})}));
   };
+  if(path==="/api/v1/devices"||new RegExp("^/api/v1/devices/("+idPattern+")$").test(path))
+    return services.fleet(request);
   const frame=path.match(/^\/api\/v1\/frame\/([a-z0-9-]{3,120})$/);
   if(frame) {
     if(request.method!=="GET")return error("method_not_allowed",405);

@@ -68,9 +68,12 @@ const state = { storage: {
   put: async entries => Object.entries(entries).forEach(([key, value]) => values.set(key, value))
 } };
 const object = new DeviceStatus(state);
+const timeline=Date.parse(clean.receivedAt);
 for (let i = 0; i < 300; i++) {
-  await object.fetch(new Request("https://internal/", { method: "POST", body: JSON.stringify({ ...clean, uptimeSeconds: i }) }));
+  await object.fetch(new Request("https://internal/", { method: "POST", body: JSON.stringify({ ...clean, uptimeSeconds: i,receivedAt:new Date(timeline+i*300000).toISOString() }) }));
 }
+errorClean.receivedAt=new Date(timeline+300*300000).toISOString();
+queuedClean.receivedAt=new Date(timeline+301*300000).toISOString();
 await object.fetch(new Request("https://internal/", { method: "POST", body: JSON.stringify(errorClean) }));
 await object.fetch(new Request("https://internal/", { method: "POST", body: JSON.stringify(errorClean) }));
 await object.fetch(new Request("https://internal/", { method: "POST", body: JSON.stringify(queuedClean) }));
@@ -78,7 +81,7 @@ await object.fetch(new Request("https://internal/", { method: "POST", body: JSON
 const stored = await object.fetch(new Request("https://internal/")).then(response => response.json());
 assert.equal(stored.latest.firmware, "1.2.6");
 assert.equal(stored.history.length, 288);
-assert.equal(stored.history[0].uptimeSeconds, 16);
+assert.equal(stored.history[0].uptimeSeconds, 14, "duplicate retries no longer consume history slots");
 assert.equal(stored.errors.length, 3);
 assert.equal(stored.errors[0].code, "FEED_RECEIVE");
 assert.deepEqual(stored.errors.slice(1).map(error => error.id), [41, 42]);
