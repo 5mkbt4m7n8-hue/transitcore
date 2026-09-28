@@ -67,4 +67,3 @@ try{
  assert.equal(listCalls+detailCalls,disconnected);assert.deepEqual(errors,[]);
  console.log("Fleet browser: desktop/mobile, list/filter/detail/errors, no secrets, pagination, hidden tab, stale/API errors, auth failure, empty and logout passed");
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
-

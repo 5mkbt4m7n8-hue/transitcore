@@ -84,4 +84,3 @@ document.addEventListener("visibilitychange",()=>{
  if(document.hidden){abort();}else if(connected){loadList();loadDetail();}
 });
 window.addEventListener("pagehide",()=>logout());
-

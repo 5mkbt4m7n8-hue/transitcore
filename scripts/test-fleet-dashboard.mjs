@@ -50,4 +50,3 @@ for(const name of ["app.mjs","client.mjs","model.mjs","index.html"]){
  assert.doesNotMatch(text,/localStorage|sessionStorage|console\.log|\/v1\/devices\/.*\/status/);
 }
 console.log("Fleet UI: rendering, filters, unknown/zero, errors, history, empty, API error, pagination, detail, abort and secret exclusion passed");
-

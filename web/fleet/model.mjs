@@ -48,4 +48,3 @@ export function historyRows(history){
  value(s.health?.lastFrameAgeSeconds," s"),value(s.health?.freeHeap," byte"),value(s.health?.failedPolls)]
  .map(v=>'<td>'+escape(v)+'</td>').join("")+'</tr>').join("");
 }
-

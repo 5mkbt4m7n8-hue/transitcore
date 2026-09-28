@@ -117,4 +117,3 @@ Historical data is bounded by existing retention and reflects report samples,
 not continuous connectivity. Production authentication and stronger edge rate
 limits remain separate work. Firmware, providers, frame pipeline and OTA
 selection are intentionally unchanged.
-
