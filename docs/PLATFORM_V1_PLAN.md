@@ -322,7 +322,7 @@ adapter/validator med kompatibilitetsfixtures. Ingen stor filflytting først.
   Ingen merge/deploy. Før F: håndter migrering av gamle registry-poster eksplisitt
   og ikke forveksle hardwareprofil-ID med validert fysisk hardwareidentitet.
 
-## Fase F — implementert, avventer PR-godkjenning
+## Fase F — merget i main via PR 197
 
 - Basert på main1f8488d / PR196. Kartlegging i PHASE_F_ANALYSIS.md.
 - Samme registry og per-device Durable Objects; ingen parallell datalagring.
@@ -339,3 +339,21 @@ adapter/validator med kompatibilitetsfixtures. Ingen stor filflytting først.
 - Før G: kost-/lasttest i Cloudflare, edge-ratebegrensning og legacy offentlig
   status-tilgang må vurderes. Uptime-basert reboot uten bootId er usikker.
   Ingen deploy/merge; eksplisitt godkjenning kreves.
+
+## Fase G — Fleet Dashboard implementert, avventer PR-godkjenning
+
+- Basert på main f3cb270 / merget PR 197. Read-only web/fleet med paginert
+  liste, filtre, status-/firmware-/tavleoversikt, detaljer, feil og historikk.
+- Eksisterende admin-API brukes; ingen parallell backend. Kun nødvendige
+  additive CORS-header og otaEnabled-projeksjon fra registry er lagt til.
+- Oppsummeringer gjelder innlastede sider; ukjent informasjon gjettes ikke.
+  Status beregnes fortsatt sentralt. Enhetsdetaljer hentes kun ved åpning.
+- 60 sekunders separate oppdateringer, ingen polling i skjulte faner,
+  kansellering og tydelig markering av utdaterte data ved feil.
+- Midlertidig operatørmodus med administratornøkkel kun i minnet. Ikke en
+  produksjonsklar kundepålogging. Se FLEET_DASHBOARD_V1.md for begrensninger,
+  kostnadsestimat, firmwaregap og tester.
+- Firmware 1.2.13, provider, frame pipeline og OTA-selection er uendret.
+  32 testskript består, samt separat nettlesertest på desktop/mobil med
+  syntetiske API-svar og test av skjult fane, tilgangsfeil og frakobling.
+  Ingen merge/deploy; eksplisitt godkjenning kreves.

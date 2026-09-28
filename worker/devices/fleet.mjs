@@ -2,7 +2,8 @@ import {deviceRecord,healthPolicy} from "../../core/models/device-record.mjs";
 import {validDeviceId} from "../../core/models/device-config.mjs";
 import {safeEvent} from "./telemetry.mjs";
 import {normalizeHealthStatus} from "../../core/models/health-status.mjs";
-const json=(body,status=200)=>Response.json(body,{status,headers:{"cache-control":"no-store"}});
+// Same CORS contract as API v1; every response still requires admin authentication.
+const json=(body,status=200)=>Response.json(body,{status,headers:{"cache-control":"no-store","access-control-allow-origin":"*"}});
 export async function fleetResponse(request,env,services) {
   if(!env.PUBLISH_ADMIN_TOKEN)return json({error:"admin_not_configured"},503);
   const auth=request.headers.get("authorization")||"";

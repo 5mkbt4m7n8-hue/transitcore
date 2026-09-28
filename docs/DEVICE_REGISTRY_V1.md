@@ -26,6 +26,7 @@ or firmware update. PHASE_F_ANALYSIS.md records the pre-change inventory.
   "lastSeen": "2026-09-27T12:05:00.000Z",
   "firmwareVersion": "1.2.13",
   "desiredFirmwareVersion": null,
+  "otaEnabled": null,
   "status": "ONLINE",
   "reasons": [],
   "featureFlags": {},
@@ -38,6 +39,8 @@ unprovisioned records; no hardware guessing. desiredFirmwareVersion is optional
 registry metadata, null unless explicitly present/valid. Phase F does not
 derive/modify OTA releases or add a firmware-policy write endpoint.
 Status and reasons are calculated at read time, including silence/offline.
+Phase G adds nullable otaEnabled, projecting only an explicitly provisioned
+deviceConfig boolean. It does not infer update availability or change OTA policy.
 ONLINE means a timely heartbeat with no observed fault, not proof that every
 unknown metric or physical LED is healthy.
 
