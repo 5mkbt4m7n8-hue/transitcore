@@ -340,7 +340,7 @@ adapter/validator med kompatibilitetsfixtures. Ingen stor filflytting først.
   status-tilgang må vurderes. Uptime-basert reboot uten bootId er usikker.
   Ingen deploy/merge; eksplisitt godkjenning kreves.
 
-## Fase G — Fleet Dashboard implementert, avventer PR-godkjenning
+## Fase G — Fleet Dashboard merget via PR 198
 
 - Basert på main f3cb270 / merget PR 197. Read-only web/fleet med paginert
   liste, filtre, status-/firmware-/tavleoversikt, detaljer, feil og historikk.
@@ -357,3 +357,18 @@ adapter/validator med kompatibilitetsfixtures. Ingen stor filflytting først.
   32 testskript består, samt separat nettlesertest på desktop/mobil med
   syntetiske API-svar og test av skjult fane, tilgangsfeil og frakobling.
   Ingen merge/deploy; eksplisitt godkjenning kreves.
+
+## Fase H — Universal firmware 1.3.0, avventer godkjenning
+
+- Bruker eksisterende 1.2.13 som uendret baseline, separat opt-in 1.3.0-fil og
+  plattform-header. Ingen provider-/frame-pipeline-/PixelFrame-endring.
+- DeviceConfig valideres samlet, bindes til fysisk byggprofil og caches i NVS.
+  Live/cached/default-kilde og feil rapporteres; ingen GPIO/layout-endring fra nett.
+- Kanonisk health med RSSI, boot-ID/-teller, konfigurasjonsstatus og OTA-steg.
+  Backend får kun additive valgfrie felt. 1.2.13 støttes fortsatt.
+- Wi-Fi-bortfall gir kontrollert degraded drift, ikke tidsstyrt reboot-loop.
+  Eksisterende TTL, render-task, OTA-målvalidering og trial rollback beholdes.
+- 33 testskript består; kontraktsimuleringer/source-regresjon er ikke emulator
+  eller fysisk verifikasjon. Se FIRMWARE_1_3.md og hardware-sjekklisten.
+- Pakke-generator og OTA-releasevalg er ikke flyttet til1.3. Ingen merge/deploy.
+  Før godkjenning for produksjon: fysisk test, flash/heap-margin og langkjøring.

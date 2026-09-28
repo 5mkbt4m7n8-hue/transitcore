@@ -186,5 +186,15 @@ try{
   const publicStatus=await worker.fetch(req("/v1/devices/"+identity.deviceId+"/status"),env).then(r=>r.json());
   assert.equal(publicStatus.latest.health,undefined);
   assert.equal(publicStatus.latest._telemetry,undefined);
+  now+=300000;
+  const modern={...full,firmwareVersion:"1.3.0",bootId:"12345678-90abcdef",bootCount:2,
+    resetReason:"POWER_ON",configSource:"CACHED",configFetchResult:"FAILED_HTTP",otaStage:"TRIAL_BOOT",
+    lastOtaResult:"pending",uptimeSeconds:10,timestamp:new Date(now).toISOString()};
+  assert.equal((await post(modern)).status,200);
+  const modernRecord=await detail();
+  assert.equal(modernRecord.health.configSource,"CACHED");
+  assert.equal(modernRecord.health.otaStage,"TRIAL_BOOT");
+  now+=300000;
+  assert.equal((await post({...legacy,uptimeSeconds:400})).status,200,"1.2.13 still accepted after 1.3.0");
 }finally{Date.now=originalNow;globalThis.fetch=originalFetch;}
 console.log("Health/Fleet: full/legacy, auth, status states, deltas, reboot scope, idempotency, errors, retention and pagination passed");

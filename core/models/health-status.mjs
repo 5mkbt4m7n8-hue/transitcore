@@ -9,7 +9,8 @@ export const errorCode=code=>codes[code]||code;
 export const errorMessage=code=>({
   WIFI_DOWN:"Wi-Fi disconnected",FRAME_FETCH_FAILED:"Frame fetch failed",FRAME_STALE:"Frame is stale",
   INVALID_FRAME:"Frame validation failed",CONFIG_FAILED:"Configuration failed",OTA_FAILED:"OTA failed",
-  LOW_HEAP:"Low free heap",REBOOT_LOOP:"Repeated restarts",PROFILE_MISMATCH:"Profile mismatch"
+  LOW_HEAP:"Low free heap",REBOOT_LOOP:"Repeated restarts",PROFILE_MISMATCH:"Profile mismatch",
+  NVS_FAILED:"Local persistence unavailable"
 }[errorCode(code)]||"Device reported an event");
 
 export function normalizeHealthStatus(value, registration, now=Date.now()) {
@@ -68,7 +69,10 @@ export function normalizeHealthStatus(value, registration, now=Date.now()) {
     lastFrameAgeSeconds:num("lastFrameAgeSeconds"),lastFrameSequence:num("lastFrameSequence"),
     successfulPolls:num("successfulPolls"),failedPolls:num("failedPolls"),wifiOutages:num("wifiOutages"),
     wifiRecoveries:num("wifiRecoveries"),minimumFreeHeap:num("minimumFreeHeap",0,16000000),frameValid,
-    lastOtaResult:text("lastOtaResult",/^(none|pending|success|failed)$/),errors};
+    lastOtaResult:text("lastOtaResult",/^(none|pending|success|failed)$/),
+    configSource:text("configSource",/^(LIVE|CACHED|DEFAULT)$/),
+    configFetchResult:text("configFetchResult",/^(NOT_CHECKED|SUCCESS|FAILED_HTTP|FAILED_VALIDATION|PROFILE_MISMATCH)$/),
+    otaStage:text("otaStage",/^(NOT_CHECKED|NO_UPDATE|UPDATE_AVAILABLE|DOWNLOAD_STARTED|TRIAL_BOOT|SUCCESS|FAILED_HTTP|FAILED_VALIDATION|FAILED_FLASH|DISABLED)$/),errors};
   health.capabilities={reportedFields:fields.sort(),legacy:typeof value.firmware==="string",errorSnapshot:Array.isArray(value.errors)};
   return health;
 }

@@ -31,6 +31,7 @@ export function details(d){
  ["Status",status(d.status)],["Årsaker",(d.reasons||[]).join(", ")],["Opprettet",date(d.createdAt)],["Sist sett",date(d.lastSeen)],
  ["Firmware",d.firmwareVersion],["Ønsket firmware",d.desiredFirmwareVersion],["OTA aktivert",yesNo(d.otaEnabled)],
  ["Oppdatering tilgjengelig",yesNo(d.updateAvailable)],["Siste OTA-resultat",h.lastOtaResult],
+ ["OTA-steg",h.otaStage],["Konfigurasjonskilde",h.configSource],["Konfigurasjonshenting",h.configFetchResult],
  ["Oppetid",value(h.uptimeSeconds," s")],["RSSI",value(h.wifiRssi," dBm")],["Ledig heap",value(h.freeHeap," byte")],
  ["Laveste heap",value(h.minimumFreeHeap," byte")],["Oppstarter",h.bootCount],["Boot-ID",h.bootId],["Reset-årsak",h.resetReason],
  ["Frame-alder ved rapport",value(h.lastFrameAgeSeconds," s")],["Frame-sekvens",h.lastFrameSequence],

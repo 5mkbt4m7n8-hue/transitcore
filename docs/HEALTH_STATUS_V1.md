@@ -105,3 +105,16 @@ No new alarms, per-heartbeat global registry write or upstream requests.
 Legacy GET latest/history/errors keys remain, with safe legacy error field
 names. History/count semantics intentionally change to deduplication and bounded
 sampling; they are not a complete event-by-event archive.
+
+## Firmware 1.3.0 additive fields (Phase H)
+
+Optional configSource: LIVE/CACHED/DEFAULT; configFetchResult:
+NOT_CHECKED/SUCCESS/FAILED_HTTP/FAILED_VALIDATION/PROFILE_MISMATCH.
+Optional otaStage: NOT_CHECKED/NO_UPDATE/UPDATE_AVAILABLE/DOWNLOAD_STARTED/
+TRIAL_BOOT/SUCCESS/FAILED_HTTP/FAILED_VALIDATION/FAILED_FLASH/DISABLED.
+Unknown enum values are rejected; omitted fields normalize to null. Existing
+lastOtaResult remains none/pending/success/failed. No schemaVersion change.
+The fleet detail view adds these three diagnostic fields without redesign.
+Firmware1.3 supplies canonical fields, boot-scoped counters, monotonic uptime,
+RSSI and normalized reset reason; see FIRMWARE_1_3.md. Firmware1.2.13 aliases
+and numeric resetReason are still supported. NVS errors are explicit warnings.

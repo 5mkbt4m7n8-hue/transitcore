@@ -31,3 +31,19 @@ unchanged sample identity, distinguish active vs historical error reports,
 test power loss/counter wrap and optional-field negotiation. Dynamic config
 adoption is still separate firmware work. This server PR does not reflash,
 start OTA, alter LED behavior or change frame TTL.
+
+## Phase H implementation: opt-in 1.3.0
+
+Closed in source: RSSI, boot-scoped unique bootId, persistent bootCount (nullable
+on failure), normalized resetReason, accepted frame sequence, monotonic frame
+age/uptime, canonical poll counters, configSource/configFetchResult and otaStage.
+HardwareProfile reports compiled identity, not hardware auto-detection.
+SUCCESS requires confirmed trial boot; download completion alone is pending.
+
+Still missing/deferred: physical validation; device wall-clock timestamp in
+health (server receivedAt remains authoritative); durable OTA result across
+arbitrary reboot; physically observed LED output/voltage/temperature; reliable
+boot count if NVS fails; production credential hardening. Legacy error history
+can overlap canonical active-state events; do not sum both as unique failures.
+Existing 1.2.13 remains supported with its original unknown fields. No automatic
+fleet migration or package promotion is performed.
