@@ -71,3 +71,15 @@ pagination and bounded fan-out. Existing legacy public status access remains
 a security limitation; private health/deduplication metadata is not added there.
 Non-404 registry failure is fail-closed. Firmware gaps and reboot ambiguity are
 explicitly listed in FIRMWARE_TELEMETRY_GAPS.md.
+
+## Phase H client 1.3.0
+
+The opt-in Universal BoardClient1.3.0 uses existing device/config, frame,
+device/status and ota routes under /api/v1. Diagnostic logs retain their legacy
+route. DeviceConfig response format is unchanged; status URL is derived from
+the compiled trusted origin. No firmware promotion or deployment in this PR.
+See DEVICE_CONFIG_CLIENT_V1.md for atomic validation/cache/hardware binding,
+FIRMWARE_1_3.md for request cadence/OTA confirmation, and
+FIRMWARE_1_3_HARDWARE_TEST.md for mandatory pending acceptance checks.
+Canonical health avoids the legacy firmware field; firmwareVersion is supplied.
+Optional health configSource/configFetchResult/otaStage are additive and nullable.
