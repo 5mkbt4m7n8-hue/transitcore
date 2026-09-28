@@ -16,6 +16,7 @@ jobs:
           node-version: 22
       - run: |
           node scripts/test-esp13-compile-fixtures.mjs
+          node scripts/test-firmware-edge-cases.mjs
           node scripts/test-firmware-platform.mjs
           node scripts/test-health-telemetry.mjs
           node scripts/test-api-v1.mjs
