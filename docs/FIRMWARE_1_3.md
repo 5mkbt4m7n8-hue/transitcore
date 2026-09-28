@@ -29,6 +29,19 @@ uses dummy CI credentials and is NOT a provisioned installation package.
 `node scripts/prepare-esp13-compile.mjs` creates ignored .build compile fixtures
 for Gråkallbanen prototype and Trondheim bus. Never flash CI_ONLY credentials.
 
+### Incomplete hardware profiles in CI
+
+Trondheim bus currently has `leds.dataPin: null`: it is not a provisioned physical
+GPIO mapping. The compile-only generator uses synthetic GPIO 14 when dataPin is
+null or missing, prints a GitHub Actions warning and marks the generated header
+with `TRANSITCORE_CI_SYNTHETIC_GPIO=1` and a DO NOT FLASH comment. This exercises
+the hardware-enabled code on both ESP32 and ESP32-S3 without inventing a production
+board mapping. Board/hardware JSON and production packaging remain unchanged.
+Configured numeric GPIOs are retained; malformed non-null values fail generation
+instead of being silently replaced. Integer bounds are not electrical validation.
+The fixture test covers missing/invalid pins, generated C++ and unchanged profiles.
+Successful CI compilation does not make an unprovisioned board physically ready.
+
 ## Boot and network
 
 NVS boot counter + random session ID -> compiled defaults/cached config ->
@@ -116,7 +129,7 @@ non-OTA partition merely to make a future binary fit. CI separately compiles
 both generated board fixtures on both targets; local results above are for the
 16-LED prototype, not every product. No physical hardware tests were run.
 
-All 33 test scripts pass, including old 1.2.13 ingestion after a canonical 1.3
+All 34 test scripts pass, including compile-fixture validation and old 1.2.13 ingestion after a canonical 1.3
 report. Fleet browser acceptance also passes with synthetic responses. Frame
 pipeline reference tests pass; source guards compare the actual parser, pulse
 and render functions to1.2.13 (only parser board-context expression differs).

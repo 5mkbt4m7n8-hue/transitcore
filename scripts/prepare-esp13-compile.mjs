@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { resolveFixtureGpio } from "./esp13-fixture-gpio.mjs";
 const root=path.resolve(import.meta.dirname,"..");
 const out=path.resolve(process.argv[2]||path.join(root,".build","esp13-sketches"));
 const ids=["grakallbanen-prototype-board","trondheim-bus-board"];
@@ -8,6 +9,8 @@ for(const id of ids){
  const hardware=JSON.parse(fs.readFileSync(path.join(root,"config/hardware",id+"-hardware.json"),"utf8"));
  const board=JSON.parse(fs.readFileSync(path.join(root,"config/boards",id+".json"),"utf8"));
  if(hardware.boardProfile!==id||hardware.leds.count!==board.nodes.length)throw Error("Invalid profile");
+ const gpio=resolveFixtureGpio(hardware.leds.dataPin);
+ if(gpio.synthetic)console.warn(`::warning::${id}: hardware dataPin is unassigned; using CI-only GPIO ${gpio.pin} for compile coverage. Production profile is unchanged. DO NOT FLASH this fixture.`);
  const name="TransitCore13_"+id.replaceAll("-","_"),dir=path.join(out,name);
  fs.mkdirSync(dir,{recursive:true});
  const secretPath=path.join(dir,"secrets.h");
@@ -18,7 +21,10 @@ for(const id of ids){
  fs.copyFileSync(path.join(root,"firmware/esp32/TransitCore_Platform_v1.h"),path.join(dir,"TransitCore_Platform_v1.h"));
  fs.writeFileSync(path.join(dir,"board_config.h"),[
  "#pragma once",
- "const uint8_t LED_DATA_PIN = "+hardware.leds.dataPin+";",
+ "// COMPILE FIXTURE ONLY - NOT A PROVISIONED INSTALLATION PACKAGE. DO NOT FLASH.",
+ gpio.synthetic ? "// Unassigned production GPIO: the pin below is synthetic and CI-only." : "// GPIO copied from hardware profile; other values/credentials are CI-only.",
+ "#define TRANSITCORE_CI_SYNTHETIC_GPIO "+Number(gpio.synthetic),
+ "const uint8_t LED_DATA_PIN = "+gpio.pin+";",
  "const uint16_t LED_COUNT = "+hardware.leds.count+";",
  'const char* EXPECTED_BOARD_PROFILE = "'+id+'";',
  'const char* FEED_URL = "https://transitcore-led-feed.lgb84.workers.dev/api/v1/frame/'+id+'";',
