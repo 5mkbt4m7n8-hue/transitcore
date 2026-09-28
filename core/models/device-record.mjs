@@ -50,6 +50,7 @@ export function deviceRecord(registration,latest,now,policy) {
     enabled:registration.enabled===true,createdAt:registration.createdAt??null,
     lastSeen:h?.receivedAt||latest?.receivedAt||null,
     firmwareVersion:h?.firmwareVersion??latest?.firmware??null,
+    otaEnabled:typeof registration.deviceConfig?.otaEnabled==="boolean"?registration.deviceConfig.otaEnabled:null,
     desiredFirmwareVersion:/^\d+\.\d+\.\d+$/.test(registration.desiredFirmwareVersion||"")?registration.desiredFirmwareVersion:null,
     ...evaluateHealth(registration,latest,now,policy),
     featureFlags:Object.fromEntries(Object.entries(registration.deviceConfig?.featureFlags||{}).filter(([key,v])=>/^[a-z][a-zA-Z0-9]{0,39}$/.test(key)&&typeof v==="boolean").slice(0,32)),

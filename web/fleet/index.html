@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="nb"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://transitcore-led-feed.lgb84.workers.dev; script-src 'self'; style-src 'self'; img-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>TransitCore · Fleet</title><link rel="stylesheet" href="fleet.css"><script type="module" src="app.mjs"></script></head>
+<body><header><div><p class="eyebrow">TRANSITCORE / ADMIN</p><h1>Enhetene dine</h1><p>Drift, feil og siste rapporter — uten å endre enhetene.</p></div><span class="tag">Fleet v1 · Kun lesing</span></header>
+<main>
+<section id="login"><h2>Koble til fleet</h2><p>Operatørmodus for prototypen. Bruk bare en betrodd maskin. Nøkkelen beholdes kun i minnet til du kobler fra eller lukker siden.</p>
+<form id="auth"><label>Administratornøkkel <input id="token" type="password" autocomplete="off" required spellcheck="false"></label><button>Koble til</button></form>
+<p>Ingen enhetsnøkler vises. Kun det administratorbeskyttede TransitCore-API-et brukes.</p></section>
+<p id="message" role="status" aria-live="polite">Ikke tilkoblet.</p>
+<div id="workspace" hidden>
+<div class="toolbar"><p id="updated"></p><button id="refresh">Oppdater nå</button><button id="logout">Koble fra</button></div>
+<section><h2>Oversikt <small>Innlastede enheter</small></h2><p id="scope"></p><div id="summary" class="summary"></div><div class="distributions"><div><h3>Firmware</h3><ul id="firmwares"></ul></div><div><h3>Tavler</h3><ul id="boards"></ul></div></div></section>
+<section><h2>Enheter</h2><div class="filters"><label>Søk<input id="search" type="search" placeholder="Enhets-ID eller navn"></label>
+<label>Status<select id="status"><option value="">Alle</option><option>ONLINE</option><option>DEGRADED</option><option>OFFLINE</option><option>ERROR</option><option>DISABLED</option><option>UKJENT</option></select></label>
+<label>Tavle<select id="board"><option value="">Alle</option></select></label><label>Firmware<select id="firmware"><option value="">Alle</option></select></label></div>
+<p id="list-note"></p><div class="scroll"><table><thead><tr><th>Enhet</th><th>Tavle</th><th>Hardware</th><th>Status</th><th>Firmware</th><th>Sist sett</th><th>RSSI</th><th>Frame-alder¹</th><th>Aktive feil</th><th>OTA-resultat</th></tr></thead><tbody id="rows"></tbody></table></div>
+<p id="empty"></p><button id="more" hidden>Last neste 20</button><p class="muted">¹ Frame-alder og målinger gjelder siste enhetsrapport, ikke nåtid. Status beregnes av serveren. Liste oppdateres hvert 60. sekund mens fanen er synlig.</p></section>
+<section id="detail" hidden aria-labelledby="detail-title"><div class="toolbar"><h2 id="detail-title" tabindex="-1">Enhetsdetaljer</h2><button id="detail-refresh">Oppdater detaljer</button><button id="close-detail">Lukk detaljer</button></div>
+<p id="detail-message" role="status"></p><div id="detail-body"></div>
+<h3>Aktive og nylige feil</h3><p id="errors-note"></p><div class="scroll"><table><thead><tr><th>Status</th><th>Kode</th><th>Alvorlighet</th><th>Først sett</th><th>Sist sett</th><th>Antall</th><th>Melding</th></tr></thead><tbody id="errors"></tbody></table></div>
+<h3>Siste tilgjengelige historikk</h3><p id="history-note"></p><div class="scroll history"><table><thead><tr><th>Rapporttid</th><th>Status</th><th>RSSI</th><th>Frame-alder</th><th>Ledig heap</th><th>Mislykkede hentinger²</th></tr></thead><tbody id="history"></tbody></table></div>
+<p class="muted">² Teller siden oppstart, ikke nye feil per rad. Historikken viser lagrede prøver, ikke kontinuerlig overvåking. Detaljer oppdateres separat hvert 60. sekund.</p></section>
+</div></main><footer>TransitCore Platform · Ingen endring av firmware, konfigurasjon eller OTA fra denne siden.</footer></body></html>
+

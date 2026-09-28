@@ -14,6 +14,9 @@ const full={schemaVersion:1,deviceId:identity.deviceId,boardProfile:identity.boa
   resetReason:"POWERON",lastFrameAgeSeconds:1,lastFrameSequence:123,successfulPolls:100,
   failedPolls:0,wifiOutages:0,lastOtaResult:"success",frameValid:true,errors:[]};
 const h=normalizeHealthStatus(full,identity,now);
+assert.equal(deviceRecord(identity,null,now,policy).otaEnabled,null);
+assert.equal(deviceRecord({...identity,deviceConfig:{otaEnabled:false}},null,now,policy).otaEnabled,false);
+assert.equal(deviceRecord({...identity,deviceConfig:{otaEnabled:true}},null,now,policy).otaEnabled,true);
 assert.equal(h.firmwareVersion,"1.3.0");assert.equal(h.wifiRssi,-55);
 const legacy={schemaVersion:1,deviceId:identity.deviceId,boardProfile:identity.boardProfile,firmware:"1.2.13",
   uptimeSeconds:100,freeHeap:200000,minimumFreeHeap:190000,feedSuccesses:10,feedFailures:0,
@@ -125,7 +128,10 @@ try{
   const listBefore=lists;
   assert.equal((await worker.fetch(req("/api/v1/devices","GET",undefined,token),env)).status,401);
   assert.equal(lists,listBefore,"Unauthorized request never scans registry");
-  const page=await worker.fetch(req("/api/v1/devices?limit=2"),env).then(r=>r.json());
+  const listResponse=await worker.fetch(req("/api/v1/devices?limit=2"),env);
+  assert.equal(listResponse.headers.get("access-control-allow-origin"),"*");
+  assert.equal(listResponse.headers.get("cache-control"),"no-store");
+  const page=await listResponse.json();
   assert.equal(page.devices.length,2);assert.ok(page.nextCursor);
   const next=await worker.fetch(req("/api/v1/devices?limit=2&cursor="+page.nextCursor),env).then(r=>r.json());
   assert.equal(next.devices.length,2);assert.notEqual(page.devices[1].deviceId,next.devices[0].deviceId);
