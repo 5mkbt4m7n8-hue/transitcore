@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "firmware": "1.3.0",
+  "device": "esp32",
+  "tests": [
+    { "id": "Q01", "result": "NOT_RUN", "comment": "Blank example only. Add real metadata and observations after testing." },
+    { "id": "Q02", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q03", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q04", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q05", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q06", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q07", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q08", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q09", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q10", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q11", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q12", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q13", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q14", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q15", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q16", "result": "NOT_RUN", "comment": "" },
+    { "id": "Q17", "result": "NOT_RUN", "comment": "" }
+  ]
+}
