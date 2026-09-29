@@ -1,0 +1,22 @@
+name: Hardware validation report
+on:
+  pull_request:
+    paths:
+      - 'scripts/*hardware-test-report.mjs'
+      - 'docs/HARDWARE_*'
+      - 'docs/FIRMWARE_1_3_*'
+      - 'docs/hardware-validation/**'
+      - '.github/workflows/hardware-validation-report.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  report-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/test-hardware-test-report.mjs
+      - run: node scripts/hardware-test-report.mjs docs/hardware-validation/quick-results.example.json

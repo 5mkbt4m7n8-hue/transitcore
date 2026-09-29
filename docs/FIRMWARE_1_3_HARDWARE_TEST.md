@@ -1,5 +1,12 @@
 # Firmware 1.3.0 hardware validation protocol
 
+Phase I-A supersedes the coarse IDs in this original protocol with Q01–Q17 and
+S/O/P/N/L/R IDs. Use [the quick test](FIRMWARE_1_3_QUICK_TEST.md),
+[the report template](HARDWARE_VALIDATION_REPORT_TEMPLATE.md) and
+[the 72h plan](FIRMWARE_1_3_SOAK_TEST.md) for new results. Keep old observations
+as historical evidence; do not automatically map old grouped results to PASS
+for the new, more specific IDs. The rows below remain as the original reference.
+
 This protocol records physical evidence; automated tests and compilation do not
 replace it. Record commit, board/module, core/libraries, partition scheme,
 profile IDs (never secrets), timestamps, free/min heap and evidence.
