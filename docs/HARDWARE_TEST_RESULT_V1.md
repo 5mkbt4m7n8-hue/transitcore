@@ -35,7 +35,7 @@ Each run supports:
 
 | Field | Format / purpose |
 |---|---|
-| device | Exactly esp32 or esp32s3 (family; does not identify a specific board). |
+| device / hardwareFamily | Exactly esp32 or esp32s3. hardwareFamily is the travel-template alias; existing device inputs remain supported. If both are supplied they must agree. |
 | date | ISO timestamp with timezone, e.g. 2026-09-29T10:00:00+02:00. |
 | commitSha | Full 40-character Git commit of the tested firmware, not the report tooling. |
 | esp32Type | Actual module/development board marking. |
@@ -48,7 +48,10 @@ Each run supports:
 | tests | Array of unique results for this family. |
 
 The six fields date, commitSha, esp32Type, boardProfile, hardwareProfile and
-flashSizeBytes are required for a PASS release gate. Missing fields are listed;
+flashSizeBytes are required for a PASS release gate. Metadata may be null as an
+explicit unfilled placeholder (including commitSha); null is missing, never
+evidence. Replace it with actual observed data before assessment.
+Missing fields are listed;
 malformed supplied fields are rejected. The root firmware must be a 1.3.x version.
 Each test has id and result, plus optional string fields actual, comment,
 evidence (a local filename/reference) and serialExcerpt. At least one nonblank
@@ -66,6 +69,11 @@ mixed candidate commits, malformed JSON and wrong types are errors. No partial
 report is generated on error. Text fields are limited to 20,000 characters.
 No secrets, Wi-Fi passwords, tokens or authorization headers belong in reports.
 Free text is not a secret scrubber; review/redact excerpts before sharing.
+
+The travel template at hardware-tests/examples/esp32-quick-test.json includes
+Q01–Q17 as NOT_RUN and all metadata slots. See FIRMWARE_1_3_TRAVEL_TEST.md for
+build, upload, snapshots and the manual report workflow. Hardware family is never
+inferred from esp32Type, boardProfile or a comment.
 
 ## Required IDs and release decision
 

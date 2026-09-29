@@ -41,35 +41,40 @@ function string(value, label) {
 }
 export function summarize(input) {
   if (!object(input)) fail("Report must be an object");
-  keys(input, ["schemaVersion", "firmware", "runs", "device", "tests", ...META], "report");
+  keys(input, ["schemaVersion", "firmware", "runs", "device", "hardwareFamily", "tests", ...META], "report");
   if (input.schemaVersion !== undefined && input.schemaVersion !== 1) fail("Unsupported schemaVersion");
   if (typeof input.firmware !== "string" || !/^1\.3\.\d+(?:-[a-zA-Z0-9.-]+)?$/.test(input.firmware)) fail("Expected firmware 1.3.x");
   const grouped = input.runs !== undefined;
-  if (grouped && ["device", "tests", ...META].some(key => key in input)) fail("Do not mix runs with single-run fields");
+  if (grouped && ["device", "hardwareFamily", "tests", ...META].some(key => key in input)) fail("Do not mix runs with single-run fields");
   const runs = grouped ? input.runs : [input];
   if (!Array.isArray(runs) || runs.length < 1 || runs.length > 2) fail("Expected one or two runs");
   const rows = new Map(), devices = new Set(), metadataMissing = [], commits = new Set();
+  const normalizedRuns = [];
   for (const run of runs) {
     if (!object(run)) fail("Run must be an object");
-    if (grouped) keys(run, ["device", "tests", ...META], "run");
-    if (!["esp32", "esp32s3"].includes(run.device) || devices.has(run.device)) fail("Invalid or duplicate device family");
-    devices.add(run.device);
-    for (const key of META) if (run[key] !== undefined) {
+    if (grouped) keys(run, ["device", "hardwareFamily", "tests", ...META], "run");
+    for (const key of ["device", "hardwareFamily"]) if (key in run && !["esp32", "esp32s3"].includes(run[key])) fail("Invalid hardware family");
+    if (run.device !== undefined && run.hardwareFamily !== undefined && run.device !== run.hardwareFamily) fail("Conflicting hardware family");
+    const family = run.hardwareFamily ?? run.device;
+    if (!["esp32", "esp32s3"].includes(family) || devices.has(family)) fail("Invalid or duplicate device family");
+    devices.add(family);
+    normalizedRuns.push({ ...run, device: family });
+    for (const key of META) if (run[key] !== undefined && run[key] !== null) {
       if (key === "flashSizeBytes") {
         if (!Number.isSafeInteger(run[key]) || run[key] <= 0) fail("Invalid flashSizeBytes");
       } else string(run[key], key);
     }
-    if (run.date !== undefined && (!/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(run.date) || !Number.isFinite(Date.parse(run.date)))) fail("date must be an ISO timestamp with timezone");
-    if (run.commitSha !== undefined && !/^[a-f0-9]{40}$/i.test(run.commitSha)) fail("commitSha must be a full Git SHA");
+    if (run.date != null && (!/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(run.date) || !Number.isFinite(Date.parse(run.date)))) fail("date must be an ISO timestamp with timezone");
+    if (run.commitSha != null && !/^[a-f0-9]{40}$/i.test(run.commitSha)) fail("commitSha must be a full Git SHA");
     if (run.commitSha) commits.add(run.commitSha.toLowerCase());
-    for (const key of REQUIRED_META) if (run[key] === undefined) metadataMissing.push(run.device + "." + key);
+    for (const key of REQUIRED_META) if (run[key] == null) metadataMissing.push(family + "." + key);
     if (!Array.isArray(run.tests) || run.tests.length > CHECKS.length) fail("tests must be a bounded array");
     for (const test of run.tests) {
       if (!object(test)) fail("Test must be an object");
       keys(test, ["id", "result", "comment", "actual", "serialExcerpt", "evidence"], "test");
       const definition = CHECKS.find(check => check.id === test.id);
       if (!definition) fail("Unknown test ID");
-      if (definition.device !== run.device) fail("Test belongs to a different device family");
+      if (definition.device !== family) fail("Test belongs to a different device family");
       if (rows.has(test.id)) fail("Duplicate test ID");
       if (!RESULTS.includes(test.result)) fail("Invalid test result");
       for (const key of ["comment", "actual", "serialExcerpt", "evidence"]) {
@@ -88,7 +93,7 @@ export function summarize(input) {
   ).map(test => test.id);
   const gate = counts.FAIL ? "FAIL" :
     counts.BLOCKED || counts.NOT_RUN || metadataMissing.length || evidenceMissing.length ? "BLOCKED" : "PASS";
-  return { firmware: input.firmware, runs, rows, missing, counts, metadataMissing, evidenceMissing, gate };
+  return { firmware: input.firmware, runs: normalizedRuns, rows, missing, counts, metadataMissing, evidenceMissing, gate };
 }
 // Render user-supplied text as inert Markdown table content, including Serial excerpts.
 const cell = value => String(value ?? "—").replace(/&/g, "&amp;").replace(/</g, "&lt;")
