@@ -1,5 +1,9 @@
 # Firmware 1.3.x – vanlig ESP32 på 15–20 minutter
 
+Start med [reiseguiden](FIRMWARE_1_3_TRAVEL_TEST.md) for konkret bygg/flashing,
+Snapshot A/B/C og Fleet-felter. Fase I-B krever selektiv config-endpoint-test for
+Q15; uten tilgjengelig kontrollert testoppsett markeres den BLOCKED.
+
 Denne testen gjelder vanlig ESP32. Den gir ikke godkjenning av S3, OTA eller soak.
 Bruk en allerede kompilert/provisjonert 1.3.x med riktig GPIO, LED-antall og
 enhetsidentitet. Nedlastingspakken har fortsatt 1.2.13 som standard. Ikke flash
@@ -7,7 +11,7 @@ CI-fixturen med CI_ONLY-hemmeligheter eller syntetisk GPIO.
 
 ## Før du starter
 
-- Klargjør lokal JSON fra hardware-validation/quick-results.example.json.
+- Klargjør lokal JSON fra ../hardware-tests/examples/esp32-quick-test.json.
   Noter firmware, firmware-commit, modul, profiler, flash og partisjon.
 - Ha et kjent Wi-Fi/hotspot du selv kan slå av/på, og Fleet-adgang.
   Ikke endre jobbnettets brannmur. En fungerende Worker er nødvendig.
@@ -15,8 +19,8 @@ CI-fixturen med CI_ONLY-hemmeligheter eller syntetisk GPIO.
   fanges. USB/monitor kan selv utløse reset; noter det som planlagt.
 - Sett av maks 20 minutter etter flashing. Ukjent oppsett/feilsøking utover dette
   markeres BLOCKED og tas senere. Ingen kontinuerlig logging kreves.
-- Ta tre korte snapshots: første boot + LIVE/frame/status, boot med Wi-Fi av
-  (CACHED), og gjenopprettet nett + Fleet. Lagre dem lokalt uten credentials.
+- Ta tre korte snapshots: A cold boot, B LIVE/frame/status, C reconnect og en
+  separat planlagt reboot. Lagre dem lokalt uten credentials.
 
 ## Testrekkefølge
 
@@ -26,11 +30,12 @@ stabil Wi-Fi; vanlige senere forsøk følger config (300–900 sekunder).
 5–8 min: Q13, slå hotspot av i ca. 45 sekunder. Ikke forvent at tavlen forblir
 tent etter TTL: ved utløpt gyldig frame er slukking forventet.
 
-8–10 min: La Wi-Fi være av, gjør én planlagt reset og fang Q15 + nye verdier
-Q10–Q12. CACHED vises før nett er tilgjengelig. Dette tester fallback uten å
-måtte blokkere bare config-endepunktet.
+8–10 min: Slå nett på igjen og bekreft Q14 uten reset først. Noter uendret
+bootId/bootCount og økende uptime. Gjør deretter én separat planlagt reset for
+Q10–Q12. Q15 gjennomføres bare med kontrollert selektiv config-endpoint-blokkering
+som beskrevet i reiseguiden; ellers BLOCKED.
 
-10–20 min: Slå nett på igjen, Q14/Q16/Q17. Første config etter tilkobling kan
+10–20 min: Kontroller Q16/Q17. Første config etter tilkobling kan
 bli LIVE med en gang; hvis et forsøk har feilet er retry normalt fem minutter.
 Fleet kan henge etter neste health-intervall (opptil 15 min). Hvis en verdi ikke
 kan bekreftes innen tidsbudsjettet: BLOCKED, ikke PASS. Resten kan dokumenteres
@@ -51,8 +56,8 @@ med snapshots og fullføres ved senere kontroll.
 | Q11 | Sammenlign [BOOT]/Fleet | bootId ny etter reset, stabil innen samme boot | Samme ID over reset eller endring uten restart |
 | Q12 | Les reset= og Fleet | Reason samsvarer med kjent handling; USB/EN-reset kan være board-avhengig | Uforklart watchdog/brownout eller feil normalisering |
 | Q13 | Slå hotspot av ca. 45 s | Wi-Fi-frakobling registreres; eventuell TTL-slukking; samme boot | Restart-loop eller fastlåst prosess |
-| Q14 | Slå nett på igjen etter cache-test | Wi-Fi/frame kommer tilbake; recovery synlig i HELSE tilbake | Må manuelt resette for å gjenoppta |
-| Q15 | Reset med nett av etter LIVE | source=CACHED før reconnect, riktig profil | Cache mangler etter dokumentert vellykket lagring, eller feil layout |
+| Q14 | Slå nett på igjen uten reset | Wi-Fi/frame kommer tilbake; samme boot-ID; recovery synlig i HELSE tilbake | Må manuelt resette for å gjenoppta |
+| Q15 | Etter LIVE: planlagt reset med bare config-endepunktet utilgjengelig i kontrollert testoppsett | source=CACHED og feil ved config-fetch; riktig profil/feed; ellers BLOCKED uten oppsett | Cache mangler etter dokumentert vellykket lagring, eller feil layout |
 | Q16 | Observer boot-ID/teller gjennom testen | Kun planlagte resetter; forbindelsen gjenopprettes | Uventede gjentatte boot/reset |
 | Q17 | Åpne Fleet, velg riktig device | Ny lastSeen/bootId, firmware, profil og health samsvarer | Bekreftet nye rapporter gir feil enhet/metadata |
 

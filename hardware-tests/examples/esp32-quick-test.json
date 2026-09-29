@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "firmware": "1.3.0",
+  "hardwareFamily": "esp32",
+  "date": null,
+  "commitSha": null,
+  "esp32Type": null,
+  "boardProfile": null,
+  "hardwareProfile": null,
+  "flashSizeBytes": null,
+  "deviceId": null,
+  "partitionScheme": null,
+  "coreVersion": null,
+  "libraryVersions": null,
+  "tester": null,
+  "tests": [
+    {
+      "id": "Q01",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "Blank template. commitSha=null is a placeholder: replace with the exact tested firmware commit; fill metadata from real hardware.",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q02",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q03",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q04",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q05",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q06",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q07",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q08",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q09",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q10",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q11",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q12",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q13",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q14",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q15",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q16",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    },
+    {
+      "id": "Q17",
+      "result": "NOT_RUN",
+      "actual": "",
+      "comment": "",
+      "serialExcerpt": "",
+      "evidence": ""
+    }
+  ]
+}

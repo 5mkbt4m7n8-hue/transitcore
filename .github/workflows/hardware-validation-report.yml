@@ -6,6 +6,7 @@ on:
       - 'docs/HARDWARE_*'
       - 'docs/FIRMWARE_1_3_*'
       - 'docs/hardware-validation/**'
+      - 'hardware-tests/examples/**'
       - '.github/workflows/hardware-validation-report.yml'
   workflow_dispatch:
 permissions:
@@ -20,3 +21,4 @@ jobs:
           node-version: 22
       - run: node scripts/test-hardware-test-report.mjs
       - run: node scripts/hardware-test-report.mjs docs/hardware-validation/quick-results.example.json
+      - run: node scripts/hardware-test-report.mjs hardware-tests/examples/esp32-quick-test.json

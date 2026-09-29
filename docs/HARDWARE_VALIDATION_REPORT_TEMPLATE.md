@@ -41,7 +41,7 @@ revalidation; do not combine old hardware evidence silently.
 | Q12 | Reset reason consistent with action | | NOT_RUN | |
 | Q13 | Short disconnect detected, no reboot | | NOT_RUN | |
 | Q14 | Wi-Fi/frame reconnect automatically | | NOT_RUN | |
-| Q15 | CACHED config on offline reboot | | NOT_RUN | |
+| Q15 | LIVE → reboot with config endpoint unavailable → CACHED; BLOCKED without controlled endpoint isolation (travel guide) | | NOT_RUN | |
 | Q16 | No unplanned reboot loop | | NOT_RUN | |
 | Q17 | Matching fresh Fleet record | | NOT_RUN | |
 
