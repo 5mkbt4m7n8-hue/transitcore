@@ -1,39 +1,46 @@
-# Firmware 1.3.0 hardware acceptance — ALL PENDING
+# Firmware 1.3.0 hardware validation protocol
 
-No item below has been physically verified by this PR. Use a non-production
-prototype with known GPIO/layout, suitable power and an accessible USB rollback.
-Record exact board/module, core/library versions, partition scheme, firmware
-commit, device/profile IDs (no secrets), free/min heap and test time.
+This protocol records physical evidence; automated tests and compilation do not
+replace it. Record commit, board/module, core/libraries, partition scheme,
+profile IDs (never secrets), timestamps, free/min heap and evidence.
 
-- [ ] Cold boot: expected GPIO/output count, startup and first valid display.
-- [ ] Wi-Fi provisioning and saved-network reconnect; boot-connect is not an outage.
-- [ ] LIVE config accepted before normal polling; known config shown in Serial/Fleet.
-- [ ] Power cycle: bootCount increments, bootId changes and remains stable per session.
-- [ ] CACHED fallback with config endpoint blocked, frame endpoint still reachable.
-- [ ] No cache plus valid compiled defaults; missing identity stays safely degraded.
-- [ ] Corrupt/binding-mismatched cache is rejected without driving another layout.
-- [ ] Invalid JSON, wrong board/hardware, malicious URL: no partial activation.
-- [ ] NVS write failure/power loss during config write: old valid cache or safe fallback.
-- [ ] Wi-Fi unavailable at boot and >10min outage: no automatic reboot loop.
-- [ ] Wi-Fi disconnect/reconnect: real outage increments once; display respects TTL.
-- [ ] Config/frame/status/OTA endpoints independently unavailable/time out.
-- [ ] Exercise401/404/429/500 on each endpoint using a controlled staging setup.
-- [ ] Valid/invalid/older/stale frames; sequence changes only on accepted data.
-- [ ] Status posting failure does not freeze independent LED render/TTL task.
-- [ ] Brightness0/low/ceiling and out-of-range polling inputs; confirm clamps.
-- [ ] Pulsing/PASSED/PARKED/collision colors/ambient/Serial dimming match baseline.
-- [ ] OTA NO_UPDATE without excessive requests.
-- [ ] OTA compatible update: download is pending; SUCCESS only after trial confirmation.
-- [ ] OTA wrong target/digest/size, failed download, failed trial; rollback works.
-- [ ] Verify rollback-enabled partition layout and binary margin before any OTA.
-- [ ] Confirm USB rollback to1.2.13 and retained Wi-Fi/device credentials.
-- [ ] Fleet shows RSSI, boot count/ID, reset reason, frame sequence, config and OTA stage.
-- [ ] Normalized reset reasons for power/software reset; don't induce unsafe brownout.
-- [ ] Continuous72h run: no memory trend, no hung LEDs, bounded requests/NVS writes.
-- [ ] Longer rollover/monotonic-time scenario in controlled harness.
-- [ ] Both ESP32 and ESP32-S3; use actual production physical strip/GPIO.
-- [ ] Log review: no tokens/passwords/auth headers; disable temporary diagnostic lease.
+## A. Ordinary ESP32 quick validation (15–20 minutes)
 
-Record pass/fail plus evidence for each item. Compilation and JS simulations are
-not substitutes for these checks. Do not declare production readiness until the
-pending physical tests and failures are resolved.
+Use a real board with its correct GPIO/strip and stable 5 V supply. Do not flash a
+CI fixture with a synthetic GPIO.
+
+| Test-ID | Setup | Handling | Expected result | Actual result | PASS/FAIL | Comment |
+|---|---|---|---|---|---|---|
+| Q-01 | USB + strip | Cold boot | 1.3.0 banner, no reset loop, LED test completes | | | |
+| Q-02 | Credentials saved | Wait Wi-Fi | IP and stable connection; startup is not an outage | | | |
+| Q-03 | Worker available | Wait config/frame | LIVE config accepted; valid frame renders; profile/version match | | | |
+| Q-04 | Worker available | Observe health | device/profile/firmware, RSSI, heap, boot ID/count and frame fields; no secrets | | | |
+| Q-05 | Running device | Power-cycle once | boot count increments; boot ID changes; reset reason is sensible | | | |
+| Q-06 | Network switch | Disconnect briefly, reconnect | reconnects without reboot loop; TTL/last frame behavior remains | | | |
+| Q-07 | Cached config | Block config, restart | cached config used; no wrong layout | | | |
+| Q-08 | Network restored | Wait one poll | returns to LIVE config/frame automatically | | | |
+| Q-09 | Serial available | Check version/frame | 1.3.0, expected count/GPIO; no credential output | | | |
+
+This quick pass intentionally does not test OTA, rollback, NVS power loss, long
+outages or a 72-hour trend.
+
+## B. ESP32-S3 full validation
+
+Run the same rows plus these gates on the real S3 module and final wiring.
+
+| Test-ID | Setup | Handling | Expected result | Actual result | PASS/FAIL | Comment |
+|---|---|---|---|---|---|---|
+| S-01 | Final S3 + production strip | Cold boot and normal display | correct mapping, colors, pulse/PASSED/PARKED and collisions | | | |
+| S-02 | Controlled endpoints | Block config/frame/status/OTA; test timeout, 401/404/429/500 and malformed JSON | no reboot loop; last valid/cache/degraded behavior preserved | | | |
+| S-03 | NVS setup | Restart and interrupt one config write | old cache or safe fallback; no wrong identity/layout | | | |
+| S-04 | OTA staging + rollback partition | Compatible update, trial and failed trial | pending during trial; success only after confirmation; rollback works | | | |
+| S-05 | Reset instrumentation | Power cycle and reset checks | boot count, boot ID and normalized reason correct | | | |
+| S-06 | Health collector | Observe 30–60 minutes | heap/min heap stable; counters safe; no auth/secret output | | | |
+| S-07 | Unattended device | Run 72 hours | no hung LEDs, reboot loop, memory trend, excessive requests/NVS writes | | | |
+| S-08 | Final candidate | Compare 1.2.13 rollback and 1.3.0 | USB recovery remains possible and credentials/layout understood | | | |
+
+## Evidence and release rule
+
+Attach serial excerpts, health payloads, request counts and binary/partition data
+to each completed run. A blank or failed row blocks release. Compile/host/web
+checks are not physical PASS. Never flash a CI-only synthetic GPIO fixture.

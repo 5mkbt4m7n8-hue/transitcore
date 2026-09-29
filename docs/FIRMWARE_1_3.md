@@ -163,3 +163,27 @@ profile IDs must not be repurposed with different physical mapping. Device keys
 remain local compiled secrets (readable with physical flash access); secure boot,
 flash encryption and credential rotation are separate work. 401/404 retain last
 valid config and TTL-governed display, not an immediate remote kill switch.
+
+## Pre-hardware review
+
+The release-prep host test covers unsigned-32-bit `millis()` wrap arithmetic,
+counter saturation, repeated config/frame/health failures, cached config across
+simulated boots, duplicate-write suppression, OTA state transitions and
+secret-safe logging. It is a policy test, not a soak-test substitute.
+
+Large allocations are bounded separately: frame input 32 KiB, health 8 KiB,
+config 4 KiB, OTA manifest 4 KiB and the persistent error queue 3 KiB. Peak risk
+is overlap of a TLS/HTTP response, ArduinoJson document and temporary `String`;
+health/log payloads are the largest routine cases. Existing health/serial fields
+are the default heap observation. A largest-free-block diagnostic should remain a
+compile-time opt-in and be added only if physical testing shows fragmentation.
+
+NVS writes are bounded: boot count once per boot, canonical config only when
+content changes (or retry after a failed write), error queue on state changes or
+queue delivery, and Wi-Fi credentials only during provisioning/reset. No periodic
+health/frame write occurs. Interrupted writes and wear still require hardware.
+
+Config/frame/status/OTA errors, HTTP 401/404/429/500, timeout and malformed JSON
+retain the accepted state or cached/default safe state and do not intentionally
+reboot. Wi-Fi reconnect backoff and radio recovery remain; long outages stay
+degraded. Brownout/watchdog behavior remains a physical validation item.
