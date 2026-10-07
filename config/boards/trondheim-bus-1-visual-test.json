@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 2,
+  "id": "trondheim-bus-1-visual-test",
+  "name": "TEST / DEVELOPMENT ONLY - Trondheim buss 1 visual bench",
+  "status": "test-only",
+  "layout": "station-network",
+  "positioning": "vehicle-proximity",
+  "directionalPlatforms": true,
+  "routes": [
+    "atb-bus-1-live"
+  ],
+  "leds": {
+    "count": 8,
+    "dataPin": 14,
+    "brightnessLimit": 32
+  },
+  "nodes": [
+    {
+      "id": "solsiden-nsr-quay-73975",
+      "stationId": "solsiden",
+      "name": "Solsiden",
+      "lat": 63.433946,
+      "lon": 10.412788,
+      "quayId": "NSR:Quay:73975",
+      "stopIds": [
+        "NSR:Quay:73975"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen",
+            "Østre Lund"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen",
+            "Østre Lund"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 0
+    },
+    {
+      "id": "solsiden-nsr-quay-73976",
+      "stationId": "solsiden",
+      "name": "Solsiden",
+      "lat": 63.434093,
+      "lon": 10.413705,
+      "quayId": "NSR:Quay:73976",
+      "stopIds": [
+        "NSR:Quay:73976"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 1
+    },
+    {
+      "id": "bakkegata-nsr-quay-74792",
+      "stationId": "bakkegata",
+      "name": "Bakkegata",
+      "lat": 63.432418,
+      "lon": 10.407192,
+      "quayId": "NSR:Quay:74792",
+      "stopIds": [
+        "NSR:Quay:74792"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen",
+            "Østre Lund"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen",
+            "Østre Lund"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 2
+    },
+    {
+      "id": "bakkegata-nsr-quay-74793",
+      "stationId": "bakkegata",
+      "name": "Bakkegata",
+      "lat": 63.432263,
+      "lon": 10.407305,
+      "quayId": "NSR:Quay:74793",
+      "stopIds": [
+        "NSR:Quay:74793"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 3
+    },
+    {
+      "id": "olav-tryggvasons-gate-nsr-quay-101521",
+      "stationId": "olav-tryggvasons-gate",
+      "name": "Olav Tryggvasons gate",
+      "lat": 63.433292,
+      "lon": 10.397798,
+      "quayId": "NSR:Quay:101521",
+      "stopIds": [
+        "NSR:Quay:101521"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen",
+            "Østre Lund"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen",
+            "Østre Lund"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 4
+    },
+    {
+      "id": "olav-tryggvasons-gate-nsr-quay-74205",
+      "stationId": "olav-tryggvasons-gate",
+      "name": "Olav Tryggvasons gate",
+      "lat": 63.433295,
+      "lon": 10.401813,
+      "quayId": "NSR:Quay:74205",
+      "stopIds": [
+        "NSR:Quay:74205"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 5
+    },
+    {
+      "id": "prinsens-gate-nsr-quay-71184",
+      "stationId": "prinsens-gate",
+      "name": "Prinsens gate",
+      "lat": 63.430874,
+      "lon": 10.391899,
+      "quayId": "NSR:Quay:71184",
+      "stopIds": [
+        "NSR:Quay:71184"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "0"
+          ],
+          "headsigns": [
+            "Kattem via Strindheim-sentrum",
+            "Tillerterminalen",
+            "Østre Lund"
+          ],
+          "destinationMatches": [
+            "Kattem",
+            "Tillerterminalen",
+            "Østre Lund"
+          ]
+        }
+      },
+      "track": 1,
+      "platformCount": 2,
+      "led": 6
+    },
+    {
+      "id": "prinsens-gate-nsr-quay-71181",
+      "stationId": "prinsens-gate",
+      "name": "Prinsens gate",
+      "lat": 63.431194,
+      "lon": 10.392115,
+      "quayId": "NSR:Quay:71181",
+      "stopIds": [
+        "NSR:Quay:71181"
+      ],
+      "routes": [
+        "atb-bus-1-live"
+      ],
+      "routeDirections": {
+        "atb-bus-1-live": {
+          "directionIds": [
+            "1"
+          ],
+          "headsigns": [
+            "Ranheim via Tiller-sentrum",
+            "Strindheim via sentrum"
+          ],
+          "destinationMatches": [
+            "Ranheim",
+            "Strindheim"
+          ]
+        }
+      },
+      "track": 2,
+      "platformCount": 2,
+      "led": 7
+    }
+  ],
+  "render": {
+    "collisionMode": "alternate",
+    "routePriority": [],
+    "arrivalRadiusMeters": 85,
+    "approachRadiusMeters": 250,
+    "freshnessSeconds": 90,
+    "visual": {
+      "pulsePeriodMs": 1800,
+      "pulseMinBrightness": 0,
+      "pulseMaxBrightness": 255,
+      "backgroundBrightness": 9
+    }
+  }
+}
