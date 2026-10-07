@@ -1,4 +1,5 @@
 import {isObject,isId,positiveInteger,byte,hexColor,issue,result} from './common.mjs';
+import {validateVisual} from './runtime-visual.mjs';
 
 /** @typedef {Object} BoardConfig
  * @property {number} modelVersion Internal model version, separate from legacy schemaVersion.
@@ -34,6 +35,7 @@ export function validateBoardConfig(c, {allowIncompleteExample=false} = {}) {
   const check=(ok,path,msg)=>{if(!ok)issue(errors,path,msg);};
   if(!isObject(c)) return result([{path:'config',message:'Expected normalized object'}]);
   check(c.modelVersion===1,'modelVersion','Normalize BoardConfig first');
+  errors.push(...validateVisual(c.render?.visual));
   check(isId(c.id),'id','Invalid board/profile identity');
   check(typeof c.name==='string'&&!!c.name.trim(),'name','Required nonempty name');
   check([1,2].includes(c.schemaVersion),'schemaVersion','Supported legacy schema versions are 1 and 2');

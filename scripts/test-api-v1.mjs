@@ -145,6 +145,13 @@ try {
   const admin={authorization:"Bearer admin-token"};
   assert.equal((await call("/v1/admin/devices","POST",{...configure,hardwareProfile:"unknown-profile"},admin)).status,409);
   assert.equal((await call("/v1/admin/devices","POST",configure,admin)).status,200);
+  const visualConfigure={...configure,deviceConfig:{...configure.deviceConfig,visual:{pulsePeriodMs:2400,backgroundBrightness:0}}};
+  assert.equal((await call("/v1/admin/devices","POST",visualConfigure,admin)).status,200);
+  assert.deepEqual(registry.get("device:"+deviceId).deviceConfig.visual,visualConfigure.deviceConfig.visual);
+  const visualResponse=await call(configPath,"GET",undefined,{"X-TransitCore-Visual-Version":"1"});
+  assert.equal(visualResponse.status,200);
+  assert.deepEqual((await visualResponse.json()).visual,{pulsePeriodMs:2400,pulseMinBrightness:0,pulseMaxBrightness:255,backgroundBrightness:0});
+  assert.ok(!Object.hasOwn(await (await call(configPath)).json(),"visual"));
   assert.equal((await (await call(configPath)).json()).pollIntervalSeconds,20);
   assert.equal(registry.get("device:"+deviceId).tokenHash,tokenHash);
   const missingHardware={...entry};delete missingHardware.hardwareProfile;delete missingHardware.deviceConfig;
