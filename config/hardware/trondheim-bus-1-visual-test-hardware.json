@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "id": "trondheim-bus-1-visual-test-hardware",
+  "name": "TEST / DEVELOPMENT ONLY - S3 GPIO14 8 RGB LEDs",
+  "boardProfile": "trondheim-bus-1-visual-test",
+  "leds": {
+    "count": 8,
+    "dataPin": 14,
+    "brightnessLimit": 32
+  },
+  "assignments": [
+    {
+      "sourceNodeId": "solsiden-nsr-quay-73975",
+      "name": "Solsiden",
+      "logicalLed": 0,
+      "physicalLed": 0
+    },
+    {
+      "sourceNodeId": "solsiden-nsr-quay-73976",
+      "name": "Solsiden",
+      "logicalLed": 1,
+      "physicalLed": 1
+    },
+    {
+      "sourceNodeId": "bakkegata-nsr-quay-74792",
+      "name": "Bakkegata",
+      "logicalLed": 2,
+      "physicalLed": 2
+    },
+    {
+      "sourceNodeId": "bakkegata-nsr-quay-74793",
+      "name": "Bakkegata",
+      "logicalLed": 3,
+      "physicalLed": 3
+    },
+    {
+      "sourceNodeId": "olav-tryggvasons-gate-nsr-quay-101521",
+      "name": "Olav Tryggvasons gate",
+      "logicalLed": 4,
+      "physicalLed": 4
+    },
+    {
+      "sourceNodeId": "olav-tryggvasons-gate-nsr-quay-74205",
+      "name": "Olav Tryggvasons gate",
+      "logicalLed": 5,
+      "physicalLed": 5
+    },
+    {
+      "sourceNodeId": "prinsens-gate-nsr-quay-71184",
+      "name": "Prinsens gate",
+      "logicalLed": 6,
+      "physicalLed": 6
+    },
+    {
+      "sourceNodeId": "prinsens-gate-nsr-quay-71181",
+      "name": "Prinsens gate",
+      "logicalLed": 7,
+      "physicalLed": 7
+    }
+  ]
+}
