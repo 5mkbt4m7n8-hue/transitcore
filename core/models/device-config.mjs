@@ -1,4 +1,5 @@
 import {isObject, isId, byte, result, issue} from "./common.mjs";
+import {validateVisual} from "./runtime-visual.mjs";
 export const validDeviceId = value => typeof value === "string" && /^[a-z0-9_-]{3,120}$/.test(value);
 const integerRange = (value,min,max) => Number.isInteger(value) && value>=min && value<=max;
 const flagsValid = value => isObject(value) && Object.keys(value).length<=32 &&
@@ -13,6 +14,7 @@ export function validateDeviceSettings(value) {
   check(byte(value.brightnessLimit),"brightnessLimit","Expected integer 0..255");
   check(typeof value.otaEnabled==="boolean","otaEnabled","Expected boolean");
   check(flagsValid(value.featureFlags),"featureFlags","Expected at most 32 named boolean flags");
+  errors.push(...validateVisual(value.visual));
   return result(errors);
 }
 export function validateDeviceConfig(value) {
@@ -46,6 +48,7 @@ export function buildDeviceConfig(registration, origin) {
     statusIntervalSeconds:settings?.statusIntervalSeconds,
     brightnessLimit:settings?.brightnessLimit,otaEnabled:settings?.otaEnabled,
     otaManifestUrl:origin+"/api/v1/ota/"+registration.deviceId,
-    featureFlags:settings?.featureFlags
+    featureFlags:settings?.featureFlags,
+    ...(settings?.visual===undefined?{}:{visual:settings.visual})
   };
 }

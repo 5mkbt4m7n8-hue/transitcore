@@ -494,7 +494,8 @@ export class DeviceStatus {
             return statusJson({ error: "invalid_device_config" }, 400);
           const {pollIntervalSeconds,statusIntervalSeconds,brightnessLimit,otaEnabled,featureFlags}=command.deviceConfig;
           await this.state.storage.put(key, {...current, hardwareProfile:command.hardwareProfile,
-            deviceConfig:{pollIntervalSeconds,statusIntervalSeconds,brightnessLimit,otaEnabled,featureFlags},
+            deviceConfig:{pollIntervalSeconds,statusIntervalSeconds,brightnessLimit,otaEnabled,featureFlags,
+              ...(command.deviceConfig.visual===undefined?{}:{visual:command.deviceConfig.visual})},
             configuredAt:command.changedAt});
           return statusJson({ok:true});
         }

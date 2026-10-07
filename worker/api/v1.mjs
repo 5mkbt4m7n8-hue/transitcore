@@ -1,4 +1,5 @@
 import {buildDeviceConfig, validateDeviceConfig, validDeviceId} from "../../core/models/device-config.mjs";
+import {resolveVisual} from "../../core/models/runtime-visual.mjs";
 const json=(body,status=200)=>Response.json(body,{status,headers:{"cache-control":"no-store","access-control-allow-origin":"*"}});
 const error=(code,status)=>json({error:code},status);
 const idPattern="[a-z0-9_-]{3,120}";
@@ -9,7 +10,7 @@ export async function apiV1(request, env, services) {
   if(!path.startsWith("/api/v1/"))return null;
   if(request.method==="OPTIONS") return new Response(null,{status:204,headers:{
     "access-control-allow-origin":"*","access-control-allow-methods":"GET, POST, OPTIONS",
-    "access-control-allow-headers":"Authorization, Content-Type, X-TransitCore-Device, X-TransitCore-Board, X-TransitCore-Chip, X-TransitCore-Gpio, X-TransitCore-Leds, X-TransitCore-Physical-Leds, X-TransitCore-Firmware",
+    "access-control-allow-headers":"Authorization, Content-Type, X-TransitCore-Device, X-TransitCore-Board, X-TransitCore-Chip, X-TransitCore-Gpio, X-TransitCore-Leds, X-TransitCore-Physical-Leds, X-TransitCore-Firmware, X-TransitCore-Visual-Version",
     "cache-control":"no-store"}});
   const delegate=(pathname,headers=request.headers,body)=> {
     const target=new URL(request.url);target.pathname=pathname;
@@ -71,7 +72,14 @@ export async function apiV1(request, env, services) {
     return error("profile_mismatch",409);
   const boardLimit=configuration.hardware.leds?.brightnessLimit??32;
   if(value.brightnessLimit>boardLimit)return error("brightness_exceeds_hardware_limit",409);
-  if(config)return json(value);
+  if(config) {
+    // Explicit opt-in: legacy firmware receives the unchanged projection.
+    if(request.headers.get("x-transitcore-visual-version")==="1") {
+      try {value.visual=resolveVisual(configuration.board.render?.visual,entry.deviceConfig?.visual);}
+      catch {return error("invalid_visual_configuration",409);}
+    } else delete value.visual;
+    return json(value);
+  }
   if(!value.otaEnabled)return new Response(null,{status:204,headers:{"cache-control":"no-store"}});
   const headers=new Headers(request.headers);
   const suppliedBoard=headers.get("x-transitcore-board");
