@@ -1,10 +1,10 @@
 name: API v1 compatibility
 on:
   pull_request:
-    paths: ['core/**', 'worker/**', 'config/**', 'web/fleet/**', 'scripts/*fleet-dashboard.mjs', 'scripts/test-api-v1.mjs', 'scripts/test-health-telemetry.mjs', 'scripts/test-device-status.mjs', '.github/workflows/api-v1.yml']
+    paths: ['core/**', 'worker/**', 'config/**', 'web/fleet/**', 'scripts/*fleet-dashboard.mjs', 'scripts/test-fleet-soak.mjs', 'scripts/test-api-v1.mjs', 'scripts/test-health-telemetry.mjs', 'scripts/test-device-status.mjs', '.github/workflows/api-v1.yml']
   push:
     branches: [main]
-    paths: ['core/**', 'worker/**', 'config/**', 'web/fleet/**', 'scripts/*fleet-dashboard.mjs', 'scripts/test-api-v1.mjs', 'scripts/test-health-telemetry.mjs', 'scripts/test-device-status.mjs', '.github/workflows/api-v1.yml']
+    paths: ['core/**', 'worker/**', 'config/**', 'web/fleet/**', 'scripts/*fleet-dashboard.mjs', 'scripts/test-fleet-soak.mjs', 'scripts/test-api-v1.mjs', 'scripts/test-health-telemetry.mjs', 'scripts/test-device-status.mjs', '.github/workflows/api-v1.yml']
 permissions:
   contents: read
 jobs:
@@ -20,6 +20,7 @@ jobs:
           node scripts/test-api-v1.mjs
           node scripts/test-health-telemetry.mjs
           node scripts/test-fleet-dashboard.mjs
+          node scripts/test-fleet-soak.mjs
           node scripts/test-device-status.mjs
           node scripts/test-device-diagnostics.mjs
           node scripts/test-frame-pipeline.mjs

@@ -12,13 +12,24 @@ const server=createServer(async(req,res)=>{
  res.end(await readFile(new URL(name,root)));
 });
 await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
-const browser=await chromium.launch({headless:true,...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{})});
+console.log('Local mock server ready; launching browser');
+const browser=await chromium.launch({headless:true,timeout:15000,...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{})});
+console.log('Browser launched');
 try{
  const page=await browser.newPage({viewport:{width:1440,height:1000}});
  const errors=[];page.on("pageerror",e=>errors.push(e.message));
  const base={deviceId:"tram-one",label:"Gråkallbanen prototype",boardProfile:"grakallbanen-prototype-board",hardwareProfile:"rgb-strip-v1",status:"DEGRADED",firmwareVersion:"1.2.13",lastSeen:"2026-09-28T10:00:00Z",
- health:{freeHeap:240000,wifiRssi:null,lastFrameAgeSeconds:0,errors:[]}};
- const second={...base,deviceId:"bus-two",label:"Flybussen",status:"OFFLINE",boardProfile:"flybussen"};
+ health:{freeHeap:240000,minimumFreeHeap:218928,wifiRssi:null,wifiConnected:null,wifiOutages:1,wifiRecoveries:1,
+ uptimeSeconds:259260,bootCount:5,bootId:'tram-boot-5',resetReason:'POWER_ON',successfulPolls:25926,failedPolls:1,
+ frameValid:true,lastFrameAgeSeconds:4,lastFrameSequence:1791400000,profileRevision:1,profileFingerprint:'0123456789abcdef',errors:[]},
+ soak:{status:'PASS 72H',restartCount:0,bootChangedSincePrevious:false,current:{observedSeconds:259200,firstSeenAt:'2026-09-25T10:00:00Z',minObservedHeap:218928,heapDropCount:0},history:[]}};
+ base.status='ONLINE';base.firmwareVersion='1.3.0';base.hardwareProfile='grakallbanen-prototype-board-hardware';
+ const second={...base,deviceId:"bus-two",label:"Bus1 visual-test",status:"OFFLINE",boardProfile:"trondheim-bus-1-visual-test",
+ hardwareProfile:'trondheim-bus-1-visual-test-hardware',firmwareVersion:'1.3.1',
+ health:{...base.health,uptimeSeconds:120,bootCount:3,bootId:'bus-boot-3',resetReason:'SW',frameValid:false,lastFrameAgeSeconds:120},
+ soak:{status:'NOT STARTED',reason:'REPORT_GAP',restartCount:1,bootChangedSincePrevious:true,lastRestartAt:base.lastSeen,
+ current:{observedSeconds:60,firstSeenAt:base.lastSeen,minObservedHeap:210000,heapDropCount:1,lastHeapDropAt:base.lastSeen},
+ history:[{bootId:'bus-boot-2',firstSeenAt:'2026-09-27T10:00:00Z',endedAt:base.lastSeen,observedSeconds:86400,outcome:'ABORTED',endReason:'REBOOT',milestones:{24:'2026-09-28T09:00:00Z'}}]}};
  let listCalls=0,detailCalls=0,mode="ok";
  await page.route("https://transitcore-led-feed.lgb84.workers.dev/**",async route=>{
   const req=route.request(),url=new URL(req.url());
@@ -26,7 +37,7 @@ try{
   assert.equal(req.headers().authorization,"Bearer TEST-ONLY");
   const list=url.pathname==="/api/v1/devices";if(list)listCalls++;else detailCalls++;
   const payload=list?{devices:mode==="empty"?[]:url.searchParams.has("cursor")?[second]:[base],unavailable:[],nextCursor:mode==="empty"||url.searchParams.has("cursor")?null:"tram-one",generatedAt:"2026-09-28T10:01:00Z"}:
-   {...base,otaEnabled:true,errors:[{code:"FRAME_FETCH_FAILED",severity:"warning",firstSeen:base.lastSeen,lastSeen:base.lastSeen,count:3,active:true,message:"Feed unavailable"}],
+   {...(url.pathname.endsWith('bus-two')?second:base),otaEnabled:false,errors:[{code:"FRAME_FETCH_FAILED",severity:"warning",firstSeen:base.lastSeen,lastSeen:base.lastSeen,count:3,active:false,message:"Feed unavailable"}],
    history:[{receivedAt:base.lastSeen,status:"DEGRADED",health:base.health}]};
   await route.fulfill({status:mode==="unauthorized"?401:mode==="error"?503:200,contentType:"application/json",headers:{"access-control-allow-origin":"*"},body:JSON.stringify(payload)});
  });
@@ -39,14 +50,30 @@ try{
  await page.waitForFunction(()=>document.querySelectorAll("#rows tr").length===2);
  await page.locator("#status").selectOption("OFFLINE");
  assert.equal(await page.locator("#rows tr").count(),1);
- assert.ok((await page.locator("#rows").innerText()).includes("Flybussen"));
+ assert.ok((await page.locator("#rows").innerText()).includes("Bus1 visual-test"));
  await page.locator("#status").selectOption("");
  await page.getByRole("button",{name:"Gråkallbanen prototype",exact:true}).click();
  await page.waitForFunction(()=>document.querySelector("#errors").textContent.includes("Gjentatt"));
  assert.equal(detailCalls,1);assert.ok((await page.locator("#detail-body").innerText()).includes("Ikke rapportert"));
+ const metric=label=>page.locator('#detail-body .metrics > div').filter({has:page.locator('dt',{hasText:new RegExp('^'+label+'$')})}).locator('dd').innerText();
+ for(const [label,expected] of [['Status','ONLINE'],['Firmware','1.3.0'],['Oppetid','3d 0h 1m'],['Oppstarter','5'],
+ ['Reset-årsak','POWER_ON'],['Wi-Fi-brudd','1'],['Wi-Fi tilbake','1'],['Vellykkede hentinger','25926'],
+ ['Mislykkede hentinger','1'],['Frame gyldig','Ja'],['Frame-alder ved rapport','4 s'],['Ledig heap','240000 byte'],
+ ['Laveste heap','218928 byte'],['Profilversjon','1'],['Profilfingeravtrykk','0123456789abcdef'],
+ ['Tavle',base.boardProfile],['Hardware',base.hardwareProfile],['Soak','PASS 72H']])assert.equal(await metric(label),expected,label);
+ assert.ok((await metric('Sist sett')).includes('2026'));
  assert.equal(await page.evaluate(()=>localStorage.length+sessionStorage.length),0);
  assert.ok(!(await page.locator("body").innerText()).includes("TEST-ONLY"));
  if(process.env.FLEET_SCREENSHOT)await page.screenshot({path:process.env.FLEET_SCREENSHOT,fullPage:true});
+ assert.ok((await page.locator('#rows').innerText()).includes('PASS 72H'));
+ assert.ok((await page.locator('#detail-body').innerText()).includes('3d 0h 1m'));
+ await page.getByRole('button',{name:'Bus1 visual-test',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('#detail-body').textContent.includes('bus-boot-3'));
+ assert.equal(await metric('Status'),'OFFLINE');assert.equal(await metric('Oppstarter'),'3');
+ assert.equal(await metric('Reset siden forrige rapport'),'Ja');assert.equal(await metric('Soak'),'NOT STARTED');
+ assert.ok((await page.locator('#detail-body').innerText()).includes('ABORTED / REBOOT'));
+ assert.ok((await page.locator('#rows').innerText()).includes('NY BOOT / RESET'));
+ if(process.env.FLEET_SCREENSHOT)await page.screenshot({path:process.env.FLEET_SCREENSHOT.replace('.png','-bus1.png'),fullPage:true});
  await page.setViewportSize({width:390,height:844});
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),"No mobile page overflow");
  // Hidden tabs must make no requests, even with timers advanced by minutes.
