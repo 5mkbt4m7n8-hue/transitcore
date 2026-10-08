@@ -77,6 +77,8 @@ try{
   Date.now=()=>now;globalThis.fetch=()=>{throw Error("No upstream allowed for telemetry/fleet");};
   assert.equal((await post(full)).status,200);
   let record=await detail();assert.equal(record.status,"ONLINE");assert.equal(record.lastSeen,new Date(now).toISOString());
+  assert.equal(record.soak.status,"RUNNING");assert.equal(record.soak.current.bootId,"boot-one");
+  assert.deepEqual(record.soak.history,[]);
   const initialWrites=writes;
   now+=1000;assert.equal((await post(full)).status,200);assert.equal(writes,initialWrites);
   assert.equal((await detail()).lastSeen,record.lastSeen,"Retries don't revive heartbeat");

@@ -2,6 +2,7 @@ import {deviceRecord,healthPolicy} from "../../core/models/device-record.mjs";
 import {validDeviceId} from "../../core/models/device-config.mjs";
 import {safeEvent} from "./telemetry.mjs";
 import {normalizeHealthStatus} from "../../core/models/health-status.mjs";
+import {soakView} from "./soak.mjs";
 // Same CORS contract as API v1; every response still requires admin authentication.
 const json=(body,status=200)=>Response.json(body,{status,headers:{"cache-control":"no-store","access-control-allow-origin":"*"}});
 export async function fleetResponse(request,env,services) {
@@ -29,6 +30,7 @@ export async function fleetResponse(request,env,services) {
       }
       const p=healthPolicy({...policy,heartbeatSeconds:registration.deviceConfig?.statusIntervalSeconds||policy.heartbeatSeconds});
       const record=deviceRecord(registration,data.latest,now,p);
+      record.soak=soakView(data.soak,record.health,now,p,registration.enabled,detail);
       if(!detail)return record;
       return {...record,
         history:(data.history||[]).filter(s=>now-Date.parse(s.receivedAt)<=p.historyHours*3600000)

@@ -18,8 +18,16 @@ export function summary(devices){
  return {total:devices.length,counts,boards,firmware};
 }
 const badge=s=>'<span class="badge '+status(s)+'">'+status(s)+'</span>';
+export function duration(seconds){
+ if(!Number.isFinite(seconds)||seconds<0)return UNKNOWN;
+ const minutes=Math.floor(seconds/60);
+ return `${Math.floor(minutes/1440)}d ${Math.floor(minutes/60)%24}h ${minutes%60}m`;
+}
+const soakBadge=d=>'<span class="badge">SOAK: '+escape(d.soak?.status||"NOT STARTED")+'</span>';
+const rebootLabel=d=>!d.soak?.current?"Ingen aktuell testperiode":d.soak?.bootChangedSincePrevious?"NY BOOT / RESET":d.soak?.lastRestartAt?"Siste reset: "+date(d.soak.lastRestartAt):"Ingen observert reset";
+const soakSummary=d=>soakBadge(d)+'<small>'+escape('Oppetid: '+duration(d.health?.uptimeSeconds))+'</small><small>'+escape(rebootLabel(d))+'</small><small>'+escape('Min heap: '+value(d.soak?.current?.minObservedHeap,' B')+(d.soak?.current?.heapDropCount?' (synkende minimum)':'')+' · Feed-feil: '+value(d.health?.failedPolls))+'</small><small>'+escape('Wi-Fi-brudd: '+value(d.health?.wifiOutages))+'</small>';
 export function listRows(devices){
- return devices.map(d=>'<tr><td><button class="device" data-device="'+escape(d.deviceId)+'">'+escape(value(d.label||d.deviceId))+'</button><small>'+escape(d.deviceId)+'</small></td>'+
+ return devices.map(d=>'<tr><td><button class="device" data-device="'+escape(d.deviceId)+'">'+escape(value(d.label||d.deviceId))+'</button><small>'+escape(d.deviceId)+'</small>'+soakSummary(d)+'</td>'+
  [value(d.boardProfile),value(d.hardwareProfile),badge(d.status),value(d.firmwareVersion),date(d.lastSeen),
  value(d.health?.wifiRssi," dBm"),value(d.health?.lastFrameAgeSeconds," s"),value(activeErrors(d)),value(d.health?.lastOtaResult)]
  .map((v,i)=>'<td>'+(i===2?v:escape(v))+'</td>').join("")+'</tr>').join("");
@@ -32,12 +40,22 @@ export function details(d){
  ["Firmware",d.firmwareVersion],["Ønsket firmware",d.desiredFirmwareVersion],["OTA aktivert",yesNo(d.otaEnabled)],
  ["Oppdatering tilgjengelig",yesNo(d.updateAvailable)],["Siste OTA-resultat",h.lastOtaResult],
  ["OTA-steg",h.otaStage],["Konfigurasjonskilde",h.configSource],["Konfigurasjonshenting",h.configFetchResult],
- ["Oppetid",value(h.uptimeSeconds," s")],["RSSI",value(h.wifiRssi," dBm")],["Ledig heap",value(h.freeHeap," byte")],
+ ["Oppetid",duration(h.uptimeSeconds)],["RSSI",value(h.wifiRssi," dBm")],["Ledig heap",value(h.freeHeap," byte")],
  ["Laveste heap",value(h.minimumFreeHeap," byte")],["Oppstarter",h.bootCount],["Boot-ID",h.bootId],["Reset-årsak",h.resetReason],
  ["Frame-alder ved rapport",value(h.lastFrameAgeSeconds," s")],["Frame-sekvens",h.lastFrameSequence],
  ["Vellykkede hentinger",h.successfulPolls],["Mislykkede hentinger",h.failedPolls],["Wi-Fi-brudd",h.wifiOutages],
+ ["Wi-Fi tilkoblet (ved rapport)",yesNo(h.wifiConnected)],["Wi-Fi tilbake",h.wifiRecoveries],
+ ["Frame gyldig",yesNo(h.frameValid)],["Profilversjon",h.profileRevision],["Profilfingeravtrykk",h.profileFingerprint],
+ ["Soak",d.soak?.status],["Soak-merknad",d.soak?.reason],["Observert sammenhengende test",duration(d.soak?.current?.observedSeconds)],
+ ["Testperiode startet",date(d.soak?.current?.firstSeenAt)],["Reset siden forrige rapport",d.soak?yesNo(d.soak.bootChangedSincePrevious):UNKNOWN],
+ ["Observerte restarter",d.soak?.restartCount],["Siste reset",date(d.soak?.lastRestartAt)],
+ ["Laveste observerte heap",value(d.soak?.current?.minObservedHeap," B")],
+ ["Heap-minimum synker",d.soak?.current?.heapDropCount?"OBS: "+d.soak.current.heapDropCount+" fall; sist "+date(d.soak.current.lastHeapDropAt):"Ingen observert nedgang"],
  ["Aktive feil",activeErrors(d)]];
- return '<dl class="metrics">'+fields.map(([k,v])=>'<div><dt>'+escape(k)+'</dt><dd>'+escape(value(v))+'</dd></div>').join("")+'</dl>';
+ const runs=d.soak?.history||[];
+ return '<dl class="metrics">'+fields.map(([k,v])=>'<div><dt>'+escape(k)+'</dt><dd>'+escape(value(v))+'</dd></div>').join("")+'</dl>'+
+ '<h3>Serverlagret soak-historikk</h3><p>Opptil 20 tidligere perioder. PASS er observert drift, ikke full release-godkjenning. Målinger gjelder siste rapport.</p>'+
+ (runs.length?'<div class="scroll"><table><thead><tr><th>Boot-ID</th><th>Start</th><th>Slutt</th><th>Varighet</th><th>Resultat / årsak</th><th>Milepæler</th></tr></thead><tbody>'+[...runs].reverse().map(r=>'<tr>'+[r.bootId,date(r.firstSeenAt),date(r.endedAt),duration(r.observedSeconds),r.outcome+' / '+r.endReason,Object.keys(r.milestones||{}).join(' / ')+' h'].map(v=>'<td>'+escape(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>':'<p>Ingen tidligere lagrede perioder.</p>');
 }
 export function errorRows(errors){
  return [...errors].sort((a,b)=>Number(b.active)-Number(a.active)||Date.parse(b.lastSeen)-Date.parse(a.lastSeen)).map(e=>

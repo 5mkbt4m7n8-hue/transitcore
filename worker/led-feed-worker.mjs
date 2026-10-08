@@ -567,10 +567,11 @@ export class DeviceStatus {
       const stored=await this.state.storage.get("latest")||null;
       const latest=stored?{...publicSample(stored),health:stored.health,
         _telemetry:{deltas:stored._telemetry?.deltas,reboots:stored._telemetry?.reboots}}:null;
-      if(url.searchParams.get("detail")!=="1")return statusJson({latest});
+      const soak=await this.state.storage.get("soak")||null;
+      if(url.searchParams.get("detail")!=="1")return statusJson({latest,soak:soak?{...soak,history:undefined}:null});
       const history=await this.state.storage.get("history")||[];
       const errors=await this.state.storage.get("errors")||[];
-      return statusJson({latest,history,errors});
+      return statusJson({latest,history,errors,soak});
     }
     if (request.method === "POST") {
       const result=await storeTelemetry(this.state.storage,await request.json());

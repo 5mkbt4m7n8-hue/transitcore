@@ -1,5 +1,6 @@
 import {normalizeHealthStatus} from "../../core/models/health-status.mjs";
 import {healthPolicy,evaluateHealth} from "../../core/models/device-record.mjs";
+import {updateSoak} from "./soak.mjs";
 export const publicSample = sample => {
   if(!sample)return null;
   const {health,_telemetry,_healthPolicy,...legacy}=sample;
@@ -101,7 +102,7 @@ export async function storeTelemetry(storage,sample) {
       {history.push({...publicSample(sample),health:h,...state});historyChanged=true;}
     if(history.length>p.historyLimit)historyChanged=true;
     history=history.slice(-p.historyLimit);
-    const changes={latest};
+    const changes={latest,soak:updateSoak(await store.get("soak"),h,now,p,reboot)};
     if(historyChanged)changes.history=history;
     if(!storedErrors||JSON.stringify(errors)!==errorsBefore)changes.errors=errors;
     await store.put(changes);

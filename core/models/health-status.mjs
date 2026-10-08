@@ -41,6 +41,8 @@ export function normalizeHealthStatus(value, registration, now=Date.now()) {
   const firmwareVersion=text("firmwareVersion",/^\d+\.\d+\.\d+$/,32);
   const frameValid=read("frameValid");
   if(frameValid!=null&&typeof frameValid!=="boolean")throw Error("invalid frameValid");
+  const wifiConnected=read("wifiConnected");
+  if(wifiConnected!=null&&typeof wifiConnected!=="boolean")throw Error("invalid wifiConnected");
   const resetReason=read("resetReason");
   if(resetReason!=null&&!(Number.isInteger(resetReason)&&resetReason>=0&&resetReason<=255)&&
     !(typeof resetReason==="string"&&/^[a-zA-Z0-9 _-]{1,64}$/.test(resetReason)))throw Error("invalid resetReason");
@@ -68,7 +70,8 @@ export function normalizeHealthStatus(value, registration, now=Date.now()) {
     bootCount:num("bootCount"),bootId:text("bootId",/^[a-zA-Z0-9_-]{1,64}$/,64),resetReason,
     lastFrameAgeSeconds:num("lastFrameAgeSeconds"),lastFrameSequence:num("lastFrameSequence"),
     successfulPolls:num("successfulPolls"),failedPolls:num("failedPolls"),wifiOutages:num("wifiOutages"),
-    wifiRecoveries:num("wifiRecoveries"),minimumFreeHeap:num("minimumFreeHeap",0,16000000),frameValid,
+    wifiRecoveries:num("wifiRecoveries"),minimumFreeHeap:num("minimumFreeHeap",0,16000000),frameValid,wifiConnected,
+    profileRevision:num("profileRevision"),profileFingerprint:text("profileFingerprint",/^(?:[0-9a-f]{16})?$/,16),
     lastOtaResult:text("lastOtaResult",/^(none|pending|success|failed)$/),
     configSource:text("configSource",/^(LIVE|CACHED|DEFAULT)$/),
     configFetchResult:text("configFetchResult",/^(NOT_CHECKED|SUCCESS|FAILED_HTTP|FAILED_VALIDATION|PROFILE_MISMATCH)$/),
