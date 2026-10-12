@@ -36,6 +36,7 @@ export function validateBoardConfig(c, {allowIncompleteExample=false} = {}) {
   if(!isObject(c)) return result([{path:'config',message:'Expected normalized object'}]);
   check(c.modelVersion===1,'modelVersion','Normalize BoardConfig first');
   errors.push(...validateVisual(c.render?.visual));
+  check(c.render?.stopAccuracy===undefined || c.render.stopAccuracy==='legacy' || c.render.stopAccuracy==='motion-v1','render.stopAccuracy','Expected legacy or motion-v1');
   check(isId(c.id),'id','Invalid board/profile identity');
   check(typeof c.name==='string'&&!!c.name.trim(),'name','Required nonempty name');
   check([1,2].includes(c.schemaVersion),'schemaVersion','Supported legacy schema versions are 1 and 2');

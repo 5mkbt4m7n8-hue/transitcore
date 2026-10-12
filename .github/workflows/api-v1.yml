@@ -25,3 +25,5 @@ jobs:
           node scripts/test-device-diagnostics.mjs
           node scripts/test-frame-pipeline.mjs
           node scripts/test-entur-provider.mjs
+          node scripts/test-stop-accuracy.mjs
+          node scripts/test-bus1-activation-parity.mjs

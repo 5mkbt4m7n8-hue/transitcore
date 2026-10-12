@@ -8,6 +8,7 @@ import { validateDeviceSettings } from "../core/models/device-config.mjs";
 import { createEnturProvider } from "../core/providers/entur/entur-provider.mjs";
 import { normalizeEnturVehicle } from "../core/providers/entur/entur-normalizer.mjs";
 import { buildPixelFrame } from "../core/frame/build-frame.mjs";
+import {usesStopAccuracy,buildStopAccuracy} from "./stop-accuracy.mjs";
 import { distance, color, rgb, matchesDirection, vehicleAllowedByBoard, validateConfiguration } from "../core/frame/mapping-support.mjs";
 export { matchesDirection, vehicleAllowedByBoard, validateConfiguration };
 import { diagnosticsRequest, selectOtaRelease } from "./device-diagnostics.mjs";
@@ -538,6 +539,15 @@ export class DeviceStatus {
       const lastScheduled = await this.state.storage.get("monitorLastScheduled");
       return statusJson({ latest: latest || null, lastScheduled: lastScheduled || null, history });
     }
+    if (url.pathname === "/stop-accuracy" && request.method === "POST") {
+      const context=await request.json();
+      return this.state.blockConcurrencyWhile(async()=>{
+        const previous=await this.state.storage.get("stopAccuracyV1");
+        const result=buildStopAccuracy(context,previous);
+        if(!result.reused)await this.state.storage.put("stopAccuracyV1",result.saved);
+        return statusJson(result.frame);
+      });
+    }
     if (url.pathname === "/motion" && request.method === "POST") {
       const { frame, now, afterglowMs, emptyFrameHoldMs } = await request.json();
       const timestamp = Number(now) || Date.now();
@@ -886,7 +896,16 @@ function frameFromStationArrivals(board, hardware, estimatedCalls, now) {
   return buildPixelFrame(frameContext({board, hardware, estimatedCalls, now}), {strategy: "estimated-calls"});
 }
 
-async function liveFrameForConfiguration(board, profiles, hardware, now) {
+async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
+  if(usesStopAccuracy(board)) {
+    if(!env?.DEVICE_STATUS)throw Error("Stop accuracy requires durable history");
+    const vehicles=await liveVehiclesForProfiles(profiles);
+    const stub=env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(board.id));
+    const result=await stub.fetch("https://status.internal/stop-accuracy",{method:"POST",
+      body:JSON.stringify({board,profiles,hardware,vehicles,now,signalPolicy:SIGNAL_POLICY})});
+    if(!result.ok)throw Error(`stop accuracy: HTTP ${result.status}`);
+    return result.json();
+  }
   const arrivalProfiles = profiles.filter(profile => profile.positioning?.strategy === "estimated-station-calls");
   const vehicleProfiles = profiles.filter(profile => profile.positioning?.strategy !== "estimated-station-calls");
   const frames = [];
@@ -918,10 +937,12 @@ async function boardFrameResponse(boardId, env, source) {
   let result, sample;
   try {
     const { board, profiles, hardware } = await step("configuration", () => configuration(boardId, now));
-    const rawFrame = await step("live_data", () => liveFrameForConfiguration(board, profiles, hardware, now));
-    const frame = await step("motion", () => stabilizeMotionFrame(env, board, rawFrame, now));
+    const rawFrame = await step("live_data", () => liveFrameForConfiguration(board, profiles, hardware, now, env));
+    const frame = usesStopAccuracy(board)?rawFrame:await step("motion", () => stabilizeMotionFrame(env, board, rawFrame, now));
     sample = { ...validFrameSummary(frame, boardId), source };
     result = response(frame);
+    result.headers.set("x-transitcore-stop-algorithm",usesStopAccuracy(board)?"motion-v1":"legacy");
+    result.headers.set("access-control-expose-headers","x-transitcore-stop-algorithm");
   } catch (error) {
     console.error(JSON.stringify({ event: "feed_request_failed", boardId, source, stage,
       elapsedMs: Date.now() - now, code: error.code || "FEED_ERROR" }));
