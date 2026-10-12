@@ -56,6 +56,7 @@ try {
     throw Error('Unexpected upstream in isolated test');
   };
   const response=await worker.fetch(new Request('https://worker.test/api/v1/frame/'+id),{});
+  assert.equal(response.headers.get('x-transitcore-stop-algorithm'),'legacy');
   assert.equal(response.status,200);
   const value=await response.json();
   assert.equal(value.schemaVersion,1);assert.equal(value.boardProfile,id);assert.equal(value.ledCount,8);

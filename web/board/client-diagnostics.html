@@ -1,0 +1,13 @@
+<!doctype html><html lang="no"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TransitCore · frame-diagnostikk</title>
+<style>
+:root{color-scheme:dark;font:15px system-ui;background:#0b0d11;color:#f7f8fa}body{margin:18px auto;padding:0 18px;max-width:1200px}h1{font-size:24px}.note{color:#aeb7c6;line-height:1.5}a{color:#8bbcff}button{background:#222834;color:white;border:1px solid #3b4352;border-radius:8px;padding:8px}section{background:#151922;border:1px solid #2a303c;border-radius:12px;padding:14px;margin:14px 0}#leds{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}.led{background:#11151c;padding:12px;border:1px solid #2a303c;border-radius:10px}.lamp{width:22px;height:22px;background:white;border-radius:50%;margin-bottom:8px}.scroll{overflow:auto}table{border-collapse:collapse;width:100%;font-size:13px}td,th{text-align:left;padding:8px;border-bottom:1px solid #303642;overflow-wrap:anywhere}code{overflow-wrap:anywhere}#frame,#esp{white-space:pre-wrap;overflow-wrap:anywhere}.error{color:#ff9292}
+</style>
+<h1>TransitCore · fysisk framevisning</h1><p id="name" class="note">Laster profil…</p>
+<button id="refresh">Hent frame nå</button> <a href="./">Til tavleoversikten</a>
+<section><div id="frame">Venter på frame</div><p id="algorithm"></p><p id="source" class="note"></p></section>
+<section id="leds" aria-label="Fysiske LED-indekser"></section>
+<section class="scroll"><table><thead><tr><th>LED</th><th>Holdeplass</th><th>Kjøretøy</th><th>Tilstand</th><th>Logisk nivå 0–255</th><th>Sist endret i web</th></tr></thead><tbody id="rows"></tbody></table></section>
+<section><h2>Rapportert ESP-status</h2><div id="esp">Ikke rapportert</div></section>
+<p class="note">Dette er en klientmodell, ikke målt LED-output. ESP rapporterer ikke tilstand per LED eller aktuell animasjonsfase. Pulsen bruker samme trekantkurve som visual-rc1, men lokal webklokke; fasen mot fysisk ESP er ikke synkronisert. Logiske nivåer vises uten hardware brightnessLimit. Visual-verdier kommer fra tavleprofilen; lokal Serial-override, DeviceConfig-override, bakgrunn og master-dimming på ESP kan avvike. Ingen egen ankomst-/avgangstolkning kjøres i web.</p>
+<script src="../shared/board-client-model.js"></script><script src="client-diagnostics.js"></script></html>
