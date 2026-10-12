@@ -281,6 +281,7 @@
     }
   ],
   "render": {
+    "stopAccuracy": "motion-v1",
     "collisionMode": "alternate",
     "routePriority": [],
     "arrivalRadiusMeters": 85,
