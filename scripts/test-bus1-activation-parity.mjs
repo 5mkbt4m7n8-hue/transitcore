@@ -7,7 +7,7 @@ import {SIGNAL_POLICY,DeviceStatus} from '../worker/led-feed-worker.mjs';
 const require=createRequire(import.meta.url),client=require('../web/shared/board-client-model.js'),reference=require('./fixtures/esp-visual-rc1-reference.cjs');
 const read=p=>JSON.parse(fs.readFileSync(new URL('../'+p,import.meta.url)));
 const board=read('config/boards/trondheim-bus-1-visual-test.json'),hardware=read('config/hardware/trondheim-bus-1-visual-test-hardware.json'),profile=read('config/routes/atb-bus-1-live.json');
-// Candidate opt-in exists only in this in-memory fixture. Published profiles stay legacy.
+// Only the Bus1 test profile opts in; all other repository profiles stay legacy.
 const base={board:{...board,render:{...board.render,stopAccuracy:'motion-v1'},profileRevision:1,profileFingerprint:'1234567890abcdef'},hardware,profiles:[profile],signalPolicy:SIGNAL_POLICY};
 const epoch=Date.parse('2026-10-12T12:00:00Z'),node=board.nodes[0];
 new vm.Script(fs.readFileSync(new URL('../web/board/client-diagnostics.js',import.meta.url),'utf8'));
@@ -23,9 +23,9 @@ function run(name,steps){let saved;const web=client.create({boardProfile:board.i
   }
   console.log(name+': '+sequence.join(' -> '));return {sequence,saved,web};
 }
-assert(!usesStopAccuracy(board));
+assert(usesStopAccuracy(board));
 assert(usesStopAccuracy(base.board));
-for(const file of fs.readdirSync(new URL('../config/boards/',import.meta.url)).filter(f=>f.endsWith('.json')))assert(!usesStopAccuracy(read('config/boards/'+file)),file);
+for(const file of fs.readdirSync(new URL('../config/boards/',import.meta.url)).filter(f=>f.endsWith('.json')))assert.equal(usesStopAccuracy(read('config/boards/'+file)),file===board.id+'.json',file);
 assert.throws(()=>buildStopAccuracy({...base,board:{...board,render:{...board.render,stopAccuracy:'legacy'}},now:epoch,vehicles:[]}),/not enabled/);
 const ab=run('A/B arrival/departure',[[0,[v(0,140)]],[10,[v(10,50)]],[20,[v(20,4)]],[30,[v(30,4)]],[40,[v(40,-22)]],[50,[v(50,-45)]],[60,[v(60,-70)]]]);
 assert.deepEqual(ab.sequence,['APPROACHING','APPROACHING','APPROACHING','AT_STOP','AT_STOP','PASSED','OFF']);

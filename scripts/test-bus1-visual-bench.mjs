@@ -5,6 +5,7 @@ import {normalizeEnturVehicle} from '../core/providers/entur/entur-normalizer.mj
 import {buildPixelFrame} from '../core/frame/build-frame.mjs';
 import worker,{SIGNAL_POLICY} from '../worker/led-feed-worker.mjs';
 import {validatePixelFrame} from '../core/models/pixel-frame.mjs';
+import {buildStopAccuracy} from '../worker/stop-accuracy.mjs';
 const read=p=>JSON.parse(fs.readFileSync(new URL('../'+p,import.meta.url)));
 const id='trondheim-bus-1-visual-test',route='atb-bus-1-live';
 const raw=read('config/boards/'+id+'.json'),hardware=read('config/hardware/'+id+'-hardware.json');
@@ -55,8 +56,13 @@ try {
     }
     throw Error('Unexpected upstream in isolated test');
   };
-  const response=await worker.fetch(new Request('https://worker.test/api/v1/frame/'+id),{});
-  assert.equal(response.headers.get('x-transitcore-stop-algorithm'),'legacy');
+  let saved;
+  const env={DEVICE_STATUS:{idFromName:x=>x,get:()=>({fetch:async(url,options)=>{
+    if(String(url).endsWith('/stop-accuracy')){const r=buildStopAccuracy(JSON.parse(options.body),saved);saved=r.saved;return Response.json(r.frame);}
+    return Response.json({});
+  }})}};
+  const response=await worker.fetch(new Request('https://worker.test/api/v1/frame/'+id),env);
+  assert.equal(response.headers.get('x-transitcore-stop-algorithm'),'motion-v1');
   assert.equal(response.status,200);
   const value=await response.json();
   assert.equal(value.schemaVersion,1);assert.equal(value.boardProfile,id);assert.equal(value.ledCount,8);
