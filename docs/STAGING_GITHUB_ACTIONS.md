@@ -234,3 +234,5 @@ References:
 - https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch
 - https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/
 - https://developers.cloudflare.com/durable-objects/reference/environments/
+
+<!-- TEMPORARY CI TEST: staging path plus forbidden path. Draft PR only; never merge. -->
