@@ -1,0 +1,86 @@
+name: Manual isolated TransitCore staging
+run-name: Staging candidate ${{ inputs.candidate_sha }}
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Reviewed full 40-character commit SHA in this repository
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: transitcore-staging-manual
+  cancel-in-progress: false
+jobs:
+  preflight:
+    if: github.repository == '5mkbt4m7n8-hue/transitcore' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Validate immutable input
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+        run: |
+          [[ "$CANDIDATE_SHA" =~ ^[a-f0-9]{40}$ ]] || exit 1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          path: candidate
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Check trusted staging boundary and test candidate without deploy secrets
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+        run: |
+          node trusted/scripts/staging-deploy-guard.mjs "$GITHUB_WORKSPACE/candidate" "$CANDIDATE_SHA" transitcore-staging f40d632e8a57c44d9059ed316e22b80d
+          node trusted/scripts/test-staging-deploy.mjs
+          cd candidate
+          test -f scripts/test-unified-staging.mjs
+          test -f scripts/test-unified-bus-engine.mjs
+          for test in scripts/test-*.mjs scripts/test-*.cjs; do
+            node "$test"
+          done
+  deploy:
+    needs: preflight
+    if: github.repository == '5mkbt4m7n8-hue/transitcore' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: staging
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          path: candidate
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Install pinned CLI outside candidate (no candidate npm hooks/config)
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir -p staging-tools
+          cd staging-tools
+          npm --userconfig=/dev/null install --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org wrangler@4.43.0
+      - name: Recheck, dry-run, deploy staging only and smoke test
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.STAGING_CLOUDFLARE_ACCOUNT_ID }}
+          STAGING_APPROVED_CANDIDATE_SHA: ${{ vars.STAGING_APPROVED_CANDIDATE_SHA }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.STAGING_CLOUDFLARE_API_TOKEN }}
+          STAGING_ACCESS_TOKEN: ${{ secrets.STAGING_ACCESS_TOKEN }}
+        run: |
+          node trusted/scripts/staging-deploy-runner.mjs "$GITHUB_WORKSPACE/candidate" "$CANDIDATE_SHA" "$RUNNER_TEMP/staging-tools/node_modules/wrangler/bin/wrangler.js"

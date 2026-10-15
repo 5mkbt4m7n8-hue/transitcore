@@ -1,0 +1,30 @@
+{
+  "name": "transitcore-staging",
+  "main": "entry.mjs",
+  "account_id": "f40d632e8a57c44d9059ed316e22b80d",
+  "compatibility_date": "2026-08-11",
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "BUS_LIFECYCLE_BOARDS": "trondheim-bus-1-visual-test,trondheim-bus-board,trondheim-shared-stops-board,trondheim-city-lines-catalog,trondheim-flybuss-live"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "DEVICE_STATUS",
+        "class_name": "UnifiedBusStaging"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "unified-bus-staging-v1",
+      "new_sqlite_classes": [
+        "UnifiedBusStaging"
+      ]
+    }
+  ]
+}
