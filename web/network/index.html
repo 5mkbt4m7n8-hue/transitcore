@@ -29,11 +29,11 @@
     <aside class="info" id="info"><button class="close" id="close">Lukk</button><h2 id="infoTitle"></h2><div id="infoBody"></div></aside>
   </section>
 </main>
-<script src="../shared/signal-policy.js"></script><script>
+<script src="../shared/board-client-model.js"></script><script src="../shared/canonical-frame-client.js"></script><script src="../shared/signal-policy.js"></script><script>
 TransitCoreSignals.applyCssVariables(document);
 "use strict";
 const $=id=>document.getElementById(id),BASE="../../config/",FEED="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/trondheim-bus-board/frame";
-let board,hardware,profiles=[],stationMap=new Map,physicalByLogical=new Map,physicalStation=new Map,lastFrame=null,timer=null,cycleTimer=null,simulation=false;
+let client,board,hardware,profiles=[],stationMap=new Map,physicalByLogical=new Map,physicalStation=new Map,lastFrame=null,timer=null,cycleTimer=null,simulation=false;
 const svgNS="http://www.w3.org/2000/svg";
 async function json(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error("HTTP "+response.status);return response.json()}
 function esc(value){return String(value??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
@@ -87,7 +87,7 @@ function buildMap(){
   }
   for(const station of stationMap.values()){
     const group=el("g",{class:"station",tabindex:"0","data-station":station.id,"data-name":station.name,"data-routes":[...station.routes].join(","),"data-leds":station.nodes.map(node=>physicalByLogical.get(node.led)).join(",")});
-    group.append(el("circle",{cx:station.x,cy:station.y,r:major.has(station.id)?10:7,class:"station-core"}));
+    station.nodes.forEach((node,index)=>group.append(el("circle",{cx:station.x+(index-(station.nodes.length-1)/2)*10,cy:station.y,r:4.5,class:"station-core","data-led":physicalByLogical.get(node.led)})));
     const label=el("text",{x:station.x+14,y:station.y-12,class:"station-label"+(major.has(station.id)?"":" minor")});label.textContent=station.name;group.append(label);
     group.addEventListener("click",()=>showStationInfo(group));group.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();showStationInfo(group)}});
     $("stations").append(group);
@@ -100,43 +100,45 @@ function applyFilters(){
   document.querySelectorAll(".led").forEach(led=>{const routes=(led.dataset.routes||"").split(",");led.classList.toggle("hidden-route",!routes.some(route=>selected.has(route)))});
   document.querySelectorAll("[data-station]").forEach(group=>{const routes=(group.dataset.routes||"").split(",");group.style.display=routes.some(route=>selected.has(route))?"":"none"});
 }
-function priority(value){return value.state==="AT_STOP"?2:value.state==="APPROACHING"?1:0}
-function prioritized(item){
-  if(item.lifecycle==="PASSED")return [];
-  const source=item.occupants?.length?item.occupants:[{...(item.vehicle||{}),rgb:item.rgb,state:item.state}],highest=Math.max(...source.map(priority)),seen=new Set;
-  return source.filter(value=>priority(value)===highest).sort((a,b)=>Number(a.distanceMeters||Infinity)-Number(b.distanceMeters||Infinity)).filter(value=>{const key=String(value.line)+"|"+JSON.stringify(value.rgb);if(seen.has(key))return false;seen.add(key);return true});
-}
+
 function paint(frame){
-  lastFrame=frame;document.querySelectorAll(".station-core").forEach(core=>{core.classList.remove("on","approaching","departed");delete core.dataset.occupants;delete core.dataset.colors;delete core.dataset.colorIndex;delete core.dataset.state});
-  const grouped=new Map;let vehicles=0;
-  for(const item of frame.leds||[]){const stationId=physicalStation.get(String(item.id));if(!stationId)continue;const list=grouped.get(stationId)||[];list.push(item);grouped.set(stationId,list);vehicles+=(item.occupants||[]).length||1}
-  let collisions=0,active=0;
-  for(const [stationId,items] of grouped){
-    const group=document.querySelector('[data-station="'+stationId+'"]'),core=group?.querySelector(".station-core");if(!core)continue;
-    const allOccupants=items.flatMap(item=>item.occupants?.length?item.occupants:[{...(item.vehicle||{}),rgb:item.rgb,state:item.state}]);
-    const liveItems=items.filter(item=>item.lifecycle!=="PASSED"),source=liveItems.length?liveItems:items;
-    const candidates=source.flatMap(item=>prioritized(item)),highest=candidates.length?Math.max(...candidates.map(priority)):0,seen=new Set;
-    const winners=candidates.filter(value=>priority(value)===highest).filter(value=>{const key=String(value.line)+"|"+JSON.stringify(value.rgb);if(seen.has(key))return false;seen.add(key);return true});
-    const colors=winners.map(value=>value.rgb).filter(Boolean),lines=new Set(winners.map(value=>String(value.line)).filter(Boolean));
-    if(lines.size>1)collisions++;
-    const state=source.every(item=>item.lifecycle==="PASSED")?"PASSED":winners[0]?.state||source[0]?.state||"OFF";
-    core.style.color="rgb("+((colors[0]||source[0]?.rgb||[80,90,100]).join(","))+")";
-    if(state==="PASSED")core.classList.add("departed");else{core.classList.add("on");active++}
-    if(state==="APPROACHING")core.classList.add("approaching");
-    core.dataset.occupants=JSON.stringify(allOccupants);core.dataset.colors=JSON.stringify(colors);core.dataset.colorIndex="0";core.dataset.state=state;
-  }
-  const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30);
-  $("activeCount").textContent=active;$("vehicleCount").textContent=vehicles;$("collisionCount").textContent=collisions;$("quality").textContent=fresh?"LIVE - "+age+" s":"UTDATERT - "+age+" s";$("quality").style.color=fresh?"var(--ok)":"#ff5c5c";$("status").textContent=simulation?"SIMULERING":"Oppdatert "+new Date().toLocaleTimeString();
+ lastFrame=frame;const byId=new Map((frame.leds||[]).map(l=>[String(l.id),l]));
+ document.querySelectorAll(".station-core").forEach(core=>{
+  const item=byId.get(core.dataset.led);core.classList.remove("on","approaching","departed");
+  core.dataset.state=item?.lifecycle||item?.state||"OFF";
+  if(!item)return;
+  core.style.color="rgb("+item.rgb.join(",")+")";
+  core.classList.add(core.dataset.state==="PASSED"?"departed":"on");
+  if(core.dataset.state==="APPROACHING")core.classList.add("approaching");
+ });
+ $("activeCount").textContent=new Set((frame.leds||[]).map(l=>physicalStation.get(String(l.id)))).size;
+ $("vehicleCount").textContent=(frame.leds||[]).reduce((s,l)=>s+(l.occupants?.length||1),0);
+ $("collisionCount").textContent=(frame.leds||[]).filter(l=>new Set((l.occupants||[]).map(v=>v.line)).size>1).length;
+ $("quality").textContent=simulation?"SIMULERING":client?.snapshot().sample.status||"NO_FRAME";
+ $("status").textContent=(simulation?"SIMULERING":client?.snapshot().algorithm)+" · "+frame.boardProfile+" · frame "+frame.sequence+" · "+frame.generatedAt;
 }
-function cycleColors(){document.querySelectorAll(".station-core.on[data-colors]").forEach(core=>{const colors=JSON.parse(core.dataset.colors||"[]");if(colors.length<2)return;const index=(Number(core.dataset.colorIndex||0)+1)%colors.length;core.dataset.colorIndex=String(index);core.style.color="rgb("+colors[index].join(",")+")"})}
 function showStationInfo(group){
-  const core=group.querySelector(".station-core"),occupants=JSON.parse(core.dataset.occupants||"[]"),routes=(group.dataset.routes||"").split(",").map(id=>profiles.find(profile=>profile.id===id)?.line.publicCode||id);
-  $("infoTitle").textContent=group.dataset.name;
-  $("infoBody").innerHTML='<p><strong>Linjer:</strong> '+esc(routes.join(", "))+'</p><p><strong>Fysiske LED-er:</strong> '+esc(group.dataset.leds||"Ingen")+'</p><p><strong>Vist tilstand:</strong> '+esc(core.dataset.state||"AV")+'</p>'+(occupants.length?occupants.map(value=>'<p><i class="swatch" style="background:rgb('+esc((value.rgb||[]).join(","))+')"></i><strong>Linje '+esc(value.line)+'</strong> - '+esc(value.destination||"Ukjent")+' - '+esc(value.state||"?")+' ('+esc(value.distanceMeters??"?")+' m)</p>').join(""):"<p>Ingen aktive busser på stasjonen.</p>");$("info").classList.add("show");
+ const ids=new Set(group.dataset.leds.split(","));
+ $("infoTitle").textContent=group.dataset.name;
+ $("infoBody").innerHTML=(lastFrame?.leds||[]).filter(l=>ids.has(String(l.id))).map(l=>"<p>LED "+l.id+" · "+esc(l.lifecycle||l.state)+" · kjøretøy "+esc(l.vehicle?.id||"Ikke rapportert")+"</p>").join("")||"<p>Ingen aktive LED-er.</p>";
+ $("info").classList.add("show");
 }
+async function refresh(){
+ clearTimeout(timer);if(document.hidden||simulation)return;
+ client ||= TransitCoreFrames.create({boardId:board.id,ledCount:hardware.leds.count});
+ const result=await client.refresh();if(result.frame)paint(result.frame);else $("status").textContent=result.sample.status;
+ timer=setTimeout(refresh,10000);
+}
+function simulate(){
+ simulation=true;clearTimeout(timer);
+ const id=hardware.assignments[0].physicalLed,occupants=profiles.slice(0,3).map(p=>({id:"SIM-"+p.id,line:p.line.publicCode,rgb:hexRgb(routeColor(p)),state:"AT_STOP"}));
+ paint({schemaVersion:1,boardProfile:board.id,generatedAt:new Date().toISOString(),sequence:1,ttlSeconds:30,ledCount:hardware.leds.count,leds:[{id,state:"AT_STOP",rgb:occupants[0].rgb,brightness:32,vehicle:occupants[0],occupants}]});
+}
+document.addEventListener("visibilitychange",()=>{clearTimeout(timer);if(!document.hidden&&!simulation)refresh()});
+setInterval(()=>{if(client&&!simulation&&!document.hidden){const result=client.snapshot();if(result.frame)paint(result.frame)}},1000);
 function hexRgb(hex){const value=hex.replace("#","");return [0,2,4].map(i=>parseInt(value.slice(i,i+2),16))}
 $("refresh").onclick=()=>{simulation=false;$("simulate").textContent="Simuler tre linjer på samme LED";refresh()};$("simulate").onclick=simulate;$("close").onclick=()=>$("info").classList.remove("show");
-Promise.all([json(BASE+"boards/trondheim-bus-board.json"),json(BASE+"hardware/trondheim-bus-board-hardware.json")]).then(async values=>{[board,hardware]=values;profiles=await Promise.all(board.routes.map(id=>json(BASE+"routes/"+id+".json")));$("filters").innerHTML=profiles.map(profile=>'<label class="toggle"><input type="checkbox" data-route-filter value="'+esc(profile.id)+'" checked><i class="swatch" style="background:'+esc(routeColor(profile))+'"></i>Linje '+esc(profile.line.publicCode)+'</label>').join("");$("legend").innerHTML=profiles.map(profile=>'<span><i class="swatch" style="background:'+esc(routeColor(profile))+'"></i>Linje '+esc(profile.line.publicCode)+'</span>').join("");document.querySelectorAll("[data-route-filter]").forEach(input=>input.onchange=applyFilters);buildMap();cycleTimer=setInterval(cycleColors,1200);refresh()}).catch(error=>$("status").textContent=error.message);
+Promise.all([json(BASE+"boards/trondheim-bus-board.json"),json(BASE+"hardware/trondheim-bus-board-hardware.json")]).then(async values=>{[board,hardware]=values;profiles=await Promise.all(board.routes.map(id=>json(BASE+"routes/"+id+".json")));$("filters").innerHTML=profiles.map(profile=>'<label class="toggle"><input type="checkbox" data-route-filter value="'+esc(profile.id)+'" checked><i class="swatch" style="background:'+esc(routeColor(profile))+'"></i>Linje '+esc(profile.line.publicCode)+'</label>').join("");$("legend").innerHTML=profiles.map(profile=>'<span><i class="swatch" style="background:'+esc(routeColor(profile))+'"></i>Linje '+esc(profile.line.publicCode)+'</span>').join("");document.querySelectorAll("[data-route-filter]").forEach(input=>input.onchange=applyFilters);buildMap();refresh()}).catch(error=>$("status").textContent=error.message);
 </script>
 </body>
 </html>

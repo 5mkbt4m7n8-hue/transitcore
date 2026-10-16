@@ -1,0 +1,1217 @@
+{
+  "schemaVersion": 2,
+  "id": "trondheim-flybuss-live",
+  "name": "Flybussen Trondheim - logical live view",
+  "layout": "station-network",
+  "positioning": "estimated-station-calls",
+  "status": "test-only",
+  "directionalPlatforms": true,
+  "routes": [
+    "flybuss-trondheim-fb73-live"
+  ],
+  "leds": {
+    "count": 46
+  },
+  "nodes": [
+    {
+      "id": "fb73-0-1",
+      "stationId": "fb73-0",
+      "name": "Nidarvoll skole",
+      "lat": 63.398686,
+      "lon": 10.404892,
+      "led": 0,
+      "stopIds": [
+        "NSR:Quay:73979"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-0-0",
+      "stationId": "fb73-0",
+      "name": "Nidarvoll skole",
+      "lat": 63.398686,
+      "lon": 10.404892,
+      "led": 1,
+      "stopIds": [
+        "NSR:Quay:73978"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-1-1",
+      "stationId": "fb73-1",
+      "name": "Omkjøringsveien Nardo",
+      "lat": 63.407197,
+      "lon": 10.42069,
+      "led": 2,
+      "stopIds": [
+        "NSR:Quay:74658"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-1-0",
+      "stationId": "fb73-1",
+      "name": "Omkjøringsveien Nardo",
+      "lat": 63.407197,
+      "lon": 10.42069,
+      "led": 3,
+      "stopIds": [
+        "NSR:Quay:74657"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-2-1",
+      "stationId": "fb73-2",
+      "name": "Voll studentby",
+      "lat": 63.40927,
+      "lon": 10.443923,
+      "led": 4,
+      "stopIds": [
+        "NSR:Quay:72401"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-2-0",
+      "stationId": "fb73-2",
+      "name": "Voll studentby",
+      "lat": 63.40927,
+      "lon": 10.443923,
+      "led": 5,
+      "stopIds": [
+        "NSR:Quay:72401"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-3-1",
+      "stationId": "fb73-3",
+      "name": "Moholt studentby",
+      "lat": 63.411162,
+      "lon": 10.434673,
+      "led": 6,
+      "stopIds": [
+        "NSR:Quay:73260"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-3-0",
+      "stationId": "fb73-3",
+      "name": "Moholt studentby",
+      "lat": 63.411162,
+      "lon": 10.434673,
+      "led": 7,
+      "stopIds": [
+        "NSR:Quay:73261"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-4-1",
+      "stationId": "fb73-4",
+      "name": "Østre Berg",
+      "lat": 63.416079,
+      "lon": 10.432208,
+      "led": 8,
+      "stopIds": [
+        "NSR:Quay:72852"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-4-0",
+      "stationId": "fb73-4",
+      "name": "Østre Berg",
+      "lat": 63.416079,
+      "lon": 10.432208,
+      "led": 9,
+      "stopIds": [
+        "NSR:Quay:72853"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-5-1",
+      "stationId": "fb73-5",
+      "name": "Berg studentby",
+      "lat": 63.413529,
+      "lon": 10.416951,
+      "led": 10,
+      "stopIds": [
+        "NSR:Quay:74954"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-5-0",
+      "stationId": "fb73-5",
+      "name": "Berg studentby",
+      "lat": 63.413529,
+      "lon": 10.416951,
+      "led": 11,
+      "stopIds": [
+        "NSR:Quay:74952"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-6-1",
+      "stationId": "fb73-6",
+      "name": "Lerkendal gård",
+      "lat": 63.412782,
+      "lon": 10.407832,
+      "led": 12,
+      "stopIds": [
+        "NSR:Quay:73415"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-6-0",
+      "stationId": "fb73-6",
+      "name": "Lerkendal gård",
+      "lat": 63.412782,
+      "lon": 10.407832,
+      "led": 13,
+      "stopIds": [
+        "NSR:Quay:73414"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-7-1",
+      "stationId": "fb73-7",
+      "name": "Lerkendal",
+      "lat": 63.412515,
+      "lon": 10.400432,
+      "led": 14,
+      "stopIds": [
+        "NSR:Quay:73421"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-7-0",
+      "stationId": "fb73-7",
+      "name": "Lerkendal",
+      "lat": 63.412515,
+      "lon": 10.400432,
+      "led": 15,
+      "stopIds": [
+        "NSR:Quay:73420"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-8-1",
+      "stationId": "fb73-8",
+      "name": "Hesthagen",
+      "lat": 63.416799,
+      "lon": 10.3972,
+      "led": 16,
+      "stopIds": [
+        "NSR:Quay:71204"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-8-0",
+      "stationId": "fb73-8",
+      "name": "Hesthagen",
+      "lat": 63.416799,
+      "lon": 10.3972,
+      "led": 17,
+      "stopIds": [
+        "NSR:Quay:102719"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-9-1",
+      "stationId": "fb73-9",
+      "name": "Studentersamfundet",
+      "lat": 63.422222,
+      "lon": 10.394384,
+      "led": 18,
+      "stopIds": [
+        "NSR:Quay:73101"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-9-0",
+      "stationId": "fb73-9",
+      "name": "Studentersamfundet",
+      "lat": 63.422222,
+      "lon": 10.394384,
+      "led": 19,
+      "stopIds": [
+        "NSR:Quay:73103"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-10-1",
+      "stationId": "fb73-10",
+      "name": "Nidarosdomen",
+      "lat": 63.425815,
+      "lon": 10.393372,
+      "led": 20,
+      "stopIds": [
+        "NSR:Quay:71175"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-10-0",
+      "stationId": "fb73-10",
+      "name": "Nidarosdomen",
+      "lat": 63.425815,
+      "lon": 10.393372,
+      "led": 21,
+      "stopIds": [
+        "NSR:Quay:71174"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-11-0",
+      "stationId": "fb73-11",
+      "name": "Prinsens gate",
+      "lat": 63.432227,
+      "lon": 10.391672,
+      "led": 22,
+      "stopIds": [
+        "NSR:Quay:107493"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-12-0",
+      "stationId": "fb73-12",
+      "name": "Olav Tryggvasons gate",
+      "lat": 63.433292,
+      "lon": 10.397798,
+      "led": 23,
+      "stopIds": [
+        "NSR:Quay:101521"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-13-1",
+      "stationId": "fb73-13",
+      "name": "Dronningens gate",
+      "lat": 63.431923,
+      "lon": 10.393694,
+      "led": 24,
+      "stopIds": [
+        "NSR:Quay:74649"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-14-1",
+      "stationId": "fb73-14",
+      "name": "Søndre gate Regionbuss",
+      "lat": 63.43416,
+      "lon": 10.400076,
+      "led": 25,
+      "stopIds": [
+        "NSR:Quay:73574"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-15-1",
+      "stationId": "fb73-15",
+      "name": "Bakkegata",
+      "lat": 63.432418,
+      "lon": 10.407192,
+      "led": 26,
+      "stopIds": [
+        "NSR:Quay:74793"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-15-0",
+      "stationId": "fb73-15",
+      "name": "Bakkegata",
+      "lat": 63.432418,
+      "lon": 10.407192,
+      "led": 27,
+      "stopIds": [
+        "NSR:Quay:74792"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-16-1",
+      "stationId": "fb73-16",
+      "name": "Solsiden",
+      "lat": 63.433946,
+      "lon": 10.412788,
+      "led": 28,
+      "stopIds": [
+        "NSR:Quay:73976"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-16-0",
+      "stationId": "fb73-16",
+      "name": "Solsiden",
+      "lat": 63.433946,
+      "lon": 10.412788,
+      "led": 29,
+      "stopIds": [
+        "NSR:Quay:73975"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-17-1",
+      "stationId": "fb73-17",
+      "name": "Buran",
+      "lat": 63.436496,
+      "lon": 10.425779,
+      "led": 30,
+      "stopIds": [
+        "NSR:Quay:103007"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-17-0",
+      "stationId": "fb73-17",
+      "name": "Buran",
+      "lat": 63.436496,
+      "lon": 10.425779,
+      "led": 31,
+      "stopIds": [
+        "NSR:Quay:103009"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-18-1",
+      "stationId": "fb73-18",
+      "name": "Rønningsbakken",
+      "lat": 63.437178,
+      "lon": 10.43725,
+      "led": 32,
+      "stopIds": [
+        "NSR:Quay:71686"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-18-0",
+      "stationId": "fb73-18",
+      "name": "Rønningsbakken",
+      "lat": 63.437178,
+      "lon": 10.43725,
+      "led": 33,
+      "stopIds": [
+        "NSR:Quay:71687"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-19-1",
+      "stationId": "fb73-19",
+      "name": "Dalen Hageby",
+      "lat": 63.437512,
+      "lon": 10.448049,
+      "led": 34,
+      "stopIds": [
+        "NSR:Quay:74498"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-19-0",
+      "stationId": "fb73-19",
+      "name": "Dalen Hageby",
+      "lat": 63.437512,
+      "lon": 10.448049,
+      "led": 35,
+      "stopIds": [
+        "NSR:Quay:74497"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-20-1",
+      "stationId": "fb73-20",
+      "name": "Strindheim",
+      "lat": 63.435506,
+      "lon": 10.45548,
+      "led": 36,
+      "stopIds": [
+        "NSR:Quay:73033"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-20-0",
+      "stationId": "fb73-20",
+      "name": "Strindheim",
+      "lat": 63.435506,
+      "lon": 10.45548,
+      "led": 37,
+      "stopIds": [
+        "NSR:Quay:73034"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-21-1",
+      "stationId": "fb73-21",
+      "name": "Gildheim",
+      "lat": 63.434481,
+      "lon": 10.460567,
+      "led": 38,
+      "stopIds": [
+        "NSR:Quay:75658"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-21-0",
+      "stationId": "fb73-21",
+      "name": "Gildheim",
+      "lat": 63.434481,
+      "lon": 10.460567,
+      "led": 39,
+      "stopIds": [
+        "NSR:Quay:75657"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-22-1",
+      "stationId": "fb73-22",
+      "name": "Leangen",
+      "lat": 63.431851,
+      "lon": 10.476167,
+      "led": 40,
+      "stopIds": [
+        "NSR:Quay:71363"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-22-0",
+      "stationId": "fb73-22",
+      "name": "Leangen",
+      "lat": 63.431851,
+      "lon": 10.476167,
+      "led": 41,
+      "stopIds": [
+        "NSR:Quay:71365"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-23-0",
+      "stationId": "fb73-23",
+      "name": "Ranheim fabrikker",
+      "lat": 63.421847,
+      "lon": 10.536042,
+      "led": 42,
+      "stopIds": [
+        "NSR:Quay:71247"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-24-1",
+      "stationId": "fb73-24",
+      "name": "Ranheim fabrikker E6",
+      "lat": 63.421942,
+      "lon": 10.535543,
+      "led": 43,
+      "stopIds": [
+        "NSR:Quay:71246"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-25-1",
+      "stationId": "fb73-25",
+      "name": "Trondheim lufthavn",
+      "lat": 63.454109,
+      "lon": 10.915934,
+      "led": 44,
+      "stopIds": [
+        "NSR:Quay:100211"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "1"
+          ],
+          "destinationMatches": [
+            "Flybuss Værnes",
+            "Trondheim lufthavn",
+            "Værnes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fb73-25-0",
+      "stationId": "fb73-25",
+      "name": "Trondheim lufthavn",
+      "lat": 63.454109,
+      "lon": 10.915934,
+      "led": 45,
+      "stopIds": [
+        "NSR:Quay:100211"
+      ],
+      "routes": [
+        "flybuss-trondheim-fb73-live"
+      ],
+      "routeDirections": {
+        "flybuss-trondheim-fb73-live": {
+          "directionIds": [
+            "0"
+          ],
+          "destinationMatches": [
+            "Flybuss Ekspress Trondheim",
+            "Nidarvoll skole",
+            "Trondheim"
+          ]
+        }
+      }
+    }
+  ],
+  "render": {
+    "collisionMode": "alternate",
+    "freshnessSeconds": 90
+  }
+}

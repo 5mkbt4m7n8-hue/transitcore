@@ -23,5 +23,7 @@ assert.match(page,/oslo-metro-wizard-separate\/frame/,"kartet skal lese publiser
 assert.match(page,/Vis alle LED-er/,"kartet skal ha full LED-test");
 assert.match(page,/directionSide/,"kartet skal vise begge retninger");
 assert.match(page,/lineColors\[String\(value\?\.line/,"togfargen skal bestemmes av offentlig linjenummer");
-assert.match(page,/collisionCycleSeconds/,"fargeveksling skal bruke felles TransitCore-rytme");
+assert.match(page,/const state=item.lifecycle\|\|item.state/,"LED state must remain server-authoritative");
+assert.doesNotMatch(page,/function priority\(/,"No browser occupant prioritization");
+assert.match(page,/TransitCoreFrames.create/,"Canonical frame client required");
 console.log("Oslo fullnett-kart: 101 stasjoner, 201 LED-er, Sognsvann og fem linjefarger er dekket.");

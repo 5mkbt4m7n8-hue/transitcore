@@ -40,6 +40,7 @@ export function callEvidence(call, now, policy = STOP_POLICY) {
   if (!call || !finite(call.receivedAt) || call.receivedAt > now || now-call.receivedAt > policy.freshnessMs)
     return {...base, invalid:true, reason:'missing/stale call response'};
   if (call.cancelled) return {...base, cancelled:true, reason:'cancelled call'};
+  if (call.uncertainReason) return {...base, invalid:true, reason:call.uncertainReason};
   if (call.predictionInaccurate) return {...base, invalid:true, reason:'prediction flagged inaccurate'};
   const actualArrival = finite(call.actualArrival) && call.actualArrival <= now;
   const actualDeparture = finite(call.actualDeparture) && call.actualDeparture <= now;

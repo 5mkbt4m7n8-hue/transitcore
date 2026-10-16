@@ -1,10 +1,10 @@
 name: API v1 compatibility
 on:
   pull_request:
-    paths: ['core/**', 'worker/**', 'config/**', 'web/fleet/**', 'scripts/*fleet-dashboard.mjs', 'scripts/test-fleet-soak.mjs', 'scripts/test-api-v1.mjs', 'scripts/test-health-telemetry.mjs', 'scripts/test-device-status.mjs', '.github/workflows/api-v1.yml']
+    paths: ['core/**', 'worker/**', 'config/**', 'web/**', 'scripts/test-canonical-*', 'scripts/test-unified-*', 'scripts/*fleet-dashboard.mjs', 'scripts/test-fleet-soak.mjs', 'scripts/test-api-v1.mjs', 'scripts/test-health-telemetry.mjs', 'scripts/test-device-status.mjs', '.github/workflows/api-v1.yml']
   push:
     branches: [main]
-    paths: ['core/**', 'worker/**', 'config/**', 'web/fleet/**', 'scripts/*fleet-dashboard.mjs', 'scripts/test-fleet-soak.mjs', 'scripts/test-api-v1.mjs', 'scripts/test-health-telemetry.mjs', 'scripts/test-device-status.mjs', '.github/workflows/api-v1.yml']
+    paths: ['core/**', 'worker/**', 'config/**', 'web/**', 'scripts/test-canonical-*', 'scripts/test-unified-*', 'scripts/*fleet-dashboard.mjs', 'scripts/test-fleet-soak.mjs', 'scripts/test-api-v1.mjs', 'scripts/test-health-telemetry.mjs', 'scripts/test-device-status.mjs', '.github/workflows/api-v1.yml']
 permissions:
   contents: read
 jobs:
@@ -27,3 +27,10 @@ jobs:
           node scripts/test-entur-provider.mjs
           node scripts/test-stop-accuracy.mjs
           node scripts/test-bus1-activation-parity.mjs
+          node scripts/test-unified-bus-engine.mjs
+          node scripts/test-unified-release.mjs
+          node scripts/test-unified-staging.mjs
+          node scripts/test-canonical-frame-client.cjs
+          node scripts/test-canonical-diagnostics.cjs
+          node scripts/test-canonical-web-syntax.mjs
+          node scripts/test-web-preservation.cjs

@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import staging,{stagingConfiguration,UnifiedBusStaging} from '../deploy/staging/entry.mjs';
+import {DeviceStatus} from '../worker/led-feed-worker.mjs';
+import {expectedConfig} from './staging-deploy-guard.mjs';
+const ids=expectedConfig.vars.BUS_LIFECYCLE_BOARDS.split(',');
+assert(UnifiedBusStaging.prototype instanceof DeviceStatus,'Staging uses the same DO engine');
+assert.equal(staging.scheduled,undefined,'No cron handler');
+for(const [i,id] of ids.entries())assert.equal((await stagingConfiguration(id)).hardware.leds.count,[8,147,147,1282,46][i]);
+let calls=0;
+const token='synthetic-test-only-not-a-real-secret';
+const req=(path,authorization=token)=>new Request('https://stage'+path,{headers:authorization?{authorization:'Bearer '+authorization}:{}});
+const env={STAGING_ACCESS_TOKEN:token,STAGING_COMMIT_SHA:'a'.repeat(40),BUS_LIFECYCLE_BOARDS:ids.join(','),DEVICE_STATUS:{idFromName:id=>id,get:id=>({fetch:async(url,options)=>{calls++;assert(ids.includes(id));if(options){const c=JSON.parse(options.body);assert(c.unifiedBus);assert.equal(c.board.id,id);assert(!('vehicles' in c));}return Response.json({testOnly:true});}})}};
+for(const bad of [null,'wrong-token'])assert.equal((await staging.fetch(req('/api/v1/frame/'+ids[0],bad),env)).status,401);
+assert.equal((await staging.fetch(req('/api/v1/frame/'+ids[0]),{...env,STAGING_ACCESS_TOKEN:undefined})).status,401);
+assert.equal(calls,0,'Auth failure must not reach storage/provider');
+const response=await staging.fetch(req('/api/v1/frame/'+ids[0]),env);
+assert.equal(response.status,200);assert.equal(response.headers.get('x-transitcore-source-sha'),env.STAGING_COMMIT_SHA);
+assert.equal(calls,1);
+for(const path of ['/api/v1/device/status','/api/v1/device/config/test','/api/v1/ota/test','/v1/publish','/status','/api/v1/frame/grakallbanen-prototype-board'])
+ assert.equal((await staging.fetch(req(path),env)).status,404);
+assert.equal(calls,1);
+assert.equal((await staging.fetch(req('/api/v1/frame/'+ids[0]),{...env,BUS_LIFECYCLE_BOARDS:''})).status,404);
+console.log('Staging profile sizes, same engine, auth fails closed, fixed source, isolated namespace and no device/OTA/publish/cron PASS');

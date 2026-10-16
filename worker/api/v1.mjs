@@ -19,6 +19,11 @@ export async function apiV1(request, env, services) {
   };
   if(path==="/api/v1/devices"||new RegExp("^/api/v1/devices/("+idPattern+")$").test(path))
     return services.fleet(request);
+  const diagnostics=path.match(/^\/api\/v1\/frame\/([a-z0-9-]{3,120})\/diagnostics$/);
+  if(diagnostics) {
+    if(request.method!=="GET")return error("method_not_allowed",405);
+    return services.frameDiagnostics?services.frameDiagnostics(diagnostics[1]):error("diagnostics_unavailable",503);
+  }
   const frame=path.match(/^\/api\/v1\/frame\/([a-z0-9-]{3,120})$/);
   if(frame) {
     if(request.method!=="GET")return error("method_not_allowed",405);

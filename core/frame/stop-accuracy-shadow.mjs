@@ -35,13 +35,19 @@ export function createStopAccuracyShadow(context, {enabled=false, policy=STOP_PO
       };
       // Dedupe fresh identity before interpretation; same timestamp cannot confirm dwell.
       const unique=new Map();
-      for(const v of vehicles) if(v.id && (!unique.has(v.id) || Date.parse(v.timestamp)>Date.parse(unique.get(v.id).timestamp))) unique.set(v.id,v);
+      for(const v of vehicles) {
+        const identity=context.unifiedBus?JSON.stringify([v.providerCodespace,v.lineId||v.publicCode,v.id,v.journeyId]):v.id;
+        if(v.id && (!unique.has(identity) || Date.parse(v.timestamp)>Date.parse(unique.get(identity).timestamp)))unique.set(identity,v);
+      }
       for(const v of unique.values()) {
         const profile=profiles.find(p=>v.lineId ? p.line.id===v.lineId : String(p.line.publicCode)===String(v.publicCode) && p.provider?.codespaceId===v.providerCodespace);
         if(!profile || !v.destination?.trim() || !vehicleAllowedByBoard(board,profile,v.destination)) continue;
         const nodes=board.nodes.filter(n=>n.routes.includes(profile.id) && matchesDirection(n,profile,v.destination));
         const position={lat:v.latitude,lon:v.longitude};
-        if(typeof position.lat!=='number' || typeof position.lon!=='number' || !Number.isFinite(position.lat) || !Number.isFinite(position.lon)) continue;
+        if(typeof position.lat!=='number' || typeof position.lon!=='number' || !Number.isFinite(position.lat) || !Number.isFinite(position.lon)) {
+          if(context.unifiedBus)diagnostics.push({vehicleId:v.id,lineId:profile.line.id,source:'GPS',observationTime:Date.parse(v.timestamp),state:'OFF',confidence:'unknown',reason:'missing/invalid GPS coordinates'});
+          continue;
+        }
         nodes.sort((a,b)=>distance(position,a)-distance(position,b));
         let node=nodes[0]; if(!node) continue;
         const key=JSON.stringify(['GPS',profile.line.id,v.id,v.journeyId || '',v.destination]);

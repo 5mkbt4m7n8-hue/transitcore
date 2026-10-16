@@ -8,7 +8,10 @@ import { validateDeviceSettings } from "../core/models/device-config.mjs";
 import { createEnturProvider } from "../core/providers/entur/entur-provider.mjs";
 import { normalizeEnturVehicle } from "../core/providers/entur/entur-normalizer.mjs";
 import { buildPixelFrame } from "../core/frame/build-frame.mjs";
-import {usesStopAccuracy,buildStopAccuracy} from "./stop-accuracy.mjs";
+import {usesStopAccuracy,usesUnifiedBus,buildStopAccuracy,stopContextDigest} from "./stop-accuracy.mjs";
+import {frameDiagnostics} from "./frame-diagnostics.mjs";
+import {loadStopCalls} from "../core/providers/entur/stop-call-loader.mjs";
+import {readBusHistory,writeBusHistory} from "./bus-history.mjs";
 import { distance, color, rgb, matchesDirection, vehicleAllowedByBoard, validateConfiguration } from "../core/frame/mapping-support.mjs";
 export { matchesDirection, vehicleAllowedByBoard, validateConfiguration };
 import { diagnosticsRequest, selectOtaRelease } from "./device-diagnostics.mjs";
@@ -539,12 +542,31 @@ export class DeviceStatus {
       const lastScheduled = await this.state.storage.get("monitorLastScheduled");
       return statusJson({ latest: latest || null, lastScheduled: lastScheduled || null, history });
     }
+    if (url.pathname === "/stop-accuracy-diagnostics" && request.method === "GET") {
+      return this.state.blockConcurrencyWhile(async()=>statusJson(frameDiagnostics(await readBusHistory(this.state.storage),url.searchParams.get("board"))));
+    }
     if (url.pathname === "/stop-accuracy" && request.method === "POST") {
       const context=await request.json();
+      if(context.unifiedBus)context.bindingDigest=await stopContextDigest(context);
       return this.state.blockConcurrencyWhile(async()=>{
-        const previous=await this.state.storage.get("stopAccuracyV1");
+        const previous=context.unifiedBus?await readBusHistory(this.state.storage):await this.state.storage.get("stopAccuracyV1");
+        if(context.unifiedBus) {
+          // Resolve the shared frame before provider IO. Extra clients must not
+          // multiply ETA requests or advance the lifecycle within the cache window.
+          if(previous?.binding===context.bindingDigest && context.now>=previous.builtAt && context.now-previous.builtAt<10000)
+            return statusJson(previous.frame);
+          const gps=context.profiles.filter(p=>p.positioning?.strategy!=="estimated-station-calls");
+          const eta=context.profiles.filter(p=>p.positioning?.strategy==="estimated-station-calls");
+          [context.vehicles,context.calls]=await Promise.all([
+            gps.length?liveVehiclesForProfiles(gps,true):[],
+            eta.length?loadStopCalls({board:context.board,profiles:eta,now:context.now,fetchJson,clientName:CLIENT_NAME}):[]
+          ]);
+        }
         const result=buildStopAccuracy(context,previous);
-        if(!result.reused)await this.state.storage.put("stopAccuracyV1",result.saved);
+        if(!result.reused){
+          if(context.unifiedBus)await writeBusHistory(this.state.storage,result.saved);
+          else await this.state.storage.put("stopAccuracyV1",result.saved);
+        }
         return statusJson(result.frame);
       });
     }
@@ -761,7 +783,7 @@ async function fetchJson(url, options) {
   return boundedFetchJson(url, options);
 }
 
-function defaultHardware(board) {
+export function defaultHardware(board) {
   return {
     schemaVersion: 1,
     boardProfile: board.id,
@@ -829,10 +851,11 @@ export function vehicleProviderGroups(profiles) {
   return [...groups.values()];
 }
 
-async function liveVehiclesForProfiles(profiles) {
-  const batches = await Promise.all(vehicleProviderGroups(profiles).map(provider =>
-    liveVehicles(provider.endpoint, provider.codespaceId)
-  ));
+async function liveVehiclesForProfiles(profiles, normalizedIdentity=false) {
+  const batches = await Promise.all(vehicleProviderGroups(profiles).map(async provider => {
+    const vehicles=await liveVehicles(provider.endpoint, provider.codespaceId);
+    return normalizedIdentity?vehicles.map(v=>({...v,providerCodespace:provider.codespaceId})):vehicles;
+  }));
   return batches.flat();
 }
 
@@ -897,12 +920,18 @@ function frameFromStationArrivals(board, hardware, estimatedCalls, now) {
 }
 
 async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
-  if(usesStopAccuracy(board)) {
+  const unifiedBus=usesUnifiedBus(board,profiles,env);
+  if(usesStopAccuracy(board)||unifiedBus) {
     if(!env?.DEVICE_STATUS)throw Error("Stop accuracy requires durable history");
-    const vehicles=await liveVehiclesForProfiles(profiles);
+    const gpsProfiles=profiles.filter(p=>p.positioning?.strategy!=='estimated-station-calls');
+    const etaProfiles=profiles.filter(p=>p.positioning?.strategy==='estimated-station-calls');
+    const [vehicles,calls]=await Promise.all([
+      !unifiedBus&&gpsProfiles.length?liveVehiclesForProfiles(gpsProfiles,false):[],
+      !unifiedBus&&etaProfiles.length?loadStopCalls({board,profiles:etaProfiles,now,fetchJson,clientName:CLIENT_NAME}):[]
+    ]);
     const stub=env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(board.id));
     const result=await stub.fetch("https://status.internal/stop-accuracy",{method:"POST",
-      body:JSON.stringify({board,profiles,hardware,vehicles,now,signalPolicy:SIGNAL_POLICY})});
+      body:JSON.stringify({board,profiles,hardware,vehicles,calls,unifiedBus,now,signalPolicy:SIGNAL_POLICY})});
     if(!result.ok)throw Error(`stop accuracy: HTTP ${result.status}`);
     return result.json();
   }
@@ -938,10 +967,11 @@ async function boardFrameResponse(boardId, env, source) {
   try {
     const { board, profiles, hardware } = await step("configuration", () => configuration(boardId, now));
     const rawFrame = await step("live_data", () => liveFrameForConfiguration(board, profiles, hardware, now, env));
-    const frame = usesStopAccuracy(board)?rawFrame:await step("motion", () => stabilizeMotionFrame(env, board, rawFrame, now));
+    const unifiedBus=usesUnifiedBus(board,profiles,env);
+    const frame = usesStopAccuracy(board)||unifiedBus?rawFrame:await step("motion", () => stabilizeMotionFrame(env, board, rawFrame, now));
     sample = { ...validFrameSummary(frame, boardId), source };
     result = response(frame);
-    result.headers.set("x-transitcore-stop-algorithm",usesStopAccuracy(board)?"motion-v1":"legacy");
+    result.headers.set("x-transitcore-stop-algorithm",unifiedBus?"unified-bus-v1":usesStopAccuracy(board)?"motion-v1":"legacy");
     result.headers.set("access-control-expose-headers","x-transitcore-stop-algorithm");
   } catch (error) {
     console.error(JSON.stringify({ event: "feed_request_failed", boardId, source, stage,
@@ -1184,6 +1214,17 @@ const worker = {
     const v1=await apiV1(request,env,{
       legacy: forwarded=>worker.fetch(forwarded,env),
       configuration: boardId=>configuration(boardId,Date.now()),
+      frameDiagnostics: async boardId=>{
+        const headers={"cache-control":"no-store","access-control-allow-origin":"*"};
+        try {
+          const {board,profiles}=await configuration(boardId,Date.now());
+          if(!usesUnifiedBus(board,profiles,env))return Response.json({boardId,status:"NOT_ENABLED",algorithm:usesStopAccuracy(board)?"motion-v1":"legacy",sequence:null,observations:[],reason:"Unified evidence diagnostics not enabled for this board."},{headers});
+          if(!env.DEVICE_STATUS)return Response.json({error:"diagnostics_unavailable"},{status:503,headers});
+          const stub=env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName(boardId));
+          const response=await stub.fetch("https://status.internal/stop-accuracy-diagnostics?board="+encodeURIComponent(boardId));
+          return Response.json(await response.json(),{status:response.status,headers});
+        } catch {return Response.json({error:"diagnostics_unavailable"},{status:503,headers});}
+      },
       cachedProfiles: ()=>configCache.size,
       fleet: (request)=>fleetResponse(request,env,{registry:()=>deviceRegistry(env),
         authenticate:token=>secureTokenEquals(token,env.PUBLISH_ADMIN_TOKEN),

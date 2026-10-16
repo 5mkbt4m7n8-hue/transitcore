@@ -35,7 +35,7 @@
     <aside class="detail" id="detail" hidden><button id="close">Lukk</button><h2 id="detail-title"></h2><div id="detail-body"></div></aside>
   </section>
 </main>
-<script src="../shared/signal-policy.js"></script>
+<script src="../shared/board-client-model.js"></script><script src="../shared/canonical-frame-client.js"></script><script src="../shared/signal-policy.js"></script>
 <script type="module">
 import { VIEW_BOX, corridors, lineColors, buildStationLayout } from "./layout.mjs";
 
@@ -43,7 +43,7 @@ const BOARD_URL="../../config/boards/oslo-metro-wizard-separate.json";
 const HARDWARE_URL="../../config/hardware/oslo-metro-wizard-separate-hardware.json";
 const FRAME_URL="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/oslo-metro-wizard-separate/frame";
 const SVG="http://www.w3.org/2000/svg", $=id=>document.getElementById(id);
-let board,hardware,frame,showAll=false,showLabels=true,refreshTimer,cycleTimer,cycleStep=0;
+let client,board,hardware,frame,showAll=false,showLabels=true,refreshTimer,cycleTimer,cycleStep=0;
 
 TransitCoreSignals.applyCssVariables(document);
 function esc(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
@@ -93,7 +93,6 @@ function activeEntries(item){
   if(item.occupants?.length)return item.occupants;
   return [{...(item.vehicle||{}),state:item.state,rgb:item.rgb,lifecycle:item.lifecycle}];
 }
-function priority(item){const state=TransitCoreSignals.normalize(item.state);return state==="AT_STOP"?3:state==="APPROACHING"?2:state==="PASSED"||item.lifecycle==="PASSED"?1:0}
 function paint(){
   document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching","passed");led.style.removeProperty("--rgb");delete led.dataset.items});
   const byId=new Map((frame?.leds||[]).map(item=>[Number(item.id),item]));
@@ -105,9 +104,9 @@ function paint(){
       led.style.setProperty("--rgb",hexRgb(lineColors[line]).join(","));led.classList.add("on");active++;return;
     }
     if(!item)return;
-    const entries=activeEntries(item).sort((a,b)=>priority(b)-priority(a)),highest=priority(entries[0]||item),winner=entries.filter(value=>priority(value)===highest)[cycleStep%(entries.filter(value=>priority(value)===highest).length||1)]||item;
+    const entries=activeEntries(item),winner={...(item.vehicle||{}),rgb:item.rgb,state:item.lifecycle||item.state};
     const rgb=trainRgb(winner,item.rgb);led.style.setProperty("--rgb",rgb.join(","));led.dataset.items=JSON.stringify(entries);
-    const state=TransitCoreSignals.normalize(winner.state||item.state);
+    const state=item.lifecycle||item.state;
     if(state==="PASSED"||item.lifecycle==="PASSED")led.classList.add("passed");else{led.classList.add("on");active++}
     if(state==="APPROACHING")led.classList.add("approaching");
   });
@@ -120,13 +119,13 @@ function lineNumbers(node){return node.routes.map(id=>id.match(/metro-(\d)/)?.[1
 function showDetail(name){
   const nodes=stationNodes(name),items=nodes.map(node=>{const physical=physicalLed(node.led),entry=(frame?.leds||[]).find(value=>Number(value.id)===physical);return {node,physical,entry}});
   $("detail-title").textContent=name;
-  $("detail-body").innerHTML=items.map(({node,physical,entry})=>{const winner=activeEntries(entry||{}).sort((a,b)=>priority(b)-priority(a))[0],state=winner?.state||entry?.state||"AV",rgb=trainRgb(winner,entry?.rgb||[52,61,70]);return `<p><i class="led-key" style="--rgb:${rgb.join(",")}"></i><strong>Retning ${esc(node.directionSide||"felles")}</strong> · LED ${String(physical).padStart(3,"0")} · ${esc(state)} · linje ${esc(lineNumbers(node))}</p>`}).join("");
+  $("detail-body").innerHTML=items.map(({node,physical,entry})=>{const winner={...(entry?.vehicle||{}),rgb:entry?.rgb},state=entry?.lifecycle||entry?.state||"AV",rgb=trainRgb(winner,entry?.rgb||[52,61,70]);return `<p><i class="led-key" style="--rgb:${rgb.join(",")}"></i><strong>Retning ${esc(node.directionSide||"felles")}</strong> · LED ${String(physical).padStart(3,"0")} · ${esc(state)} · linje ${esc(lineNumbers(node))}</p>`}).join("");
   $("detail").hidden=false;
 }
 async function refresh(){
   clearTimeout(refreshTimer);
   if(document.hidden)return;
-  try{const response=await fetch(FRAME_URL,{cache:"no-store"}),next=await response.json();if(!response.ok)throw Error(`Worker HTTP ${response.status}`);if(next.boardProfile!==board.id||next.ledCount!==board.leds.count)throw Error("Worker-profilen samsvarer ikke med kartet");frame=next;paint()}catch(error){console.error(error);$("status").className="status error";$("status").textContent=`Livefeil: ${error.message}`}finally{if(!document.hidden)refreshTimer=setTimeout(refresh,10000)}
+  try{client ||= TransitCoreFrames.create({boardId:board.id,ledCount:hardware.leds.count});const result=await client.refresh();frame=result.frame;paint();$("status").textContent=board.id+" · "+result.algorithm+" · frame "+result.sample.sequence+" · "+(frame?.generatedAt||"")+" · alder "+result.sample.ageSeconds+" s · "+result.sample.status;}finally{if(!document.hidden)refreshTimer=setTimeout(refresh,10000)}
 }
 document.addEventListener("visibilitychange",()=>{clearTimeout(refreshTimer);if(!document.hidden&&board)refresh()});
 function renderLegend(){$("legend").innerHTML=Object.entries(lineColors).map(([line,color])=>`<span class="line-key"><i class="line-dot" style="--line-color:${color}">${line}</i></span>`).join("")+'<span class="line-key">A/B = retning</span>'}
@@ -142,5 +141,5 @@ $("all").onclick=()=>{showAll=true;$("all").classList.add("active");$("live").cl
 $("labels").onclick=()=>{showLabels=!showLabels;document.querySelectorAll("[data-label]").forEach(label=>label.style.display=showLabels?"":"none");$("labels").textContent=showLabels?"Skjul stasjonsnavn":"Vis stasjonsnavn"};
 $("close").onclick=()=>$("detail").hidden=true;
 
-Promise.all([json(BOARD_URL),json(HARDWARE_URL)]).then(values=>{[board,hardware]=values;validate();$("station-count").textContent=new Set(board.nodes.map(node=>node.stationId)).size;$("led-count").textContent=board.leds.count;renderRoutes();renderStations();renderLegend();cycleTimer=setInterval(()=>{cycleStep+=1;paint()},TransitCoreSignals.settings.collisionCycleSeconds*1000);refresh()}).catch(error=>{$("status").className="status error";$("status").textContent=`Oppstartsfeil: ${error.message}`});
+Promise.all([json(BOARD_URL),json(HARDWARE_URL)]).then(values=>{[board,hardware]=values;validate();$("station-count").textContent=new Set(board.nodes.map(node=>node.stationId)).size;$("led-count").textContent=board.leds.count;renderRoutes();renderStations();renderLegend();cycleTimer=setInterval(()=>{if(client&&!document.hidden){frame=client.snapshot().frame;paint();}},1000);refresh()}).catch(error=>{$("status").className="status error";$("status").textContent=`Oppstartsfeil: ${error.message}`});
 </script></body></html>
