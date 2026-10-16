@@ -4,6 +4,60 @@ import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {checkCandidate,ACCOUNT,TARGET} from './staging-deploy-guard.mjs';
 import {fileURLToPath} from 'node:url';
+import {validatePixelFrame} from '../core/models/pixel-frame.mjs';
+const SMOKE_URL='https://transitcore-staging.lgb84.workers.dev/api/v1/frame/trondheim-bus-1-visual-test';
+// Retry only read-only verification, never deployment or secret installation.
+export async function verifyStagingSmoke(sha,token,{
+ fetchImpl=fetch,now=()=>performance.now(),wallNow=Date.now,
+ sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),log=console.log,
+ setTimer=setTimeout,clearTimer=clearTimeout
+}={}){
+ const started=now(),deadline=started+120000;
+ for(let attempt=1;attempt<=8&&now()<deadline;attempt++){
+  const controller=new AbortController();let timer;
+  let status=null,environment='unavailable',sourceSha='unavailable',outcome='network-error';
+  let retry=true,valid=false;
+  try{
+   await Promise.race([
+    new Promise((_,reject)=>{timer=setTimer(()=>{
+     const error=new Error('Smoke attempt timeout');error.smokeTimeout=true;
+     reject(error);controller.abort();
+    },Math.min(15000,deadline-now()));}),
+    (async()=>{
+     const response=await fetchImpl(SMOKE_URL,{headers:{authorization:'Bearer '+token},signal:controller.signal,redirect:'manual'});
+     if(controller.signal.aborted)return;
+     status=response.status;
+     const headerStatus=(name,expected)=>{const value=response.headers.get(name);return value===null?'missing':value===expected?'match':'mismatch';};
+     environment=headerStatus('x-transitcore-environment','isolated-staging');
+     sourceSha=headerStatus('x-transitcore-source-sha',sha);
+     if(status!==200){
+      retry=status===401||status===429||(status>=500&&status<=599);
+      outcome='http-error';void response.body?.cancel().catch(()=>{});return;
+     }
+     if(environment!=='match'||sourceSha!=='match'){
+      outcome='version-not-ready';void response.body?.cancel().catch(()=>{});return;
+     }
+     let frame;
+     try{frame=await response.json();}catch{
+      if(controller.signal.aborted)return;
+      retry=false;outcome='invalid-json';return;
+     }
+     if(controller.signal.aborted)return;
+     valid=validatePixelFrame(frame,{expectedBoardProfile:'trondheim-bus-1-visual-test',expectedLedCount:8,now:wallNow()}).valid;
+     retry=false;outcome=valid?'pass':'invalid-frame';
+    })()
+   ]);
+  }catch(error){outcome=error?.smokeTimeout?'timeout':'network-error';}
+  finally{clearTimer(timer);controller.abort();}
+  // Only allowlisted enums/numbers: never response values, bodies or exception messages.
+  log(JSON.stringify({event:'staging-smoke',attempt,elapsedMs:Math.max(0,Math.round(now()-started)),status,environment,sourceSha,outcome}));
+  if(valid&&now()<deadline)return;
+  if(!retry)throw Error('Staging smoke verification failed: '+outcome);
+  if(attempt===8||now()+10000>=deadline)break;
+  await sleep(10000);
+ }
+ throw Error('Staging smoke verification failed: readiness budget exhausted');
+}
 export function deploymentArgs(config,sha){
  return ['deploy','--config',config,'--name',TARGET,'--var','STAGING_COMMIT_SHA:'+sha];
 }
@@ -48,13 +102,8 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
  run(['secret','bulk','--config',config,'--name',TARGET],
      JSON.stringify({STAGING_ACCESS_TOKEN:runtimeToken}));
  // Token is passed via a header, never the URL, command line or artifact.
- const url='https://transitcore-staging.lgb84.workers.dev/api/v1/frame/trondheim-bus-1-visual-test';
- const response=await fetch(url,{headers:{authorization:'Bearer '+runtimeToken},signal:AbortSignal.timeout(30000)});
- if(!response.ok||response.headers.get('x-transitcore-environment')!=='isolated-staging'||
-    response.headers.get('x-transitcore-source-sha')!==sha)throw Error('Staging smoke verification failed');
- const frame=await response.json();
- if(frame.schemaVersion!==1||frame.boardProfile!=='trondheim-bus-1-visual-test'||frame.ledCount!==8||!Array.isArray(frame.leds))
-  throw Error('Staging PixelFrame smoke verification failed');
+ const url=SMOKE_URL;
+ await verifyStagingSmoke(sha,runtimeToken);
  const anonymous=await fetch(url,{signal:AbortSignal.timeout(10000)});
  if(anonymous.status!==401)throw Error('Staging must reject anonymous requests');
  for(const route of ['/api/v1/device/status','/api/v1/ota/test','/v1/publish']){
