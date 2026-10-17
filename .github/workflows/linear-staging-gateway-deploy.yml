@@ -1,0 +1,52 @@
+name: Manual Linear staging gateway deployment
+run-name: Linear staging gateway from ${{ github.workflow_sha }}
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: transitcore-linear-staging-manual
+  cancel-in-progress: false
+jobs:
+  preflight:
+    if: github.repository == '5mkbt4m7n8-hue/transitcore' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - run: |
+          node scripts/test-linear-staging-gateway.mjs
+          node scripts/test-linear-staging-gateway-deploy.mjs
+  deploy:
+    needs: preflight
+    if: github.repository == '5mkbt4m7n8-hue/transitcore' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: staging
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Install same pinned CLI as staging, outside repository
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir gateway-tools
+          cd gateway-tools
+          npm --userconfig=/dev/null install --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org wrangler@4.43.0
+      - name: First gateway publication and bounded live verification
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.STAGING_CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.STAGING_CLOUDFLARE_API_TOKEN }}
+          STAGING_ACCESS_TOKEN: ${{ secrets.STAGING_ACCESS_TOKEN }}
+        run: node scripts/linear-staging-gateway-deploy.mjs "$RUNNER_TEMP/gateway-tools/node_modules/wrangler/bin/wrangler.js"
