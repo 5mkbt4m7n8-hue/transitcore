@@ -65,6 +65,7 @@ assert.equal(evaluate(call("Østerås",{actualArrivalTime:at(-1000)}))[0]?.posit
   "reported-actual-arrival");
 assert.equal(evaluate(call("Østerås",{actualDepartureTime:at(-3000)}))[0]?.state,
   "PASSED","Only actual departure evidence may mark departure");
+assert.deepEqual(evaluate(call("Østerås",{actualArrivalTime:at(-35000),expectedDepartureTime:at(-25000)})),[], "A reported arrival is not indefinite evidence of station occupancy");
 assert.equal(evaluate(call("Østerås",{actualDepartureTime:at(-11000)})).length,0,
   "Reported departure afterglow is strictly time-bounded");
 assert.deepEqual(evaluate(call("Østerås",{expectedArrivalTime:at(-3000),expectedDepartureTime:at(-1000)})),[],

@@ -20,9 +20,11 @@ function directionScore(node,profile,destination){
   return parts.length?100+Math.max(...parts.map(x=>x.length)):0;
 }
 function rank(value){return value.state==='AT_STOP'?3:value.state==='APPROACHING'?2:1;}
+function evidenceRank(value){return value.positionType?.startsWith('reported-actual')?1:0;}
 function preferred(a,b){
   if(!a)return b;
   if(rank(a)!==rank(b))return rank(b)>rank(a)?b:a;
+  if(evidenceRank(a)!==evidenceRank(b))return evidenceRank(b)>evidenceRank(a)?b:a;
   return Math.abs(b.deltaSeconds)<Math.abs(a.deltaSeconds)?b:a;
 }
 /** Resolve every quay to its direction nodes; never invent evidence of actual departure. */
@@ -66,7 +68,7 @@ export function selectMetroEstimatedCalls(board,profiles,payload,now,{stationWin
         eventTime=actualDeparture;aimed=aimedDeparture;
       }else if(Number.isFinite(actualArrival)&&actualArrival<=now){
         // A reported arrival alone cannot prove the train is still stopped.
-        if(now-actualArrival>90000)continue;
+        if(now-actualArrival>90000||(Number.isFinite(departure)&&now-departure>15000))continue;
         state='AT_STOP';positionType='reported-actual-arrival';
         eventTime=actualArrival;aimed=aimedArrival;
       }else{
@@ -95,7 +97,7 @@ export function selectMetroEstimatedCalls(board,profiles,payload,now,{stationWin
     ledMap.get(candidate.id).push(candidate);
   }
   return [...ledMap].map(([id,occupants])=>{
-    occupants.sort((a,b)=>rank(b)-rank(a)||Math.abs(a.deltaSeconds)-Math.abs(b.deltaSeconds)||a.vehicleId.localeCompare(b.vehicleId));
+    occupants.sort((a,b)=>rank(b)-rank(a)||evidenceRank(b)-evidenceRank(a)||Math.abs(a.deltaSeconds)-Math.abs(b.deltaSeconds)||a.vehicleId.localeCompare(b.vehicleId));
     return {...occupants[0],id,occupants};
   }).sort((a,b)=>a.id-b.id);
 }
