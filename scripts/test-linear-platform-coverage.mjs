@@ -42,6 +42,18 @@ assert(flybuss.stops.every(stop=>stop.quayIds?.length),"Every FB73 track stop ne
 assert(flybuss.stops.filter(stop=>stop.directionQuayIds?.["0"]&&stop.directionQuayIds?.["1"]).length>=20,"Most FB73 stops need both directional quays");
 const linearHtml=await readFile(new URL("../web/linear/index.html",import.meta.url),"utf8");
 assert.match(linearHtml,/FLYBUSS="flybuss-trondheim-fb73-live"/);
-assert.match(linearHtml,/fetchFlybussFrame/);
+assert.match(linearHtml,/TransitCoreFrames.create/);
+assert.doesNotMatch(linearHtml,/fetchFlybussFrame|estimatedCalls\s*\(/);
+const flyBoard = await load("../config/boards/trondheim-flybuss-live.json");
+const flyHardware = await load("../config/hardware/trondheim-flybuss-live-hardware.json");
+assert.deepEqual(flyBoard.routes, [flybuss.id]);
+assert.equal(flyBoard.leds.count, 46);
+assert.equal(flyHardware.leds.count, flyBoard.leds.count);
+assert.equal(flyHardware.leds.dataPin, null, "Logical view is not a provisioned physical device");
+assert.equal(new Set(flyHardware.assignments.map(a=>a.physicalLed)).size, 46);
+for(const node of flyBoard.nodes) {
+  assert(flybuss.stops.some(s=>s.quayIds.includes(node.stopIds[0])), "Canonical node must use a real FB73 quay");
+  assert(flyHardware.assignments.some(a=>a.sourceNodeId===node.id && a.logicalLed===node.led));
+}
 [...linearHtml.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach((match,index)=>new vm.Script(match[1],{filename:`linear-${index}.js`}));
 console.log(`Flybussen FB73 live track OK: ${flybuss.stops.length} track rows with directional quays.`);
