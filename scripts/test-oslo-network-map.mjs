@@ -72,6 +72,21 @@ assert.deepEqual(evaluate(call("Østerås",{expectedArrivalTime:at(-3000),expect
   "A departed forecast alone must not create PASSED");
 assert.equal(evaluate(call("Østerås",{realtime:false,actualDepartureTime:at(-1000)}))[0]?.positionType,
   "reported-actual-departure","Actual event counts as evidence even without forecast flag");
+// The same service journey can be reported twice at a shared quay. A later
+// reported departure must beat a stale inferred dwell for the same LED.
+const predictedDwellCall=call("Østerås",{expectedArrivalTime:at(-20000),expectedDepartureTime:at(20000)});
+const reportedDepartureCall=call("Østerås",{
+  expectedArrivalTime:at(-20000),expectedDepartureTime:at(20000),
+  actualDepartureTime:at(-2000)
+});
+const overlap={data:{["q"+quayIndex]:{estimatedCalls:[predictedDwellCall,reportedDepartureCall]}}};
+const overlapReverse={data:{["q"+quayIndex]:{estimatedCalls:[reportedDepartureCall,predictedDwellCall]}}};
+for(const response of [overlap,overlapReverse]){
+  const candidates=selectMetroEstimatedCalls({...board,hardware},[metro2],response,moment);
+  assert.equal(candidates.length,1);
+  assert.equal(candidates[0].state,"PASSED","Actual departure must beat overlapping predicted dwell");
+  assert.equal(candidates[0].positionType,"reported-actual-departure");
+}
 assert.match(page,/Liveprognose/);
 assert.match(page,/Utdatert prognose/);
 

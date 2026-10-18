@@ -23,6 +23,14 @@ function rank(value){return value.state==='AT_STOP'?3:value.state==='APPROACHING
 function evidenceRank(value){return value.positionType?.startsWith('reported-actual')?1:0;}
 function preferred(a,b){
   if(!a)return b;
+  // Same service journey / same LED: a provider-reported departure takes
+  // precedence over an overlapping (possibly stale) predicted dwell.
+  // For different stops, a subsequent APPROACHING train can still advance.
+  if(a.id===b.id){
+    const aDeparted=a.positionType==='reported-actual-departure';
+    const bDeparted=b.positionType==='reported-actual-departure';
+    if(aDeparted!==bDeparted)return bDeparted?b:a;
+  }
   if(rank(a)!==rank(b))return rank(b)>rank(a)?b:a;
   if(evidenceRank(a)!==evidenceRank(b))return evidenceRank(b)>evidenceRank(a)?b:a;
   return Math.abs(b.deltaSeconds)<Math.abs(a.deltaSeconds)?b:a;
