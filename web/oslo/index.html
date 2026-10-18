@@ -121,11 +121,11 @@ function paint(){
 function hexRgb(hex){const value=hex.replace("#","");return [0,2,4].map(index=>parseInt(value.slice(index,index+2),16))}
 function trainRgb(value,fallback){const color=lineColors[String(value?.line||"")];return color?hexRgb(color):(value?.rgb||fallback||[255,255,255])}
 function lineNumbers(node){return node.routes.map(id=>id.match(/metro-(\d)/)?.[1]).filter(Boolean).join(", ")}
-function forecastDelay(value){const s=value?.delaySeconds;if(typeof s!=="number"||!Number.isFinite(s))return "";return Math.abs(s)<30?" · ETA i rute":` · ETA ${s>0?"+":""}${Math.round(s/60)} min`;}
+function forecastDelay(value){const s=value?.delaySeconds;if(typeof s!=="number"||!Number.isFinite(s))return "";const type=value.positionType?.startsWith("reported-actual")?"Rapportert avvik":"ETA-avvik";return Math.abs(s)<30?` · ${type}: i rute`:` · ${type}: ${s>0?"+":""}${Math.round(s/60)} min`;}
 function showDetail(name){
   const nodes=stationNodes(name),items=nodes.map(node=>{const physical=physicalLed(node.led),entry=(frame?.leds||[]).find(value=>Number(value.id)===physical);return {node,physical,entry}});
   $("detail-title").textContent=name;
-  $("detail-body").innerHTML=items.map(({node,physical,entry})=>{const winner=activeEntries(entry||{}).sort((a,b)=>priority(b)-priority(a))[0],state=(winner?.state||entry?.state||"AV")==="AT_STOP"?"AT_STOP (estimert)":winner?.state||entry?.state||"AV",rgb=trainRgb(winner,entry?.rgb||[52,61,70]);return `<p><i class="led-key" style="--rgb:${rgb.join(",")}"></i><strong>Retning ${esc(node.directionSide||"felles")}</strong> · LED ${String(physical).padStart(3,"0")} · ${esc(state)} · linje ${esc(winner?.line||lineNumbers(node))}${esc(forecastDelay(winner))}</p>`}).join("");
+  $("detail-body").innerHTML=items.map(({node,physical,entry})=>{const winner=activeEntries(entry||{}).sort((a,b)=>priority(b)-priority(a))[0],state=winner?.positionType==="reported-actual-arrival"?"ANKOMMET (rapportert)":winner?.positionType==="reported-actual-departure"?"AVGÅTT (rapportert)":(winner?.state||entry?.state||"AV")==="AT_STOP"?"AT_STOP (estimert)":winner?.state||entry?.state||"AV",rgb=trainRgb(winner,entry?.rgb||[52,61,70]);return `<p><i class="led-key" style="--rgb:${rgb.join(",")}"></i><strong>Retning ${esc(node.directionSide||"felles")}</strong> · LED ${String(physical).padStart(3,"0")} · ${esc(state)} · linje ${esc(winner?.line||lineNumbers(node))}${esc(forecastDelay(winner))}</p>`}).join("");
   $("detail").hidden=false;
 }
 async function refresh(){
