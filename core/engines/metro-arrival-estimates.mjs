@@ -19,9 +19,10 @@ function directionScore(node,profile,destination){
     .filter(x=>x&&(text.startsWith(x+' ')||text.endsWith(' '+x)||text.includes(' '+x+' ')));
   return parts.length?100+Math.max(...parts.map(x=>x.length)):0;
 }
+function rank(value){return value.state==='AT_STOP'?3:value.state==='APPROACHING'?2:1;}
 function preferred(a,b){
   if(!a)return b;
-  if(a.state!==b.state)return b.state==='AT_STOP'?b:a;
+  if(rank(a)!==rank(b))return rank(b)>rank(a)?b:a;
   return Math.abs(b.deltaSeconds)<Math.abs(a.deltaSeconds)?b:a;
 }
 /** Resolve every quay to its direction nodes; never invent evidence of actual departure. */
@@ -36,7 +37,11 @@ export function selectMetroEstimatedCalls(board,profiles,payload,now,{stationWin
     const calls=payload.data['q'+index]?.estimatedCalls;
     if(calls!=null&&!Array.isArray(calls))throw Error('Invalid estimated-call list');
     for(const call of calls||[]){
-      if(call?.realtime!==true||call.cancellation===true||call.predictionInaccurate===true)continue;
+      const actualArrival=epoch(call?.actualArrivalTime);
+      const actualDeparture=epoch(call?.actualDepartureTime);
+      const hasActual=Number.isFinite(actualArrival)||Number.isFinite(actualDeparture);
+      if(call?.cancellation===true||(call?.realtime!==true&&!hasActual)||
+         (call?.predictionInaccurate===true&&!hasActual))continue;
       const line=call.serviceJourney?.journeyPattern?.line;
       const profile=byId.get(String(line?.id||''))||byCode.get(String(line?.publicCode||''));
       const journeyId=call.serviceJourney?.id;
@@ -50,19 +55,37 @@ export function selectMetroEstimatedCalls(board,profiles,payload,now,{stationWin
       if(!Number.isInteger(ledId))continue;
       const arrival=epoch(call.expectedArrivalTime||call.aimedArrivalTime);
       const departure=epoch(call.expectedDepartureTime||call.aimedDepartureTime);
-      const eta=Number.isFinite(arrival)?arrival:departure;
-      if(!Number.isFinite(eta))continue;
-      const deltaSeconds=(eta-now)/1000;
-      if(deltaSeconds>approachWindowSeconds||deltaSeconds< -stationWindowSeconds)continue;
-      if(Number.isFinite(departure)&&departure<now)continue;
-      const predictedDwell=Number.isFinite(arrival)&&Number.isFinite(departure)&&arrival<=now&&departure>=now&&departure>=arrival;
-      if(deltaSeconds<0&&!predictedDwell)continue;
-      const aimed=epoch(call.aimedArrivalTime||call.aimedDepartureTime);
-      const candidate={id:ledId,profile,vehicleId:journeyId,destination,
-        state:predictedDwell?'AT_STOP':'APPROACHING',deltaSeconds,
-        positionType:'realtime-stop-forecast',
-        delaySeconds:Number.isFinite(aimed)?Math.round((eta-aimed)/1000):null};
-      const key=profile.id+'|'+journeyId;
+      const aimedArrival=epoch(call.aimedArrivalTime);
+      const aimedDeparture=epoch(call.aimedDepartureTime);
+      let state,positionType,eventTime,aimed;
+      // "Actual" means the provider reports the event; it is never inferred
+      // from a vanished ETA. Reported departure is visible for at most 10s.
+      if(Number.isFinite(actualDeparture)){
+        if(actualDeparture>now||now-actualDeparture>=10000)continue;
+        state='PASSED';positionType='reported-actual-departure';
+        eventTime=actualDeparture;aimed=aimedDeparture;
+      }else if(Number.isFinite(actualArrival)&&actualArrival<=now){
+        // A reported arrival alone cannot prove the train is still stopped.
+        if(now-actualArrival>90000)continue;
+        state='AT_STOP';positionType='reported-actual-arrival';
+        eventTime=actualArrival;aimed=aimedArrival;
+      }else{
+        const eta=Number.isFinite(arrival)?arrival:departure;
+        if(!Number.isFinite(eta))continue;
+        const delta=(eta-now)/1000;
+        if(delta>approachWindowSeconds||delta< -stationWindowSeconds)continue;
+        if(Number.isFinite(departure)&&departure<now)continue;
+        const dwell=Number.isFinite(arrival)&&Number.isFinite(departure)&&
+          arrival<=now&&departure>=now&&departure>=arrival;
+        if(delta<0&&!dwell)continue;
+        state=dwell?'AT_STOP':'APPROACHING';positionType='realtime-stop-forecast';
+        eventTime=eta;aimed=Number.isFinite(aimedArrival)?aimedArrival:aimedDeparture;
+      }
+      const deltaSeconds=(eventTime-now)/1000;
+      const datedId=journeyId+(typeof call.date==='string'?'|'+call.date:'');
+      const candidate={id:ledId,profile,vehicleId:datedId,destination,state,deltaSeconds,
+        positionType,delaySeconds:Number.isFinite(aimed)?Math.round((eventTime-aimed)/1000):null};
+      const key=profile.id+'|'+datedId;
       journeyMap.set(key,preferred(journeyMap.get(key),candidate));
     }
   });
@@ -71,7 +94,6 @@ export function selectMetroEstimatedCalls(board,profiles,payload,now,{stationWin
     if(!ledMap.has(candidate.id))ledMap.set(candidate.id,[]);
     ledMap.get(candidate.id).push(candidate);
   }
-  const rank=value=>value.state==='AT_STOP'?2:1;
   return [...ledMap].map(([id,occupants])=>{
     occupants.sort((a,b)=>rank(b)-rank(a)||Math.abs(a.deltaSeconds)-Math.abs(b.deltaSeconds)||a.vehicleId.localeCompare(b.vehicleId));
     return {...occupants[0],id,occupants};

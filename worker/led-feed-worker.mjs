@@ -848,9 +848,9 @@ async function liveMetroStationArrivals(board, profiles, now) {
   const start = new Date(now - lookBehind * 1000).toISOString();
   const timeRange = lookBehind + Math.min(lookAhead, approachWindow);
   const targets=metroQuayTargets(board);
-  const fields="realtime cancellation predictionInaccurate aimedArrivalTime expectedArrivalTime aimedDepartureTime expectedDepartureTime destinationDisplay{frontText} serviceJourney{id journeyPattern{line{id publicCode}}}";
+  const fields="realtime cancellation predictionInaccurate date aimedArrivalTime expectedArrivalTime actualArrivalTime aimedDepartureTime expectedDepartureTime actualDepartureTime destinationDisplay{frontText} serviceJourney{id journeyPattern{line{id publicCode}}}";
   const aliases=targets.map(({quayId},i)=>
-    `q${i}:quay(id:"${quayId}"){estimatedCalls(startTime:"${start}",timeRange:${timeRange},numberOfDepartures:12){${fields}}}`).join("\n");
+    `q${i}:quay(id:"${quayId}"){estimatedCalls(startTime:"${start}",timeRange:${timeRange},numberOfDepartures:12,includeCancelledTrips:true){${fields}}}`).join("\n");
   // Cache raw forecasts, never precomputed states. Reevaluate ETA against every frame timestamp.
   const key=board.id+'|'+(board.profileFingerprint||'')+'|'+targets.length;
   let cached=metroForecastCache.get(key);

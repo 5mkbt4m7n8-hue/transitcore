@@ -59,6 +59,18 @@ const majorstuenA=board.nodes.find(n=>n.id==="majorstuen-direction-a");
 const combined=multi.find(value=>value.id===physical(majorstuenA.led));
 assert.equal(combined?.occupants?.length,2,"Shared directional LED must retain both trains");
 assert.deepEqual(new Set(combined.occupants.map(o=>o.profile.line.publicCode)),new Set(["2","3"]));
+// A confirmed call from the provider can supersede an ETA, but an ETA
+// disappearing by itself must never manufacture a PASSED signal.
+assert.equal(evaluate(call("Østerås",{actualArrivalTime:at(-1000)}))[0]?.positionType,
+  "reported-actual-arrival");
+assert.equal(evaluate(call("Østerås",{actualDepartureTime:at(-3000)}))[0]?.state,
+  "PASSED","Only actual departure evidence may mark departure");
+assert.equal(evaluate(call("Østerås",{actualDepartureTime:at(-11000)})).length,0,
+  "Reported departure afterglow is strictly time-bounded");
+assert.deepEqual(evaluate(call("Østerås",{expectedArrivalTime:at(-3000),expectedDepartureTime:at(-1000)})),[],
+  "A departed forecast alone must not create PASSED");
+assert.equal(evaluate(call("Østerås",{realtime:false,actualDepartureTime:at(-1000)}))[0]?.positionType,
+  "reported-actual-departure","Actual event counts as evidence even without forecast flag");
 assert.match(page,/Liveprognose/);
 assert.match(page,/Utdatert prognose/);
 
