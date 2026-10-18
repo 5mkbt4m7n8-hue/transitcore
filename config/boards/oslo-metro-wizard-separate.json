@@ -8306,7 +8306,7 @@
     "routePriority": [],
     "arrivalHoldSeconds": 45,
     "freshnessSeconds": 120,
-    "departureAfterglowSeconds": 10
+    "departureAfterglowSeconds": 0
   },
   "status": "wizard-draft-hardware-order-pending"
 }

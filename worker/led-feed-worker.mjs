@@ -8,6 +8,7 @@ import { validateDeviceSettings } from "../core/models/device-config.mjs";
 import { createEnturProvider } from "../core/providers/entur/entur-provider.mjs";
 import { normalizeEnturVehicle } from "../core/providers/entur/entur-normalizer.mjs";
 import { buildPixelFrame } from "../core/frame/build-frame.mjs";
+import {metroQuayTargets,selectMetroEstimatedCalls} from "../core/engines/metro-arrival-estimates.mjs";
 import {usesStopAccuracy,buildStopAccuracy} from "./stop-accuracy.mjs";
 import { distance, color, rgb, matchesDirection, vehicleAllowedByBoard, validateConfiguration } from "../core/frame/mapping-support.mjs";
 export { matchesDirection, vehicleAllowedByBoard, validateConfiguration };
@@ -44,6 +45,8 @@ const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
 const configCache = new Map();
 const LIVE_VEHICLE_TTL_MS = 8 * 1000;
+const metroForecastCache = new Map();
+const METRO_FORECAST_CACHE_MS = 20000;
 const enturProvider = createEnturProvider({fetchJson,clientName:CLIENT_NAME,ttlMs:LIVE_VEHICLE_TTL_MS});
 
 const statusJson = (body, status = 200) => new Response(
@@ -836,7 +839,40 @@ async function liveVehiclesForProfiles(profiles) {
   return batches.flat();
 }
 
-async function liveStationArrivals(board, profiles, now) {
+async function liveMetroStationArrivals(board, profiles, now) {
+  const endpoint = profiles[0].positioning.endpoint;
+  const lookBehind = Math.max(...profiles.map(profile => profile.positioning.lookBehindSeconds || 75));
+  const lookAhead = Math.max(...profiles.map(profile => profile.positioning.lookAheadSeconds || 600));
+  const stationWindow = Math.max(...profiles.map(profile => profile.positioning.stationWindowSeconds || 45));
+  const approachWindow = Math.max(stationWindow, board.render?.approachWindowSeconds || 120);
+  const start = new Date(now - lookBehind * 1000).toISOString();
+  const timeRange = lookBehind + Math.min(lookAhead, approachWindow);
+  const targets=metroQuayTargets(board);
+  const fields="realtime cancellation predictionInaccurate date aimedArrivalTime expectedArrivalTime actualArrivalTime aimedDepartureTime expectedDepartureTime actualDepartureTime destinationDisplay{frontText} serviceJourney{id journeyPattern{line{id publicCode}}}";
+  const aliases=targets.map(({quayId},i)=>
+    `q${i}:quay(id:"${quayId}"){estimatedCalls(startTime:"${start}",timeRange:${timeRange},numberOfDepartures:12,includeCancelledTrips:true){${fields}}}`).join("\n");
+  // Cache raw forecasts, never precomputed states. Reevaluate ETA against every frame timestamp.
+  const key=board.id+'|'+(board.profileFingerprint||'')+'|'+targets.length;
+  let cached=metroForecastCache.get(key);
+  if(!cached||now<cached.at||now-cached.at>=METRO_FORECAST_CACHE_MS){
+    cached={at:now,promise:fetchJson(endpoint,{method:"POST",
+      headers:{"Content-Type":"application/json","ET-Client-Name":CLIENT_NAME},
+      body:JSON.stringify({query:`{${aliases}}`})})};
+    metroForecastCache.set(key,cached);
+  }
+  let data;
+  try{
+    data=await cached.promise;
+    if(data.errors?.length)throw Error("Entur estimated-call GraphQL error");
+  }catch(error){
+    if(metroForecastCache.get(key)===cached)metroForecastCache.delete(key);
+    throw error;
+  }
+  return selectMetroEstimatedCalls(board,profiles,data,now,{stationWindowSeconds:stationWindow,approachWindowSeconds:approachWindow});
+}
+
+// Other ETA boards (notably Flybussen) retain their existing, verified semantics.
+async function legacyStationArrivals(board, profiles, now) {
   const endpoint = profiles[0].positioning.endpoint;
   const lookBehind = Math.max(...profiles.map(profile => profile.positioning.lookBehindSeconds || 75));
   const lookAhead = Math.max(...profiles.map(profile => profile.positioning.lookAheadSeconds || 600));
@@ -890,6 +926,12 @@ async function liveStationArrivals(board, profiles, now) {
     }
   });
   return [...strongest.values()];
+}
+
+async function liveStationArrivals(board, profiles, now) {
+  return board.id.startsWith("oslo-metro")
+    ? liveMetroStationArrivals(board, profiles, now)
+    : legacyStationArrivals(board, profiles, now);
 }
 
 function frameFromStationArrivals(board, hardware, estimatedCalls, now) {

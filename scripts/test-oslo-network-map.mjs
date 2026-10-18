@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { corridors, buildStationLayout, lineColors } from "../web/oslo/layout.mjs";
+import {metroQuayTargets,selectMetroEstimatedCalls} from "../core/engines/metro-arrival-estimates.mjs";
 
 const board=JSON.parse(fs.readFileSync(new URL("../config/boards/oslo-metro-wizard-separate.json",import.meta.url)));
 const hardware=JSON.parse(fs.readFileSync(new URL("../config/hardware/oslo-metro-wizard-separate-hardware.json",import.meta.url)));
@@ -24,4 +25,69 @@ assert.match(page,/Vis alle LED-er/,"kartet skal ha full LED-test");
 assert.match(page,/directionSide/,"kartet skal vise begge retninger");
 assert.match(page,/lineColors\[String\(value\?\.line/,"togfargen skal bestemmes av offentlig linjenummer");
 assert.match(page,/collisionCycleSeconds/,"fargeveksling skal bruke felles TransitCore-rytme");
-console.log("Oslo fullnett-kart: 101 stasjoner, 201 LED-er, Sognsvann og fem linjefarger er dekket.");
+
+const targets=metroQuayTargets(board);
+assert.equal(targets.length,205,"Query 205 unique Oslo quays");
+assert(targets.some(t=>t.nodes.some(n=>n.id==="osteras-direction-a")&&t.nodes.some(n=>n.id==="osteras-direction-b")),"Shared quay must target both directions");
+const metro2=JSON.parse(fs.readFileSync(new URL("../config/routes/rut-metro-2-live.json",import.meta.url)));
+const quayIndex=targets.findIndex(t=>t.quayId==="NSR:Quay:6658");
+assert(quayIndex>=0);
+const moment=Date.now(),at=ms=>new Date(moment+ms).toISOString();
+const call=(destination,overrides={})=>({realtime:true,cancellation:false,predictionInaccurate:false,
+  aimedArrivalTime:at(20000),expectedArrivalTime:at(20000),
+  aimedDepartureTime:at(30000),expectedDepartureTime:at(30000),
+  destinationDisplay:{frontText:destination},
+  serviceJourney:{id:"test-oslo-2",journeyPattern:{line:{id:"RUT:Line:2",publicCode:"2"}}},...overrides});
+const payload=call=>({data:{["q"+quayIndex]:{estimatedCalls:[call]}}});
+const physical=logical=>hardware.assignments.find(item=>item.logicalLed===logical).physicalLed;
+const directionA=board.nodes.find(n=>n.id==="osteras-direction-a"),directionB=board.nodes.find(n=>n.id==="osteras-direction-b");
+const evaluate=callData=>selectMetroEstimatedCalls({...board,hardware},[metro2],payload(callData),moment);
+assert.equal(evaluate(call("Ellingsrudåsen"))[0]?.id,physical(directionB.led),"B must work at duplicate quay");
+assert.equal(evaluate(call("Østerås"))[0]?.id,physical(directionA.led),"A must work at duplicate quay");
+for(const bad of [{realtime:false},{cancellation:true},{predictionInaccurate:true},{destinationDisplay:{frontText:""}}])
+  assert.deepEqual(evaluate(call("Østerås",bad)),[],"No misleading live light for invalid evidence");
+assert.deepEqual(evaluate(call("Østerås",{expectedArrivalTime:at(-30000),expectedDepartureTime:at(-10000)})),[],"Past departure is not a live stop");
+assert.equal(evaluate(call("Østerås",{expectedArrivalTime:at(-1000)}))[0]?.state,"AT_STOP","ETA dwell remains explicitly estimated");
+// On a five-line interchange both journeys must survive on the one A-direction LED.
+const metro3=JSON.parse(fs.readFileSync(new URL("../config/routes/rut-metro-3-live.json",import.meta.url)));
+const interchangeIndex=targets.findIndex(t=>t.quayId==="NSR:Quay:8028");
+assert(interchangeIndex>=0);
+const call3=call("Kolsås",{serviceJourney:{id:"test-oslo-3",journeyPattern:{line:{id:"RUT:Line:3",publicCode:"3"}}}});
+const mixed={data:{["q"+interchangeIndex]:{estimatedCalls:[call("Østerås"),call3]}}};
+const multi=selectMetroEstimatedCalls({...board,hardware},[metro2,metro3],mixed,moment);
+const majorstuenA=board.nodes.find(n=>n.id==="majorstuen-direction-a");
+const combined=multi.find(value=>value.id===physical(majorstuenA.led));
+assert.equal(combined?.occupants?.length,2,"Shared directional LED must retain both trains");
+assert.deepEqual(new Set(combined.occupants.map(o=>o.profile.line.publicCode)),new Set(["2","3"]));
+// A confirmed call from the provider can supersede an ETA, but an ETA
+// disappearing by itself must never manufacture a PASSED signal.
+assert.equal(evaluate(call("Østerås",{actualArrivalTime:at(-1000)}))[0]?.positionType,
+  "reported-actual-arrival");
+assert.equal(evaluate(call("Østerås",{actualDepartureTime:at(-3000)}))[0]?.state,
+  "PASSED","Only actual departure evidence may mark departure");
+assert.deepEqual(evaluate(call("Østerås",{actualArrivalTime:at(-35000),expectedDepartureTime:at(-25000)})),[], "A reported arrival is not indefinite evidence of station occupancy");
+assert.equal(evaluate(call("Østerås",{actualDepartureTime:at(-11000)})).length,0,
+  "Reported departure afterglow is strictly time-bounded");
+assert.deepEqual(evaluate(call("Østerås",{expectedArrivalTime:at(-3000),expectedDepartureTime:at(-1000)})),[],
+  "A departed forecast alone must not create PASSED");
+assert.equal(evaluate(call("Østerås",{realtime:false,actualDepartureTime:at(-1000)}))[0]?.positionType,
+  "reported-actual-departure","Actual event counts as evidence even without forecast flag");
+// The same service journey can be reported twice at a shared quay. A later
+// reported departure must beat a stale inferred dwell for the same LED.
+const predictedDwellCall=call("Østerås",{expectedArrivalTime:at(-20000),expectedDepartureTime:at(20000)});
+const reportedDepartureCall=call("Østerås",{
+  expectedArrivalTime:at(-20000),expectedDepartureTime:at(20000),
+  actualDepartureTime:at(-2000)
+});
+const overlap={data:{["q"+quayIndex]:{estimatedCalls:[predictedDwellCall,reportedDepartureCall]}}};
+const overlapReverse={data:{["q"+quayIndex]:{estimatedCalls:[reportedDepartureCall,predictedDwellCall]}}};
+for(const response of [overlap,overlapReverse]){
+  const candidates=selectMetroEstimatedCalls({...board,hardware},[metro2],response,moment);
+  assert.equal(candidates.length,1);
+  assert.equal(candidates[0].state,"PASSED","Actual departure must beat overlapping predicted dwell");
+  assert.equal(candidates[0].positionType,"reported-actual-departure");
+}
+assert.match(page,/Liveprognose/);
+assert.match(page,/Utdatert prognose/);
+
+console.log("Oslo fullnett-kart: 101 stasjoner, 201 LED-er, prognoser og retninger er dekket.");

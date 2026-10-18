@@ -43,7 +43,7 @@ const BOARD_URL="../../config/boards/oslo-metro-wizard-separate.json";
 const HARDWARE_URL="../../config/hardware/oslo-metro-wizard-separate-hardware.json";
 const FRAME_URL="https://transitcore-led-feed.lgb84.workers.dev/v1/boards/oslo-metro-wizard-separate/frame";
 const SVG="http://www.w3.org/2000/svg", $=id=>document.getElementById(id);
-let board,hardware,frame,showAll=false,showLabels=true,refreshTimer,cycleTimer,cycleStep=0;
+let board,hardware,frame,lastError='',showAll=false,showLabels=true,refreshTimer,cycleTimer,cycleStep=0;
 
 TransitCoreSignals.applyCssVariables(document);
 function esc(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
@@ -95,6 +95,10 @@ function activeEntries(item){
 }
 function priority(item){const state=TransitCoreSignals.normalize(item.state);return state==="AT_STOP"?3:state==="APPROACHING"?2:state==="PASSED"||item.lifecycle==="PASSED"?1:0}
 function paint(){
+  const born=Date.parse(frame?.generatedAt||"");
+  if(frame&&(!Number.isFinite(born)||Date.now()-born>Number(frame.ttlSeconds)*1000)){
+    frame=null;lastError="Utdatert prognose – LED-ene er slått av";
+  }
   document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching","passed");led.style.removeProperty("--rgb");delete led.dataset.items});
   const byId=new Map((frame?.leds||[]).map(item=>[Number(item.id),item]));
   let active=0;
@@ -112,21 +116,22 @@ function paint(){
     if(state==="APPROACHING")led.classList.add("approaching");
   });
   const generated=Date.parse(frame?.generatedAt||""),age=Number.isFinite(generated)?Math.max(0,Math.floor((Date.now()-generated)/1000)):null;
-  $("status").className="status "+(frame?"ok":"error");$("status").textContent=showAll?`LED-test · ${board.leds.count} punkter`:frame?`Live · ${active} aktive · frame ${age} sek`:`Ingen live-frame`;
+  $("status").className="status "+(lastError?"error":frame?"ok":"error");$("status").textContent=showAll?`LED-test · ${board.leds.count} punkter`:lastError||(frame?`Liveprognose · ${active} signaler · ${age} sek siden`:"Ingen sanntidsprognose");
 }
 function hexRgb(hex){const value=hex.replace("#","");return [0,2,4].map(index=>parseInt(value.slice(index,index+2),16))}
 function trainRgb(value,fallback){const color=lineColors[String(value?.line||"")];return color?hexRgb(color):(value?.rgb||fallback||[255,255,255])}
 function lineNumbers(node){return node.routes.map(id=>id.match(/metro-(\d)/)?.[1]).filter(Boolean).join(", ")}
+function forecastDelay(value){const s=value?.delaySeconds;if(typeof s!=="number"||!Number.isFinite(s))return "";const type=value.positionType?.startsWith("reported-actual")?"Rapportert avvik":"ETA-avvik";return Math.abs(s)<30?` · ${type}: i rute`:` · ${type}: ${s>0?"+":""}${Math.round(s/60)} min`;}
 function showDetail(name){
   const nodes=stationNodes(name),items=nodes.map(node=>{const physical=physicalLed(node.led),entry=(frame?.leds||[]).find(value=>Number(value.id)===physical);return {node,physical,entry}});
   $("detail-title").textContent=name;
-  $("detail-body").innerHTML=items.map(({node,physical,entry})=>{const winner=activeEntries(entry||{}).sort((a,b)=>priority(b)-priority(a))[0],state=winner?.state||entry?.state||"AV",rgb=trainRgb(winner,entry?.rgb||[52,61,70]);return `<p><i class="led-key" style="--rgb:${rgb.join(",")}"></i><strong>Retning ${esc(node.directionSide||"felles")}</strong> · LED ${String(physical).padStart(3,"0")} · ${esc(state)} · linje ${esc(lineNumbers(node))}</p>`}).join("");
+  $("detail-body").innerHTML=items.map(({node,physical,entry})=>{const winner=activeEntries(entry||{}).sort((a,b)=>priority(b)-priority(a))[0],state=winner?.positionType==="reported-actual-arrival"?"ANKOMMET (rapportert)":winner?.positionType==="reported-actual-departure"?"AVGÅTT (rapportert)":(winner?.state||entry?.state||"AV")==="AT_STOP"?"AT_STOP (estimert)":winner?.state||entry?.state||"AV",rgb=trainRgb(winner,entry?.rgb||[52,61,70]);return `<p><i class="led-key" style="--rgb:${rgb.join(",")}"></i><strong>Retning ${esc(node.directionSide||"felles")}</strong> · LED ${String(physical).padStart(3,"0")} · ${esc(state)} · linje ${esc(winner?.line||lineNumbers(node))}${esc(forecastDelay(winner))}</p>`}).join("");
   $("detail").hidden=false;
 }
 async function refresh(){
   clearTimeout(refreshTimer);
   if(document.hidden)return;
-  try{const response=await fetch(FRAME_URL,{cache:"no-store"}),next=await response.json();if(!response.ok)throw Error(`Worker HTTP ${response.status}`);if(next.boardProfile!==board.id||next.ledCount!==board.leds.count)throw Error("Worker-profilen samsvarer ikke med kartet");frame=next;paint()}catch(error){console.error(error);$("status").className="status error";$("status").textContent=`Livefeil: ${error.message}`}finally{if(!document.hidden)refreshTimer=setTimeout(refresh,10000)}
+  try{const response=await fetch(FRAME_URL,{cache:"no-store"}),next=await response.json();if(!response.ok)throw Error(`Worker HTTP ${response.status}`);if(next.boardProfile!==board.id||next.ledCount!==board.leds.count)throw Error("Worker-profilen samsvarer ikke med kartet");const born=Date.parse(next.generatedAt||"");if(!Number.isFinite(born)||!Number.isFinite(next.ttlSeconds)||Date.now()-born>next.ttlSeconds*1000)throw Error("Foreldet Worker-frame");frame=next;lastError="";paint()}catch(error){console.error(error);frame=null;lastError=`Livefeil: ${error.message}`;paint()}finally{if(!document.hidden)refreshTimer=setTimeout(refresh,10000)}
 }
 document.addEventListener("visibilitychange",()=>{clearTimeout(refreshTimer);if(!document.hidden&&board)refresh()});
 function renderLegend(){$("legend").innerHTML=Object.entries(lineColors).map(([line,color])=>`<span class="line-key"><i class="line-dot" style="--line-color:${color}">${line}</i></span>`).join("")+'<span class="line-key">A/B = retning</span>'}
