@@ -95,7 +95,7 @@ export function renderArrivalFrame({ board, hardware, now, signalPolicy: SIGNAL_
       rgb: rgb(board.render.lineColors?.[item.profile.line.publicCode] || item.profile.line.color || color(item.profile, item.destination)),
       brightness: Math.min(SIGNAL_POLICY.fullBrightness, hardware.leds?.brightnessLimit ?? SIGNAL_POLICY.fullBrightness),
       state: item.state,
-      vehicle: item.positionType === "realtime-stop-forecast"
+      vehicle: board.id.startsWith("oslo-metro") && item.positionType === "realtime-stop-forecast"
         ? { id: item.vehicleId, line: String(item.profile.line.publicCode),
           destination: item.destination, positionType: item.positionType,
           delaySeconds: item.delaySeconds }
