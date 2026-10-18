@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { corridors, buildStationLayout, lineColors } from "../web/oslo/layout.mjs";
+import {metroQuayTargets,selectMetroEstimatedCalls} from "../core/engines/metro-arrival-estimates.mjs";
 
 const board=JSON.parse(fs.readFileSync(new URL("../config/boards/oslo-metro-wizard-separate.json",import.meta.url)));
 const hardware=JSON.parse(fs.readFileSync(new URL("../config/hardware/oslo-metro-wizard-separate-hardware.json",import.meta.url)));
@@ -24,4 +25,30 @@ assert.match(page,/Vis alle LED-er/,"kartet skal ha full LED-test");
 assert.match(page,/directionSide/,"kartet skal vise begge retninger");
 assert.match(page,/lineColors\[String\(value\?\.line/,"togfargen skal bestemmes av offentlig linjenummer");
 assert.match(page,/collisionCycleSeconds/,"fargeveksling skal bruke felles TransitCore-rytme");
-console.log("Oslo fullnett-kart: 101 stasjoner, 201 LED-er, Sognsvann og fem linjefarger er dekket.");
+
+const targets=metroQuayTargets(board);
+assert.equal(targets.length,205,"Query 205 unique Oslo quays");
+assert(targets.some(t=>t.nodes.some(n=>n.id==="osteras-direction-a")&&t.nodes.some(n=>n.id==="osteras-direction-b")),"Shared quay must target both directions");
+const metro2=JSON.parse(fs.readFileSync(new URL("../config/routes/rut-metro-2-live.json",import.meta.url)));
+const quayIndex=targets.findIndex(t=>t.quayId==="NSR:Quay:6658");
+assert(quayIndex>=0);
+const moment=Date.now(),at=ms=>new Date(moment+ms).toISOString();
+const call=(destination,overrides={})=>({realtime:true,cancellation:false,predictionInaccurate:false,
+  aimedArrivalTime:at(20000),expectedArrivalTime:at(20000),
+  aimedDepartureTime:at(30000),expectedDepartureTime:at(30000),
+  destinationDisplay:{frontText:destination},
+  serviceJourney:{id:"test-oslo-2",journeyPattern:{line:{id:"RUT:Line:2",publicCode:"2"}}},...overrides});
+const payload=call=>({data:{["q"+quayIndex]:{estimatedCalls:[call]}}});
+const physical=logical=>hardware.assignments.find(item=>item.logicalLed===logical).physicalLed;
+const directionA=board.nodes.find(n=>n.id==="osteras-direction-a"),directionB=board.nodes.find(n=>n.id==="osteras-direction-b");
+const evaluate=callData=>selectMetroEstimatedCalls({...board,hardware},[metro2],payload(callData),moment);
+assert.equal(evaluate(call("Ellingsrudåsen"))[0]?.id,physical(directionB.led),"B must work at duplicate quay");
+assert.equal(evaluate(call("Østerås"))[0]?.id,physical(directionA.led),"A must work at duplicate quay");
+for(const bad of [{realtime:false},{cancellation:true},{predictionInaccurate:true},{destinationDisplay:{frontText:""}}])
+  assert.deepEqual(evaluate(call("Østerås",bad)),[],"No misleading live light for invalid evidence");
+assert.deepEqual(evaluate(call("Østerås",{expectedArrivalTime:at(-30000),expectedDepartureTime:at(-10000)})),[],"Past departure is not a live stop");
+assert.equal(evaluate(call("Østerås",{expectedArrivalTime:at(-1000)}))[0]?.state,"AT_STOP","ETA dwell remains explicitly estimated");
+assert.match(page,/Liveprognose/);
+assert.match(page,/Utdatert prognose/);
+
+console.log("Oslo fullnett-kart: 101 stasjoner, 201 LED-er, prognoser og retninger er dekket.");

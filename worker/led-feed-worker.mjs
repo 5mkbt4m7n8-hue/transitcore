@@ -8,6 +8,7 @@ import { validateDeviceSettings } from "../core/models/device-config.mjs";
 import { createEnturProvider } from "../core/providers/entur/entur-provider.mjs";
 import { normalizeEnturVehicle } from "../core/providers/entur/entur-normalizer.mjs";
 import { buildPixelFrame } from "../core/frame/build-frame.mjs";
+import {metroQuayTargets,selectMetroEstimatedCalls} from "../core/engines/metro-arrival-estimates.mjs";
 import {usesStopAccuracy,buildStopAccuracy} from "./stop-accuracy.mjs";
 import { distance, color, rgb, matchesDirection, vehicleAllowedByBoard, validateConfiguration } from "../core/frame/mapping-support.mjs";
 export { matchesDirection, vehicleAllowedByBoard, validateConfiguration };
@@ -44,6 +45,8 @@ const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
 const configCache = new Map();
 const LIVE_VEHICLE_TTL_MS = 8 * 1000;
+const metroForecastCache = new Map();
+const METRO_FORECAST_CACHE_MS = 20000;
 const enturProvider = createEnturProvider({fetchJson,clientName:CLIENT_NAME,ttlMs:LIVE_VEHICLE_TTL_MS});
 
 const statusJson = (body, status = 200) => new Response(
@@ -843,53 +846,29 @@ async function liveStationArrivals(board, profiles, now) {
   const stationWindow = Math.max(...profiles.map(profile => profile.positioning.stationWindowSeconds || 45));
   const approachWindow = Math.max(stationWindow, board.render?.approachWindowSeconds || 120);
   const start = new Date(now - lookBehind * 1000).toISOString();
-  const timeRange = lookBehind + lookAhead;
-  const targets = [];
-  const seenQuays = new Set();
-  for (const node of board.nodes) {
-    for (const quayId of node.stopIds || []) {
-      if (seenQuays.has(quayId)) continue;
-      seenQuays.add(quayId);
-      targets.push({ node, quayId });
-    }
+  const timeRange = lookBehind + Math.min(lookAhead, approachWindow);
+  const targets=metroQuayTargets(board);
+  const fields="realtime cancellation predictionInaccurate aimedArrivalTime expectedArrivalTime aimedDepartureTime expectedDepartureTime destinationDisplay{frontText} serviceJourney{id journeyPattern{line{id publicCode}}}";
+  const aliases=targets.map(({quayId},i)=>
+    `q${i}:quay(id:"${quayId}"){estimatedCalls(startTime:"${start}",timeRange:${timeRange},numberOfDepartures:12){${fields}}}`).join("\n");
+  // Cache raw forecasts, never precomputed states. Reevaluate ETA against every frame timestamp.
+  const key=board.id+'|'+(board.profileFingerprint||'')+'|'+targets.length;
+  let cached=metroForecastCache.get(key);
+  if(!cached||now<cached.at||now-cached.at>=METRO_FORECAST_CACHE_MS){
+    cached={at:now,promise:fetchJson(endpoint,{method:"POST",
+      headers:{"Content-Type":"application/json","ET-Client-Name":CLIENT_NAME},
+      body:JSON.stringify({query:`{${aliases}}`})})};
+    metroForecastCache.set(key,cached);
   }
-  const fields = "aimedArrivalTime expectedArrivalTime aimedDepartureTime expectedDepartureTime destinationDisplay{frontText} serviceJourney{id journeyPattern{line{id publicCode}}}";
-  const aliases = targets.map((target, index) =>
-    `q${index}:quay(id:"${target.quayId}"){estimatedCalls(startTime:"${start}",timeRange:${timeRange},numberOfDepartures:6){${fields}}}`
-  ).join("\n");
-  const data = await fetchJson(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "ET-Client-Name": CLIENT_NAME },
-    body: JSON.stringify({ query: `{${aliases}}` })
-  });
-  if (data.errors?.length) throw Error(data.errors[0].message);
-
-  const byPublicCode = new Map(profiles.map(profile => [String(profile.line.publicCode), profile]));
-  const byLineId = new Map(profiles.map(profile => [String(profile.line.id), profile]));
-  const physical = new Map(board.hardware.assignments.map(item => [item.logicalLed, item.physicalLed]));
-  const strongest = new Map();
-  targets.forEach((target, index) => {
-    for (const call of data.data?.[`q${index}`]?.estimatedCalls || []) {
-      const line = call.serviceJourney?.journeyPattern?.line;
-      const profile = byPublicCode.get(String(line?.publicCode || "")) || byLineId.get(String(line?.id || ""));
-      if (!profile || !target.node.routes.includes(profile.id)) continue;
-      const destination = call.destinationDisplay?.frontText || "";
-      if (target.node.routeDirections && !matchesDirection(target.node, profile, destination)) continue;
-      const when = Date.parse(call.expectedArrivalTime || call.aimedArrivalTime || call.expectedDepartureTime || call.aimedDepartureTime || "");
-      const deltaSeconds = (when - now) / 1000;
-      if (!Number.isFinite(when) || deltaSeconds < -stationWindow || deltaSeconds > approachWindow) continue;
-      const id = physical.get(target.node.led);
-      const state = Math.abs(deltaSeconds) <= stationWindow ? "AT_STOP" : "APPROACHING";
-      const candidate = {
-        id, profile, destination, state, deltaSeconds,
-        vehicleId: String(call.serviceJourney?.id || "")
-      };
-      const previous = strongest.get(id);
-      if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" ||
-          state === previous.state && Math.abs(deltaSeconds) < Math.abs(previous.deltaSeconds)) strongest.set(id, candidate);
-    }
-  });
-  return [...strongest.values()];
+  let data;
+  try{
+    data=await cached.promise;
+    if(data.errors?.length)throw Error("Entur estimated-call GraphQL error");
+  }catch(error){
+    if(metroForecastCache.get(key)===cached)metroForecastCache.delete(key);
+    throw error;
+  }
+  return selectMetroEstimatedCalls(board,profiles,data,now,{stationWindowSeconds:stationWindow,approachWindowSeconds:approachWindow});
 }
 
 function frameFromStationArrivals(board, hardware, estimatedCalls, now) {
