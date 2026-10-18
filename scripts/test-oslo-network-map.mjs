@@ -48,6 +48,17 @@ for(const bad of [{realtime:false},{cancellation:true},{predictionInaccurate:tru
   assert.deepEqual(evaluate(call("Østerås",bad)),[],"No misleading live light for invalid evidence");
 assert.deepEqual(evaluate(call("Østerås",{expectedArrivalTime:at(-30000),expectedDepartureTime:at(-10000)})),[],"Past departure is not a live stop");
 assert.equal(evaluate(call("Østerås",{expectedArrivalTime:at(-1000)}))[0]?.state,"AT_STOP","ETA dwell remains explicitly estimated");
+// On a five-line interchange both journeys must survive on the one A-direction LED.
+const metro3=JSON.parse(fs.readFileSync(new URL("../config/routes/rut-metro-3-live.json",import.meta.url)));
+const interchangeIndex=targets.findIndex(t=>t.quayId==="NSR:Quay:8028");
+assert(interchangeIndex>=0);
+const call3=call("Kolsås",{serviceJourney:{id:"test-oslo-3",journeyPattern:{line:{id:"RUT:Line:3",publicCode:"3"}}}});
+const mixed={data:{["q"+interchangeIndex]:{estimatedCalls:[call("Østerås"),call3]}}};
+const multi=selectMetroEstimatedCalls({...board,hardware},[metro2,metro3],mixed,moment);
+const majorstuenA=board.nodes.find(n=>n.id==="majorstuen-direction-a");
+const combined=multi.find(value=>value.id===physical(majorstuenA.led));
+assert.equal(combined?.occupants?.length,2,"Shared directional LED must retain both trains");
+assert.deepEqual(new Set(combined.occupants.map(o=>o.profile.line.publicCode)),new Set(["2","3"]));
 assert.match(page,/Liveprognose/);
 assert.match(page,/Utdatert prognose/);
 

@@ -67,6 +67,13 @@ export function selectMetroEstimatedCalls(board,profiles,payload,now,{stationWin
     }
   });
   const ledMap=new Map();
-  for(const candidate of journeyMap.values())ledMap.set(candidate.id,preferred(ledMap.get(candidate.id),candidate));
-  return [...ledMap.values()].sort((a,b)=>a.id-b.id);
+  for(const candidate of journeyMap.values()){
+    if(!ledMap.has(candidate.id))ledMap.set(candidate.id,[]);
+    ledMap.get(candidate.id).push(candidate);
+  }
+  const rank=value=>value.state==='AT_STOP'?2:1;
+  return [...ledMap].map(([id,occupants])=>{
+    occupants.sort((a,b)=>rank(b)-rank(a)||Math.abs(a.deltaSeconds)-Math.abs(b.deltaSeconds)||a.vehicleId.localeCompare(b.vehicleId));
+    return {...occupants[0],id,occupants};
+  }).sort((a,b)=>a.id-b.id);
 }

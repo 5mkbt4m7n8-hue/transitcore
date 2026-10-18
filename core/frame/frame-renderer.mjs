@@ -99,7 +99,18 @@ export function renderArrivalFrame({ board, hardware, now, signalPolicy: SIGNAL_
         ? { id: item.vehicleId, line: String(item.profile.line.publicCode),
           destination: item.destination, positionType: item.positionType,
           delaySeconds: item.delaySeconds }
-        : { id: item.vehicleId }
+        : { id: item.vehicleId },
+      // Reuse the existing multi-line LED collision UI, never lose the other
+      // simultaneous journeys because they happen to share one physical LED.
+      ...(board.id.startsWith("oslo-metro") && item.occupants?.length > 1
+        ? { occupants: item.occupants.map(value => ({
+            id: value.vehicleId, line: String(value.profile.line.publicCode),
+            destination: value.destination, state: value.state,
+            rgb: rgb(board.render.lineColors?.[value.profile.line.publicCode] ||
+              value.profile.line.color || color(value.profile, value.destination)),
+            positionType: value.positionType, delaySeconds: value.delaySeconds
+          })) }
+        : {})
     }))
   };
 }
