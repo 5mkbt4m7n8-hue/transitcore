@@ -839,7 +839,7 @@ async function liveVehiclesForProfiles(profiles) {
   return batches.flat();
 }
 
-async function liveStationArrivals(board, profiles, now) {
+async function liveMetroStationArrivals(board, profiles, now) {
   const endpoint = profiles[0].positioning.endpoint;
   const lookBehind = Math.max(...profiles.map(profile => profile.positioning.lookBehindSeconds || 75));
   const lookAhead = Math.max(...profiles.map(profile => profile.positioning.lookAheadSeconds || 600));
@@ -869,6 +869,69 @@ async function liveStationArrivals(board, profiles, now) {
     throw error;
   }
   return selectMetroEstimatedCalls(board,profiles,data,now,{stationWindowSeconds:stationWindow,approachWindowSeconds:approachWindow});
+}
+
+// Other ETA boards (notably Flybussen) retain their existing, verified semantics.
+async function legacyStationArrivals(board, profiles, now) {
+  const endpoint = profiles[0].positioning.endpoint;
+  const lookBehind = Math.max(...profiles.map(profile => profile.positioning.lookBehindSeconds || 75));
+  const lookAhead = Math.max(...profiles.map(profile => profile.positioning.lookAheadSeconds || 600));
+  const stationWindow = Math.max(...profiles.map(profile => profile.positioning.stationWindowSeconds || 45));
+  const approachWindow = Math.max(stationWindow, board.render?.approachWindowSeconds || 120);
+  const start = new Date(now - lookBehind * 1000).toISOString();
+  const timeRange = lookBehind + lookAhead;
+  const targets = [];
+  const seenQuays = new Set();
+  for (const node of board.nodes) {
+    for (const quayId of node.stopIds || []) {
+      if (seenQuays.has(quayId)) continue;
+      seenQuays.add(quayId);
+      targets.push({ node, quayId });
+    }
+  }
+  const fields = "aimedArrivalTime expectedArrivalTime aimedDepartureTime expectedDepartureTime destinationDisplay{frontText} serviceJourney{id journeyPattern{line{id publicCode}}}";
+  const aliases = targets.map((target, index) =>
+    `q${index}:quay(id:"${target.quayId}"){estimatedCalls(startTime:"${start}",timeRange:${timeRange},numberOfDepartures:6){${fields}}}`
+  ).join("\n");
+  const data = await fetchJson(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "ET-Client-Name": CLIENT_NAME },
+    body: JSON.stringify({ query: `{${aliases}}` })
+  });
+  if (data.errors?.length) throw Error(data.errors[0].message);
+
+  const byPublicCode = new Map(profiles.map(profile => [String(profile.line.publicCode), profile]));
+  const byLineId = new Map(profiles.map(profile => [String(profile.line.id), profile]));
+  const physical = new Map(board.hardware.assignments.map(item => [item.logicalLed, item.physicalLed]));
+  const strongest = new Map();
+  targets.forEach((target, index) => {
+    for (const call of data.data?.[`q${index}`]?.estimatedCalls || []) {
+      const line = call.serviceJourney?.journeyPattern?.line;
+      const profile = byPublicCode.get(String(line?.publicCode || "")) || byLineId.get(String(line?.id || ""));
+      if (!profile || !target.node.routes.includes(profile.id)) continue;
+      const destination = call.destinationDisplay?.frontText || "";
+      if (target.node.routeDirections && !matchesDirection(target.node, profile, destination)) continue;
+      const when = Date.parse(call.expectedArrivalTime || call.aimedArrivalTime || call.expectedDepartureTime || call.aimedDepartureTime || "");
+      const deltaSeconds = (when - now) / 1000;
+      if (!Number.isFinite(when) || deltaSeconds < -stationWindow || deltaSeconds > approachWindow) continue;
+      const id = physical.get(target.node.led);
+      const state = Math.abs(deltaSeconds) <= stationWindow ? "AT_STOP" : "APPROACHING";
+      const candidate = {
+        id, profile, destination, state, deltaSeconds,
+        vehicleId: String(call.serviceJourney?.id || "")
+      };
+      const previous = strongest.get(id);
+      if (!previous || state === "AT_STOP" && previous.state !== "AT_STOP" ||
+          state === previous.state && Math.abs(deltaSeconds) < Math.abs(previous.deltaSeconds)) strongest.set(id, candidate);
+    }
+  });
+  return [...strongest.values()];
+}
+
+async function liveStationArrivals(board, profiles, now) {
+  return board.id.startsWith("oslo-metro")
+    ? liveMetroStationArrivals(board, profiles, now)
+    : legacyStationArrivals(board, profiles, now);
 }
 
 function frameFromStationArrivals(board, hardware, estimatedCalls, now) {
