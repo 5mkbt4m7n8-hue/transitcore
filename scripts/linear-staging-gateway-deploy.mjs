@@ -1,4 +1,4 @@
-// First publication only. Existing names require separate review, never overwrite.
+// Manual create or explicitly approved update of the isolated gateway only.
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
@@ -11,13 +11,26 @@ export const SHA='fbe5e6ba7edc6427c516f81356081225bc7fb59c';
 export const ORIGIN='https://transitcore-linear-staging.lgb84.workers.dev';
 export const BOARDS=[['trondheim-bus-board',147],['trondheim-shared-stops-board',147],['trondheim-city-lines-catalog',1282],['trondheim-flybuss-live',46]];
 const CONFIG='deploy/linear-staging/wrangler.json';
-const EXPECTED={name:NAME,main:'entry.mjs',account_id:ACCOUNT,compatibility_date:'2026-08-11',workers_dev:true,preview_urls:false,ratelimits:[{name:'PUBLIC_READ_LIMIT',namespace_id:'110008',simple:{limit:60,period:60}}]};
+const EXPECTED={name:NAME,main:'entry.mjs',account_id:ACCOUNT,compatibility_date:'2026-08-11',compatibility_flags:['global_fetch_strictly_public'],workers_dev:true,preview_urls:false,ratelimits:[{name:'PUBLIC_READ_LIMIT',namespace_id:'110008',simple:{limit:60,period:60}}]};
 const check=(ok,message)=>{if(!ok)throw new Error(message);};
 export function guard(config,env){
   check(isDeepStrictEqual(config,EXPECTED),'Unexpected gateway configuration or rate-limit binding');
   check(env.GITHUB_REPOSITORY==='5mkbt4m7n8-hue/transitcore'&&env.GITHUB_REF==='refs/heads/main'&&env.GITHUB_EVENT_NAME==='workflow_dispatch','Only manual main dispatch is allowed');
   check(env.CLOUDFLARE_ACCOUNT_ID===ACCOUNT,'Wrong Cloudflare account');
   check(Boolean(env.CLOUDFLARE_API_TOKEN)&&Boolean(env.STAGING_ACCESS_TOKEN),'Required staging environment secrets are unavailable');
+  const mode=env.GATEWAY_DEPLOY_MODE||'create';
+  check(['create','update'].includes(mode),'Unexpected deployment mode');
+  check(mode==='update'?/^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(env.GATEWAY_EXPECTED_VERSION||''):!env.GATEWAY_EXPECTED_VERSION,'Wrong expected gateway version');
+}
+export function checkBindings(settings){
+  check(Array.isArray(settings.bindings)&&settings.bindings.length===2&&settings.bindings.some(b=>b.type==='secret_text'&&b.name==='STAGING_ACCESS_TOKEN')&&settings.bindings.some(b=>b.type==='ratelimit'&&b.name==='PUBLIC_READ_LIMIT'&&String(b.namespace_id)==='110008'&&b.simple?.limit===60&&b.simple?.period===60),'Unexpected deployed bindings; gateway requires manual review');
+}
+export function checkUpdate(scripts,settings,deployments,expected){
+  check(Array.isArray(scripts)&&scripts.filter(s=>s.id===NAME).length===1,'Unexpected existing gateway identity');
+  checkBindings(settings);
+  check(settings.compatibility_date==='2026-08-11'&&Array.isArray(settings.compatibility_flags)&&settings.compatibility_flags.every(f=>f==='global_fetch_strictly_public'),'Unexpected existing gateway runtime');
+  const active=deployments.deployments?.[0]?.versions;
+  check(Array.isArray(active)&&active.length===1&&active[0].version_id===expected&&active[0].percentage===100,'Wrong active gateway version or traffic split');
 }
 export function requireUnusedName(scripts){
   check(Array.isArray(scripts)&&scripts.every(s=>typeof s.id==='string'),'Unrecognized Cloudflare inventory');
@@ -48,7 +61,7 @@ export async function smoke(path,board,count,diagnostics=false,{fetcher=fetch,sl
       response=await fetcher(ORIGIN+path,{redirect:'manual',signal:AbortSignal.timeout(Math.min(15000,120000-(now()-started)))});
       const envOK=response.headers.get('x-transitcore-environment')==='isolated-staging',shaOK=response.headers.get('x-transitcore-source-sha')===SHA;
       log(`${board}${diagnostics?' diagnostics':''}: attempt=${attempt} HTTP=${response.status} elapsedMs=${now()-started} environment=${envOK} sha=${shaOK}`);
-      if(response.status===200){body=await boundedBody(response);validateLive(response,body.text,board,count,diagnostics);log(`${board}: PASS bytes=${body.bytes}`);return;}
+      if(response.status===200){body=await boundedBody(response);validateLive(response,body.text,board,count,diagnostics);const data=JSON.parse(body.text);const passed=(data.leds||[]).filter(l=>l.state==='PASSED'||l.lifecycle==='PASSED'||l.occupants?.some(o=>o.state==='PASSED')).length;log(`${board}: PASS bytes=${body.bytes}${diagnostics?'':` PASSED_leds=${passed} (snapshot only; zero is not a verified departure)`}`);return;}
       await response.body?.cancel();
       check([401,404,429].includes(response.status)||response.status>=500&&response.status<=599,'Non-retryable HTTP status');
     }catch(error){
@@ -69,7 +82,13 @@ async function main(cli){
     let data;try{data=await response.json();}catch{throw new Error('Invalid Cloudflare inventory response');}
     check(data.success===true,'Cloudflare inventory access denied');return data.result;
   };
-  requireUnusedName(await cf('scripts'));
+  const update=process.env.GATEWAY_DEPLOY_MODE==='update';
+  const verifyTarget=async()=>{
+    const scripts=await cf('scripts');
+    if(update)checkUpdate(scripts,await cf(`scripts/${NAME}/settings`),await cf(`scripts/${NAME}/deployments`),process.env.GATEWAY_EXPECTED_VERSION);
+    else requireUnusedName(scripts);
+  };
+  await verifyTarget();
   check((await cf('subdomain')).subdomain==='lgb84','Unexpected workers.dev subdomain');
   const run=(args,input)=>{
     // Never forward CLI output, child environment secrets or raw API bodies to Actions logs.
@@ -79,14 +98,40 @@ async function main(cli){
   };
   run(['deploy','--dry-run']);
   // Recheck immediately before the only Worker publication. No retries of mutation operations.
-  requireUnusedName(await cf('scripts'));
-  run(['deploy']);
-  console.log('Gateway deployed; installing existing staging secret via stdin');
-  run(['secret','put','STAGING_ACCESS_TOKEN'],process.env.STAGING_ACCESS_TOKEN+'\n');
+  await verifyTarget();
+  run(update?['deploy','--keep-vars']:['deploy']);
+  if(!update){
+    console.log('Gateway deployed; installing existing staging secret via stdin');
+    run(['secret','put','STAGING_ACCESS_TOKEN'],process.env.STAGING_ACCESS_TOKEN+'\n');
+  }else console.log('Gateway updated; existing secret preserved, no secret upload');
   const settings=await cf(`scripts/${NAME}/settings`);
-  check(Array.isArray(settings.bindings)&&settings.bindings.length===2&&settings.bindings.some(b=>b.type==='secret_text'&&b.name==='STAGING_ACCESS_TOKEN')&&settings.bindings.some(b=>b.type==='ratelimit'&&b.name==='PUBLIC_READ_LIMIT'&&String(b.namespace_id)==='110008'&&b.simple?.limit===60&&b.simple?.period===60),'Unexpected deployed bindings; gateway requires manual review');
+  checkBindings(settings);
+  check(settings.compatibility_flags?.includes('global_fetch_strictly_public'),'Missing deployed public-fetch flag');
   for(const [board,count] of BOARDS){
-    const path=`/api/v1/frame/${board}`;await smoke(path,board,count);await smoke(path+'/diagnostics',board,count,true);
+    const path=`/api/v1/frame/${board}`;
+    for(const diagnostics of [false,true]){
+      const endpoint=path+(diagnostics?'/diagnostics':'');
+      try{await smoke(endpoint,board,count,diagnostics);}catch{
+        // One read-only direct staging probe separates upstream/size/schema failure.
+        // Never print raw response, headers, token or arbitrary exception text.
+        let stage='network/timeout';
+        try{
+          const response=await fetch('https://transitcore-staging.lgb84.workers.dev'+endpoint,{headers:{authorization:'Bearer '+process.env.STAGING_ACCESS_TOKEN},redirect:'manual',signal:AbortSignal.timeout(15000)});
+          stage=`HTTP ${response.status}`;
+          if(response.status===200){
+            stage='response-size/read';const body=await boundedBody(response);
+            console.log(`${board} direct staging bytes=${body.bytes}`);
+            stage='environment header';check(response.headers.get('x-transitcore-environment')==='isolated-staging','Wrong environment header');
+            stage='candidate SHA header';check(response.headers.get('x-transitcore-source-sha')===SHA,'Wrong candidate SHA header');
+            if(!diagnostics){stage='algorithm header';check(response.headers.get('x-transitcore-stop-algorithm')==='unified-bus-v1','Unified engine not active');}
+            stage=diagnostics?'diagnostics validation':'PixelFrame validation';validateLive(response,body.text,board,count,diagnostics);
+            stage='PASS; failure is in gateway path, not upstream frame/size';
+          }else await response.body?.cancel();
+        }catch(error){if(error.message==='Response exceeds 256 KiB')stage='response exceeds 256 KiB';}
+        console.log(`${board}${diagnostics?' diagnostics':''}: direct staging check=${stage}`);
+        throw new Error(`Live verification failed for ${board}; stopped without redeploy or rollback`);
+      }
+    }
   }
   for(const path of ['/api/v1/device/status','/api/v1/device/config/test','/api/v1/ota/test','/api/admin/devices','/api/v1/frame/grakallbanen-prototype-board','/api/v1/frame/trondheim-bus-1-visual-test']){
     const response=await fetch(ORIGIN+path,{redirect:'manual',signal:AbortSignal.timeout(15000)});await response.body?.cancel();
