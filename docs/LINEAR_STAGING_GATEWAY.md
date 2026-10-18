@@ -20,12 +20,15 @@ The `global_fetch_strictly_public` compatibility flag enables its HTTPS fetch to
 the separate staging Worker on the same account; the upstream SHA remains pinned.
 
 After review/merge, use **Manual Linear staging gateway deployment** on `main`:
-choose `mode=update` and enter the independently reviewed, currently active
-gateway version UUID as `expected_version`. Approve the existing `staging`
+choose `mode=update`. The authenticated Cloudflare API supplies the active
+gateway version UUID automatically; no mobile copy/paste is needed. Approve the existing `staging`
 Environment gate. Never use `create` to retry the existing Worker.
 
 Update checks the exact account, name, runtime, two bindings and a single active
-version with 100% traffic, twice before mutation. Unexpected state stops the run.
+version with 100% traffic, twice before mutation. The first validated UUID is
+retained in memory and must be identical immediately before deployment. Missing
+or empty compatibility flags are accepted before this fix; unexpected flags are
+rejected. Unexpected state stops the run.
 It deploys only this config with `--keep-vars`, never calls `secret put`, and
 checks bindings and the compatibility flag afterwards. Create remains fail-closed
 if the name already exists. No automatic mutation retries or rollback.

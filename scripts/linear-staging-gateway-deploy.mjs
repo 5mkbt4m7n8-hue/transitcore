@@ -20,7 +20,6 @@ export function guard(config,env){
   check(Boolean(env.CLOUDFLARE_API_TOKEN)&&Boolean(env.STAGING_ACCESS_TOKEN),'Required staging environment secrets are unavailable');
   const mode=env.GATEWAY_DEPLOY_MODE||'create';
   check(['create','update'].includes(mode),'Unexpected deployment mode');
-  check(mode==='update'?/^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(env.GATEWAY_EXPECTED_VERSION||''):!env.GATEWAY_EXPECTED_VERSION,'Wrong expected gateway version');
 }
 export function checkBindings(settings){
   check(Array.isArray(settings.bindings)&&settings.bindings.length===2&&settings.bindings.some(b=>b.type==='secret_text'&&b.name==='STAGING_ACCESS_TOKEN')&&settings.bindings.some(b=>b.type==='ratelimit'&&b.name==='PUBLIC_READ_LIMIT'&&String(b.namespace_id)==='110008'&&b.simple?.limit===60&&b.simple?.period===60),'Unexpected deployed bindings; gateway requires manual review');
@@ -28,9 +27,12 @@ export function checkBindings(settings){
 export function checkUpdate(scripts,settings,deployments,expected){
   check(Array.isArray(scripts)&&scripts.filter(s=>s.id===NAME).length===1,'Unexpected existing gateway identity');
   checkBindings(settings);
-  check(settings.compatibility_date==='2026-08-11'&&Array.isArray(settings.compatibility_flags)&&settings.compatibility_flags.every(f=>f==='global_fetch_strictly_public'),'Unexpected existing gateway runtime');
+  const flags=settings.compatibility_flags===undefined?[]:settings.compatibility_flags;
+  check(settings.compatibility_date==='2026-08-11'&&Array.isArray(flags)&&flags.every(f=>f==='global_fetch_strictly_public'),'Unexpected existing gateway runtime');
   const active=deployments.deployments?.[0]?.versions;
-  check(Array.isArray(active)&&active.length===1&&active[0].version_id===expected&&active[0].percentage===100,'Wrong active gateway version or traffic split');
+  check(Array.isArray(active)&&active.length===1&&/^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(active[0].version_id||'')&&active[0].percentage===100,'Wrong active gateway version or traffic split');
+  check(expected===undefined||active[0].version_id===expected,'Wrong active gateway version; changed since preflight');
+  return active[0].version_id;
 }
 export function requireUnusedName(scripts){
   check(Array.isArray(scripts)&&scripts.every(s=>typeof s.id==='string'),'Unrecognized Cloudflare inventory');
@@ -83,9 +85,13 @@ async function main(cli){
     check(data.success===true,'Cloudflare inventory access denied');return data.result;
   };
   const update=process.env.GATEWAY_DEPLOY_MODE==='update';
+  let expectedVersion;
   const verifyTarget=async()=>{
     const scripts=await cf('scripts');
-    if(update)checkUpdate(scripts,await cf(`scripts/${NAME}/settings`),await cf(`scripts/${NAME}/deployments`),process.env.GATEWAY_EXPECTED_VERSION);
+    if(update){
+      const observed=checkUpdate(scripts,await cf(`scripts/${NAME}/settings`),await cf(`scripts/${NAME}/deployments`),expectedVersion);
+      if(expectedVersion===undefined)expectedVersion=observed;
+    }
     else requireUnusedName(scripts);
   };
   await verifyTarget();

@@ -4,14 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Create refuses existing Workers; update requires reviewed active version UUID
+        description: Create refuses existing Workers; update verifies and pins the active version automatically
         type: choice
         options: [create, update]
         default: create
-      expected_version:
-        description: For update only, exact currently active gateway version UUID
-        type: string
-        default: ''
 permissions:
   contents: read
 concurrency:
@@ -60,5 +56,4 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.STAGING_CLOUDFLARE_API_TOKEN }}
           STAGING_ACCESS_TOKEN: ${{ secrets.STAGING_ACCESS_TOKEN }}
           GATEWAY_DEPLOY_MODE: ${{ inputs.mode }}
-          GATEWAY_EXPECTED_VERSION: ${{ inputs.expected_version }}
         run: node scripts/linear-staging-gateway-deploy.mjs "$RUNNER_TEMP/gateway-tools/node_modules/wrangler/bin/wrangler.js"
