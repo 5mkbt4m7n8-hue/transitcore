@@ -1,0 +1,9 @@
+{
+  "name": "transitcore-oslo-staging",
+  "main": "entry.mjs",
+  "account_id": "f40d632e8a57c44d9059ed316e22b80d",
+  "compatibility_date": "2026-08-11",
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": { "enabled": true }
+}
