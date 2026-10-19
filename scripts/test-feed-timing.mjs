@@ -31,7 +31,13 @@ try {
       try { return new Response(await fs.readFile(new URL(path, root))); }
       catch { return new Response('', { status: 404 }); }
     }
-    if (options?.method === 'POST') return Response.json({ data: { vehicles: [] } });
+    if (options?.method === 'POST') {
+      const query = JSON.parse(options.body).query || '';
+      const quays = [...query.matchAll(/(q\d+)\s*:\s*quay\(/g)];
+      return Response.json({ data: quays.length
+        ? Object.fromEntries(quays.map(([, alias]) => [alias, { estimatedCalls: [] }]))
+        : { vehicles: [] } });
+    }
     throw Error(`Unexpected self-fetch: ${url}`);
   };
   const env = { DEVICE_STATUS: {

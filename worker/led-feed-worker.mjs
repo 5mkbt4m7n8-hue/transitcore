@@ -46,6 +46,7 @@ const CONFIG_TTL_MS = 5 * 60 * 1000;
 const configCache = new Map();
 const LIVE_VEHICLE_TTL_MS = 8 * 1000;
 const metroForecastCache = new Map();
+const metroDiagnosticLogs = new Map();
 const METRO_FORECAST_CACHE_MS = 20000;
 const enturProvider = createEnturProvider({fetchJson,clientName:CLIENT_NAME,ttlMs:LIVE_VEHICLE_TTL_MS});
 
@@ -839,7 +840,7 @@ async function liveVehiclesForProfiles(profiles) {
   return batches.flat();
 }
 
-async function liveMetroStationArrivals(board, profiles, now) {
+export async function liveMetroStationArrivals(board, profiles, now, diagnostics = {}) {
   const endpoint = profiles[0].positioning.endpoint;
   const lookBehind = Math.max(...profiles.map(profile => profile.positioning.lookBehindSeconds || 75));
   const lookAhead = Math.max(...profiles.map(profile => profile.positioning.lookAheadSeconds || 600));
@@ -854,6 +855,7 @@ async function liveMetroStationArrivals(board, profiles, now) {
   // Cache raw forecasts, never precomputed states. Reevaluate ETA against every frame timestamp.
   const key=board.id+'|'+(board.profileFingerprint||'')+'|'+targets.length;
   let cached=metroForecastCache.get(key);
+  const cacheHit=!!cached&&now>=cached.at&&now-cached.at<METRO_FORECAST_CACHE_MS;
   if(!cached||now<cached.at||now-cached.at>=METRO_FORECAST_CACHE_MS){
     cached={at:now,promise:fetchJson(endpoint,{method:"POST",
       headers:{"Content-Type":"application/json","ET-Client-Name":CLIENT_NAME},
@@ -863,12 +865,29 @@ async function liveMetroStationArrivals(board, profiles, now) {
   let data;
   try{
     data=await cached.promise;
-    if(data.errors?.length)throw Error("Entur estimated-call GraphQL error");
   }catch(error){
     if(metroForecastCache.get(key)===cached)metroForecastCache.delete(key);
+    Object.assign(diagnostics,{outcome:"FETCH_ERROR",quaysRequested:targets.length,cacheHit,cacheAgeMs:now-cached.at});
+    logMetroDiagnostics(board.id,now,diagnostics);
     throw error;
   }
-  return selectMetroEstimatedCalls(board,profiles,data,now,{stationWindowSeconds:stationWindow,approachWindowSeconds:approachWindow});
+  Object.assign(diagnostics,{cacheHit,cacheAgeMs:now-cached.at});
+  try{
+    return selectMetroEstimatedCalls(board,profiles,data,now,{stationWindowSeconds:stationWindow,approachWindowSeconds:approachWindow,diagnostics});
+  }finally{
+    // Invalid source stays cached until the normal TTL: repeated errors must not
+    // amplify provider traffic. It is never converted into an empty frame.
+    logMetroDiagnostics(board.id,now,diagnostics);
+  }
+}
+
+function logMetroDiagnostics(boardId,now,diagnostics){
+  const last=metroDiagnosticLogs.get(boardId),elapsed=last?now-last.at:Infinity;
+  if(last&&elapsed>=0&&elapsed<60000&&!(last.outcome!==diagnostics.outcome&&elapsed>=10000))return;
+  if(metroDiagnosticLogs.size>=64&&!metroDiagnosticLogs.has(boardId))metroDiagnosticLogs.delete(metroDiagnosticLogs.keys().next().value);
+  metroDiagnosticLogs.set(boardId,{at:now,outcome:diagnostics.outcome});
+  // Aggregate counts only: no raw provider body, journey IDs, destinations or secrets.
+  console.log(JSON.stringify({event:"metro_arrival_diagnostics",boardId,evaluatedAt:new Date(now).toISOString(),...diagnostics}));
 }
 
 // Other ETA boards (notably Flybussen) retain their existing, verified semantics.
