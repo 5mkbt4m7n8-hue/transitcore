@@ -1,0 +1,82 @@
+name: Manual isolated Oslo staging
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Reviewed full commit SHA
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: transitcore-oslo-staging
+  cancel-in-progress: false
+jobs:
+  preflight:
+    if: github.repository == '5mkbt4m7n8-hue/transitcore' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          path: candidate
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Validate candidate with trusted policy
+        env:
+          SHA: ${{ inputs.candidate_sha }}
+        run: |
+          node trusted/scripts/oslo-staging-policy.mjs "$GITHUB_WORKSPACE/candidate" "$SHA" f40d632e8a57c44d9059ed316e22b80d
+      # Candidate code runs only on this disposable, secret-free runner.
+      # No cache, artifact, job output or workspace is passed to the deploy job.
+      - name: Candidate Oslo integration and regressions without secrets
+        working-directory: candidate
+        run: |
+          set -euo pipefail
+          node scripts/test-oslo-staging.mjs
+          for test in scripts/test-*.mjs scripts/test-*.cjs; do
+            if [ "$test" != scripts/test-oslo-staging.mjs ]; then node "$test"; fi
+          done
+  deploy:
+    # A fresh hosted runner re-checks immutable checkouts; no test artifacts consumed.
+    needs: preflight
+    if: github.repository == '5mkbt4m7n8-hue/transitcore' && github.ref == 'refs/heads/main'
+    environment: oslo-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          path: candidate
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Install pinned CLI outside candidate
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir oslo-tools
+          cd oslo-tools
+          npm --userconfig=/dev/null install --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org wrangler@4.43.0
+      - name: Deploy Oslo only and authenticated smoke
+        env:
+          SHA: ${{ inputs.candidate_sha }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.OSLO_STAGING_CLOUDFLARE_ACCOUNT_ID }}
+          OSLO_STAGING_APPROVED_CANDIDATE_SHA: ${{ vars.OSLO_STAGING_APPROVED_CANDIDATE_SHA }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.OSLO_STAGING_CLOUDFLARE_API_TOKEN }}
+          OSLO_STAGING_ACCESS_TOKEN: ${{ secrets.OSLO_STAGING_ACCESS_TOKEN }}
+        run: node trusted/scripts/oslo-staging-deploy.mjs "$GITHUB_WORKSPACE/candidate" "$SHA" "$RUNNER_TEMP/oslo-tools/node_modules/wrangler/bin/wrangler.js"
