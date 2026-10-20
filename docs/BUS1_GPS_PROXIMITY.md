@@ -1,5 +1,12 @@
 # Bus1 GPS proximity in the Unified Bus staging candidate
 
+2026-10-20 mobile follow-up: the engine work below is committed as9701d459d3e9ae8dd90c9356497f359321f7d3e7.
+A new, uncommitted147-slot staging variant and existing Linear integration are
+described in `BUS1_GPS_MOBILE_TEST.md`. That follow-up changes the staging boundary
+and strict allowlist together and requires its own trusted-boundary review. The
+older unchanged-bootstrap and49-script statements below describe the engine
+milestone; they do not imply approval or deployment of the newer mobile work.
+
 Local implementation on `agent/unified-bus-staging-candidate`, extending the
 unchanged candidate commit `fbe5e6ba7edc6427c516f81356081225bc7fb59c`.
 The original `agent/bus1-gps-proximity` worktree remains untouched, including its

@@ -5,7 +5,7 @@ import {expectedConfig} from './staging-deploy-guard.mjs';
 const ids=expectedConfig.vars.BUS_LIFECYCLE_BOARDS.split(',');
 assert(UnifiedBusStaging.prototype instanceof DeviceStatus,'Staging uses the same DO engine');
 assert.equal(staging.scheduled,undefined,'No cron handler');
-for(const [i,id] of ids.entries())assert.equal((await stagingConfiguration(id)).hardware.leds.count,[8,147,147,1282,46][i]);
+for(const [i,id] of ids.entries())assert.equal((await stagingConfiguration(id)).hardware.leds.count,[8,147,147,1282,46,147][i]);
 let calls=0;
 const token='synthetic-test-only-not-a-real-secret';
 const req=(path,authorization=token)=>new Request('https://stage'+path,{headers:authorization?{authorization:'Bearer '+authorization}:{}});

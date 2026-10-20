@@ -1,5 +1,20 @@
 # Staging candidate checkpoint — updated 2026-10-16
 
+## Current local mobile follow-up — 2026-10-20
+
+HEAD is `9701d459d3e9ae8dd90c9356497f359321f7d3e7`, pushed with separate approval.
+Subsequent uncommitted work connects the existing full147-slot Bus1 view to a
+staging-only derived board `trondheim-bus-1-gps-staging`. See
+`BUS1_GPS_MOBILE_TEST.md` for current status, security pins, test coverage and the
+publication dependencies. The original eight-LED profile remains available.
+The new staging wrapper/config differ from trusted main and need explicit review;
+the equality guard is retained. The new gateway path remains closed until a new
+exact candidate SHA is approved/pinned. Production is still the default source.
+No commit/push/deploy is authorized or performed for this mobile follow-up.
+52 scripts PASS (enrollment with local config GET fixtures), including57 frame
+regressions and388 Trondheim comparisons. Browser checks passed on synthetic
+desktop/mobile data; actual HTTPS staging and field accuracy remain untested.
+
 ## Local Bus1 GPS extension — 2026-10-20
 
 Current worktree remains `agent/unified-bus-staging-candidate` at committed base

@@ -3,7 +3,8 @@ import http from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {resolve,sep,extname} from 'node:path';
 import {buildSignalTestSequence} from '../worker/led-feed-worker.mjs';
-const root=resolve(import.meta.dirname,'..'),port=8098;
+import {stagingConfiguration,BUS1_GPS_BOARD} from '../deploy/staging/entry.mjs';
+const root=resolve(import.meta.dirname,'..'),port=Number(process.env.TRANSITCORE_QA_PORT||8098);
 let scenario='mixed',requests=0;
 const origin=`http://127.0.0.1:${port}`;
 const json=(res,value,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store','x-transitcore-stop-algorithm':'unified-bus-v1'});res.end(JSON.stringify(value));};
@@ -24,7 +25,7 @@ http.createServer(async(req,res)=>{try{
  }
  const match=url.pathname.match(/^\/api\/v1\/frame\/([a-z0-9-]+)(\/diagnostics)?$/);
  if(match){
-  const board=JSON.parse(await readFile(resolve(root,'config/boards',match[1]+'.json'),'utf8'));
+  const board=match[1]===BUS1_GPS_BOARD?(await stagingConfiguration(BUS1_GPS_BOARD)).board:JSON.parse(await readFile(resolve(root,'config/boards',match[1]+'.json'),'utf8'));
   const sequence=Math.floor(Date.now()/10000),generatedAt=new Date(sequence*10000-(scenario==='expired'?120000:0)).toISOString();
   if(match[2]){json(res,{boardId:board.id,sequence,generatedAt,status:'CURRENT',uncertain:scenario==='uncertain',observations:scenario==='uncertain'?[{logicalLed:0,vehicleId:'QA-ETA',source:'estimated-call',state:'OFF',confidence:'unknown',reason:'forecast-expired-no-physical-confirmation'}]:[]});return;}
   requests++;if(scenario==='failure'){json(res,{error:'synthetic-unavailable'},503);return;}
@@ -39,7 +40,7 @@ http.createServer(async(req,res)=>{try{
  if(!/^\/(web|config)\//.test(path)){res.writeHead(404);res.end();return;}
  const file=resolve(root,'.'+path);if(!file.startsWith(root+sep)){res.writeHead(403);res.end();return;}
  const ext=extname(file);let body=await readFile(file);
- if(['.html','.js','.json'].includes(ext))body=body.toString().replaceAll('https://transitcore-led-feed.lgb84.workers.dev',origin);
+ if(['.html','.js','.json'].includes(ext))body=body.toString().replaceAll('https://transitcore-led-feed.lgb84.workers.dev',origin).replaceAll('https://transitcore-linear-staging.lgb84.workers.dev',origin);
  res.setHeader('content-type',({'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css','.svg':'image/svg+xml'})[ext]||'application/octet-stream');res.end(body);
  }catch{res.writeHead(404);res.end('Local QA resource unavailable');}
 }).listen(port,'127.0.0.1',()=>console.log(`Synthetic QA only: ${origin}/qa`));

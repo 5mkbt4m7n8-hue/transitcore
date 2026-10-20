@@ -13,8 +13,8 @@ try {
  const {default:staging,stagingConfiguration,UnifiedBusStaging}=await import('../deploy/staging/entry.mjs');
  const id='trondheim-bus-1-visual-test',config=await stagingConfiguration(id),node=config.board.nodes[0];
  const configs=await Promise.all(expectedConfig.vars.BUS_LIFECYCLE_BOARDS.split(',').map(stagingConfiguration));
- assert.deepEqual(configs.map(c=>c.hardware.leds.count),[8,147,147,1282,46]);
- for(const c of configs)assert.equal(c.board.render?.stopAccuracy==='gps-proximity-v1',c.board.id===id);
+ assert.deepEqual(configs.map(c=>c.hardware.leds.count),[8,147,147,1282,46,147]);
+ for(const c of configs)assert.equal(c.board.render?.stopAccuracy==='gps-proximity-v1',[id,'trondheim-bus-1-gps-staging'].includes(c.board.id));
  validateTarget(JSON.parse(fs.readFileSync(new URL('../deploy/staging/wrangler.json',import.meta.url))),
    {sha:'a'.repeat(40),target:TARGET,account:ACCOUNT});
  const persistent=new Map();
@@ -66,5 +66,5 @@ try {
  for(const path of ['/api/v1/device/status','/api/v1/device/config/test','/api/v1/ota/test','/v1/publish','/status','/api/v1/frame/grakallbanen-prototype-board'])
    assert.equal((await staging.fetch(new Request('https://isolated.test'+path,{headers:{authorization:'Bearer '+token}}),env)).status,404);
  assert.equal((await request('',token,'POST')).status,404);
- console.log('GPS staging: unchanged trusted wrapper/config, auth/endpoint isolation, actual DO/provider path, persisted identity, exit/rearm, cached frame and timing diagnostics PASS');
+ console.log('GPS staging: exact isolated config, auth/endpoint isolation, actual DO/provider path, persisted identity, exit/rearm, cached frame and timing diagnostics PASS');
 } finally {Date.now=originalNow;globalThis.fetch=originalFetch;}

@@ -58,8 +58,20 @@ import r44 from '../../config/routes/atb-bus-86-live.json' with {type:'json'};
 import r45 from '../../config/routes/atb-bus-91-live.json' with {type:'json'};
 import r46 from '../../config/routes/atb-bus-92-live.json' with {type:'json'};
 import r47 from '../../config/routes/flybuss-trondheim-fb73-live.json' with {type:'json'};
-const boards=[b0,b1,b2,b3,b4],routes=[r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22,r23,r24,r25,r26,r27,r28,r29,r30,r31,r32,r33,r34,r35,r36,r37,r38,r39,r40,r41,r42,r43,r44,r45,r46,r47];
-const hardware=new Map([[b0.id,h0],[b1.id,h1],[b2.id,h2],[b4.id,h4]]);
+// Virtual staging variant: full existing mapping, line 1 only. No physical
+// hardware/profile file changes; a distinct board ID also isolates DO history.
+export const BUS1_GPS_BOARD='trondheim-bus-1-gps-staging';
+const gpsBoard=structuredClone(b1),gpsHardware=structuredClone(h1);
+gpsBoard.id=BUS1_GPS_BOARD;gpsBoard.name=b1.name+' · Bus1 GPS staging';gpsBoard.status='test-only';
+gpsBoard.routes=[r0.id];gpsBoard.render={...gpsBoard.render,stopAccuracy:'gps-proximity-v1'};
+for(const node of gpsBoard.nodes){
+ node.routes=node.routes.filter(id=>id===r0.id);
+ node.routeDirections=Object.fromEntries(Object.entries(node.routeDirections||{}).filter(([id])=>id===r0.id));
+}
+gpsHardware.id=BUS1_GPS_BOARD+'-hardware';gpsHardware.boardProfile=BUS1_GPS_BOARD;
+gpsBoard.hardwareProfile=gpsHardware.id;
+const boards=[b0,b1,b2,b3,b4,gpsBoard],routes=[r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22,r23,r24,r25,r26,r27,r28,r29,r30,r31,r32,r33,r34,r35,r36,r37,r38,r39,r40,r41,r42,r43,r44,r45,r46,r47];
+const hardware=new Map([[b0.id,h0],[b1.id,h1],[b2.id,h2],[b4.id,h4],[gpsBoard.id,gpsHardware]]);
 export class UnifiedBusStaging extends DeviceStatus {}
 const configurations=new Map();
 export async function stagingConfiguration(id){
