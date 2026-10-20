@@ -62,7 +62,7 @@ try {
     return Response.json({});
   }})}};
   const response=await worker.fetch(new Request('https://worker.test/api/v1/frame/'+id),env);
-  assert.equal(response.headers.get('x-transitcore-stop-algorithm'),'motion-v1');
+  assert.equal(response.headers.get('x-transitcore-stop-algorithm'),'gps-proximity-v1');
   assert.equal(response.status,200);
   const value=await response.json();
   assert.equal(value.schemaVersion,1);assert.equal(value.boardProfile,id);assert.equal(value.ledCount,8);

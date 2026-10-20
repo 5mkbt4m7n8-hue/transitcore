@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {pathToFileURL} from 'node:url';
 import {buildPixelFrame} from '../core/frame/build-frame.mjs';
 import {createStopAccuracyShadow} from '../core/frame/stop-accuracy-shadow.mjs';
+import {GPS_PROXIMITY_POLICY} from '../core/engines/stop-evidence.mjs';
 import {matchesDirection} from '../core/frame/mapping-support.mjs';
 import {normalizeEnturVehicle} from '../core/providers/entur/entur-normalizer.mjs';
 import {normalizeStopCall} from '../core/providers/entur/stop-call-evidence.mjs';
@@ -49,8 +50,8 @@ export function legacyCalls(context,calls,now) {
   return [...selected.values()];
 }
 
-export function createComparison(context) {
-  const shadow=createStopAccuracyShadow(context,{enabled:true});let history={};
+export function createComparison(context,{proximity=false}={}) {
+  const shadow=createStopAccuracyShadow(context,{enabled:true,...(proximity?{policy:GPS_PROXIMITY_POLICY}:{})});let history={};
   const isCalls=context.profiles[0].positioning?.strategy==='estimated-station-calls';
   return sample=>{
     const {now,vehicles=[],calls=[]}=sample;
@@ -96,7 +97,7 @@ export async function capture(context) {
 async function main() {
   const args=process.argv.slice(2),value=name=>args[args.indexOf(name)+1];
   if(!args.includes('--live') && !args.includes('--replay'))throw Error('Use --live or --replay <normalized-samples.json>; never outputs to a device');
-  const context=loadDiagnosticContext(args.includes('--route')?value('--route'):undefined),compare=createComparison(context);
+  const context=loadDiagnosticContext(args.includes('--route')?value('--route'):undefined),compare=createComparison(context,{proximity:args.includes('--gps-proximity')});
   if(args.includes('--replay')){for(const sample of JSON.parse(readFileSync(value('--replay'),'utf8')))console.log(JSON.stringify(compare(sample)));return;}
   const count=args.includes('--samples')?Number(value('--samples')):1;
   if(!Number.isInteger(count)||count<1||count>360)throw Error('samples must be 1..360');

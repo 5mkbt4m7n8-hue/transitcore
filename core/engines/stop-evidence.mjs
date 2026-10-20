@@ -9,6 +9,7 @@ export const STOP_POLICY = Object.freeze({
   etaApproachMs: 120000, retentionMs: 600000
 });
 const finite = x => typeof x === 'number' && Number.isFinite(x);
+export const GPS_PROXIMITY_POLICY=Object.freeze({...STOP_POLICY,mode:'gps-proximity-v1',arrivalMeters:70,exitMeters:90,afterglowMs:0});
 
 export function gpsEvidence(observation, previous, now, policy = STOP_POLICY) {
   const base = {source:'GPS', observedAt:observation?.observedAt, confidence:'inferred'};
@@ -26,7 +27,8 @@ export function gpsEvidence(observation, previous, now, policy = STOP_POLICY) {
   if (speed !== null && speed > policy.maxSpeed)
     return {...base, invalid:true, reason:'implausible GPS jump'};
   return {...base, observation, continuous, speed,
-    approaching:observation.distanceMeters <= policy.approachMeters,
+    approaching:observation.distanceMeters <= policy.approachMeters &&
+      (policy.mode!=='gps-proximity-v1'||continuous&&previous.distanceMeters-observation.distanceMeters>1),
     near:observation.distanceMeters <= policy.arrivalMeters,
     stationary:continuous && speed <= policy.stationarySpeed,
     outward:continuous && observation.distanceMeters - previous.distanceMeters >= policy.outwardMeters && speed >= policy.departureSpeed,

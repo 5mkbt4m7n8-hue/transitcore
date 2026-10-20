@@ -10,6 +10,9 @@ const read=p=>JSON.parse(fs.readFileSync(new URL('../'+p,import.meta.url)));
 const now=Date.parse('2026-10-13T12:00:00Z');
 for(const id of ['trondheim-bus-1-visual-test','trondheim-bus-board','trondheim-shared-stops-board','trondheim-city-lines-catalog']){
  const board=read('config/boards/'+id+'.json');
+ // Keep the established motion/PARKED regression in its original mode. The
+ // configured GPS mode is exercised separately through the actual staging DO.
+ if(id==='trondheim-bus-1-visual-test')board.render.stopAccuracy='motion-v1';
  const hardware=id==='trondheim-city-lines-catalog'
   ? {schemaVersion:1,boardProfile:id,leds:{count:board.leds.count,brightnessLimit:32},assignments:board.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))}
   : read('config/hardware/'+id+'-hardware.json');
@@ -35,6 +38,7 @@ for(const id of ['trondheim-bus-1-visual-test','trondheim-bus-board','trondheim-
 const tram=read('config/boards/grakallbanen-prototype-board.json');
 assert(!usesUnifiedBus(tram,tram.routes.map(id=>read('config/routes/'+id+'.json')),{BUS_LIFECYCLE_BOARDS:tram.id}));
 const bus=read('config/boards/trondheim-bus-1-visual-test.json'),hardware=read('config/hardware/trondheim-bus-1-visual-test-hardware.json');
+bus.render.stopAccuracy='motion-v1'; // Existing ETA/reducer contract, not GPS proximity.
 const route=read('config/routes/atb-bus-1-live.json'),n=bus.nodes[0];
 const ctx={board:bus,hardware,profiles:[route],signalPolicy:SIGNAL_POLICY,unifiedBus:true,now,vehicles:[]};
 ctx.bindingDigest=await stopContextDigest(ctx);

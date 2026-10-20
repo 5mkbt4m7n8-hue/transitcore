@@ -1,7 +1,8 @@
 import {createStopAccuracyShadow} from '../core/frame/stop-accuracy-shadow.mjs';
+import {GPS_PROXIMITY_POLICY} from '../core/engines/stop-evidence.mjs';
 
 export const STOP_ACCURACY_MODE='motion-v1';
-export function usesStopAccuracy(board) { return board.render?.stopAccuracy===STOP_ACCURACY_MODE; }
+export function usesStopAccuracy(board) { return [STOP_ACCURACY_MODE,'gps-proximity-v1'].includes(board.render?.stopAccuracy); }
 
 export function eligibleBusBoard(board, profiles) {
   return board.layout==='station-network' && profiles.length>0 && profiles.every(p=>p.line?.mode==='bus');
@@ -39,7 +40,8 @@ export function buildStopAccuracy(context, saved) {
     const matches=profiles.filter(p=>String(p.line.publicCode)===String(v.publicCode));
     return {...v,providerCodespace:v.providerCodespace || (matches.length===1?matches[0].provider.codespaceId:undefined)};
   });
-  const engine=createStopAccuracyShadow(context,{enabled:true,history:previous?.history || []});
+  const proximity=board.render?.stopAccuracy==='gps-proximity-v1';
+  const engine=createStopAccuracyShadow(context,{enabled:true,history:previous?.history || [],...(proximity?{policy:GPS_PROXIMITY_POLICY}:{})});
   const calls=(context.calls||[]).map(call=> {
     // An expired forecast is not physical arrival/departure evidence. Keep this
     // uncertainty in diagnostics; v1 has no UNKNOWN LED state, so uncertain is OFF.
@@ -53,5 +55,6 @@ export function buildStopAccuracy(context, saved) {
   const {frame,diagnostics}=engine.step({now,vehicles,calls});
   frame.signalPolicy=context.signalPolicy;
   return {frame,diagnostics,saved:{binding,builtAt:now,history:engine.snapshot(),frame,
-    ...(unified?{diagnostics:diagnostics.slice(0,512),diagnosticCount:diagnostics.length}: {})},reused:false};
+    ...(unified||proximity?{diagnostics:diagnostics.slice(0,512),diagnosticCount:diagnostics.length}: {}),
+    ...(proximity?{mode:'gps-proximity-v1'}:{})},reused:false};
 }

@@ -1,5 +1,28 @@
 # Staging candidate checkpoint — updated 2026-10-16
 
+## Local Bus1 GPS extension — 2026-10-20
+
+Current worktree remains `agent/unified-bus-staging-candidate` at committed base
+`fbe5e6ba7edc6427c516f81356081225bc7fb59c`, with an uncommitted Bus1-only
+`gps-proximity-v1` extension. See `BUS1_GPS_PROXIMITY.md` for the current identity,
+visit rearm, diagnostics, verification and staged live-test/rollback plan.
+The older milestone below describes the already committed candidate, not approval
+to publish this new local extension. The source `agent/bus1-gps-proximity` worktree
+and all its original uncommitted changes are preserved.
+
+Stable configured provider/line/vehicle identity now survives destination and
+journey changes. The reported50m ->100m ->69m case remains AT_STOP ->OFF ->OFF.
+Rearm needs observed >250m exit and a later fresh inward sample. The same Unified
+Bus engine/DO/mapper/renderer and PixelFrame v1 are used. Trusted staging wrapper,
+config, guard and workflow are unchanged; all other profiles retain their modes.
+
+49 scripts verified (48 direct PASS, enrollment PASS with local public-config GET
+fixtures because network access was unavailable), including57 frozen frame and388
+Trondheim comparisons. Actual staging wrapper/DO integration uses synthetic Entur
+data and in-memory persistent storage. No new Cloudflare, browser or physical
+measurement is claimed. Ready for isolated staging code review; no commit, push
+or deployment is authorized/performed for this extension.
+
 ## Current follow-up outcome (supersedes historical findings below)
 
 READY FOR FIRST LOCAL COMMIT: YES, subject to explicit user approval. This is a locally reviewed API-first candidate, not approval for staging or production deployment. The original inspection below is retained as history; its Linear/Lab blockers and browser-test inventory are superseded here.

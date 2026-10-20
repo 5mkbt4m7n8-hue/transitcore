@@ -281,7 +281,7 @@
     }
   ],
   "render": {
-    "stopAccuracy": "motion-v1",
+    "stopAccuracy": "gps-proximity-v1",
     "collisionMode": "alternate",
     "routePriority": [],
     "arrivalRadiusMeters": 85,

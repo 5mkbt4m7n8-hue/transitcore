@@ -8,6 +8,20 @@ export function reduceStop(previous, evidence, now, {enabled=false, policy=STOP_
   if (!enabled) throw new Error('Stop lifecycle candidate is disabled; shadow opt-in required');
   const next = {...previous, lastSeen:now, source:evidence.source, confidence:evidence.confidence};
   const result = (state, reason) => ({...next, state, reason});
+  if(policy.mode==='gps-proximity-v1'){
+    // Geographic occupancy, not evidence of a physical stop. Never consume ETA.
+    if(evidence.source!=='GPS'||evidence.invalid||evidence.cancelled){next.observedAt=previous?.observedAt;return result('OFF',evidence.reason||'GPS required');}
+    if(evidence.repeated){next.observedAt=previous?.observedAt;return result(previous?.state||'OFF',evidence.reason);}
+    next.observation=evidence.observation;
+    next.observedAt=evidence.observedAt;
+    if(previous?.departedAt!=null)return result('OFF','geographic exit latched for this visit');
+    if(previous?.zoneEntered){
+      if(evidence.observation.distanceMeters>policy.exitMeters){next.departedAt=evidence.observedAt;next.zoneEntered=false;return result('OFF','first fresh observation outside exit radius');}
+      return result('AT_STOP','within geographic hysteresis zone (not confirmed stop)');
+    }
+    if(evidence.near){next.zoneEntered=true;return result('AT_STOP','within geographic arrival radius (not confirmed stop)');}
+    return result(evidence.approaching?'APPROACHING':'OFF','fresh distance trend toward stop required');
+  }
   if(evidence.source==='ESTIMATED_CALL' && evidence.observedAt < previous?.observedAt)
     return {...previous,lastSeen:now,reason:'out-of-order call response ignored'};
   if(Number.isFinite(evidence.observedAt) && evidence.observedAt<=now)next.observedAt=evidence.observedAt;

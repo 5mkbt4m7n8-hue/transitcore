@@ -971,7 +971,7 @@ async function boardFrameResponse(boardId, env, source) {
     const frame = usesStopAccuracy(board)||unifiedBus?rawFrame:await step("motion", () => stabilizeMotionFrame(env, board, rawFrame, now));
     sample = { ...validFrameSummary(frame, boardId), source };
     result = response(frame);
-    result.headers.set("x-transitcore-stop-algorithm",unifiedBus?"unified-bus-v1":usesStopAccuracy(board)?"motion-v1":"legacy");
+    result.headers.set("x-transitcore-stop-algorithm",unifiedBus?"unified-bus-v1":usesStopAccuracy(board)?board.render.stopAccuracy:"legacy");
     result.headers.set("access-control-expose-headers","x-transitcore-stop-algorithm");
   } catch (error) {
     console.error(JSON.stringify({ event: "feed_request_failed", boardId, source, stage,
