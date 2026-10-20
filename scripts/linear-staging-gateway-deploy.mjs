@@ -7,9 +7,9 @@ import {isDeepStrictEqual} from 'node:util';
 import {validatePixelFrame} from '../core/models/pixel-frame.mjs';
 export const ACCOUNT='f40d632e8a57c44d9059ed316e22b80d';
 export const NAME='transitcore-linear-staging';
-export const SHA='fbe5e6ba7edc6427c516f81356081225bc7fb59c';
+export const SHA='eb43b06e26e38c558e3beabf033274172b0eecdc';
 export const ORIGIN='https://transitcore-linear-staging.lgb84.workers.dev';
-export const BOARDS=[['trondheim-bus-board',147],['trondheim-shared-stops-board',147],['trondheim-city-lines-catalog',1282],['trondheim-flybuss-live',46]];
+export const BOARDS=[['trondheim-bus-board',147],['trondheim-shared-stops-board',147],['trondheim-city-lines-catalog',1282],['trondheim-flybuss-live',46],['trondheim-bus-1-gps-staging',147]];
 const CONFIG='deploy/linear-staging/wrangler.json';
 const EXPECTED={name:NAME,main:'entry.mjs',account_id:ACCOUNT,compatibility_date:'2026-08-11',compatibility_flags:['global_fetch_strictly_public'],workers_dev:true,preview_urls:false,ratelimits:[{name:'PUBLIC_READ_LIMIT',namespace_id:'110008',simple:{limit:60,period:60}}]};
 const check=(ok,message)=>{if(!ok)throw new Error(message);};
@@ -53,7 +53,8 @@ export function validateLive(response,body,board,count,diagnostics=false){
   if(!diagnostics)check(response.headers.get('x-transitcore-stop-algorithm')==='unified-bus-v1','Unified engine not active');
   let data;try{data=JSON.parse(body);}catch{throw new Error('Invalid JSON');}
   if(!diagnostics)check(validatePixelFrame(data,{expectedBoardProfile:board,expectedLedCount:count,now:Date.now()}).valid,'Invalid or stale PixelFrame');
-  else check(data.boardId===board&&data.algorithm==='unified-bus-v1'&&['CURRENT','STALE','NOT_OBSERVED'].includes(data.status)&&Array.isArray(data.observations),'Invalid public diagnostics');
+  else check(data.boardId===board&&data.algorithm==='unified-bus-v1'&&['CURRENT','STALE','NOT_OBSERVED'].includes(data.status)&&Array.isArray(data.observations)&&
+    (board!=='trondheim-bus-1-gps-staging'||data.mode==='gps-proximity-v1'||data.status==='NOT_OBSERVED'&&data.mode===undefined),'Invalid public diagnostics');
 }
 export async function smoke(path,board,count,diagnostics=false,{fetcher=fetch,sleep=ms=>new Promise(r=>setTimeout(r,ms)),now=Date.now,log=console.log}={}){
   const started=now();
@@ -143,7 +144,7 @@ async function main(cli){
     const response=await fetch(ORIGIN+path,{redirect:'manual',signal:AbortSignal.timeout(15000)});await response.body?.cancel();
     check(response.status===404,`Blocked endpoint check failed HTTP ${response.status}`);console.log(`Blocked endpoint PASS ${path}`);
   }
-  console.log('LIVE GATEWAY VERIFICATION PASS: four profiles, diagnostics, headers, size and denied endpoints');
+  console.log('LIVE GATEWAY VERIFICATION PASS: five profiles, diagnostics, headers, size and denied endpoints');
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
   main(process.argv[2]).catch(error=>{

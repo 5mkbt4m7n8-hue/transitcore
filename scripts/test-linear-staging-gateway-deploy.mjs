@@ -5,6 +5,9 @@ const config=JSON.parse(readFileSync(new URL('../deploy/linear-staging/wrangler.
 const env={GITHUB_REPOSITORY:'5mkbt4m7n8-hue/transitcore',GITHUB_REF:'refs/heads/main',GITHUB_EVENT_NAME:'workflow_dispatch',CLOUDFLARE_ACCOUNT_ID:ACCOUNT,CLOUDFLARE_API_TOKEN:'TEST_API_SECRET',STAGING_ACCESS_TOKEN:'TEST_STAGING_SECRET'};
 guard(config,env);
 const version='12345678-1234-1234-1234-123456789abc';
+assert.equal(BOARDS.length,5);
+assert.deepEqual(BOARDS.at(-1),['trondheim-bus-1-gps-staging',147]);
+assert.equal(SHA,'eb43b06e26e38c558e3beabf033274172b0eecdc');
 guard(config,{...env,GATEWAY_DEPLOY_MODE:'update'});
 assert.throws(()=>guard(config,{...env,GATEWAY_DEPLOY_MODE:'other'}));
 assert.throws(()=>guard({...config,compatibility_flags:[]},env));
@@ -39,7 +42,7 @@ for(const [board,count] of BOARDS){
  validateLive(new Response(JSON.stringify(passed),{headers}),JSON.stringify(passed),board,count);
  assert.throws(()=>validateLive(new Response(body,{headers:{...headers,'x-transitcore-source-sha':'a'.repeat(40)}}),body,board,count));
  assert.throws(()=>validateLive(new Response(body,{headers}),body,board,count+1));
- const diagnostic=JSON.stringify({boardId:board,algorithm:'unified-bus-v1',status:'CURRENT',observations:[]});
+ const diagnostic=JSON.stringify({boardId:board,algorithm:'unified-bus-v1',status:'CURRENT',observations:[],...(board==='trondheim-bus-1-gps-staging'?{mode:'gps-proximity-v1'}:{})});
  validateLive(new Response(diagnostic,{headers:{'x-transitcore-environment':'isolated-staging','x-transitcore-source-sha':SHA}}),diagnostic,board,count,true);
  assert.throws(()=>validateLive(new Response(diagnostic,{headers}),diagnostic,'wrong-board',count,true));
 }
@@ -65,4 +68,4 @@ assert.match(workflow,/options: \[create, update\]/);assert.doesNotMatch(workflo
 const runner=readFileSync(new URL('./linear-staging-gateway-deploy.mjs',import.meta.url),'utf8');
 assert.match(runner,/if\(!update\)\{[\s\S]*run\(\['secret','put','STAGING_ACCESS_TOKEN'\]/);
 assert.match(runner,/update\?\['deploy','--keep-vars'\]/);
-console.log('Gateway deployment guard, four-profile smoke, size limits, retries, fail-closed validation and secret-safe logging PASS');
+console.log('Gateway deployment guard, five-profile smoke, size limits, retries, fail-closed validation and secret-safe logging PASS');

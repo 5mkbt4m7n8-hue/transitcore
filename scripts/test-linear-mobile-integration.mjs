@@ -8,7 +8,7 @@ const frame={schemaVersion:1,boardProfile:boardId,ledCount:147,sequence:1,genera
 const html=read('web/linear/index.html');
 // Real shared client: server PASSED is retained, never inferred; expiry becomes OFF.
 const Frames=createRequire(import.meta.url)('../web/shared/canonical-frame-client.js');
-for(const [id,count] of [['trondheim-bus-board',147],['trondheim-shared-stops-board',147],['trondheim-city-lines-catalog',1282],['trondheim-flybuss-live',46]]){
+for(const [id,count] of [['trondheim-bus-board',147],['trondheim-shared-stops-board',147],['trondheim-city-lines-catalog',1282],['trondheim-flybuss-live',46],['trondheim-bus-1-gps-staging',147]]){
  let now=Date.now(),tick=0,payload,fail=false;const urls=[];
  const client=Frames.create({boardId:id,ledCount:count,origin:'https://gateway.test',clock:()=>now,monotonic:()=>tick,
   fetchImpl:async url=>{urls.push(url);return fail?new Response('error',{status:502}):Response.json(payload);}});
@@ -60,18 +60,35 @@ vm.createContext(context);vm.runInContext(script,context);await new Promise(reso
 assert(clients.length,el('status').textContent);assert.equal(clients.at(-1).boardId,'trondheim-bus-board');assert.equal(clients.at(-1).ledCount,147);assert(!clients.at(-1).origin);
 el('source').value='staging';await el('source').onchange();await new Promise(resolve=>setImmediate(resolve));
 assert.equal(el('source').value,'staging','Staging must be a selectable option from the HTML');
-assert.equal(clients.at(-1).boardId,boardId);assert.equal(clients.at(-1).ledCount,147);assert.equal(clients.at(-1).origin,'https://transitcore-linear-staging.lgb84.workers.dev');
+assert.equal(clients.at(-1).boardId,'trondheim-bus-1-gps-staging');assert.equal(clients.at(-1).ledCount,147);assert.equal(clients.at(-1).origin,'https://transitcore-linear-staging.lgb84.workers.dev');
 assert(!el('allRoutes').disabled);
 for(const [route,multi,id,count] of [
- ['atb-bus-1-live',false,'trondheim-bus-board',147],
+ ['atb-bus-1-live',false,'trondheim-bus-1-gps-staging',147],
+ ['atb-bus-2-live',false,'trondheim-bus-board',147],
  ['atb-bus-2-live',true,'trondheim-shared-stops-board',147],
  ['atb-bus-10-live',false,'trondheim-city-lines-catalog',1282],
  ['flybuss-trondheim-fb73-live',false,'trondheim-flybuss-live',46]]){
  el('route').value=route;el('allRoutes').checked=multi;el('route').onchange();await new Promise(resolve=>setImmediate(resolve));
  assert.equal(el('source').value,'staging');assert.equal(clients.at(-1).boardId,id);assert.equal(clients.at(-1).ledCount,count);assert(clients.at(-1).origin);
  const rows=el('rows').innerHTML;const ids=[...rows.matchAll(/data-id="(\d+)"/g)].map(m=>Number(m[1]));assert(ids.length);assert(ids.every(i=>i>=0&&i<count));
- el('source').value='production';await el('source').onchange();assert.equal(el('route').value,route);assert.equal(clients.at(-1).boardId,id);assert.equal(clients.at(-1).ledCount,count);assert(!clients.at(-1).origin);
+ el('source').value='production';await el('source').onchange();assert.equal(el('route').value,route);assert.equal(clients.at(-1).boardId,id==='trondheim-bus-1-gps-staging'?'trondheim-bus-board':id);assert.equal(clients.at(-1).ledCount,count);assert(!clients.at(-1).origin);
+ assert.equal(el('rows').innerHTML,rows,'Source switch must preserve every station, direction and LED index');
  el('source').value='staging';await el('source').onchange();assert.equal(clients.at(-1).boardId,id);
 }
 
-console.log('Linear HTML, four profiles, source/route switching and authoritative PASSED/expiry PASS');
+// Execute the actual page startup from a mobile bookmark, with no token or origin
+// from URL parameters. Production remains the default for missing/invalid source.
+for(const [search,expected] of [['?v=110&route=atb-bus-1-live&source=staging','trondheim-bus-1-gps-staging'],
+ ['?v=110&route=atb-bus-1-live','trondheim-bus-board'],
+ ['?v=110&route=atb-bus-1-live&source=https://evil.test','trondheim-bus-board']]){
+ const entries=new Map(),seen=[];
+ const get=id=>{if(!entries.has(id))entries.set(id,{value:'',checked:false,textContent:'',innerHTML:'',classList:{remove(){}},style:{}});return entries.get(id);};
+ const boot={...context,location:{search},document:{getElementById:get,querySelectorAll:()=>[],addEventListener(){},hidden:false},
+  TransitCoreFrames:{create:opts=>{seen.push(opts);return {refresh:async()=>({frame:null,algorithm:'test',sample:{sequence:1,ageSeconds:0,status:'NO_FRAME'}})};}}};
+ vm.createContext(boot);vm.runInContext(script,boot);await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(seen.at(-1).boardId,expected);assert.equal(seen.at(-1).ledCount,147);
+ assert.equal(get('route').value,'atb-bus-1-live');
+ assert.equal(!!seen.at(-1).origin,expected==='trondheim-bus-1-gps-staging');
+ assert(!JSON.stringify(seen).includes('token'));
+}
+console.log('Linear HTML, full Bus1 147 mapping, mobile bookmark/defaults, other profiles, source/route switching and authoritative expiry PASS');
