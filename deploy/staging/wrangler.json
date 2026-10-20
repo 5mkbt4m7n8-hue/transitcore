@@ -9,7 +9,7 @@
     "enabled": true
   },
   "vars": {
-    "BUS_LIFECYCLE_BOARDS": "trondheim-bus-1-visual-test,trondheim-bus-board,trondheim-shared-stops-board,trondheim-city-lines-catalog,trondheim-flybuss-live"
+    "BUS_LIFECYCLE_BOARDS": "trondheim-bus-1-visual-test,trondheim-bus-board,trondheim-shared-stops-board,trondheim-city-lines-catalog,trondheim-flybuss-live,trondheim-bus-1-gps-staging"
   },
   "durable_objects": {
     "bindings": [

@@ -7,7 +7,7 @@ import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
 export const ACCOUNT='f40d632e8a57c44d9059ed316e22b80d';
 export const TARGET='transitcore-staging';
-export const BOARDS='trondheim-bus-1-visual-test,trondheim-bus-board,trondheim-shared-stops-board,trondheim-city-lines-catalog,trondheim-flybuss-live';
+export const BOARDS='trondheim-bus-1-visual-test,trondheim-bus-board,trondheim-shared-stops-board,trondheim-city-lines-catalog,trondheim-flybuss-live,trondheim-bus-1-gps-staging';
 export const expectedConfig={
  name:TARGET,main:'entry.mjs',account_id:ACCOUNT,compatibility_date:'2026-08-11',
  workers_dev:true,preview_urls:false,observability:{enabled:true},
