@@ -4,7 +4,7 @@ import gateway from '../deploy/linear-staging/entry.mjs';
 const read=p=>fs.readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const boardId='trondheim-bus-board',path='/api/v1/frame/'+boardId;
 const token='synthetic-staging-test-not-a-credential';
-const sha='fbe5e6ba7edc6427c516f81356081225bc7fb59c';
+const sha='eb43b06e26e38c558e3beabf033274172b0eecdc';
 const headers={'x-transitcore-environment':'isolated-staging','x-transitcore-source-sha':sha};
 const frame={schemaVersion:1,boardProfile:boardId,ledCount:147,sequence:1,generatedAt:new Date().toISOString(),ttlSeconds:30,leds:[]};
 let calls=0,reply=()=>Response.json(frame,{headers:{...headers,'x-transitcore-stop-algorithm':'unified-bus-v1'}});
@@ -45,8 +45,24 @@ try{
   reply=()=>Response.json({...diagnostic,observations:[{...observation,logicalLed:count}]},{headers});assert.equal((await gateway.fetch(request(endpoint+'/diagnostics'),env)).status,502);
   reply=()=>new Response('unavailable',{status:503});assert.equal((await gateway.fetch(request(endpoint),env)).status,502);
  }
+
+// The GPS-only Bus1 route reuses all 147 LED positions and requires the exact approved SHA.
+const gps='trondheim-bus-1-gps-staging',gpsPath='/api/v1/frame/'+gps;
+const gpsFrame={...frame,boardProfile:gps,ledCount:147};
+reply=()=>Response.json(gpsFrame,{headers});
+assert.equal((await gateway.fetch(request(gpsPath),env)).status,200);
+const gpsObservation={...observation,physicalLed:0,distanceMeters:55,observationAgeMs:2500,stateChangedAt:Date.now()};
+const gpsDiagnostics={...diag,boardId:gps,mode:'gps-proximity-v1',observations:[gpsObservation]};
+reply=()=>Response.json(gpsDiagnostics,{headers});
+const publicGPS=await (await gateway.fetch(request(gpsPath+'/diagnostics'),env)).json();
+assert.equal(publicGPS.mode,'gps-proximity-v1');assert.equal(publicGPS.observations[0].physicalLed,0);
+assert.equal(publicGPS.observations[0].distanceMeters,55);
+reply=()=>Response.json({...gpsDiagnostics,mode:'motion-v1'},{headers});
+assert.equal((await gateway.fetch(request(gpsPath+'/diagnostics'),env)).status,502);
+reply=()=>Response.json(gpsFrame,{headers:{...headers,'x-transitcore-source-sha':'a'.repeat(40)}});
+assert.equal((await gateway.fetch(request(gpsPath),env)).status,502);
  assert.equal((await gateway.fetch(request('/api/v1/frame/trondheim-bus-1-visual-test'),env)).status,404);
 }finally{globalThis.fetch=original;}
 const config=JSON.parse(read('deploy/linear-staging/wrangler.json'));assert.equal(config.name,'transitcore-linear-staging');for(const key of ['durable_objects','services','triggers','routes','vars'])assert(!(key in config));assert.equal(config.ratelimits[0].simple.limit,60);
 
-console.log('Gateway isolation, all four profiles, pinned SHA, bounded responses and diagnostics PASS');
+console.log('Gateway isolation, all five profiles, pinned SHA, bounded responses and diagnostics PASS');

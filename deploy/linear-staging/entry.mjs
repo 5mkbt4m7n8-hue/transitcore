@@ -1,25 +1,29 @@
 // Public read-only gateway. No provider, lifecycle, device or production access.
 import {validatePixelFrame} from '../../core/models/pixel-frame.mjs';
-const BOARDS=new Map([['trondheim-bus-board',147],['trondheim-shared-stops-board',147],['trondheim-city-lines-catalog',1282],['trondheim-flybuss-live',46]]);
+const GPS_BOARD='trondheim-bus-1-gps-staging';
+const BOARDS=new Map([['trondheim-bus-board',147],['trondheim-shared-stops-board',147],['trondheim-city-lines-catalog',1282],['trondheim-flybuss-live',46],[GPS_BOARD,147]]);
 const UPSTREAM='https://transitcore-staging.lgb84.workers.dev';
 const PAGE='https://5mkbt4m7n8-hue.github.io';
-const APPROVED_SHA='fbe5e6ba7edc6427c516f81356081225bc7fb59c';
+const APPROVED_SHA='eb43b06e26e38c558e3beabf033274172b0eecdc';
 function publicDiagnostics(data,boardId,ledCount){
  const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
  const keys=(x,allowed)=>object(x)&&Object.keys(x).every(k=>allowed.includes(k));
  const number=x=>typeof x==='number'&&Number.isFinite(x)&&x>=0;
  const id=x=>x===null||(typeof x==='string'&&/^[a-zA-Z0-9:_./-]{1,128}$/.test(x));
  const date=x=>typeof x==='string'&&x.length<=40&&Number.isFinite(Date.parse(x));
- if(!keys(data,['boardId','algorithm','sequence','generatedAt','ageSeconds','status','uncertain','reason','observations','truncated'])||
+ const gps=boardId===GPS_BOARD;
+ if(!keys(data,['boardId','algorithm','sequence','generatedAt','ageSeconds','status','uncertain','reason','observations','truncated',...(gps?['mode']:[])])||
   data.boardId!==boardId||data.algorithm!=='unified-bus-v1'||
   !['CURRENT','STALE','NOT_OBSERVED'].includes(data.status)||
   !(data.sequence===null||Number.isSafeInteger(data.sequence)&&data.sequence>=0)||
   typeof data.uncertain!=='boolean'||!Array.isArray(data.observations)||data.observations.length>2048)return null;
  if(data.status!=='NOT_OBSERVED'&&(!date(data.generatedAt)||!number(data.ageSeconds)))return null;
+ if(gps&&!(data.mode==='gps-proximity-v1'||data.status==='NOT_OBSERVED'&&data.mode===undefined))return null;
  if(data.truncated!==undefined&&(!Number.isSafeInteger(data.truncated)||data.truncated<0))return null;
  const observations=[];
  for(const d of data.observations){
-  if(!keys(d,['vehicleId','lineId','logicalLed','source','observationTime','state','confidence','reason','uncertain'])||
+  if(!keys(d,['vehicleId','lineId','logicalLed','source','observationTime','state','confidence','reason','uncertain',
+    ...(gps?['distanceMeters','observationAgeMs','stateChangedAt','physicalLed']:[])])||
    !id(d.vehicleId)||!id(d.lineId)||
    !(d.logicalLed===null||Number.isInteger(d.logicalLed)&&d.logicalLed>=0&&d.logicalLed<ledCount)||
    !['GPS','ESTIMATED_CALL','UNKNOWN'].includes(d.source)||
@@ -27,16 +31,20 @@ function publicDiagnostics(data,boardId,ledCount){
    !['OFF','APPROACHING','AT_STOP','PASSED','PARKED'].includes(d.state)||
    !['inferred','forecast','timetable','reported','unknown'].includes(d.confidence)||
    typeof d.uncertain!=='boolean')return null;
+  if(gps&&(![d.distanceMeters,d.observationAgeMs,d.stateChangedAt].every(v=>v===null||number(v))||
+    !(d.physicalLed===null||Number.isInteger(d.physicalLed)&&d.physicalLed>=0&&d.physicalLed<ledCount)))return null;
   // Do not forward arbitrary free-text reasons, even under a known field name.
   observations.push({vehicleId:d.vehicleId,lineId:d.lineId,logicalLed:d.logicalLed,source:d.source,
    observationTime:d.observationTime,state:d.state,confidence:d.confidence,uncertain:d.uncertain,
-   reason:'Public evidence summary; not measured hardware state.'});
+   reason:'Public evidence summary; not measured hardware state.',
+   ...(gps?{distanceMeters:d.distanceMeters,observationAgeMs:d.observationAgeMs,stateChangedAt:d.stateChangedAt,physicalLed:d.physicalLed}:{})});
  }
- return {boardId,algorithm:data.algorithm,sequence:data.sequence,status:data.status,
+ return {boardId,algorithm:data.algorithm,sequence:data.sequence,status:data.status,...(data.mode?{mode:data.mode}:{}),
   ...(data.status==='NOT_OBSERVED'?{}:{generatedAt:data.generatedAt,ageSeconds:data.ageSeconds}),
   uncertain:data.uncertain,truncated:data.truncated??0,observations,
   reason:'Public evidence summary; not measured hardware state.'};
 }
+// A single reviewed staging source SHA is pinned for every public read-only profile.
 export default {async fetch(request,env){
  const url=new URL(request.url),origin=request.headers.get('origin');
  const headers={'access-control-allow-origin':PAGE,'access-control-expose-headers':'x-transitcore-stop-algorithm,x-transitcore-environment,x-transitcore-source-sha','cache-control':'no-store','content-type':'application/json','x-content-type-options':'nosniff','vary':'Origin'};
