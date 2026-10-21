@@ -156,31 +156,26 @@ assert.equal(debugEl('gpsDebug').hidden,true);
 assert.equal(debugRequests.filter(url=>String(url).includes('/diagnostics')).length,beforeProduction,'Production must not read staging diagnostics');
 
 
-// All-bus stops: three presentation-only choices on the same canonical frame.
+// Compact views reuse one *existing* LED; there are no per-bus markers.
+// The same physical diode cycles color and (optionally) its line number.
 assert.match(html,/<select id="routeBadgeMode"><option value="details">Detaljer<\/option><option value="colors">Kun farger<\/option><option value="numbers">Linjenummer i diode<\/option><\/select>/);
+assert(!html.includes('route-pip'), 'No extra per-vehicle bubbles may be rendered');
+assert.match(html,/\.led\.numbered::after\{content:attr\(data-line\)/);
 const multiItems=[{id:12,rgb:[237,83,80],occupants:[
  {line:'1',state:'AT_STOP',destination:'Ranheim',rgb:[237,83,80]},
  {line:'3',state:'APPROACHING',destination:'Sentrum',rgb:[20,140,90]},
  {line:'3',state:'AT_STOP',destination:'Sentrum',rgb:[20,140,90]}
 ]}];
 const makeMarkup=mode=>vm.runInContext('renderStationBuses('+JSON.stringify(multiItems)+','+JSON.stringify(mode)+')',context);
-const details=makeMarkup('details'),colors=makeMarkup('colors'),numbers=makeMarkup('numbers');
-assert.equal((details.match(/class="badge"/g)||[]).length,3,'Existing detailed bus rows retained');
+const details=makeMarkup('details');
+assert.equal((details.match(/class="badge"/g)||[]).length,3,'Detailed labels retained');
 assert.match(details,/1 · AT_STOP · Ranheim/);
-assert.equal((colors.match(/class="route-pip"/g)||[]).length,3,'One colored dot per bus, including same-line buses');
-assert(!colors.includes('class="badge"'));
-assert.match(colors,/--route-color:rgb\(237,83,80\)/);
-assert.match(colors,/--route-color:rgb\(20,140,90\)/);
-assert.match(colors,/aria-label="Linje 3 · AT_STOP · Sentrum"/);
-assert((colors.match(/class="route-pip"[^>]*><\/span>/g)||[]).length===3,'Color-only dots must contain no visible text');
-assert.equal((numbers.match(/class="route-pip numbered"/g)||[]).length,3);
-assert.match(numbers,/>1<\/span>/);
-assert.equal((numbers.match(/>3<\/span>/g)||[]).length,2,'Both vehicles on line 3 must be represented');
-assert(!numbers.includes('class="badge"'));
-const untrusted=vm.runInContext('renderStationBuses('+JSON.stringify([{id:1,rgb:[1,2,3],occupants:[{line:'<svg>',state:'AT_STOP',destination:'<img src=x>',rgb:[9,9,9]}]}])+',"numbers")',context);
+assert.equal(makeMarkup('colors'),'','No separate dot under any stop in colors mode');
+assert.equal(makeMarkup('numbers'),'','No separate dot under any stop in numbers mode');
+const untrusted=vm.runInContext('renderStationBuses('+JSON.stringify([{id:1,rgb:[1,2,3],occupants:[{line:'<svg>',state:'AT_STOP',destination:'<img src=x>',rgb:[9,9,9]}]}])+',"details")',context);
 assert.match(untrusted,/&lt;svg&gt;/);assert.match(untrusted,/&lt;img src=x&gt;/);
 assert(!untrusted.includes('<svg>')&&!untrusted.includes('<img src=x>'));
-// The preference only changes visual markup: no refetch, no engine or board change.
+// Only the selected display mode changes; a switch never fetches a fresh frame.
 el('route').value='atb-bus-1-live';el('route').onchange();await new Promise(resolve=>setImmediate(resolve));
 assert.equal(el('routeViewOptions').hidden,true);
 el('allRoutes').checked=true;el('allRoutes').onchange();await new Promise(resolve=>setImmediate(resolve));
@@ -188,10 +183,57 @@ assert.equal(el('routeViewOptions').hidden,false);
 const clientCount=clients.length;
 el('routeBadgeMode').value='numbers';el('routeBadgeMode').onchange();
 assert.equal(clients.length,clientCount,'Changing display mode cannot poll the feed');
+
+// Exercise the *real* paint and 1200ms color-cycle functions with one LED.
+const ledClasses=new Set(),makeClassList=()=>({
+ add(...values){for(const v of values)ledClasses.add(v);},
+ remove(...values){for(const v of values)ledClasses.delete(v);},
+ contains(v){return ledClasses.has(v);}
+});
+const led={dataset:{id:'12',name:'Teststopp',direction:'mot Ranheim'},style:{},classList:makeClassList()};
+const container={parentElement:{querySelectorAll:()=>[led]},innerHTML:''};
+const originalQuery=context.document.querySelectorAll;
+context.TransitCoreSignals.priority=state=>({OFF:0,PASSED:1,APPROACHING:2,AT_STOP:3,PARKED:4})[state]||0;
+context.document.querySelectorAll=selector=>{
+ if(selector==='.station-buses')return [container];
+ if(selector==='.led'||selector==='.led[data-id]')return [led];
+ if(selector==='.led[data-id="12"]')return [led];
+ if(selector==='.led.on[data-colors]')return ledClasses.has('on')?[led]:[];
+ return [];
+};
+const physicalFrame={...frame,sequence:800,leds:[{
+ id:12,rgb:[237,83,80],state:'AT_STOP',lifecycle:'AT_STOP',
+ vehicle:{id:'b1',line:'1',destination:'Ranheim'},
+ occupants:[{id:'b1',line:'1',destination:'Ranheim',state:'AT_STOP',rgb:[237,83,80]},
+            {id:'b2',line:'3',destination:'Sentrum',state:'AT_STOP',rgb:[20,140,90]}]
+}]};
+vm.runInContext('paint('+JSON.stringify(physicalFrame)+')',context);
+assert.equal(container.innerHTML,'','Only existing diode, no extra markers');
+assert(ledClasses.has('on')&&ledClasses.has('numbered'));
+assert.equal(led.dataset.line,'1');
+assert.equal(led.dataset.lines,JSON.stringify(['1','3']));
+assert.equal(led.dataset.colors,JSON.stringify([[237,83,80],[20,140,90]]));
+vm.runInContext('cycleLedColors()',context);
+assert.equal(led.dataset.line,'3','Number must cycle with the same LED');
+assert.equal(led.style.color,'rgb(20,140,90)');
+vm.runInContext('cycleLedColors()',context);
+assert.equal(led.dataset.line,'1');
+assert.equal(led.style.color,'rgb(237,83,80)');
+el('routeBadgeMode').value='colors';el('routeBadgeMode').onchange();
+assert(!ledClasses.has('numbered'),'Colors mode must remove the number from the existing diode');
+assert.equal(container.innerHTML,'','Colors mode still has exactly zero extra markers');
+assert(!Object.hasOwn(led.dataset,'line'));
+vm.runInContext('cycleLedColors()',context);
+assert.equal(led.style.color,'rgb(20,140,90)');
+assert(!Object.hasOwn(led.dataset,'line'),'Color-only cycle must not add text');
+el('routeBadgeMode').value='details';el('routeBadgeMode').onchange();
+assert.equal((container.innerHTML.match(/class="badge"/g)||[]).length,2,'Detailed text view preserves two bus labels');
+assert(!ledClasses.has('numbered'));
+context.document.querySelectorAll=originalQuery;
 el('allRoutes').checked=false;el('allRoutes').onchange();await new Promise(resolve=>setImmediate(resolve));
 assert.equal(el('routeViewOptions').hidden,true);
-assert.equal(el('routeBadgeMode').value,'numbers','Display preference survives temporary hiding');
+assert.equal(el('routeBadgeMode').value,'details','Display choice survives temporary hiding');
 el('route').value='flybuss-trondheim-fb73-live';el('route').onchange();await new Promise(resolve=>setImmediate(resolve));
 assert.equal(el('routeViewOptions').hidden,true,'Flybuss cannot activate multi-route view');
 
-console.log('Linear HTML, full Bus1 147 mapping, multi-route badges, mobile bookmark/defaults, source/route switching and authoritative expiry and opt-in GPS Debug PASS');
+console.log('Linear HTML, full Bus1 147 mapping, one cycling LED with synchronized route number, mobile defaults, GPS Debug PASS');
