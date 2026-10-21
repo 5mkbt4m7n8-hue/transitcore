@@ -1,7 +1,8 @@
 // Optional real-browser suite: PLAYWRIGHT_MODULE=/path/to/playwright BROWSER_PATH=/usr/bin/chromium node scripts/browser-intransit-map.mjs
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {readFile} from 'node:fs/promises';
+import {readFile,mkdir} from 'node:fs/promises';
+import {join} from 'node:path';
 import {createRequire} from 'node:module';
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
 const root=new URL('../',import.meta.url);
@@ -14,7 +15,7 @@ const server=createServer(async(req,res)=>{try{
  res.setHeader('content-type',path.endsWith('.js')?'text/javascript':path.endsWith('.json')?'application/json':path.endsWith('.css')?'text/css':path.endsWith('.jpg')?'image/jpeg':'text/html');res.end(await readFile(file));
  }catch{res.writeHead(404).end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
-const browser=await chromium.launch({headless:true,executablePath:process.env.BROWSER_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
+const browser=await chromium.launch({headless:true,...(process.env.BROWSER_PATH?{executablePath:process.env.BROWSER_PATH}:{}),args:['--no-sandbox']});
 try{
  const page=await browser.newPage({viewport:{width:1280,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('https://transitcore-linear-staging.lgb84.workers.dev/**',r=>r.fulfill({status:503,body:'test staging unavailable'}));
@@ -25,15 +26,30 @@ try{
  assert.equal(calls,before,'Mode switch must not request another frame');assert.equal(await page.locator('#route').inputValue(),route);
  assert.equal(await page.locator('#linearView').isVisible(),false);
  assert.equal(await page.locator('.map-stop[data-state="OFF"]').count(),await page.locator('.map-stop').count(),'Unresolved points must stay OFF');
+ const screenshotDir=process.env.INTRANSIT_SCREENSHOT_DIR;
+ const saveScreenshot=async(name)=>{
+  if(!screenshotDir)return;
+  await mkdir(screenshotDir,{recursive:true});
+  await page.screenshot({path:join(screenshotDir,name),fullPage:true,animations:'disabled'});
+ };
+ // Screenshots are offline test fixtures; no user data or live third-party calls.
+ await saveScreenshot('01-dark-network-desktop.png');
+ await page.setViewportSize({width:390,height:844});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Mobile map must not overflow');
+ await saveScreenshot('02-dark-network-mobile.png');
+ await page.setViewportSize({width:1280,height:1000});
  const auditRequests=calls;
  const reference=page.locator('[data-role=reference]'),routeColors=page.locator('[data-role=routeColors]');
  assert.equal(await reference.isChecked(),false);
  await reference.check();assert.equal(await page.locator('svg.map-viewport image').getAttribute('opacity'),'0.55');
+ await saveScreenshot('03-white-original-overlay.png');
  await reference.uncheck();assert.equal(await page.locator('svg.map-viewport image').getAttribute('opacity'),'0.08');
  assert.equal(await routeColors.isChecked(),true);
  await routeColors.uncheck();assert.equal(await page.locator('.map-route-confirmed').count(),0);
  await routeColors.check();
+ assert((await page.locator('.map-route-confirmed').count())>0,'Documented route color overlays must exist for line 1');
  await page.locator('[data-role=reviewPath]').selectOption('trace-04');
+ await saveScreenshot('04-route-review-trace-04.png');
  assert.match(await page.locator('[data-role=details]').innerText(),/trace-04/);
  assert.equal(calls,auditRequests,'Map review controls must not fetch live frames');
  const box=await page.locator('svg.map-viewport').getAttribute('viewBox');await page.locator('[data-act=in]').click();assert.notEqual(await page.locator('svg.map-viewport').getAttribute('viewBox'),box);await page.locator('[data-act=fit]').click();
@@ -53,5 +69,5 @@ try{
  await page.locator('#source').selectOption('staging');await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('503'));
  await page.locator('#networkMode').click();assert.equal(await page.locator('.map-stop:not([data-state="OFF"])').count(),0);
  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Mobile must not overflow');
- assert.deepEqual(errors,[]);console.log('Browser: same-page mode switching, zero extra frame requests, unchanged Linear DOM, OFF safety, zoom, split/undo/export, staging failure and mobile PASS');
+ assert.deepEqual(errors,[]);console.log('Browser: real map, route overlays, screenshots, same-page switching, zero extra frame calls, Linear DOM, frame expiry, staging failure, mobile PASS');
 }finally{await browser.close();await new Promise(r=>server.close(r));}
