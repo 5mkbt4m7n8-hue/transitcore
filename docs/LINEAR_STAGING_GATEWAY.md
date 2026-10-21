@@ -56,3 +56,24 @@ live verification succeeds. No production Worker or ESP32 deploy is involved.
 Then GitHub Pages can show normal Linear with
 `?v=110&route=atb-bus-1-live&source=staging`.
 
+
+## GPS Debug – existing Linear mobile UI
+
+The Bus1-only GPS Debug section appears only when the regular Linear page
+is on line 1, in single-line mode, and explicitly uses staging. It is closed
+by default. Opening it enables a second read-only GET to the already-existing
+\`/api/v1/frame/trondheim-bus-1-gps-staging/diagnostics\` endpoint, at most
+once per normal 10-second refresh cycle; no polling when closed/hidden.
+
+The panel lets the tester select one vehicle and compares the last Entur
+observation's timestamp and computed station distance/state with the
+canonical LED frame and physical LED index. The frame's \`sequence\` and
+\`generatedAt\` must match the diagnostics snapshot, and its status must be
+CURRENT; otherwise it refuses to compare. Missing/error responses clear
+old results. Changing back to production hides the panel.
+
+This is a comparison of the Entur observations **as processed by staging**,
+not a separate direct Entur request or independent proof of raw coordinates,
+physical LED output, or the AtB→Entur ingestion delay. Timing differences
+can include clock skew. No staging Worker, gateway, firmware, secret,
+API/polling cadence or production feed change is part of this PR.
