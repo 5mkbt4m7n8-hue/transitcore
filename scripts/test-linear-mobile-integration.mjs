@@ -91,4 +91,68 @@ for(const [search,expected] of [['?v=110&route=atb-bus-1-live&source=staging','t
  assert.equal(!!seen.at(-1).origin,expected==='trondheim-bus-1-gps-staging');
  assert(!JSON.stringify(seen).includes('token'));
 }
-console.log('Linear HTML, full Bus1 147 mapping, mobile bookmark/defaults, other profiles, source/route switching and authoritative expiry PASS');
+
+// GPS Debug is entirely opt-in, read-only and tied to a matching canonical frame.
+// No extra diagnostics GET is permitted in production or with the panel closed.
+const debugFrame={...frame,boardProfile:'trondheim-bus-1-gps-staging',
+ generatedAt:new Date().toISOString(),sequence:42,
+ leds:[{id:3,rgb:[80,160,30],brightness:8,state:'AT_STOP',vehicle:{id:'bus-42',line:'1'}}]};
+let debugSequence=42,debugError=false;
+const debugRequests=[],debugElements=new Map();
+const debugEl=id=>{
+ if(!debugElements.has(id))debugElements.set(id,{value:'',checked:false,textContent:'',innerHTML:'',
+  classList:{remove(){},add(){},contains(){return false;}},style:{},hidden:false,open:false});
+ return debugElements.get(id);
+};
+const debugContext={...context,location:{search:'?route=atb-bus-1-live&source=staging'},
+ document:{getElementById:debugEl,querySelectorAll:()=>[],addEventListener(){},hidden:false},
+ TransitCoreFrames:{create:()=>({refresh:async()=>({
+  frame:debugFrame,algorithm:'gps-proximity-v1',
+  sample:{sequence:42,ageSeconds:0,status:'VALID'}
+ })})},
+ fetch:async url=>{
+  debugRequests.push(url);
+  if(String(url).includes('/api/v1/frame/trondheim-bus-1-gps-staging/diagnostics')){
+   return debugError?{ok:false,status:502}:{ok:true,json:async()=>({
+    boardId:'trondheim-bus-1-gps-staging',mode:'gps-proximity-v1',
+    sequence:debugSequence,generatedAt:debugFrame.generatedAt,status:'CURRENT',
+    observations:[{source:'GPS',vehicleId:'bus-42',lineId:'ATB:Line:2_1',
+     observationTime:Date.now()-3000,distanceMeters:28.5,physicalLed:3,
+     state:'AT_STOP',uncertain:false,stateChangedAt:Date.now()-7000}]
+   })};
+  }
+  return {ok:true,json:async()=>JSON.parse(publishedRead(url.replace('../../','')))};
+ }
+};
+vm.createContext(debugContext);vm.runInContext(script,debugContext);
+await new Promise(resolve=>setImmediate(resolve));
+assert.equal(debugEl('gpsDebug').hidden,false);
+assert.equal(debugRequests.filter(url=>String(url).includes('/diagnostics')).length,0,'Closed panel must not poll GPS diagnostics');
+debugEl('gpsDebug').open=true;debugEl('gpsDebug').ontoggle();
+await new Promise(resolve=>setImmediate(resolve));
+assert.equal(debugEl('gpsVehicle').value,'bus-42');
+assert.equal(debugEl('gpsDistance').textContent,'28.5 m');
+assert.equal(debugEl('gpsEvidenceState').textContent,'AT_STOP');
+assert.equal(debugEl('gpsLedState').textContent,'AT_STOP');
+assert.match(debugEl('gpsDebugStatus').textContent,/Samme frame #42/);
+assert.equal(debugRequests.filter(url=>String(url).includes('/diagnostics')).length,1);
+assert(debugRequests.every(url=>!String(url).includes('token')));
+
+debugSequence=43;
+debugEl('refresh').onclick();
+await new Promise(resolve=>setImmediate(resolve));
+assert.match(debugEl('gpsDebugStatus').textContent,/Ulike \/ utdaterte frames/);
+assert.equal(debugEl('gpsLedState').textContent,'–','No mismatched LED comparisons');
+
+debugSequence=42;debugError=true;
+debugEl('refresh').onclick();
+await new Promise(resolve=>setImmediate(resolve));
+assert.match(debugEl('gpsDebugStatus').textContent,/Diagnostikk utilgjengelig/);
+assert.equal(debugEl('gpsDistance').textContent,'–','Failed diagnostics must not keep stale metrics');
+const beforeProduction=debugRequests.filter(url=>String(url).includes('/diagnostics')).length;
+debugEl('source').value='production';await debugEl('source').onchange();
+await new Promise(resolve=>setImmediate(resolve));
+assert.equal(debugEl('gpsDebug').hidden,true);
+assert.equal(debugRequests.filter(url=>String(url).includes('/diagnostics')).length,beforeProduction,'Production must not read staging diagnostics');
+
+console.log('Linear HTML, full Bus1 147 mapping, mobile bookmark/defaults, other profiles, source/route switching and authoritative expiry and opt-in GPS Debug PASS');
