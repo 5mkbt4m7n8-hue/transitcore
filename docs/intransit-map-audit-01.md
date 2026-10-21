@@ -1,12 +1,15 @@
 # InTransit Trondheim – kartrevisjon 01 (2026-10-21)
 
-Status: **sju punkter bekreftet som faktiske holdeplasser av brukeren; navn og data-ID-er fortsatt uavklart**. Ingen ny bekreftet datakobling. Denne revisjonen endrer ikke
+Status: **alle 23 navnløse punktene er av brukeren bekreftet som faktiske holdeplasser som skal navngis senere**. Navn og data-ID-er er fortsatt uavklart. Ingen ny bekreftet datakobling. Denne revisjonen endrer ikke
 `web/linear/network/trondheim-layout.json`, sanntidsmapping, produksjonsfeed eller ESP32.
 
 ## Utgangspunkt
 
 - `trondheim-layout.json`: 100 eksisterende kartmarkører, 68 med eksplisitte
-  ID-koblinger og 32 uten kobling. 23 av de 32 mangler bekreftet navn.
+  ID-koblinger og 32 uten kobling. 23 av de 32 mangler navn.
+- **Brukerbeslutning 2026-10-21:** Alle 23 punktene uten navn er faktiske
+  holdeplasser, ikke rene knekkpunkter. De skal navngis etter hvert; ingen
+  navn, Quay-ID-er eller sanntidsdata skal gjettes i mellomtiden.
 - Alle koordinater er fra brukerens opprinnelige hvite tegning. Ikke utled
   holdeplass-ID-er fra nærhet, rutelinje eller kartnavn alene.
 - De to Samfundet-markørene er allerede godkjent som ulike grupper med
@@ -23,7 +26,7 @@ Status: **sju punkter bekreftet som faktiske holdeplasser av brukeren; navn og d
 | Lade–Strindheim–Ranheim, uten navn | 003, 007, 008, 009, 010, 011, 013 | 7 | **Brukerbekreftede faktiske holdeplasser.** Navn og Quay-ID-er avklares senere; skal ikke gjettes |
 | Indre østlige nett, navn avlest | 021 Briansmith, 025 Persaunet leir, 027 Clara Holst, 034 Tyholt, 035 Cecilie Thoresen | 5 | Avklare dagens/offisielle navn og eksakte stopp-ID-er. Behold originaltekst og geometri inntil avklaring |
 | Midtre nett, navn avlest | 055 Magnus Barføtts vei | 1 | Entur-/katalog-ID ukjent |
-| Heimdal–Tiller, uten navn | 076, 077, 079, 080, 084, 085, 086, 089, 090, 091, 093, 094, 097, 098, 099, 100 | 16 | Samme stopp-/geometriavklaring, så ID-verifikasjon ved faktisk stopp |
+| Heimdal–Tiller, uten navn | 076, 077, 079, 080, 084, 085, 086, 089, 090, 091, 093, 094, 097, 098, 099, 100 | 16 | **Brukerbekreftede faktiske holdeplasser.** Navn og Quay-ID-er avklares senere; ingen kobling gjettes |
 | Heimdal–Tiller, navn avlest | 078 Flatåsen, 081 Vollmyra, 092 Peder Dorset | 3 | Bekrefte eksakt stoppidentitet/navn og eventuell historisk eller intern navnevariant |
 | **Totalt** | | **32** | **Ingen autorisert binding ennå** |
 
@@ -50,9 +53,11 @@ layout som `Uavklart NNN` med `bindings: []`.
 
 1. Behold `bindings: []` for alle 32 frem til verifisert entydig stopp-/Quay-ID.
 2. Ikke endre bekreftede 68 eller Samfundet-grupper.
-3. De sju bekreftede holdeplassene i denne revisjonen skal bevares som
-   holdeplasser (ikke konverteres til `path vertex`). For andre uavklarte
-   punkter må rollen fortsatt verifiseres før en eventuell omklassifisering.
+3. **Alle 23 navnløse punkter** skal bevares som faktiske holdeplasser,
+   både de sju i nordøst og de 16 ved Heimdal–Tiller. Ikke konverter dem
+   til `path vertex`, flytt eller slett dem for å rydde i kartet.
+   De ni navngitte, men ubundne punktene beholder også sine plasseringer;
+   disse trenger kontroll av ID/eksakt navnevariant.
 4. Test rutefilter, `OFF` på ubundne punkter, én/to retninger og
    om sanntidsskifte fortsetter på de godkjente markørene.
 5. Behold PR #226 som **draft** til navn, ID-er, polylinjer og

@@ -6,7 +6,7 @@ Feature branch fra main `173e5f9`. Ingen deployment eller endring av feed, Worke
 
 Originalen er brukerens høyoppløselige `Trondheim Buss copy.jpg`, lagret uendret i `web/linear/assets/trondheim-original.jpg` (5906 × 8268). Layoutens referansefelt inneholder SHA-256. SVG har fast viewBox `0 0 913 1280`; bildekoordinater er skalert lineært til dette. Ingen posisjoner kommer fra GPS.
 
-Analysen identifiserer 100 stoppmarkører på nettverket, 77 navngitte og 23 uten navn. To løsrevne prøvedioder er holdt utenfor stoppnettet. Knekkpunkter lagres separat fra stopp; det settes ingen dioder på umerkede knekkpunkter.
+Analysen identifiserer 100 stoppmarkører på nettverket, 77 navngitte og 23 uten navn. **Brukeren har bekreftet at alle 23 navnløse punkter er faktiske holdeplasser og skal navngis senere** (2026-10-21). De skal forbli stoppmarkører på de opprinnelige koordinatene uten gjettede navn eller Entur-ID-er, og skal ikke konverteres til knekkpunkter. To løsrevne prøvedioder er holdt utenfor stoppnettet. Rutelinjenes geometriske knekkpunkter lagres separat fra stopp.
 
 68 kartpunkter er koblet til eksisterende konfigurasjon via eksplisitte StopPlace-/Quay-/node-ID-er. Unike fulle navn er kontrollert mot katalogen; forkortede kartnavn som Trondheim sentralstasjon → Trondheim S og Gyldenløves → Gyldenløves gate har eksplisitte StopPlace-ID-er. Baseboard og katalog knyttes gjennom de samme Quay-ID-ene, uten nærhetssøk. Kartets opprinnelige navneform beholdes.
 
