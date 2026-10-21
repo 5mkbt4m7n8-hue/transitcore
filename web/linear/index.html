@@ -11,10 +11,9 @@
     h1{margin:0;font-size:26px}.sub{color:var(--muted);margin:6px 0 14px}.tools,.summary,.legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
     select,button{font:inherit;color:var(--text);background:#1b222c;border:1px solid #3b4654;border-radius:9px;padding:9px 12px}button{cursor:pointer}.status{margin-left:auto;color:var(--muted)}
     .badge{background:#171d25;border:1px solid #2c3541;border-radius:999px;padding:6px 10px}.badge b{color:#fff}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
-    .station-buses{gap:5px!important;align-items:center;min-height:0}
-    .route-pip{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:16px;height:16px;border-radius:50%;background:var(--route-color);box-shadow:0 0 0 1px #ffffff80}
-    .route-pip.numbered{width:28px;min-width:28px;height:28px;padding:0 3px;color:#fff;font-size:11px;font-weight:800;line-height:1;letter-spacing:-.3px;text-shadow:0 1px 2px #000,0 0 2px #000}
-    .route-pip.passed{opacity:.35}
+    /* Compact modes reuse the existing physical LED marker, never add a second marker. */
+    .led.numbered{width:30px;height:30px;display:grid;place-items:center}
+    .led.numbered::after{content:attr(data-line);color:#fff;font-size:10px;font-weight:800;line-height:1;letter-spacing:-.3px;text-shadow:0 1px 2px #000,0 0 2px #000;pointer-events:none}
     .route-view-options[hidden]{display:none}
     .board{border:1px solid #252b34;background:var(--panel);border-radius:12px;padding:12px 8px 18px;overflow:hidden}.head,.row{display:grid;grid-template-columns:minmax(130px,1fr) 94px 94px;align-items:center}
     .head{position:sticky;top:0;z-index:4;background:var(--panel);padding:9px 0;color:var(--muted);font-size:12px}.head span{text-align:center}.station{text-align:right;padding-right:18px;font-weight:600}
@@ -139,19 +138,22 @@ function prioritizedOccupants(item){
   });
 }
 function cycleLedColors(){
-  document.querySelectorAll(".led.on[data-colors]").forEach(led=>{const colors=JSON.parse(led.dataset.colors||"[]");if(colors.length<2)return;const index=(Number(led.dataset.colorIndex||0)+1)%colors.length;led.dataset.colorIndex=String(index);led.style.color=`rgb(${colors[index].join(",")})`});
+  document.querySelectorAll(".led.on[data-colors]").forEach(led=>{
+    const colors=JSON.parse(led.dataset.colors||"[]");if(colors.length<2)return;
+    const lines=JSON.parse(led.dataset.lines||"[]"),index=(Number(led.dataset.colorIndex||0)+1)%colors.length;
+    led.dataset.colorIndex=String(index);led.style.color=`rgb(${colors[index].join(",")})`;
+    // A number is part of the *same* LED and changes on the same frame as its color.
+    if(led.classList.contains("numbered"))led.dataset.line=lines[index]||"?";
+  });
 }
-// Each bus gets its own colored marker in the station row (not another hardware LED).
+// Only the detailed view has separate text badges. Compact modes rely on the
+// existing colored LED(s) per platform and their current color cycle.
 function renderStationBuses(items,mode=routeBadgeMode()){
+ if(mode!=="details")return "";
  return items.flatMap(item=>(item.occupants||[]).map(value=>{
-  const line=String(value.line||"?"),dest=String(value.destination||"Ukjent destinasjon");
-  const state=String(item.lifecycle==="PASSED"?"PASSED":value.state||item.state||"Ukjent");
   const rgb=Array.isArray(value.rgb)?value.rgb:item.rgb;
   const color=Array.isArray(rgb)&&rgb.length===3&&rgb.every(x=>Number.isInteger(x)&&x>=0&&x<=255)?`rgb(${rgb.join(",")})`:"rgb(130,140,155)";
-  const description=`Linje ${line} · ${state} · ${dest}`;
-  if(mode==="details")return `<span class="badge" title="${esc(dest)}"><i class="dot" style="background:${color}"></i>${esc(line)} · ${esc(state)} · ${esc(dest)}</span>`;
-  const numbered=mode==="numbers";
-  return `<span class="route-pip${numbered?" numbered":""}${state==="PASSED"?" passed":""}" style="--route-color:${color}" title="${esc(description)}" aria-label="${esc(description)}">${numbered?esc(line):""}</span>`;
+  return `<span class="badge" title="${esc(value.destination||"Ukjent destinasjon")}"><i class="dot" style="background:${color}"></i>${esc(value.line)} · ${esc(item.lifecycle==="PASSED"?"PASSED":value.state||item.state)} · ${esc(value.destination||"?")}</span>`;
  })).join("");
 }
 function paint(frame){
@@ -165,14 +167,15 @@ function paint(frame){
     const ids=new Set([...container.parentElement.querySelectorAll('.led[data-id]')].map(led=>led.dataset.id));
     container.innerHTML=allRoutes()?renderStationBuses(visibleItems.filter(item=>ids.has(String(item.id)))):"";
   });
-  document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching","departed");delete led.dataset.state;delete led.dataset.vehicle;delete led.dataset.occupants;delete led.dataset.colors;delete led.dataset.colorIndex});
+  document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching","departed","numbered");delete led.dataset.state;delete led.dataset.vehicle;delete led.dataset.occupants;delete led.dataset.colors;delete led.dataset.lines;delete led.dataset.line;delete led.dataset.colorIndex});
   for(const item of visibleItems){
-    const id=String(item.id),prioritized=prioritizedOccupants(item),effective=item.vehicle||{},effectiveState=item.lifecycle||item.state,colors=prioritized.map(value=>value.rgb||item.rgb);
+    const id=String(item.id),prioritized=prioritizedOccupants(item),effective=item.vehicle||{},effectiveState=item.lifecycle||item.state,colors=prioritized.map(value=>value.rgb||item.rgb),lines=prioritized.map(value=>String(value.line||effective.line||"?"));
     for(const led of document.querySelectorAll(`.led[data-id="${id}"]`)){
       led.style.color=`rgb(${(colors[0]||item.rgb).join(",")})`;
       if(item.lifecycle==="PASSED")led.classList.add("departed");else led.classList.add("on");
       if(effectiveState==="APPROACHING")led.classList.add("approaching");
-      led.dataset.state=effectiveState;led.dataset.vehicle=JSON.stringify(effective);led.dataset.occupants=JSON.stringify(item.occupants||[]);led.dataset.colors=JSON.stringify(colors);led.dataset.colorIndex="0";
+      led.dataset.state=effectiveState;led.dataset.vehicle=JSON.stringify(effective);led.dataset.occupants=JSON.stringify(item.occupants||[]);led.dataset.colors=JSON.stringify(colors);led.dataset.lines=JSON.stringify(lines);led.dataset.colorIndex="0";
+      if(allRoutes()&&routeBadgeMode()==="numbers"){led.classList.add("numbered");led.dataset.line=lines[0];}
     }
   }
   if(!colorCycleTimer)colorCycleTimer=setInterval(cycleLedColors,1200);
