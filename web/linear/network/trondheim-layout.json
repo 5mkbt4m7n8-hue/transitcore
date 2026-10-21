@@ -1,0 +1,4961 @@
+{
+  "schemaVersion": 1,
+  "id": "trondheim-white-map",
+  "viewBox": [
+    0,
+    0,
+    913,
+    1280
+  ],
+  "status": "partially-mapped-needs-review",
+  "coverage": {
+    "scope": "selected-corridors",
+    "endToEndRequired": false,
+    "expandable": true
+  },
+  "reference": {
+    "path": "./assets/trondheim-original.jpg",
+    "available": true,
+    "width": 5906,
+    "height": 8268,
+    "note": "Unmodified high-resolution user JPEG. Circle centers measured in image pixels; all line vertices read from source, never GPS. Unlabelled circles remain unresolved. Two detached legend circles excluded.",
+    "sha256": "7a7d13a50635e11f85ee942d54ffb2d2435a6d23e450b72256e9eb836880148e"
+  },
+  "stops": [
+    {
+      "id": "original-000",
+      "name": "Pirbadet",
+      "x": 478.76,
+      "y": 174.49,
+      "label": {
+        "x": 483.76,
+        "y": 170.49,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71132",
+          "stationId": "NSR:StopPlace:41586",
+          "stopId": "NSR:Quay:71132",
+          "stopPlaceId": "NSR:StopPlace:41586"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71134",
+          "stationId": "NSR:StopPlace:41586",
+          "stopId": "NSR:Quay:71134",
+          "stopPlaceId": "NSR:StopPlace:41586"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3097,
+          "y": 1127
+        },
+        "nameTranscription": "Pirbadet"
+      }
+    },
+    {
+      "id": "original-001",
+      "name": "Lade gård",
+      "x": 734.14,
+      "y": 212.71,
+      "label": {
+        "x": 739.14,
+        "y": 208.71,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:108146",
+          "stationId": "NSR:StopPlace:42676",
+          "stopId": "NSR:Quay:108146",
+          "stopPlaceId": "NSR:StopPlace:42676"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73133",
+          "stationId": "NSR:StopPlace:42676",
+          "stopId": "NSR:Quay:73133",
+          "stopPlaceId": "NSR:StopPlace:42676"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4749,
+          "y": 1374
+        },
+        "nameTranscription": "Lade gård"
+      }
+    },
+    {
+      "id": "original-002",
+      "name": "Brattøra",
+      "x": 478.76,
+      "y": 219.06,
+      "label": {
+        "x": 483.76,
+        "y": 215.06,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75313",
+          "stationId": "NSR:StopPlace:43865",
+          "stopId": "NSR:Quay:75313",
+          "stopPlaceId": "NSR:StopPlace:43865"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75314",
+          "stationId": "NSR:StopPlace:43865",
+          "stopId": "NSR:Quay:75314",
+          "stopPlaceId": "NSR:StopPlace:43865"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3097,
+          "y": 1415
+        },
+        "nameTranscription": "Brattøra"
+      }
+    },
+    {
+      "id": "original-003",
+      "name": "Uavklart 003",
+      "x": 749.14,
+      "y": 228.2,
+      "label": {
+        "x": 754.14,
+        "y": 224.2,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4846,
+          "y": 1474
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-004",
+      "name": "Ranheim",
+      "x": 874.2,
+      "y": 233.46,
+      "label": {
+        "x": 879.2,
+        "y": 229.46,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "ranheim-nsr-quay-74983",
+          "stationId": "ranheim",
+          "stopId": "NSR:Quay:74983",
+          "stopPlaceId": "NSR:StopPlace:43682"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "ranheim-nsr-quay-74982",
+          "stationId": "ranheim",
+          "stopId": "NSR:Quay:74982",
+          "stopPlaceId": "NSR:StopPlace:43682"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74982",
+          "stationId": "NSR:StopPlace:43682",
+          "stopId": "NSR:Quay:74982",
+          "stopPlaceId": "NSR:StopPlace:43682"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74983",
+          "stationId": "NSR:StopPlace:43682",
+          "stopId": "NSR:Quay:74983",
+          "stopPlaceId": "NSR:StopPlace:43682"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 5655,
+          "y": 1508
+        },
+        "nameTranscription": "Ranheim"
+      }
+    },
+    {
+      "id": "original-005",
+      "name": "Dyre Halses gate",
+      "x": 516.02,
+      "y": 243.99,
+      "label": {
+        "x": 521.02,
+        "y": 239.99,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "dyre-halses-gate-nsr-quay-102714",
+          "stationId": "dyre-halses-gate",
+          "stopId": "NSR:Quay:102714",
+          "stopPlaceId": "NSR:StopPlace:60253"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "dyre-halses-gate-nsr-quay-102713",
+          "stationId": "dyre-halses-gate",
+          "stopId": "NSR:Quay:102713",
+          "stopPlaceId": "NSR:StopPlace:60253"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:102713",
+          "stationId": "NSR:StopPlace:60253",
+          "stopId": "NSR:Quay:102713",
+          "stopPlaceId": "NSR:StopPlace:60253"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:102714",
+          "stationId": "NSR:StopPlace:60253",
+          "stopId": "NSR:Quay:102714",
+          "stopPlaceId": "NSR:StopPlace:60253"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3338,
+          "y": 1576
+        },
+        "nameTranscription": "Dyre Halses gate"
+      }
+    },
+    {
+      "id": "original-006",
+      "name": "Trondheim sentralstasjon",
+      "x": 393.44,
+      "y": 244.3,
+      "label": {
+        "x": 398.44,
+        "y": 240.3,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "trondheim-s-nsr-quay-71418",
+          "stationId": "trondheim-s",
+          "stopId": "NSR:Quay:71418",
+          "stopPlaceId": "NSR:StopPlace:41742"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "trondheim-s-nsr-quay-71416",
+          "stationId": "trondheim-s",
+          "stopId": "NSR:Quay:71416",
+          "stopPlaceId": "NSR:StopPlace:41742"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71416",
+          "stationId": "NSR:StopPlace:41742",
+          "stopId": "NSR:Quay:71416",
+          "stopPlaceId": "NSR:StopPlace:41742"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71418",
+          "stationId": "NSR:StopPlace:41742",
+          "stopId": "NSR:Quay:71418",
+          "stopPlaceId": "NSR:StopPlace:41742"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2545,
+          "y": 1578
+        },
+        "nameTranscription": "Trondheim sentralstasjon"
+      }
+    },
+    {
+      "id": "original-007",
+      "name": "Uavklart 007",
+      "x": 773.72,
+      "y": 252.66,
+      "label": {
+        "x": 778.72,
+        "y": 248.66,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 5005,
+          "y": 1632
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-008",
+      "name": "Uavklart 008",
+      "x": 850.7,
+      "y": 257.3,
+      "label": {
+        "x": 855.7,
+        "y": 253.3,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 5503,
+          "y": 1662
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-009",
+      "name": "Uavklart 009",
+      "x": 688.23,
+      "y": 258.07,
+      "label": {
+        "x": 693.23,
+        "y": 254.07,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4452,
+          "y": 1667
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-010",
+      "name": "Uavklart 010",
+      "x": 821.64,
+      "y": 285.79,
+      "label": {
+        "x": 826.64,
+        "y": 281.79,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 5315,
+          "y": 1846
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-011",
+      "name": "Uavklart 011",
+      "x": 641.85,
+      "y": 304.83,
+      "label": {
+        "x": 646.85,
+        "y": 300.83,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4152,
+          "y": 1969
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-012",
+      "name": "Søndre gate",
+      "x": 392.96,
+      "y": 309.63,
+      "label": {
+        "x": 397.96,
+        "y": 305.63,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73571",
+          "stationId": "NSR:StopPlace:63745",
+          "stopId": "NSR:Quay:73571",
+          "stopPlaceId": "NSR:StopPlace:63745"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2542,
+          "y": 2000
+        },
+        "nameTranscription": "Søndre gate"
+      }
+    },
+    {
+      "id": "original-013",
+      "name": "Uavklart 013",
+      "x": 788.71,
+      "y": 319.23,
+      "label": {
+        "x": 793.71,
+        "y": 315.23,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 5102,
+          "y": 2062
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-014",
+      "name": "Solsiden",
+      "x": 584.96,
+      "y": 342.13,
+      "label": {
+        "x": 589.96,
+        "y": 338.13,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "solsiden-nsr-quay-73975",
+          "stationId": "solsiden",
+          "stopId": "NSR:Quay:73975",
+          "stopPlaceId": "NSR:StopPlace:43133"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "solsiden-nsr-quay-73976",
+          "stationId": "solsiden",
+          "stopId": "NSR:Quay:73976",
+          "stopPlaceId": "NSR:StopPlace:43133"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73975",
+          "stationId": "NSR:StopPlace:43133",
+          "stopId": "NSR:Quay:73975",
+          "stopPlaceId": "NSR:StopPlace:43133"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73976",
+          "stationId": "NSR:StopPlace:43133",
+          "stopId": "NSR:Quay:73976",
+          "stopPlaceId": "NSR:StopPlace:43133"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-16-1",
+          "stationId": "fb73-16",
+          "stopId": "NSR:Quay:73976",
+          "stopPlaceId": "NSR:StopPlace:43133"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-16-0",
+          "stationId": "fb73-16",
+          "stopId": "NSR:Quay:73975",
+          "stopPlaceId": "NSR:StopPlace:43133"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3784,
+          "y": 2210
+        },
+        "nameTranscription": "Solsiden"
+      }
+    },
+    {
+      "id": "original-015",
+      "name": "Buran",
+      "x": 605.06,
+      "y": 342.14,
+      "label": {
+        "x": 610.06,
+        "y": 338.14,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "buran-nsr-quay-103009",
+          "stationId": "buran",
+          "stopId": "NSR:Quay:103009",
+          "stopPlaceId": "NSR:StopPlace:60447"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "buran-nsr-quay-103007",
+          "stationId": "buran",
+          "stopId": "NSR:Quay:103007",
+          "stopPlaceId": "NSR:StopPlace:60447"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "buran-nsr-quay-108948",
+          "stationId": "buran",
+          "stopId": "NSR:Quay:108948",
+          "stopPlaceId": "NSR:StopPlace:60447"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "buran-nsr-quay-103008",
+          "stationId": "buran",
+          "stopId": "NSR:Quay:103008",
+          "stopPlaceId": "NSR:StopPlace:60447"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:103007",
+          "stationId": "NSR:StopPlace:60447",
+          "stopId": "NSR:Quay:103007",
+          "stopPlaceId": "NSR:StopPlace:60447"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:103008",
+          "stationId": "NSR:StopPlace:60447",
+          "stopId": "NSR:Quay:103008",
+          "stopPlaceId": "NSR:StopPlace:60447"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:103009",
+          "stationId": "NSR:StopPlace:60447",
+          "stopId": "NSR:Quay:103009",
+          "stopPlaceId": "NSR:StopPlace:60447"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:108948",
+          "stationId": "NSR:StopPlace:60447",
+          "stopId": "NSR:Quay:108948",
+          "stopPlaceId": "NSR:StopPlace:60447"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-17-1",
+          "stationId": "fb73-17",
+          "stopId": "NSR:Quay:103007",
+          "stopPlaceId": "NSR:StopPlace:60447"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-17-0",
+          "stationId": "fb73-17",
+          "stopId": "NSR:Quay:103009",
+          "stopPlaceId": "NSR:StopPlace:60447"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3914,
+          "y": 2210
+        },
+        "nameTranscription": "Buran"
+      }
+    },
+    {
+      "id": "original-016",
+      "name": "Rønningsbakken",
+      "x": 635.82,
+      "y": 342.14,
+      "label": {
+        "x": 640.82,
+        "y": 338.14,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "rnningsbakken-nsr-quay-71687",
+          "stationId": "rnningsbakken",
+          "stopId": "NSR:Quay:71687",
+          "stopPlaceId": "NSR:StopPlace:41890"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "rnningsbakken-nsr-quay-71686",
+          "stationId": "rnningsbakken",
+          "stopId": "NSR:Quay:71686",
+          "stopPlaceId": "NSR:StopPlace:41890"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71686",
+          "stationId": "NSR:StopPlace:41890",
+          "stopId": "NSR:Quay:71686",
+          "stopPlaceId": "NSR:StopPlace:41890"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71687",
+          "stationId": "NSR:StopPlace:41890",
+          "stopId": "NSR:Quay:71687",
+          "stopPlaceId": "NSR:StopPlace:41890"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-18-1",
+          "stationId": "fb73-18",
+          "stopId": "NSR:Quay:71686",
+          "stopPlaceId": "NSR:StopPlace:41890"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-18-0",
+          "stationId": "fb73-18",
+          "stopId": "NSR:Quay:71687",
+          "stopPlaceId": "NSR:StopPlace:41890"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4113,
+          "y": 2210
+        },
+        "nameTranscription": "Rønningsbakken"
+      }
+    },
+    {
+      "id": "original-017",
+      "name": "Olav Tryggvasons gate",
+      "x": 417.39,
+      "y": 342.45,
+      "label": {
+        "x": 422.39,
+        "y": 338.45,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "olav-tryggvasons-gate-nsr-quay-101521",
+          "stationId": "olav-tryggvasons-gate",
+          "stopId": "NSR:Quay:101521",
+          "stopPlaceId": "NSR:StopPlace:43460"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "olav-tryggvasons-gate-nsr-quay-74205",
+          "stationId": "olav-tryggvasons-gate",
+          "stopId": "NSR:Quay:74205",
+          "stopPlaceId": "NSR:StopPlace:43460"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:101521",
+          "stationId": "NSR:StopPlace:43460",
+          "stopId": "NSR:Quay:101521",
+          "stopPlaceId": "NSR:StopPlace:43460"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74205",
+          "stationId": "NSR:StopPlace:43460",
+          "stopId": "NSR:Quay:74205",
+          "stopPlaceId": "NSR:StopPlace:43460"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-12-0",
+          "stationId": "fb73-12",
+          "stopId": "NSR:Quay:101521",
+          "stopPlaceId": "NSR:StopPlace:43460"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2700,
+          "y": 2212
+        },
+        "nameTranscription": "Olav Tryggvasons gate"
+      }
+    },
+    {
+      "id": "original-018",
+      "name": "Strindheim",
+      "x": 707.86,
+      "y": 342.45,
+      "label": {
+        "x": 712.86,
+        "y": 338.45,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "strindheim-nsr-quay-73034",
+          "stationId": "strindheim",
+          "stopId": "NSR:Quay:73034",
+          "stopPlaceId": "NSR:StopPlace:42625"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "strindheim-nsr-quay-73033",
+          "stationId": "strindheim",
+          "stopId": "NSR:Quay:73033",
+          "stopPlaceId": "NSR:StopPlace:42625"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "strindheim-nsr-quay-73036",
+          "stationId": "strindheim",
+          "stopId": "NSR:Quay:73036",
+          "stopPlaceId": "NSR:StopPlace:42625"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "strindheim-nsr-quay-73038",
+          "stationId": "strindheim",
+          "stopId": "NSR:Quay:73038",
+          "stopPlaceId": "NSR:StopPlace:42625"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73033",
+          "stationId": "NSR:StopPlace:42625",
+          "stopId": "NSR:Quay:73033",
+          "stopPlaceId": "NSR:StopPlace:42625"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73034",
+          "stationId": "NSR:StopPlace:42625",
+          "stopId": "NSR:Quay:73034",
+          "stopPlaceId": "NSR:StopPlace:42625"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73036",
+          "stationId": "NSR:StopPlace:42625",
+          "stopId": "NSR:Quay:73036",
+          "stopPlaceId": "NSR:StopPlace:42625"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73038",
+          "stationId": "NSR:StopPlace:42625",
+          "stopId": "NSR:Quay:73038",
+          "stopPlaceId": "NSR:StopPlace:42625"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-20-1",
+          "stationId": "fb73-20",
+          "stopId": "NSR:Quay:73033",
+          "stopPlaceId": "NSR:StopPlace:42625"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-20-0",
+          "stationId": "fb73-20",
+          "stopId": "NSR:Quay:73034",
+          "stopPlaceId": "NSR:StopPlace:42625"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4579,
+          "y": 2212
+        },
+        "nameTranscription": "Strindheim"
+      }
+    },
+    {
+      "id": "original-019",
+      "name": "Dalenhageby",
+      "x": 687.3,
+      "y": 342.91,
+      "label": {
+        "x": 692.3,
+        "y": 338.91,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "dalen-hageby-nsr-quay-74497",
+          "stationId": "dalen-hageby",
+          "stopId": "NSR:Quay:74497",
+          "stopPlaceId": "NSR:StopPlace:43418"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "dalen-hageby-nsr-quay-74498",
+          "stationId": "dalen-hageby",
+          "stopId": "NSR:Quay:74498",
+          "stopPlaceId": "NSR:StopPlace:43418"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74497",
+          "stationId": "NSR:StopPlace:43418",
+          "stopId": "NSR:Quay:74497",
+          "stopPlaceId": "NSR:StopPlace:43418"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74498",
+          "stationId": "NSR:StopPlace:43418",
+          "stopId": "NSR:Quay:74498",
+          "stopPlaceId": "NSR:StopPlace:43418"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-19-1",
+          "stationId": "fb73-19",
+          "stopId": "NSR:Quay:74498",
+          "stopPlaceId": "NSR:StopPlace:43418"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-19-0",
+          "stationId": "fb73-19",
+          "stopId": "NSR:Quay:74497",
+          "stopPlaceId": "NSR:StopPlace:43418"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4446,
+          "y": 2215
+        },
+        "nameTranscription": "Dalenhageby"
+      }
+    },
+    {
+      "id": "original-020",
+      "name": "Skovgård",
+      "x": 764.9,
+      "y": 343.22,
+      "label": {
+        "x": 769.9,
+        "y": 339.22,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "skovgard-nsr-quay-102732",
+          "stationId": "skovgard",
+          "stopId": "NSR:Quay:102732",
+          "stopPlaceId": "NSR:StopPlace:42315"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "skovgard-nsr-quay-102731",
+          "stationId": "skovgard",
+          "stopId": "NSR:Quay:102731",
+          "stopPlaceId": "NSR:StopPlace:42315"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:102731",
+          "stationId": "NSR:StopPlace:42315",
+          "stopId": "NSR:Quay:102731",
+          "stopPlaceId": "NSR:StopPlace:42315"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:102732",
+          "stationId": "NSR:StopPlace:42315",
+          "stopId": "NSR:Quay:102732",
+          "stopPlaceId": "NSR:StopPlace:42315"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72462",
+          "stationId": "NSR:StopPlace:42315",
+          "stopId": "NSR:Quay:72462",
+          "stopPlaceId": "NSR:StopPlace:42315"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4948,
+          "y": 2217
+        },
+        "nameTranscription": "Skovgård"
+      }
+    },
+    {
+      "id": "original-021",
+      "name": "Briansmith",
+      "x": 672.77,
+      "y": 357.77,
+      "label": {
+        "x": 677.77,
+        "y": 353.77,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4352,
+          "y": 2311
+        },
+        "nameTranscription": "Briansmith"
+      }
+    },
+    {
+      "id": "original-024",
+      "name": "Gamle Kongevei",
+      "x": 608.77,
+      "y": 369.54,
+      "label": {
+        "x": 613.77,
+        "y": 365.54,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:109684",
+          "stationId": "NSR:StopPlace:63547",
+          "stopId": "NSR:Quay:109684",
+          "stopPlaceId": "NSR:StopPlace:63547"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:109685",
+          "stationId": "NSR:StopPlace:63547",
+          "stopId": "NSR:Quay:109685",
+          "stopPlaceId": "NSR:StopPlace:63547"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3938,
+          "y": 2387
+        },
+        "nameTranscription": "Gamle Kongevei"
+      }
+    },
+    {
+      "id": "original-025",
+      "name": "Persaunet leir",
+      "x": 658.39,
+      "y": 372.79,
+      "label": {
+        "x": 663.39,
+        "y": 368.79,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4259,
+          "y": 2408
+        },
+        "nameTranscription": "Persaunet leir"
+      }
+    },
+    {
+      "id": "original-026",
+      "name": "Strindheim skole",
+      "x": 708.63,
+      "y": 375.27,
+      "label": {
+        "x": 713.63,
+        "y": 371.27,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73048",
+          "stationId": "NSR:StopPlace:42633",
+          "stopId": "NSR:Quay:73048",
+          "stopPlaceId": "NSR:StopPlace:42633"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73049",
+          "stationId": "NSR:StopPlace:42633",
+          "stopId": "NSR:Quay:73049",
+          "stopPlaceId": "NSR:StopPlace:42633"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4584,
+          "y": 2424
+        },
+        "nameTranscription": "Strindheim skole"
+      }
+    },
+    {
+      "id": "original-027",
+      "name": "Clara Holst",
+      "x": 643.4,
+      "y": 387.19,
+      "label": {
+        "x": 648.4,
+        "y": 383.19,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4162,
+          "y": 2501
+        },
+        "nameTranscription": "Clara Holst"
+      }
+    },
+    {
+      "id": "original-028",
+      "name": "Weidemans",
+      "x": 586.05,
+      "y": 392.3,
+      "label": {
+        "x": 591.05,
+        "y": 388.3,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72616",
+          "stationId": "NSR:StopPlace:42404",
+          "stopId": "NSR:Quay:72616",
+          "stopPlaceId": "NSR:StopPlace:42404"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72617",
+          "stationId": "NSR:StopPlace:42404",
+          "stopId": "NSR:Quay:72617",
+          "stopPlaceId": "NSR:StopPlace:42404"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3791,
+          "y": 2534
+        },
+        "nameTranscription": "Weidemans"
+      }
+    },
+    {
+      "id": "original-029",
+      "name": "Strindheim hageby",
+      "x": 731.51,
+      "y": 398.34,
+      "label": {
+        "x": 736.51,
+        "y": 394.34,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73042",
+          "stationId": "NSR:StopPlace:42630",
+          "stopId": "NSR:Quay:73042",
+          "stopPlaceId": "NSR:StopPlace:42630"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73044",
+          "stationId": "NSR:StopPlace:42630",
+          "stopId": "NSR:Quay:73044",
+          "stopPlaceId": "NSR:StopPlace:42630"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4732,
+          "y": 2573
+        },
+        "nameTranscription": "Strindheim hageby"
+      }
+    },
+    {
+      "id": "original-030",
+      "name": "Prinsens gate",
+      "x": 301.76,
+      "y": 400.66,
+      "label": {
+        "x": 306.76,
+        "y": 396.66,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "prinsens-gate-nsr-quay-71184",
+          "stationId": "prinsens-gate",
+          "stopId": "NSR:Quay:71184",
+          "stopPlaceId": "NSR:StopPlace:41613"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "prinsens-gate-nsr-quay-71181",
+          "stationId": "prinsens-gate",
+          "stopId": "NSR:Quay:71181",
+          "stopPlaceId": "NSR:StopPlace:41613"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:107493",
+          "stationId": "NSR:StopPlace:41613",
+          "stopId": "NSR:Quay:107493",
+          "stopPlaceId": "NSR:StopPlace:41613"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71181",
+          "stationId": "NSR:StopPlace:41613",
+          "stopId": "NSR:Quay:71181",
+          "stopPlaceId": "NSR:StopPlace:41613"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71184",
+          "stationId": "NSR:StopPlace:41613",
+          "stopId": "NSR:Quay:71184",
+          "stopPlaceId": "NSR:StopPlace:41613"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-11-0",
+          "stationId": "fb73-11",
+          "stopId": "NSR:Quay:107493",
+          "stopPlaceId": "NSR:StopPlace:41613"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1952,
+          "y": 2588
+        },
+        "nameTranscription": "Prinsens gate"
+      }
+    },
+    {
+      "id": "original-031",
+      "name": "Ila",
+      "x": 211.02,
+      "y": 400.97,
+      "label": {
+        "x": 216.02,
+        "y": 396.97,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "ila-nsr-quay-72051",
+          "stationId": "ila",
+          "stopId": "NSR:Quay:72051",
+          "stopPlaceId": "NSR:StopPlace:42088"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "ila-nsr-quay-72052",
+          "stationId": "ila",
+          "stopId": "NSR:Quay:72052",
+          "stopPlaceId": "NSR:StopPlace:42088"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72051",
+          "stationId": "NSR:StopPlace:42088",
+          "stopId": "NSR:Quay:72051",
+          "stopPlaceId": "NSR:StopPlace:42088"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72052",
+          "stationId": "NSR:StopPlace:42088",
+          "stopId": "NSR:Quay:72052",
+          "stopPlaceId": "NSR:StopPlace:42088"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1365,
+          "y": 2590
+        },
+        "nameTranscription": "Ila"
+      }
+    },
+    {
+      "id": "original-032",
+      "name": "Kongens gate",
+      "x": 271.3,
+      "y": 401.28,
+      "label": {
+        "x": 276.3,
+        "y": 397.28,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "kongens-gate-nsr-quay-74265",
+          "stationId": "kongens-gate",
+          "stopId": "NSR:Quay:74265",
+          "stopPlaceId": "NSR:StopPlace:43292"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "kongens-gate-nsr-quay-74264",
+          "stationId": "kongens-gate",
+          "stopId": "NSR:Quay:74264",
+          "stopPlaceId": "NSR:StopPlace:43292"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74264",
+          "stationId": "NSR:StopPlace:43292",
+          "stopId": "NSR:Quay:74264",
+          "stopPlaceId": "NSR:StopPlace:43292"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74265",
+          "stationId": "NSR:StopPlace:43292",
+          "stopId": "NSR:Quay:74265",
+          "stopPlaceId": "NSR:StopPlace:43292"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1755,
+          "y": 2592
+        },
+        "nameTranscription": "Kongens gate"
+      }
+    },
+    {
+      "id": "original-033",
+      "name": "Bromstadveien",
+      "x": 708.63,
+      "y": 401.9,
+      "label": {
+        "x": 713.63,
+        "y": 397.9,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75377",
+          "stationId": "NSR:StopPlace:43900",
+          "stopId": "NSR:Quay:75377",
+          "stopPlaceId": "NSR:StopPlace:43900"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75378",
+          "stationId": "NSR:StopPlace:43900",
+          "stopId": "NSR:Quay:75378",
+          "stopPlaceId": "NSR:StopPlace:43900"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4584,
+          "y": 2596
+        },
+        "nameTranscription": "Bromstadveien"
+      }
+    },
+    {
+      "id": "original-034",
+      "name": "Tyholt",
+      "x": 627.17,
+      "y": 403.6,
+      "label": {
+        "x": 632.17,
+        "y": 399.6,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4057,
+          "y": 2607
+        },
+        "nameTranscription": "Tyholt"
+      }
+    },
+    {
+      "id": "original-035",
+      "name": "Cecilie Thoresen",
+      "x": 610.78,
+      "y": 419.87,
+      "label": {
+        "x": 615.78,
+        "y": 415.87,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3951,
+          "y": 2712
+        },
+        "nameTranscription": "Cecilie Thoresen"
+      }
+    },
+    {
+      "id": "original-036",
+      "name": "Gartnerhallen",
+      "x": 759.49,
+      "y": 426.51,
+      "label": {
+        "x": 764.49,
+        "y": 422.51,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75652",
+          "stationId": "NSR:StopPlace:44055",
+          "stopId": "NSR:Quay:75652",
+          "stopPlaceId": "NSR:StopPlace:44055"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75653",
+          "stationId": "NSR:StopPlace:44055",
+          "stopId": "NSR:Quay:75653",
+          "stopPlaceId": "NSR:StopPlace:44055"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4913,
+          "y": 2755
+        },
+        "nameTranscription": "Gartnerhallen"
+      }
+    },
+    {
+      "id": "original-037",
+      "name": "Solvollveien",
+      "x": 736,
+      "y": 429.45,
+      "label": {
+        "x": 741,
+        "y": 425.45,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73989",
+          "stationId": "NSR:StopPlace:43141",
+          "stopId": "NSR:Quay:73989",
+          "stopPlaceId": "NSR:StopPlace:43141"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73990",
+          "stationId": "NSR:StopPlace:43141",
+          "stopId": "NSR:Quay:73990",
+          "stopPlaceId": "NSR:StopPlace:43141"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4761,
+          "y": 2774
+        },
+        "nameTranscription": "Solvollveien"
+      }
+    },
+    {
+      "id": "original-038",
+      "name": "Iskremfabrikken",
+      "x": 766.91,
+      "y": 434.1,
+      "label": {
+        "x": 771.91,
+        "y": 430.1,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73774",
+          "stationId": "NSR:StopPlace:43023",
+          "stopId": "NSR:Quay:73774",
+          "stopPlaceId": "NSR:StopPlace:43023"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73775",
+          "stationId": "NSR:StopPlace:43023",
+          "stopId": "NSR:Quay:73775",
+          "stopPlaceId": "NSR:StopPlace:43023"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4961,
+          "y": 2804
+        },
+        "nameTranscription": "Iskremfabrikken"
+      }
+    },
+    {
+      "id": "original-039",
+      "name": "Gyldenløves",
+      "x": 537.97,
+      "y": 440.14,
+      "label": {
+        "x": 542.97,
+        "y": 436.14,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72405",
+          "stationId": "NSR:StopPlace:42284",
+          "stopId": "NSR:Quay:72405",
+          "stopPlaceId": "NSR:StopPlace:42284"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72406",
+          "stationId": "NSR:StopPlace:42284",
+          "stopId": "NSR:Quay:72406",
+          "stopPlaceId": "NSR:StopPlace:42284"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3480,
+          "y": 2843
+        },
+        "nameTranscription": "Gyldenløves"
+      }
+    },
+    {
+      "id": "original-040",
+      "name": "Trondheim fengsel",
+      "x": 775.57,
+      "y": 442.61,
+      "label": {
+        "x": 780.57,
+        "y": 438.61,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71538",
+          "stationId": "NSR:StopPlace:41811",
+          "stopId": "NSR:Quay:71538",
+          "stopPlaceId": "NSR:StopPlace:41811"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71539",
+          "stationId": "NSR:StopPlace:41811",
+          "stopId": "NSR:Quay:71539",
+          "stopPlaceId": "NSR:StopPlace:41811"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 5017,
+          "y": 2859
+        },
+        "nameTranscription": "Trondheim fengsel"
+      }
+    },
+    {
+      "id": "original-041",
+      "name": "Brøsetflata",
+      "x": 712.19,
+      "y": 453.29,
+      "label": {
+        "x": 717.19,
+        "y": 449.29,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75433",
+          "stationId": "NSR:StopPlace:43931",
+          "stopId": "NSR:Quay:75433",
+          "stopPlaceId": "NSR:StopPlace:43931"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75434",
+          "stationId": "NSR:StopPlace:43931",
+          "stopId": "NSR:Quay:75434",
+          "stopPlaceId": "NSR:StopPlace:43931"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4607,
+          "y": 2928
+        },
+        "nameTranscription": "Brøsetflata"
+      }
+    },
+    {
+      "id": "original-042",
+      "name": "Nidarosdomen",
+      "x": 301.29,
+      "y": 456.24,
+      "label": {
+        "x": 306.29,
+        "y": 452.24,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "nidarosdomen-nsr-quay-71174",
+          "stationId": "nidarosdomen",
+          "stopId": "NSR:Quay:71174",
+          "stopPlaceId": "NSR:StopPlace:41609"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "nidarosdomen-nsr-quay-71175",
+          "stationId": "nidarosdomen",
+          "stopId": "NSR:Quay:71175",
+          "stopPlaceId": "NSR:StopPlace:41609"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71174",
+          "stationId": "NSR:StopPlace:41609",
+          "stopId": "NSR:Quay:71174",
+          "stopPlaceId": "NSR:StopPlace:41609"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71175",
+          "stationId": "NSR:StopPlace:41609",
+          "stopId": "NSR:Quay:71175",
+          "stopPlaceId": "NSR:StopPlace:41609"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-10-1",
+          "stationId": "fb73-10",
+          "stopId": "NSR:Quay:71175",
+          "stopPlaceId": "NSR:StopPlace:41609"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-10-0",
+          "stationId": "fb73-10",
+          "stopId": "NSR:Quay:71174",
+          "stopPlaceId": "NSR:StopPlace:41609"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1949,
+          "y": 2947
+        },
+        "nameTranscription": "Nidarosdomen"
+      }
+    },
+    {
+      "id": "original-043",
+      "name": "Tyholtveien",
+      "x": 644.17,
+      "y": 466.45,
+      "label": {
+        "x": 649.17,
+        "y": 462.45,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71678",
+          "stationId": "NSR:StopPlace:41882",
+          "stopId": "NSR:Quay:71678",
+          "stopPlaceId": "NSR:StopPlace:41882"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4167,
+          "y": 3013
+        },
+        "nameTranscription": "Tyholtveien"
+      }
+    },
+    {
+      "id": "original-044",
+      "name": "Brøset hageby",
+      "x": 681.89,
+      "y": 483.64,
+      "label": {
+        "x": 686.89,
+        "y": 479.64,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75429",
+          "stationId": "NSR:StopPlace:43929",
+          "stopId": "NSR:Quay:75429",
+          "stopPlaceId": "NSR:StopPlace:43929"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75430",
+          "stationId": "NSR:StopPlace:43929",
+          "stopId": "NSR:Quay:75430",
+          "stopPlaceId": "NSR:StopPlace:43929"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4411,
+          "y": 3124
+        },
+        "nameTranscription": "Brøset hageby"
+      }
+    },
+    {
+      "id": "original-045",
+      "name": "Festningsgata",
+      "x": 490.97,
+      "y": 487.2,
+      "label": {
+        "x": 495.97,
+        "y": 483.2,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75155",
+          "stationId": "NSR:StopPlace:43777",
+          "stopId": "NSR:Quay:75155",
+          "stopPlaceId": "NSR:StopPlace:43777"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75156",
+          "stationId": "NSR:StopPlace:43777",
+          "stopId": "NSR:Quay:75156",
+          "stopPlaceId": "NSR:StopPlace:43777"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3176,
+          "y": 3147
+        },
+        "nameTranscription": "Festningsgata"
+      }
+    },
+    {
+      "id": "original-046",
+      "name": "Hallfred Høyems",
+      "x": 728.89,
+      "y": 489.68,
+      "label": {
+        "x": 733.89,
+        "y": 485.68,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72531",
+          "stationId": "NSR:StopPlace:42354",
+          "stopId": "NSR:Quay:72531",
+          "stopPlaceId": "NSR:StopPlace:42354"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72532",
+          "stationId": "NSR:StopPlace:42354",
+          "stopId": "NSR:Quay:72532",
+          "stopPlaceId": "NSR:StopPlace:42354"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4715,
+          "y": 3163
+        },
+        "nameTranscription": "Hallfred Høyems"
+      }
+    },
+    {
+      "id": "original-047",
+      "name": "Teglverkskrysset",
+      "x": 654.84,
+      "y": 510.73,
+      "label": {
+        "x": 659.84,
+        "y": 506.73,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73716",
+          "stationId": "NSR:StopPlace:42992",
+          "stopId": "NSR:Quay:73716",
+          "stopPlaceId": "NSR:StopPlace:42992"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73718",
+          "stationId": "NSR:StopPlace:42992",
+          "stopId": "NSR:Quay:73718",
+          "stopPlaceId": "NSR:StopPlace:42992"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4236,
+          "y": 3299
+        },
+        "nameTranscription": "Teglverkskrysset"
+      }
+    },
+    {
+      "id": "original-048",
+      "name": "Valentinlyst",
+      "x": 581.87,
+      "y": 529.62,
+      "label": {
+        "x": 586.87,
+        "y": 525.62,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71897",
+          "stationId": "NSR:StopPlace:42004",
+          "stopId": "NSR:Quay:71897",
+          "stopPlaceId": "NSR:StopPlace:42004"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71898",
+          "stationId": "NSR:StopPlace:42004",
+          "stopId": "NSR:Quay:71898",
+          "stopPlaceId": "NSR:StopPlace:42004"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3764,
+          "y": 3421
+        },
+        "nameTranscription": "Valentinlyst"
+      }
+    },
+    {
+      "id": "original-049",
+      "name": "Samfundet",
+      "x": 301.76,
+      "y": 530.09,
+      "label": {
+        "x": 306.76,
+        "y": 526.09,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "studentersamfundet-nsr-quay-73103",
+          "stationId": "studentersamfundet",
+          "stopId": "NSR:Quay:73103",
+          "stopPlaceId": "NSR:StopPlace:42660"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "studentersamfundet-nsr-quay-73101",
+          "stationId": "studentersamfundet",
+          "stopId": "NSR:Quay:73101",
+          "stopPlaceId": "NSR:StopPlace:42660"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73101",
+          "stationId": "NSR:StopPlace:42660",
+          "stopId": "NSR:Quay:73101",
+          "stopPlaceId": "NSR:StopPlace:42660"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73103",
+          "stationId": "NSR:StopPlace:42660",
+          "stopId": "NSR:Quay:73103",
+          "stopPlaceId": "NSR:StopPlace:42660"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-9-1",
+          "stationId": "fb73-9",
+          "stopId": "NSR:Quay:73101",
+          "stopPlaceId": "NSR:StopPlace:42660"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-9-0",
+          "stationId": "fb73-9",
+          "stopId": "NSR:Quay:73103",
+          "stopPlaceId": "NSR:StopPlace:42660"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1952,
+          "y": 3424
+        },
+        "nameTranscription": "Samfundet"
+      },
+      "reviewNote": "Both source markers confirmed by user: four platforms total. Platform grouping follows existing catalog routes and the source main-road/Høgskoleringen branch. Baseboard includes route 3 on main-road quays whereas catalog does not; existing runtime configuration is retained.",
+      "stationGroupId": "NSR:StopPlace:42660",
+      "platformGroupId": "studentersamfundet-main-road",
+      "markerConfirmed": true
+    },
+    {
+      "id": "original-050",
+      "name": "Samfundet",
+      "x": 320.62,
+      "y": 530.08,
+      "label": {
+        "x": 325.62,
+        "y": 526.08,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "studentersamfundet-nsr-quay-73100",
+          "stationId": "studentersamfundet",
+          "stopId": "NSR:Quay:73100",
+          "stopPlaceId": "NSR:StopPlace:42660"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "studentersamfundet-nsr-quay-73102",
+          "stationId": "studentersamfundet",
+          "stopId": "NSR:Quay:73102",
+          "stopPlaceId": "NSR:StopPlace:42660"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73100",
+          "stationId": "NSR:StopPlace:42660",
+          "stopId": "NSR:Quay:73100",
+          "stopPlaceId": "NSR:StopPlace:42660"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73102",
+          "stationId": "NSR:StopPlace:42660",
+          "stopId": "NSR:Quay:73102",
+          "stopPlaceId": "NSR:StopPlace:42660"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2074,
+          "y": 3424
+        },
+        "nameTranscription": "Samfundet"
+      },
+      "reviewNote": "Both source markers confirmed by user: four platforms total. Platform grouping follows existing catalog routes and the source main-road/Høgskoleringen branch. Baseboard includes route 3 on main-road quays whereas catalog does not; existing runtime configuration is retained.",
+      "stationGroupId": "NSR:StopPlace:42660",
+      "platformGroupId": "studentersamfundet-hogskoleringen-branch",
+      "markerConfirmed": true
+    },
+    {
+      "id": "original-051",
+      "name": "Ankers",
+      "x": 445.83,
+      "y": 532.4,
+      "label": {
+        "x": 450.83,
+        "y": 528.4,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74605",
+          "stationId": "NSR:StopPlace:43478",
+          "stopId": "NSR:Quay:74605",
+          "stopPlaceId": "NSR:StopPlace:43478"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74606",
+          "stationId": "NSR:StopPlace:43478",
+          "stopId": "NSR:Quay:74606",
+          "stopPlaceId": "NSR:StopPlace:43478"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2884,
+          "y": 3439
+        },
+        "nameTranscription": "Ankers"
+      }
+    },
+    {
+      "id": "original-052",
+      "name": "Henrik Ouren",
+      "x": 615.88,
+      "y": 549.28,
+      "label": {
+        "x": 620.88,
+        "y": 545.28,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71222",
+          "stationId": "NSR:StopPlace:41635",
+          "stopId": "NSR:Quay:71222",
+          "stopPlaceId": "NSR:StopPlace:41635"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71224",
+          "stationId": "NSR:StopPlace:41635",
+          "stopId": "NSR:Quay:71224",
+          "stopPlaceId": "NSR:StopPlace:41635"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3984,
+          "y": 3548
+        },
+        "nameTranscription": "Henrik Ouren"
+      }
+    },
+    {
+      "id": "original-053",
+      "name": "Strinda VGS",
+      "x": 499.78,
+      "y": 556.71,
+      "label": {
+        "x": 504.78,
+        "y": 552.71,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73030",
+          "stationId": "NSR:StopPlace:42623",
+          "stopId": "NSR:Quay:73030",
+          "stopPlaceId": "NSR:StopPlace:42623"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3233,
+          "y": 3596
+        },
+        "nameTranscription": "Strinda VGS"
+      }
+    },
+    {
+      "id": "original-054",
+      "name": "Jonsvannsveien",
+      "x": 410.74,
+      "y": 567.86,
+      "label": {
+        "x": 415.74,
+        "y": 563.86,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73880",
+          "stationId": "NSR:StopPlace:43081",
+          "stopId": "NSR:Quay:73880",
+          "stopPlaceId": "NSR:StopPlace:43081"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73881",
+          "stationId": "NSR:StopPlace:43081",
+          "stopId": "NSR:Quay:73881",
+          "stopPlaceId": "NSR:StopPlace:43081"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2657,
+          "y": 3668
+        },
+        "nameTranscription": "Jonsvannsveien"
+      }
+    },
+    {
+      "id": "original-055",
+      "name": "Magnus Barføtts vei",
+      "x": 526.68,
+      "y": 584.11,
+      "label": {
+        "x": 531.68,
+        "y": 580.11,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3407,
+          "y": 3773
+        },
+        "nameTranscription": "Magnus Barføtts vei"
+      }
+    },
+    {
+      "id": "original-056",
+      "name": "Strinda kirke",
+      "x": 577.08,
+      "y": 588.91,
+      "label": {
+        "x": 582.08,
+        "y": 584.91,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73027",
+          "stationId": "NSR:StopPlace:42620",
+          "stopId": "NSR:Quay:73027",
+          "stopPlaceId": "NSR:StopPlace:42620"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73028",
+          "stationId": "NSR:StopPlace:42620",
+          "stopId": "NSR:Quay:73028",
+          "stopPlaceId": "NSR:StopPlace:42620"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3733,
+          "y": 3804
+        },
+        "nameTranscription": "Strinda kirke"
+      }
+    },
+    {
+      "id": "original-057",
+      "name": "Høgskoleringen",
+      "x": 386.47,
+      "y": 592.63,
+      "label": {
+        "x": 391.47,
+        "y": 588.63,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "hgskoleringen-nsr-quay-71939",
+          "stationId": "hgskoleringen",
+          "stopId": "NSR:Quay:71939",
+          "stopPlaceId": "NSR:StopPlace:42029"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "hgskoleringen-nsr-quay-71940",
+          "stationId": "hgskoleringen",
+          "stopId": "NSR:Quay:71940",
+          "stopPlaceId": "NSR:StopPlace:42029"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71939",
+          "stationId": "NSR:StopPlace:42029",
+          "stopId": "NSR:Quay:71939",
+          "stopPlaceId": "NSR:StopPlace:42029"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71940",
+          "stationId": "NSR:StopPlace:42029",
+          "stopId": "NSR:Quay:71940",
+          "stopPlaceId": "NSR:StopPlace:42029"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2500,
+          "y": 3828
+        },
+        "nameTranscription": "Høgskoleringen"
+      }
+    },
+    {
+      "id": "original-058",
+      "name": "Gløshaugen",
+      "x": 386.16,
+      "y": 611.36,
+      "label": {
+        "x": 391.16,
+        "y": 607.36,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "glshaugen-nsr-quay-75708",
+          "stationId": "glshaugen",
+          "stopId": "NSR:Quay:75708",
+          "stopPlaceId": "NSR:StopPlace:44085"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "glshaugen-nsr-quay-75707",
+          "stationId": "glshaugen",
+          "stopId": "NSR:Quay:75707",
+          "stopPlaceId": "NSR:StopPlace:44085"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75707",
+          "stationId": "NSR:StopPlace:44085",
+          "stopId": "NSR:Quay:75707",
+          "stopPlaceId": "NSR:StopPlace:44085"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75708",
+          "stationId": "NSR:StopPlace:44085",
+          "stopId": "NSR:Quay:75708",
+          "stopPlaceId": "NSR:StopPlace:44085"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2498,
+          "y": 3949
+        },
+        "nameTranscription": "Gløshaugen"
+      }
+    },
+    {
+      "id": "original-059",
+      "name": "Lerkendal",
+      "x": 302.53,
+      "y": 626.53,
+      "label": {
+        "x": 307.53,
+        "y": 622.53,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "lerkendal-nsr-quay-102720",
+          "stationId": "lerkendal",
+          "stopId": "NSR:Quay:102720",
+          "stopPlaceId": "NSR:StopPlace:60257"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "lerkendal-nsr-quay-73729",
+          "stationId": "lerkendal",
+          "stopId": "NSR:Quay:73729",
+          "stopPlaceId": "NSR:StopPlace:60257"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "lerkendal-nsr-quay-73421",
+          "stationId": "lerkendal",
+          "stopId": "NSR:Quay:73421",
+          "stopPlaceId": "NSR:StopPlace:60257"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "lerkendal-nsr-quay-73420",
+          "stationId": "lerkendal",
+          "stopId": "NSR:Quay:73420",
+          "stopPlaceId": "NSR:StopPlace:60257"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:102720",
+          "stationId": "NSR:StopPlace:60257",
+          "stopId": "NSR:Quay:102720",
+          "stopPlaceId": "NSR:StopPlace:60257"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73420",
+          "stationId": "NSR:StopPlace:60257",
+          "stopId": "NSR:Quay:73420",
+          "stopPlaceId": "NSR:StopPlace:60257"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73421",
+          "stationId": "NSR:StopPlace:60257",
+          "stopId": "NSR:Quay:73421",
+          "stopPlaceId": "NSR:StopPlace:60257"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73729",
+          "stationId": "NSR:StopPlace:60257",
+          "stopId": "NSR:Quay:73729",
+          "stopPlaceId": "NSR:StopPlace:60257"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-7-1",
+          "stationId": "fb73-7",
+          "stopId": "NSR:Quay:73421",
+          "stopPlaceId": "NSR:StopPlace:60257"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-7-0",
+          "stationId": "fb73-7",
+          "stopId": "NSR:Quay:73420",
+          "stopPlaceId": "NSR:StopPlace:60257"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1957,
+          "y": 4047
+        },
+        "nameTranscription": "Lerkendal"
+      }
+    },
+    {
+      "id": "original-060",
+      "name": "Moholt storsenter",
+      "x": 539.05,
+      "y": 626.69,
+      "label": {
+        "x": 544.05,
+        "y": 622.69,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73250",
+          "stationId": "NSR:StopPlace:42738",
+          "stopId": "NSR:Quay:73250",
+          "stopPlaceId": "NSR:StopPlace:42738"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73251",
+          "stationId": "NSR:StopPlace:42738",
+          "stopId": "NSR:Quay:73251",
+          "stopPlaceId": "NSR:StopPlace:42738"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3487,
+          "y": 4048
+        },
+        "nameTranscription": "Moholt storsenter"
+      }
+    },
+    {
+      "id": "original-061",
+      "name": "Lerkendal gård",
+      "x": 349.22,
+      "y": 627,
+      "label": {
+        "x": 354.22,
+        "y": 623,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73414",
+          "stationId": "NSR:StopPlace:42827",
+          "stopId": "NSR:Quay:73414",
+          "stopPlaceId": "NSR:StopPlace:42827"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73415",
+          "stationId": "NSR:StopPlace:42827",
+          "stopId": "NSR:Quay:73415",
+          "stopPlaceId": "NSR:StopPlace:42827"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-6-1",
+          "stationId": "fb73-6",
+          "stopId": "NSR:Quay:73415",
+          "stopPlaceId": "NSR:StopPlace:42827"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-6-0",
+          "stationId": "fb73-6",
+          "stopId": "NSR:Quay:73414",
+          "stopPlaceId": "NSR:StopPlace:42827"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2259,
+          "y": 4050
+        },
+        "nameTranscription": "Lerkendal gård"
+      }
+    },
+    {
+      "id": "original-062",
+      "name": "Berg",
+      "x": 422.34,
+      "y": 627,
+      "label": {
+        "x": 427.34,
+        "y": 623,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74924",
+          "stationId": "NSR:StopPlace:43650",
+          "stopId": "NSR:Quay:74924",
+          "stopPlaceId": "NSR:StopPlace:43650"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74925",
+          "stationId": "NSR:StopPlace:43650",
+          "stopId": "NSR:Quay:74925",
+          "stopPlaceId": "NSR:StopPlace:43650"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2732,
+          "y": 4050
+        },
+        "nameTranscription": "Berg"
+      }
+    },
+    {
+      "id": "original-063",
+      "name": "Østre Berg",
+      "x": 483.54,
+      "y": 627,
+      "label": {
+        "x": 488.54,
+        "y": 623,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "stre-berg-nsr-quay-72852",
+          "stationId": "stre-berg",
+          "stopId": "NSR:Quay:72852",
+          "stopPlaceId": "NSR:StopPlace:42528"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "stre-berg-nsr-quay-102730",
+          "stationId": "stre-berg",
+          "stopId": "NSR:Quay:102730",
+          "stopPlaceId": "NSR:StopPlace:42528"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:102730",
+          "stationId": "NSR:StopPlace:42528",
+          "stopId": "NSR:Quay:102730",
+          "stopPlaceId": "NSR:StopPlace:42528"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72852",
+          "stationId": "NSR:StopPlace:42528",
+          "stopId": "NSR:Quay:72852",
+          "stopPlaceId": "NSR:StopPlace:42528"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72853",
+          "stationId": "NSR:StopPlace:42528",
+          "stopId": "NSR:Quay:72853",
+          "stopPlaceId": "NSR:StopPlace:42528"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-4-1",
+          "stationId": "fb73-4",
+          "stopId": "NSR:Quay:72852",
+          "stopPlaceId": "NSR:StopPlace:42528"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-4-0",
+          "stationId": "fb73-4",
+          "stopId": "NSR:Quay:72853",
+          "stopPlaceId": "NSR:StopPlace:42528"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3128,
+          "y": 4050
+        },
+        "nameTranscription": "Østre Berg"
+      }
+    },
+    {
+      "id": "original-064",
+      "name": "Moholt studentby",
+      "x": 498.7,
+      "y": 641.24,
+      "label": {
+        "x": 503.7,
+        "y": 637.24,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "moholt-studentby-nsr-quay-73260",
+          "stationId": "moholt-studentby",
+          "stopId": "NSR:Quay:73260",
+          "stopPlaceId": "NSR:StopPlace:42743"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "moholt-studentby-nsr-quay-73261",
+          "stationId": "moholt-studentby",
+          "stopId": "NSR:Quay:73261",
+          "stopPlaceId": "NSR:StopPlace:42743"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73260",
+          "stationId": "NSR:StopPlace:42743",
+          "stopId": "NSR:Quay:73260",
+          "stopPlaceId": "NSR:StopPlace:42743"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73261",
+          "stationId": "NSR:StopPlace:42743",
+          "stopId": "NSR:Quay:73261",
+          "stopPlaceId": "NSR:StopPlace:42743"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-3-1",
+          "stationId": "fb73-3",
+          "stopId": "NSR:Quay:73260",
+          "stopPlaceId": "NSR:StopPlace:42743"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-3-0",
+          "stationId": "fb73-3",
+          "stopId": "NSR:Quay:73261",
+          "stopPlaceId": "NSR:StopPlace:42743"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3226,
+          "y": 4142
+        },
+        "nameTranscription": "Moholt studentby"
+      }
+    },
+    {
+      "id": "original-065",
+      "name": "Valøyveien",
+      "x": 301.45,
+      "y": 677.62,
+      "label": {
+        "x": 306.45,
+        "y": 673.62,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "valyvegen-nsr-quay-71982",
+          "stationId": "valyvegen",
+          "stopId": "NSR:Quay:71982",
+          "stopPlaceId": "NSR:StopPlace:42052"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "valyvegen-nsr-quay-71981",
+          "stationId": "valyvegen",
+          "stopId": "NSR:Quay:71981",
+          "stopPlaceId": "NSR:StopPlace:42052"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71981",
+          "stationId": "NSR:StopPlace:42052",
+          "stopId": "NSR:Quay:71981",
+          "stopPlaceId": "NSR:StopPlace:42052"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71982",
+          "stationId": "NSR:StopPlace:42052",
+          "stopId": "NSR:Quay:71982",
+          "stopPlaceId": "NSR:StopPlace:42052"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1950,
+          "y": 4377
+        },
+        "nameTranscription": "Valøyveien"
+      }
+    },
+    {
+      "id": "original-066",
+      "name": "Voll studentby",
+      "x": 538.6,
+      "y": 681.95,
+      "label": {
+        "x": 543.6,
+        "y": 677.95,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "voll-studentby-nsr-quay-72401",
+          "stationId": "voll-studentby",
+          "stopId": "NSR:Quay:72401",
+          "stopPlaceId": "NSR:StopPlace:42282"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "voll-studentby-nsr-quay-72402",
+          "stationId": "voll-studentby",
+          "stopId": "NSR:Quay:72402",
+          "stopPlaceId": "NSR:StopPlace:42282"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72401",
+          "stationId": "NSR:StopPlace:42282",
+          "stopId": "NSR:Quay:72401",
+          "stopPlaceId": "NSR:StopPlace:42282"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72402",
+          "stationId": "NSR:StopPlace:42282",
+          "stopId": "NSR:Quay:72402",
+          "stopPlaceId": "NSR:StopPlace:42282"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-2-1",
+          "stationId": "fb73-2",
+          "stopId": "NSR:Quay:72401",
+          "stopPlaceId": "NSR:StopPlace:42282"
+        },
+        {
+          "boardId": "trondheim-flybuss-live",
+          "nodeId": "fb73-2-0",
+          "stationId": "fb73-2",
+          "stopId": "NSR:Quay:72401",
+          "stopPlaceId": "NSR:StopPlace:42282"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3484,
+          "y": 4405
+        },
+        "nameTranscription": "Voll studentby"
+      }
+    },
+    {
+      "id": "original-067",
+      "name": "Bergheim",
+      "x": 589.6,
+      "y": 681.95,
+      "label": {
+        "x": 594.6,
+        "y": 677.95,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "bergheim-nsr-quay-74980",
+          "stationId": "bergheim",
+          "stopId": "NSR:Quay:74980",
+          "stopPlaceId": "NSR:StopPlace:43681"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "bergheim-nsr-quay-74981",
+          "stationId": "bergheim",
+          "stopId": "NSR:Quay:74981",
+          "stopPlaceId": "NSR:StopPlace:43681"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74980",
+          "stationId": "NSR:StopPlace:43681",
+          "stopId": "NSR:Quay:74980",
+          "stopPlaceId": "NSR:StopPlace:43681"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74981",
+          "stationId": "NSR:StopPlace:43681",
+          "stopId": "NSR:Quay:74981",
+          "stopPlaceId": "NSR:StopPlace:43681"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3814,
+          "y": 4405
+        },
+        "nameTranscription": "Bergheim"
+      }
+    },
+    {
+      "id": "original-068",
+      "name": "Edvard Bulls",
+      "x": 633.03,
+      "y": 681.97,
+      "label": {
+        "x": 638.03,
+        "y": 677.97,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "edvard-bulls-veg-nsr-quay-73723",
+          "stationId": "edvard-bulls-veg",
+          "stopId": "NSR:Quay:73723",
+          "stopPlaceId": "NSR:StopPlace:42995"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "edvard-bulls-veg-nsr-quay-73724",
+          "stationId": "edvard-bulls-veg",
+          "stopId": "NSR:Quay:73724",
+          "stopPlaceId": "NSR:StopPlace:42995"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73723",
+          "stationId": "NSR:StopPlace:42995",
+          "stopId": "NSR:Quay:73723",
+          "stopPlaceId": "NSR:StopPlace:42995"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73724",
+          "stationId": "NSR:StopPlace:42995",
+          "stopId": "NSR:Quay:73724",
+          "stopPlaceId": "NSR:StopPlace:42995"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4095,
+          "y": 4405
+        },
+        "nameTranscription": "Edvard Bulls"
+      }
+    },
+    {
+      "id": "original-069",
+      "name": "Dragvoll",
+      "x": 633.04,
+      "y": 698.04,
+      "label": {
+        "x": 638.04,
+        "y": 694.04,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "dragvoll-nsr-quay-74610",
+          "stationId": "dragvoll",
+          "stopId": "NSR:Quay:74610",
+          "stopPlaceId": "NSR:StopPlace:43480"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "dragvoll-nsr-quay-74609",
+          "stationId": "dragvoll",
+          "stopId": "NSR:Quay:74609",
+          "stopPlaceId": "NSR:StopPlace:43480"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74609",
+          "stationId": "NSR:StopPlace:43480",
+          "stopId": "NSR:Quay:74609",
+          "stopPlaceId": "NSR:StopPlace:43480"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:74610",
+          "stationId": "NSR:StopPlace:43480",
+          "stopId": "NSR:Quay:74610",
+          "stopPlaceId": "NSR:StopPlace:43480"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 4095,
+          "y": 4509
+        },
+        "nameTranscription": "Dragvoll"
+      }
+    },
+    {
+      "id": "original-070",
+      "name": "Heggdalen",
+      "x": 558.53,
+      "y": 701.31,
+      "label": {
+        "x": 563.53,
+        "y": 697.31,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72870",
+          "stationId": "NSR:StopPlace:42538",
+          "stopId": "NSR:Quay:72870",
+          "stopPlaceId": "NSR:StopPlace:42538"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72872",
+          "stationId": "NSR:StopPlace:42538",
+          "stopId": "NSR:Quay:72872",
+          "stopPlaceId": "NSR:StopPlace:42538"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3613,
+          "y": 4530
+        },
+        "nameTranscription": "Heggdalen"
+      }
+    },
+    {
+      "id": "original-071",
+      "name": "Lohove",
+      "x": 576.46,
+      "y": 719.11,
+      "label": {
+        "x": 581.46,
+        "y": 715.11,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73582",
+          "stationId": "NSR:StopPlace:42916",
+          "stopId": "NSR:Quay:73582",
+          "stopPlaceId": "NSR:StopPlace:42916"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73583",
+          "stationId": "NSR:StopPlace:42916",
+          "stopId": "NSR:Quay:73583",
+          "stopPlaceId": "NSR:StopPlace:42916"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3729,
+          "y": 4645
+        },
+        "nameTranscription": "Lohove"
+      }
+    },
+    {
+      "id": "original-072",
+      "name": "Bratsbergveien",
+      "x": 301.91,
+      "y": 723.75,
+      "label": {
+        "x": 306.91,
+        "y": 719.75,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "bratsbergvegen-nsr-quay-75301",
+          "stationId": "bratsbergvegen",
+          "stopId": "NSR:Quay:75301",
+          "stopPlaceId": "NSR:StopPlace:43858"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "bratsbergvegen-nsr-quay-75300",
+          "stationId": "bratsbergvegen",
+          "stopId": "NSR:Quay:75300",
+          "stopPlaceId": "NSR:StopPlace:43858"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75300",
+          "stationId": "NSR:StopPlace:43858",
+          "stopId": "NSR:Quay:75300",
+          "stopPlaceId": "NSR:StopPlace:43858"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75301",
+          "stationId": "NSR:StopPlace:43858",
+          "stopId": "NSR:Quay:75301",
+          "stopPlaceId": "NSR:StopPlace:43858"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1953,
+          "y": 4675
+        },
+        "nameTranscription": "Bratsbergveien"
+      }
+    },
+    {
+      "id": "original-073",
+      "name": "Loholtbakken",
+      "x": 593.47,
+      "y": 736.91,
+      "label": {
+        "x": 598.47,
+        "y": 732.91,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "loholtbakken-nsr-quay-73593",
+          "stationId": "loholtbakken",
+          "stopId": "NSR:Quay:73593",
+          "stopPlaceId": "NSR:StopPlace:42915"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "loholtbakken-nsr-quay-73581",
+          "stationId": "loholtbakken",
+          "stopId": "NSR:Quay:73581",
+          "stopPlaceId": "NSR:StopPlace:42915"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73581",
+          "stationId": "NSR:StopPlace:42915",
+          "stopId": "NSR:Quay:73581",
+          "stopPlaceId": "NSR:StopPlace:42915"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73593",
+          "stationId": "NSR:StopPlace:42915",
+          "stopId": "NSR:Quay:73593",
+          "stopPlaceId": "NSR:StopPlace:42915"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3839,
+          "y": 4760
+        },
+        "nameTranscription": "Loholtbakken"
+      }
+    },
+    {
+      "id": "original-074",
+      "name": "Sluppen",
+      "x": 293.1,
+      "y": 752.09,
+      "label": {
+        "x": 298.1,
+        "y": 748.09,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "sluppen-nsr-quay-107264",
+          "stationId": "sluppen",
+          "stopId": "NSR:Quay:107264",
+          "stopPlaceId": "NSR:StopPlace:61282"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "sluppen-nsr-quay-103404",
+          "stationId": "sluppen",
+          "stopId": "NSR:Quay:103404",
+          "stopPlaceId": "NSR:StopPlace:61282"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:103404",
+          "stationId": "NSR:StopPlace:61282",
+          "stopId": "NSR:Quay:103404",
+          "stopPlaceId": "NSR:StopPlace:61282"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:107264",
+          "stationId": "NSR:StopPlace:61282",
+          "stopId": "NSR:Quay:107264",
+          "stopPlaceId": "NSR:StopPlace:61282"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1896,
+          "y": 4858
+        },
+        "nameTranscription": "Sluppen"
+      }
+    },
+    {
+      "id": "original-075",
+      "name": "Tonstadkrysset",
+      "x": 257.85,
+      "y": 896.06,
+      "label": {
+        "x": 262.85,
+        "y": 892.06,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "tonstadkrysset-nsr-quay-102733",
+          "stationId": "tonstadkrysset",
+          "stopId": "NSR:Quay:102733",
+          "stopPlaceId": "NSR:StopPlace:61276"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "tonstadkrysset-nsr-quay-71209",
+          "stationId": "tonstadkrysset",
+          "stopId": "NSR:Quay:71209",
+          "stopPlaceId": "NSR:StopPlace:61276"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:102733",
+          "stationId": "NSR:StopPlace:61276",
+          "stopId": "NSR:Quay:102733",
+          "stopPlaceId": "NSR:StopPlace:61276"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71206",
+          "stationId": "NSR:StopPlace:61276",
+          "stopId": "NSR:Quay:71206",
+          "stopPlaceId": "NSR:StopPlace:61276"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71209",
+          "stationId": "NSR:StopPlace:61276",
+          "stopId": "NSR:Quay:71209",
+          "stopPlaceId": "NSR:StopPlace:61276"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71215",
+          "stationId": "NSR:StopPlace:61276",
+          "stopId": "NSR:Quay:71215",
+          "stopPlaceId": "NSR:StopPlace:61276"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1668,
+          "y": 5788
+        },
+        "nameTranscription": "Tonstadkrysset"
+      }
+    },
+    {
+      "id": "original-076",
+      "name": "Uavklart 076",
+      "x": 172.68,
+      "y": 896.84,
+      "label": {
+        "x": 177.68,
+        "y": 892.84,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1117,
+          "y": 5793
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-077",
+      "name": "Uavklart 077",
+      "x": 216.27,
+      "y": 896.84,
+      "label": {
+        "x": 221.27,
+        "y": 892.84,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1399,
+          "y": 5793
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-078",
+      "name": "Flatåsen",
+      "x": 94.61,
+      "y": 897.3,
+      "label": {
+        "x": 99.61,
+        "y": 893.3,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 612,
+          "y": 5796
+        },
+        "nameTranscription": "Flatåsen"
+      }
+    },
+    {
+      "id": "original-079",
+      "name": "Uavklart 079",
+      "x": 309.18,
+      "y": 916.96,
+      "label": {
+        "x": 314.18,
+        "y": 912.96,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2000,
+          "y": 5923
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-080",
+      "name": "Uavklart 080",
+      "x": 384.77,
+      "y": 916.96,
+      "label": {
+        "x": 389.77,
+        "y": 912.96,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2489,
+          "y": 5923
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-081",
+      "name": "Vollmyra",
+      "x": 462.37,
+      "y": 916.96,
+      "label": {
+        "x": 467.37,
+        "y": 912.96,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2991,
+          "y": 5923
+        },
+        "nameTranscription": "Vollmyra"
+      }
+    },
+    {
+      "id": "original-082",
+      "name": "City Syd",
+      "x": 257.85,
+      "y": 917.27,
+      "label": {
+        "x": 262.85,
+        "y": 913.27,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "city-syd-nsr-quay-75611",
+          "stationId": "city-syd",
+          "stopId": "NSR:Quay:75611",
+          "stopPlaceId": "NSR:StopPlace:44032"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "city-syd-nsr-quay-75612",
+          "stationId": "city-syd",
+          "stopId": "NSR:Quay:75612",
+          "stopPlaceId": "NSR:StopPlace:44032"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75611",
+          "stationId": "NSR:StopPlace:44032",
+          "stopId": "NSR:Quay:75611",
+          "stopPlaceId": "NSR:StopPlace:44032"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75612",
+          "stationId": "NSR:StopPlace:44032",
+          "stopId": "NSR:Quay:75612",
+          "stopPlaceId": "NSR:StopPlace:44032"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1668,
+          "y": 5925
+        },
+        "nameTranscription": "City Syd"
+      }
+    },
+    {
+      "id": "original-083",
+      "name": "Husebytunet",
+      "x": 128.62,
+      "y": 920.53,
+      "label": {
+        "x": 133.62,
+        "y": 916.53,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "husebytunet-nsr-quay-71825",
+          "stationId": "husebytunet",
+          "stopId": "NSR:Quay:71825",
+          "stopPlaceId": "NSR:StopPlace:41962"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "husebytunet-nsr-quay-71824",
+          "stationId": "husebytunet",
+          "stopId": "NSR:Quay:71824",
+          "stopPlaceId": "NSR:StopPlace:41962"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71824",
+          "stationId": "NSR:StopPlace:41962",
+          "stopId": "NSR:Quay:71824",
+          "stopPlaceId": "NSR:StopPlace:41962"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71825",
+          "stationId": "NSR:StopPlace:41962",
+          "stopId": "NSR:Quay:71825",
+          "stopPlaceId": "NSR:StopPlace:41962"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71829",
+          "stationId": "NSR:StopPlace:41962",
+          "stopId": "NSR:Quay:71829",
+          "stopPlaceId": "NSR:StopPlace:41962"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 832,
+          "y": 5946
+        },
+        "nameTranscription": "Husebytunet"
+      }
+    },
+    {
+      "id": "original-084",
+      "name": "Uavklart 084",
+      "x": 491.28,
+      "y": 935.69,
+      "label": {
+        "x": 496.28,
+        "y": 931.69,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3178,
+          "y": 6044
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-085",
+      "name": "Uavklart 085",
+      "x": 128.15,
+      "y": 937.4,
+      "label": {
+        "x": 133.15,
+        "y": 933.4,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 829,
+          "y": 6055
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-086",
+      "name": "Uavklart 086",
+      "x": 128.15,
+      "y": 953.03,
+      "label": {
+        "x": 133.15,
+        "y": 949.03,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 829,
+          "y": 6156
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-087",
+      "name": "Tillerterminalen",
+      "x": 257.85,
+      "y": 955.81,
+      "label": {
+        "x": 262.85,
+        "y": 951.81,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "tillerterminalen-nsr-quay-75607",
+          "stationId": "tillerterminalen",
+          "stopId": "NSR:Quay:75607",
+          "stopPlaceId": "NSR:StopPlace:44029"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "tillerterminalen-nsr-quay-75606",
+          "stationId": "tillerterminalen",
+          "stopId": "NSR:Quay:75606",
+          "stopPlaceId": "NSR:StopPlace:44029"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75606",
+          "stationId": "NSR:StopPlace:44029",
+          "stopId": "NSR:Quay:75606",
+          "stopPlaceId": "NSR:StopPlace:44029"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:75607",
+          "stationId": "NSR:StopPlace:44029",
+          "stopId": "NSR:Quay:75607",
+          "stopPlaceId": "NSR:StopPlace:44029"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1668,
+          "y": 6174
+        },
+        "nameTranscription": "Tillerterminalen"
+      }
+    },
+    {
+      "id": "original-088",
+      "name": "Midteggen",
+      "x": 128.15,
+      "y": 970.68,
+      "label": {
+        "x": 133.15,
+        "y": 966.68,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "midteggen-nsr-quay-73008",
+          "stationId": "midteggen",
+          "stopId": "NSR:Quay:73008",
+          "stopPlaceId": "NSR:StopPlace:42611"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "midteggen-nsr-quay-73009",
+          "stationId": "midteggen",
+          "stopId": "NSR:Quay:73009",
+          "stopPlaceId": "NSR:StopPlace:42611"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73008",
+          "stationId": "NSR:StopPlace:42611",
+          "stopId": "NSR:Quay:73008",
+          "stopPlaceId": "NSR:StopPlace:42611"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:73009",
+          "stationId": "NSR:StopPlace:42611",
+          "stopId": "NSR:Quay:73009",
+          "stopPlaceId": "NSR:StopPlace:42611"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 829,
+          "y": 6270
+        },
+        "nameTranscription": "Midteggen"
+      }
+    },
+    {
+      "id": "original-089",
+      "name": "Uavklart 089",
+      "x": 490.82,
+      "y": 975.48,
+      "label": {
+        "x": 495.82,
+        "y": 971.48,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 3175,
+          "y": 6301
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-090",
+      "name": "Uavklart 090",
+      "x": 310.72,
+      "y": 987.09,
+      "label": {
+        "x": 315.72,
+        "y": 983.09,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2010,
+          "y": 6376
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-091",
+      "name": "Uavklart 091",
+      "x": 444.75,
+      "y": 987.09,
+      "label": {
+        "x": 449.75,
+        "y": 983.09,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 2877,
+          "y": 6376
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-092",
+      "name": "Peder Dorset",
+      "x": 222.61,
+      "y": 990.65,
+      "label": {
+        "x": 227.61,
+        "y": 986.65,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1440,
+          "y": 6399
+        },
+        "nameTranscription": "Peder Dorset"
+      }
+    },
+    {
+      "id": "original-093",
+      "name": "Uavklart 093",
+      "x": 257.85,
+      "y": 995.45,
+      "label": {
+        "x": 262.85,
+        "y": 991.45,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1668,
+          "y": 6430
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-094",
+      "name": "Uavklart 094",
+      "x": 257.54,
+      "y": 1013.88,
+      "label": {
+        "x": 262.54,
+        "y": 1009.88,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1666,
+          "y": 6549
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-095",
+      "name": "Østre Lund",
+      "x": 129.85,
+      "y": 1027.96,
+      "label": {
+        "x": 134.85,
+        "y": 1023.96,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "stre-lund-nsr-quay-102721",
+          "stationId": "stre-lund",
+          "stopId": "NSR:Quay:102721",
+          "stopPlaceId": "NSR:StopPlace:60258"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:102721",
+          "stationId": "NSR:StopPlace:60258",
+          "stopId": "NSR:Quay:102721",
+          "stopPlaceId": "NSR:StopPlace:60258"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71568",
+          "stationId": "NSR:StopPlace:60258",
+          "stopId": "NSR:Quay:71568",
+          "stopPlaceId": "NSR:StopPlace:60258"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:71569",
+          "stationId": "NSR:StopPlace:60258",
+          "stopId": "NSR:Quay:71569",
+          "stopPlaceId": "NSR:StopPlace:60258"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 840,
+          "y": 6640
+        },
+        "nameTranscription": "Østre Lund"
+      }
+    },
+    {
+      "id": "original-096",
+      "name": "Heimdal stasjon",
+      "x": 186.59,
+      "y": 1027.96,
+      "label": {
+        "x": 191.59,
+        "y": 1023.96,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "heimdal-stasjon-nsr-quay-72946",
+          "stationId": "heimdal-stasjon",
+          "stopId": "NSR:Quay:72946",
+          "stopPlaceId": "NSR:StopPlace:42582"
+        },
+        {
+          "boardId": "trondheim-bus-board",
+          "nodeId": "heimdal-stasjon-nsr-quay-72955",
+          "stationId": "heimdal-stasjon",
+          "stopId": "NSR:Quay:72955",
+          "stopPlaceId": "NSR:StopPlace:42582"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72946",
+          "stationId": "NSR:StopPlace:42582",
+          "stopId": "NSR:Quay:72946",
+          "stopPlaceId": "NSR:StopPlace:42582"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:72955",
+          "stationId": "NSR:StopPlace:42582",
+          "stopId": "NSR:Quay:72955",
+          "stopPlaceId": "NSR:StopPlace:42582"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1207,
+          "y": 6640
+        },
+        "nameTranscription": "Heimdal stasjon"
+      }
+    },
+    {
+      "id": "original-097",
+      "name": "Uavklart 097",
+      "x": 257.85,
+      "y": 1036.32,
+      "label": {
+        "x": 262.85,
+        "y": 1032.32,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1668,
+          "y": 6694
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-098",
+      "name": "Uavklart 098",
+      "x": 257.54,
+      "y": 1054.75,
+      "label": {
+        "x": 262.54,
+        "y": 1050.75,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1666,
+          "y": 6813
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-099",
+      "name": "Uavklart 099",
+      "x": 257.54,
+      "y": 1076.88,
+      "label": {
+        "x": 262.54,
+        "y": 1072.88,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1666,
+          "y": 6956
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-100",
+      "name": "Uavklart 100",
+      "x": 257.08,
+      "y": 1095.77,
+      "label": {
+        "x": 262.08,
+        "y": 1091.77,
+        "visible": false
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": false,
+      "verification": "unresolved",
+      "bindings": [],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1663,
+          "y": 7078
+        },
+        "nameTranscription": null
+      }
+    },
+    {
+      "id": "original-101",
+      "name": "Torgardstrøa",
+      "x": 257.54,
+      "y": 1113.41,
+      "label": {
+        "x": 262.54,
+        "y": 1109.41,
+        "visible": true
+      },
+      "radius": 3,
+      "diodeMode": "shared",
+      "nameConfirmed": true,
+      "verification": "confirmed",
+      "bindings": [
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:102727",
+          "stationId": "NSR:StopPlace:60262",
+          "stopId": "NSR:Quay:102727",
+          "stopPlaceId": "NSR:StopPlace:60262"
+        },
+        {
+          "boardId": "trondheim-city-lines-catalog",
+          "nodeId": "NSR:Quay:102728",
+          "stationId": "NSR:StopPlace:60262",
+          "stopId": "NSR:Quay:102728",
+          "stopPlaceId": "NSR:StopPlace:60262"
+        }
+      ],
+      "source": {
+        "image": "trondheim-original.jpg",
+        "centerPixels": {
+          "x": 1666,
+          "y": 7192
+        },
+        "nameTranscription": "Torgardstrøa"
+      }
+    }
+  ],
+  "paths": [
+    {
+      "id": "trace-01",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 478.76,
+          "y": 174.49
+        },
+        {
+          "x": 478.76,
+          "y": 219.06
+        },
+        {
+          "x": 479,
+          "y": 245
+        }
+      ]
+    },
+    {
+      "id": "trace-02",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 393.44,
+          "y": 244.3
+        },
+        {
+          "x": 479,
+          "y": 245
+        },
+        {
+          "x": 516.02,
+          "y": 243.99
+        },
+        {
+          "x": 585,
+          "y": 314
+        },
+        {
+          "x": 584.96,
+          "y": 342.13
+        }
+      ]
+    },
+    {
+      "id": "trace-03",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 393.44,
+          "y": 244.3
+        },
+        {
+          "x": 392.96,
+          "y": 309.63
+        },
+        {
+          "x": 394,
+          "y": 342
+        }
+      ]
+    },
+    {
+      "id": "trace-04",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 211.02,
+          "y": 400.97
+        },
+        {
+          "x": 271.3,
+          "y": 401.28
+        },
+        {
+          "x": 301.76,
+          "y": 400.66
+        },
+        {
+          "x": 360,
+          "y": 342
+        },
+        {
+          "x": 417.39,
+          "y": 342.45
+        },
+        {
+          "x": 584.96,
+          "y": 342.13
+        },
+        {
+          "x": 605.06,
+          "y": 342.14
+        },
+        {
+          "x": 635.82,
+          "y": 342.14
+        },
+        {
+          "x": 687.3,
+          "y": 342.91
+        },
+        {
+          "x": 707.86,
+          "y": 342.45
+        },
+        {
+          "x": 764.9,
+          "y": 343.22
+        },
+        {
+          "x": 788.71,
+          "y": 319.23
+        },
+        {
+          "x": 821.64,
+          "y": 285.79
+        },
+        {
+          "x": 850.7,
+          "y": 257.3
+        },
+        {
+          "x": 874.2,
+          "y": 233.46
+        }
+      ]
+    },
+    {
+      "id": "trace-05",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 605.06,
+          "y": 342.14
+        },
+        {
+          "x": 641.85,
+          "y": 304.83
+        },
+        {
+          "x": 688.23,
+          "y": 258.07
+        },
+        {
+          "x": 734.14,
+          "y": 212.71
+        },
+        {
+          "x": 749.14,
+          "y": 228.2
+        },
+        {
+          "x": 773.72,
+          "y": 252.66
+        },
+        {
+          "x": 786,
+          "y": 265
+        },
+        {
+          "x": 707.86,
+          "y": 342.45
+        }
+      ]
+    },
+    {
+      "id": "trace-06",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 301.76,
+          "y": 400.66
+        },
+        {
+          "x": 301.29,
+          "y": 456.24
+        },
+        {
+          "x": 301.76,
+          "y": 530.09
+        },
+        {
+          "x": 302.53,
+          "y": 626.53
+        },
+        {
+          "x": 301.45,
+          "y": 677.62
+        },
+        {
+          "x": 301.91,
+          "y": 723.75
+        },
+        {
+          "x": 301.9,
+          "y": 743.3
+        },
+        {
+          "x": 293.1,
+          "y": 752.09
+        },
+        {
+          "x": 258,
+          "y": 787
+        },
+        {
+          "x": 257.85,
+          "y": 896.06
+        },
+        {
+          "x": 257.85,
+          "y": 917.27
+        },
+        {
+          "x": 257.85,
+          "y": 955.81
+        },
+        {
+          "x": 222.61,
+          "y": 990.65
+        },
+        {
+          "x": 186.59,
+          "y": 1027.96
+        },
+        {
+          "x": 129.85,
+          "y": 1027.96
+        }
+      ]
+    },
+    {
+      "id": "trace-07",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 301.76,
+          "y": 530.09
+        },
+        {
+          "x": 320.62,
+          "y": 530.08
+        },
+        {
+          "x": 386.47,
+          "y": 592.63
+        },
+        {
+          "x": 410.74,
+          "y": 567.86
+        },
+        {
+          "x": 445.83,
+          "y": 532.4
+        },
+        {
+          "x": 490.97,
+          "y": 487.2
+        },
+        {
+          "x": 537.97,
+          "y": 440.14
+        },
+        {
+          "x": 586.05,
+          "y": 392.3
+        },
+        {
+          "x": 608.77,
+          "y": 369.54
+        },
+        {
+          "x": 635.82,
+          "y": 342.14
+        }
+      ]
+    },
+    {
+      "id": "trace-08",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 386.47,
+          "y": 592.63
+        },
+        {
+          "x": 386.16,
+          "y": 611.36
+        },
+        {
+          "x": 386,
+          "y": 626
+        }
+      ]
+    },
+    {
+      "id": "trace-09",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 302.53,
+          "y": 626.53
+        },
+        {
+          "x": 349.22,
+          "y": 627
+        },
+        {
+          "x": 386,
+          "y": 626
+        },
+        {
+          "x": 422.34,
+          "y": 627
+        },
+        {
+          "x": 483.54,
+          "y": 627
+        },
+        {
+          "x": 526.68,
+          "y": 584.11
+        },
+        {
+          "x": 581.87,
+          "y": 529.62
+        },
+        {
+          "x": 644.17,
+          "y": 466.45
+        },
+        {
+          "x": 708.63,
+          "y": 401.9
+        }
+      ]
+    },
+    {
+      "id": "trace-10",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 483.54,
+          "y": 627
+        },
+        {
+          "x": 498.7,
+          "y": 641.24
+        },
+        {
+          "x": 511,
+          "y": 655
+        },
+        {
+          "x": 538.6,
+          "y": 681.95
+        },
+        {
+          "x": 558.53,
+          "y": 701.31
+        },
+        {
+          "x": 576.46,
+          "y": 719.11
+        },
+        {
+          "x": 593.47,
+          "y": 736.91
+        },
+        {
+          "x": 633.04,
+          "y": 698.04
+        },
+        {
+          "x": 633.03,
+          "y": 681.97
+        },
+        {
+          "x": 589.6,
+          "y": 681.95
+        },
+        {
+          "x": 538.6,
+          "y": 681.95
+        }
+      ]
+    },
+    {
+      "id": "trace-11",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 526.68,
+          "y": 584.11
+        },
+        {
+          "x": 499.78,
+          "y": 556.71
+        }
+      ]
+    },
+    {
+      "id": "trace-12",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 511,
+          "y": 655
+        },
+        {
+          "x": 539.05,
+          "y": 626.69
+        },
+        {
+          "x": 577.08,
+          "y": 588.91
+        },
+        {
+          "x": 615.88,
+          "y": 549.28
+        },
+        {
+          "x": 654.84,
+          "y": 510.73
+        },
+        {
+          "x": 681.89,
+          "y": 483.64
+        },
+        {
+          "x": 712.19,
+          "y": 453.29
+        },
+        {
+          "x": 750,
+          "y": 417
+        }
+      ]
+    },
+    {
+      "id": "trace-13",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 538.6,
+          "y": 681.95
+        },
+        {
+          "x": 595,
+          "y": 626
+        },
+        {
+          "x": 655,
+          "y": 564
+        },
+        {
+          "x": 728.89,
+          "y": 489.68
+        },
+        {
+          "x": 775.57,
+          "y": 442.61
+        },
+        {
+          "x": 766.91,
+          "y": 434.1
+        },
+        {
+          "x": 759.49,
+          "y": 426.51
+        },
+        {
+          "x": 750,
+          "y": 417
+        },
+        {
+          "x": 731.51,
+          "y": 398.34
+        },
+        {
+          "x": 708.63,
+          "y": 375.27
+        }
+      ]
+    },
+    {
+      "id": "trace-14",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 611,
+          "y": 500
+        },
+        {
+          "x": 610.78,
+          "y": 419.87
+        },
+        {
+          "x": 627.17,
+          "y": 403.6
+        },
+        {
+          "x": 643.4,
+          "y": 387.19
+        },
+        {
+          "x": 658.39,
+          "y": 372.79
+        },
+        {
+          "x": 672.77,
+          "y": 357.77
+        },
+        {
+          "x": 687.3,
+          "y": 342.91
+        }
+      ]
+    },
+    {
+      "id": "trace-15",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 94.61,
+          "y": 897.3
+        },
+        {
+          "x": 153,
+          "y": 897
+        },
+        {
+          "x": 172.68,
+          "y": 896.84
+        },
+        {
+          "x": 216.27,
+          "y": 896.84
+        },
+        {
+          "x": 257.85,
+          "y": 896.06
+        }
+      ]
+    },
+    {
+      "id": "trace-16",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 151.5,
+          "y": 896.7
+        },
+        {
+          "x": 128.62,
+          "y": 920.53
+        },
+        {
+          "x": 128.15,
+          "y": 937.4
+        },
+        {
+          "x": 128.15,
+          "y": 953.03
+        },
+        {
+          "x": 128.15,
+          "y": 970.68
+        }
+      ]
+    },
+    {
+      "id": "trace-17",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 257.85,
+          "y": 917.27
+        },
+        {
+          "x": 309.18,
+          "y": 916.96
+        },
+        {
+          "x": 384.77,
+          "y": 916.96
+        },
+        {
+          "x": 462.37,
+          "y": 916.96
+        },
+        {
+          "x": 491,
+          "y": 917
+        },
+        {
+          "x": 491.28,
+          "y": 935.69
+        },
+        {
+          "x": 490.82,
+          "y": 975.48
+        },
+        {
+          "x": 491,
+          "y": 987
+        },
+        {
+          "x": 444.75,
+          "y": 987.09
+        },
+        {
+          "x": 310.72,
+          "y": 987.09
+        },
+        {
+          "x": 258,
+          "y": 987
+        }
+      ]
+    },
+    {
+      "id": "trace-18",
+      "color": "#60758c",
+      "width": 1.5,
+      "routes": [],
+      "verification": "unresolved",
+      "points": [
+        {
+          "x": 258,
+          "y": 987
+        },
+        {
+          "x": 257.85,
+          "y": 995.45
+        },
+        {
+          "x": 257.54,
+          "y": 1013.88
+        },
+        {
+          "x": 257.85,
+          "y": 1036.32
+        },
+        {
+          "x": 257.54,
+          "y": 1054.75
+        },
+        {
+          "x": 257.54,
+          "y": 1076.88
+        },
+        {
+          "x": 257.08,
+          "y": 1095.77
+        },
+        {
+          "x": 257.54,
+          "y": 1113.41
+        }
+      ]
+    }
+  ]
+}

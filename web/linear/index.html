@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>TransitCore line&aelig;r tavlesimulator</title>
   <link rel="stylesheet" href="../shared/signal-policy.css">
+  <link rel="stylesheet" href="network/map.css">
   <style>
     :root{color-scheme:dark;--bg:#0b0e12;--panel:#12161c;--line:#343b45;--text:#f5f7fa;--muted:#98a3b2;--ok:#39d98a;--warn:#ffb020;--bad:#ff5c5c}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,sans-serif}main{max-width:820px;margin:auto;padding:18px}
@@ -27,6 +28,7 @@
 </head>
 <body><main>
   <h1>&#128652; TransitCore Live</h1><p class="sub">Live holdeplasser og busser fra den felles tavlefeeden</p>
+  <div class="tools view-switch" aria-label="Visning"><span>Visning:</span><button id="linearMode" aria-pressed="true">Lineær</button><button id="networkMode" aria-pressed="false">Hele kartet</button></div>
   <div class="tools"><label>Linje <select id="route"></select></label><button id="refresh">Oppdater</button><button id="test">LED-test</button><span class="status" id="status">Starter ...</span></div>
   <div class="tools"><label>Datakilde <select id="source"><option value="production">Eksisterende tavler</option><option value="staging">STAGING · Unified Engine</option></select></label></div>
   <label><input type="checkbox" id="allRoutes"> Vis alle bylinjer på disse holdeplassene</label>
@@ -71,10 +73,12 @@
       <p class="diagnote">Entur-tidsstempel og avstand beregnet av TransitCore; ingen rå koordinater. Tidsforskjeller er anslag, ikke målt forsinkelse fra AtB til Entur.</p>
     </div>
   </details>
-  <section class="board"><div class="head"><b>Holdeplass</b><span id="dirA">Retning A</span><span id="dirB">Retning B</span></div><div id="rows"></div></section>
+  <section id="networkView" hidden></section>
+  <section class="board" id="linearView"><div class="head"><b>Holdeplass</b><span id="dirA">Retning A</span><span id="dirB">Retning B</span></div><div id="rows"></div></section>
 </main>
 <aside class="info" id="info"><button class="close" id="close">Lukk</button><h2 id="infoTitle"></h2><div id="infoBody"></div></aside>
-<script src="../shared/board-client-model.js"></script><script src="../shared/canonical-frame-client.js"></script><script src="../shared/signal-policy.js"></script><script src="../shared/route-occupancy.js"></script><script>
+<script src="../shared/board-client-model.js"></script><script src="../shared/canonical-frame-client.js"></script><script src="../shared/signal-policy.js"></script><script src="../shared/route-occupancy.js"></script><script src="network/model.js"></script><script src="network/editor.js"></script>
+<script src="network/layout-ops.js"></script><script src="network/map.js"></script><script>
 "use strict";
 const SIGNALS=TransitCoreSignals;SIGNALS.applyCssVariables(document);
 const $=id=>document.getElementById(id),BASE="../../config/",FLYBUSS="flybuss-trondheim-fb73-live";
@@ -125,7 +129,7 @@ function build(){
     const cells=same?`<div class="cell shared"><span class="ledstack">${groups[0].map(id=>ledMarkup(id,station.name,"Begge retninger","#cbd5e1"," felles")).join("")}</span></div>`:groups.map((ids,column)=>`<div class="cell"><span class="ledstack">${ids.length?ids.map(id=>ledMarkup(id,station.name,directions[column]?.label||"",directions[column]?.color||"#60a5fa")).join(""):`<i class="led empty"></i>`}</span></div>`).join("");
     return `<div class="row ${index===0?"first":""} ${index===ordered.length-1?"last":""}"><div class="station">${esc(station.name)}</div>${cells}<div class="station-buses" data-station-index="${index}" style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end"></div></div>`;
   }).join("");
-  $("stationCount").textContent=ordered.length;document.querySelectorAll(".led:not(.empty)").forEach(led=>led.onclick=()=>showInfo(led));if(lastFrame)paint(lastFrame);
+  $("stationCount").textContent=ordered.length;document.querySelectorAll(".led:not(.empty)").forEach(led=>led.onclick=()=>showInfo(led));if(lastFrame)paint(lastFrame);updateNetworkMap();
 }
 // Presentation only: never replace the server-selected vehicle or lifecycle.
 function prioritizedOccupants(item){
@@ -158,6 +162,7 @@ function renderStationBuses(items,mode=routeBadgeMode()){
 }
 function paint(frame){
   lastFrame=frame;
+  updateNetworkMap();
   const visibleIds=new Set([...document.querySelectorAll('.led[data-id]')].map(led=>led.dataset.id));
   const visibleItems=(frame.leds||[]).filter(item=>visibleIds.has(String(item.id))&&(allRoutes()||[item.vehicle,...(item.occupants||[])].some(v=>String(v?.line)===String(profile.line.publicCode)))).map(item=>({...item,occupants:item.occupants||[item.vehicle||{}]}));
   const lineColors=new Map();
@@ -297,19 +302,32 @@ async function refresh(){
   if(bus1GpsSelected()&&$("gpsDebug").open&&result.frame&&result.sample.status==="VALID")void refreshGpsDebug(result.frame,generation);
   else if(bus1GpsSelected()&&$("gpsDebug").open)clearGpsDebug("Ingen fersk frame – sammenligning stoppet");
   $("status").textContent=boardId+" · "+result.algorithm+" · frame "+result.sample.sequence+" · alder "+result.sample.ageSeconds+" s · "+result.sample.status+(result.sample.error?" · FEIL: "+result.sample.error:"");
- }catch(error){if(generation!==refreshGeneration)return;lastFrame=null;document.querySelectorAll(".led").forEach(l=>l.classList.remove("on","approaching","departed"));$("status").textContent=error.message;$("quality").textContent="IKKE TILGJENGELIG";}
+ }catch(error){if(generation!==refreshGeneration)return;lastFrame=null;networkMap?.clear();document.querySelectorAll(".led").forEach(l=>l.classList.remove("on","approaching","departed"));$("status").textContent=error.message;$("quality").textContent="IKKE TILGJENGELIG";}
  if(generation===refreshGeneration&&!document.hidden)timer=setTimeout(refresh,10000);
 }
 setInterval(()=>{if(!testing&&!document.hidden&&frameClient){const result=frameClient.snapshot();if(result.sample.status==="EXPIRED"&&result.frame)paint(result.frame);}},1000);
 document.addEventListener("visibilitychange",()=>{++refreshGeneration;clearTimeout(timer);if(!document.hidden)refresh()});
-function resetSourceView(){selectedGpsVehicle="";clearGpsDebug("Venter på GPS-data");++refreshGeneration;clearTimeout(timer);testing=false;$("test").textContent="LED-test";frameClient=null;frameClientId=null;lastFrame=null;diagnosticVehicles.clear();diagnosticOneSided.clear();diagnosticTakeovers=0;$("info").classList.remove("show");$("activeCount").textContent="0";$("quality").textContent="Venter på valgt kilde";}
+function resetSourceView(){networkMap?.clear();selectedGpsVehicle="";clearGpsDebug("Venter på GPS-data");++refreshGeneration;clearTimeout(timer);testing=false;$("test").textContent="LED-test";frameClient=null;frameClientId=null;lastFrame=null;diagnosticVehicles.clear();diagnosticOneSided.clear();diagnosticTakeovers=0;$("info").classList.remove("show");$("activeCount").textContent="0";$("quality").textContent="Venter på valgt kilde";}
 $("source").onchange=()=>{resetSourceView();build();return refresh();};
 $("gpsVehicle").onchange=()=>{selectedGpsVehicle=$("gpsVehicle").value;renderGpsDebug();};
 $("gpsDebug").ontoggle=()=>{if($("gpsDebug").open&&bus1GpsSelected())refresh();};
 $("close").onclick=()=>$("info").classList.remove("show");$("refresh").onclick=refresh;$("route").onchange=()=>{resetSourceView();build();refresh()};
 $("allRoutes").onchange=()=>{resetSourceView();build();refresh()};
 $("routeBadgeMode").onchange=()=>{if(lastFrame&&allRoutes())paint(lastFrame);};
-$("test").onclick=()=>{testing=!testing;$("test").textContent=testing?"Stopp test":"LED-test";if(!testing)return refresh();const leds=[...document.querySelectorAll(".led:not(.empty)")];let index=0;const step=()=>{if(!testing)return;document.querySelectorAll(".led").forEach(led=>led.classList.remove("on"));leds[index++%leds.length].classList.add("on");$("status").textContent=`LED-test ${index}/${leds.length}`;setTimeout(step,250)};step()};
+$("test").onclick=()=>{testing=!testing;if(testing)networkMap?.clear();$("test").textContent=testing?"Stopp test":"LED-test";if(!testing)return refresh();const leds=[...document.querySelectorAll(".led:not(.empty)")];let index=0;const step=()=>{if(!testing)return;document.querySelectorAll(".led").forEach(led=>led.classList.remove("on"));leds[index++%leds.length].classList.add("on");$("status").textContent=`LED-test ${index}/${leds.length}`;setTimeout(step,250)};step()};
+let networkMap=null,networkLoading=null;
+function updateNetworkMap(){
+ if(networkMap&&profile)networkMap.update({board,hardware,boards:[baseBoard,catalogBoard,flyBoard].filter(Boolean),profiles,route:profile.id,line:profile.line.publicCode,routesByLine:Object.fromEntries(profiles.map(p=>[String(p.line.publicCode),p.id])),all:allRoutes(),numbers:routeBadgeMode()==="numbers",frame:testing?null:lastFrame});
+}
+async function setMapMode(network){
+ $("networkView").hidden=!network;$("linearView").hidden=network;
+ $("linearMode").setAttribute("aria-pressed",String(!network));$("networkMode").setAttribute("aria-pressed",String(network));document.body.classList.toggle("network-mode",network);
+ if(network){
+  if(!networkLoading)networkLoading=InTransitNetwork.create($("networkView")).then(map=>networkMap=map).catch(error=>{networkLoading=null;$("networkView").textContent="Kartet kunne ikke lastes: "+error.message;});
+  await networkLoading;updateNetworkMap();
+ }
+}
+$("linearMode").onclick=()=>setMapMode(false);$("networkMode").onclick=()=>setMapMode(true);
 Promise.all([json(`${BASE}boards/trondheim-bus-board.json`),json(`${BASE}hardware/trondheim-bus-board-hardware.json`),json(`${BASE}boards/trondheim-flybuss-live.json`),json(`${BASE}hardware/trondheim-flybuss-live-hardware.json`),json(`${BASE}boards/trondheim-city-lines-catalog.json`)]).then(async values=>{[baseBoard,baseHardware,flyBoard,flyHardware,catalogBoard]=values;catalogHardware={leds:{count:catalogBoard.leds.count},assignments:catalogBoard.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))};board=baseBoard;hardware=baseHardware;profiles=await Promise.all([...new Set([...catalogBoard.routes,FLYBUSS])].map(id=>json(`${BASE}routes/${id}.json`)));$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");const params=new URLSearchParams(location.search),requested=params.get("route");if(profiles.some(p=>p.id===requested))$("route").value=requested;$("source").value=params.get("source")==="staging"?"staging":"production";build();refresh()}).catch(error=>$("status").textContent=error.message);
 </script></body></html>
 

@@ -5,6 +5,9 @@ on:
       - 'web/linear/**'
       - 'web/shared/**'
       - 'scripts/test-linear-mobile-integration.mjs'
+      - 'scripts/test-intransit-map.mjs'
+      - 'scripts/browser-intransit-map.mjs'
+      - 'scripts/audit-intransit-route-evidence.mjs'
       - '.github/workflows/linear-mobile.yml'
   push:
     branches: [main]
@@ -12,13 +15,16 @@ on:
       - 'web/linear/**'
       - 'web/shared/**'
       - 'scripts/test-linear-mobile-integration.mjs'
+      - 'scripts/test-intransit-map.mjs'
+      - 'scripts/browser-intransit-map.mjs'
+      - 'scripts/audit-intransit-route-evidence.mjs'
       - '.github/workflows/linear-mobile.yml'
 permissions:
   contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -28,3 +34,32 @@ jobs:
           node-version: '22'
       - name: Verify Linear production defaults and opt-in Bus1 GPS Debug
         run: node scripts/test-linear-mobile-integration.mjs
+
+      - name: Verify InTransit layout, mapping and editor
+        run: node scripts/test-intransit-map.mjs
+
+      - name: Audit schematic route coverage without fetching live data
+        env:
+          INTRANSIT_AUDIT_DIR: artifacts/intransit-map
+        run: node scripts/audit-intransit-route-evidence.mjs
+
+      - name: Install pinned Playwright and Chromium (no deploy)
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Browser smoke test and review screenshots
+        env:
+          INTRANSIT_SCREENSHOT_DIR: artifacts/intransit-map
+        run: node scripts/browser-intransit-map.mjs
+
+      - name: Upload InTransit review screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: intransit-map-review
+          path: |
+            artifacts/intransit-map/*.png
+            artifacts/intransit-map/route-evidence-audit.json
+          if-no-files-found: warn
+          retention-days: 7
