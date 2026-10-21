@@ -1,0 +1,30 @@
+name: Linear mobile and GPS Debug tests
+on:
+  pull_request:
+    paths:
+      - 'web/linear/**'
+      - 'web/shared/**'
+      - 'scripts/test-linear-mobile-integration.mjs'
+      - '.github/workflows/linear-mobile.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'web/linear/**'
+      - 'web/shared/**'
+      - 'scripts/test-linear-mobile-integration.mjs'
+      - '.github/workflows/linear-mobile.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Verify Linear production defaults and opt-in Bus1 GPS Debug
+        run: node scripts/test-linear-mobile-integration.mjs
