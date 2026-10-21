@@ -1,0 +1,6908 @@
+{
+  "complete": false,
+  "unmapped": [
+    "original-003",
+    "original-007",
+    "original-008",
+    "original-009",
+    "original-010",
+    "original-011",
+    "original-013",
+    "original-021",
+    "original-025",
+    "original-027",
+    "original-034",
+    "original-035",
+    "original-055",
+    "original-076",
+    "original-077",
+    "original-078",
+    "original-079",
+    "original-080",
+    "original-081",
+    "original-084",
+    "original-085",
+    "original-086",
+    "original-089",
+    "original-090",
+    "original-091",
+    "original-092",
+    "original-093",
+    "original-094",
+    "original-097",
+    "original-098",
+    "original-099",
+    "original-100"
+  ],
+  "feedStopsMissing": [
+    {
+      "board": "trondheim-bus-board",
+      "node": "anders-buens-gate-nsr-quay-74588",
+      "name": "Anders Buens gate"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "anders-buens-gate-nsr-quay-74587",
+      "name": "Anders Buens gate"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "anders-syseths-veg-nsr-quay-102723",
+      "name": "Anders Søyseths veg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "anders-syseths-veg-nsr-quay-102722",
+      "name": "Anders Søyseths veg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "arnt-smistads-veg-nsr-quay-74357",
+      "name": "Arnt Smistads veg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "arnt-smistads-veg-nsr-quay-102734",
+      "name": "Arnt Smistads veg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "bakkegata-nsr-quay-74792",
+      "name": "Bakkegata"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "bakkegata-nsr-quay-74793",
+      "name": "Bakkegata"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "bekkasinvegen-nsr-quay-74867",
+      "name": "Bekkasinvegen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "bekkasinvegen-nsr-quay-74866",
+      "name": "Bekkasinvegen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "berg-studentby-nsr-quay-74954",
+      "name": "Berg studentby"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "berg-studentby-nsr-quay-74952",
+      "name": "Berg studentby"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "bjrndalsbrua-nsr-quay-75175",
+      "name": "Bjørndalsbrua"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "bjrndalsbrua-nsr-quay-75176",
+      "name": "Bjørndalsbrua"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "bjrndalstoppen-nsr-quay-75178",
+      "name": "Bjørndalstoppen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "bjrndalstoppen-nsr-quay-75179",
+      "name": "Bjørndalstoppen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "byasen-skole-nsr-quay-75529",
+      "name": "Byåsen skole"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "byasen-skole-nsr-quay-75528",
+      "name": "Byåsen skole"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "casper-lundes-veg-nsr-quay-75581",
+      "name": "Casper Lundes veg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "casper-lundes-veg-nsr-quay-75580",
+      "name": "Casper Lundes veg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "gildheim-nsr-quay-75657",
+      "name": "Gildheim"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "gildheim-nsr-quay-75658",
+      "name": "Gildheim"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "grilstadkleiva-nsr-quay-72172",
+      "name": "Grilstadkleiva"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "grilstadkleiva-nsr-quay-72171",
+      "name": "Grilstadkleiva"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "haakon-vii-gate-25-nsr-quay-72455",
+      "name": "Haakon VII gate 25"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "haakon-vii-gate-25-nsr-quay-72453",
+      "name": "Haakon VII gate 25"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "hallset-nsr-quay-73032",
+      "name": "Hallset"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "hallset-nsr-quay-102729",
+      "name": "Hallset"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "havstadsenteret-nsr-quay-72855",
+      "name": "Havstadsenteret"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "havstadsenteret-nsr-quay-72856",
+      "name": "Havstadsenteret"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "hesthagen-nsr-quay-102719",
+      "name": "Hesthagen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "hesthagen-nsr-quay-71204",
+      "name": "Hesthagen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "ingemann-torps-vei-nsr-quay-72107",
+      "name": "Ingemann Torps vei"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "ingemann-torps-vei-nsr-quay-72108",
+      "name": "Ingemann Torps vei"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "johan-falkbergets-vei-nsr-quay-73845",
+      "name": "Johan Falkbergets vei"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "johan-falkbergets-vei-nsr-quay-73843",
+      "name": "Johan Falkbergets vei"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "kattemsenteret-nsr-quay-74026",
+      "name": "Kattemsenteret"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "kattemsenteret-nsr-quay-74027",
+      "name": "Kattemsenteret"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "lade-idrettsanlegg-nsr-quay-72461",
+      "name": "Lade idrettsanlegg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "lade-idrettsanlegg-nsr-quay-72460",
+      "name": "Lade idrettsanlegg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "ladeveien-nsr-quay-73154",
+      "name": "Ladeveien"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "ladeveien-nsr-quay-73152",
+      "name": "Ladeveien"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "leangen-nsr-quay-71365",
+      "name": "Leangen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "leangen-nsr-quay-71363",
+      "name": "Leangen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "lyngvegen-nsr-quay-73684",
+      "name": "Lyngvegen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "lyngvegen-nsr-quay-73683",
+      "name": "Lyngvegen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "martin-linges-veg-nsr-quay-72719",
+      "name": "Martin Linges veg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "martin-linges-veg-nsr-quay-72720",
+      "name": "Martin Linges veg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "nyveibakken-nsr-quay-74329",
+      "name": "Nyveibakken"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "nyveibakken-nsr-quay-74330",
+      "name": "Nyveibakken"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "peder-morsets-veg-nsr-quay-74972",
+      "name": "Peder Morsets veg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "peder-morsets-veg-nsr-quay-74973",
+      "name": "Peder Morsets veg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "ranheim-idrettsplass-nsr-quay-71249",
+      "name": "Ranheim idrettsplass"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "ranheim-idrettsplass-nsr-quay-71250",
+      "name": "Ranheim idrettsplass"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "rostengrenda-nsr-quay-71517",
+      "name": "Rostengrenda"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "rostengrenda-nsr-quay-71518",
+      "name": "Rostengrenda"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "saupstadsenteret-nsr-quay-71912",
+      "name": "Saupstadsenteret"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "saupstadsenteret-nsr-quay-71913",
+      "name": "Saupstadsenteret"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "skansen-nsr-quay-72210",
+      "name": "Skansen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "skansen-nsr-quay-72212",
+      "name": "Skansen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "skyttervegen-nsr-quay-72490",
+      "name": "Skyttervegen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "skyttervegen-nsr-quay-72489",
+      "name": "Skyttervegen"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "stabells-veg-nsr-quay-74072",
+      "name": "Stabells veg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "stabells-veg-nsr-quay-74073",
+      "name": "Stabells veg"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "tvetestien-nsr-quay-71633",
+      "name": "Tvetestien"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "tvetestien-nsr-quay-71634",
+      "name": "Tvetestien"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "asheim-skole-nsr-quay-72755",
+      "name": "Åsheim skole"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "asheim-skole-nsr-quay-72756",
+      "name": "Åsheim skole"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "asveien-skole-nsr-quay-72801",
+      "name": "Åsveien skole"
+    },
+    {
+      "board": "trondheim-bus-board",
+      "node": "asveien-skole-nsr-quay-72800",
+      "name": "Åsveien skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74536",
+      "name": "Alfheim"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74537",
+      "name": "Alfheim"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74540",
+      "name": "Alfheimsvingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74542",
+      "name": "Alfheimsvingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74582",
+      "name": "Amunddal"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74584",
+      "name": "Amunddal"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74587",
+      "name": "Anders Buens gate"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74588",
+      "name": "Anders Buens gate"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102722",
+      "name": "Anders Søyseths veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102723",
+      "name": "Anders Søyseths veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74599",
+      "name": "Angelltrøvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74601",
+      "name": "Angelltrøvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74625",
+      "name": "Anton Grevskotts veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74626",
+      "name": "Anton Grevskotts veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74640",
+      "name": "Arne Bergsgårds veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74641",
+      "name": "Arne Bergsgårds veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102734",
+      "name": "Arnt Smistads veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74357",
+      "name": "Arnt Smistads veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74651",
+      "name": "Arnt Smistads veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74652",
+      "name": "Arnt Smistads veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74659",
+      "name": "Asbjørn Øverås veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74660",
+      "name": "Asbjørn Øverås veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74672",
+      "name": "Askeladdvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74673",
+      "name": "Askeladdvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74699",
+      "name": "Astronomvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74700",
+      "name": "Astronomvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74742",
+      "name": "Aune"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74743",
+      "name": "Aune"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74792",
+      "name": "Bakkegata"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74793",
+      "name": "Bakkegata"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74801",
+      "name": "Bakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74802",
+      "name": "Bakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103581",
+      "name": "Bakken snuplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74820",
+      "name": "Baklia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74821",
+      "name": "Baklia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74866",
+      "name": "Bekkasinvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74867",
+      "name": "Bekkasinvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74945",
+      "name": "Berg Bedehus"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74946",
+      "name": "Berg Bedehus"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74952",
+      "name": "Berg studentby"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74954",
+      "name": "Berg studentby"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74962",
+      "name": "Berge"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74963",
+      "name": "Berge"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74994",
+      "name": "Bergheim snuplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75063",
+      "name": "Biologen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75064",
+      "name": "Biologen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75081",
+      "name": "Bjarne Ness' veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75105",
+      "name": "Bjøra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75106",
+      "name": "Bjøra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75127",
+      "name": "Bjørkli"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75135",
+      "name": "Bjørkligård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75136",
+      "name": "Bjørkligård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75139",
+      "name": "Bjørklimark"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75141",
+      "name": "Bjørklimark"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75143",
+      "name": "Bjørkmyr"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75144",
+      "name": "Bjørkmyr"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75175",
+      "name": "Bjørndalsbrua"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75176",
+      "name": "Bjørndalsbrua"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75178",
+      "name": "Bjørndalstoppen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75179",
+      "name": "Bjørndalstoppen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75190",
+      "name": "Bjørnmyra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75201",
+      "name": "Blakli"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75202",
+      "name": "Blakli"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75203",
+      "name": "Blakli"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75219",
+      "name": "Blåhammaren"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75220",
+      "name": "Blåhammaren"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76940",
+      "name": "Blåveislia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76941",
+      "name": "Blåveislia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75255",
+      "name": "Bostad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75256",
+      "name": "Bostad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75276",
+      "name": "Brandhaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75277",
+      "name": "Brandhaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75278",
+      "name": "Brandsegga"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75279",
+      "name": "Brandsegga"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75287",
+      "name": "Brannåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75290",
+      "name": "Bratsberg kirke"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75291",
+      "name": "Bratsberg kirke"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75288",
+      "name": "Bratsberg Ridesenter"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75289",
+      "name": "Bratsberg Ridesenter"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103142",
+      "name": "Bratsberg skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75294",
+      "name": "Bratsberg østre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75295",
+      "name": "Bratsberg østre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75296",
+      "name": "Bratsbergflata"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75297",
+      "name": "Bratsbergflata"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75324",
+      "name": "Breidablikk"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74517",
+      "name": "Breidablikk skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74518",
+      "name": "Breidablikk skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75329",
+      "name": "Breidablikkveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75330",
+      "name": "Breidablikkveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75335",
+      "name": "Breivika"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75336",
+      "name": "Breivika"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75355",
+      "name": "Brekkåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75356",
+      "name": "Brekkåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75357",
+      "name": "Brekkåsen snuplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75376",
+      "name": "Bromstadsvingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75382",
+      "name": "Brubakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75383",
+      "name": "Brubakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75392",
+      "name": "Brukseier Olsens vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75393",
+      "name": "Brukseier Olsens vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75396",
+      "name": "Brukseier Olsens vei 1"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75397",
+      "name": "Brukseier Olsens vei 1"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75398",
+      "name": "Brukseier Olsens vei 40"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75399",
+      "name": "Brukseier Olsens vei 50"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75402",
+      "name": "Brundalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75409",
+      "name": "Brundalen sykehjem"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75413",
+      "name": "Bruråk"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75414",
+      "name": "Bruråk"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75419",
+      "name": "Brålia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75420",
+      "name": "Brålia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75424",
+      "name": "Brænne"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75425",
+      "name": "Brænne"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75440",
+      "name": "Brøttem gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75441",
+      "name": "Brøttem gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75442",
+      "name": "Brøttemsmarka"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75445",
+      "name": "Brøttemsmarka"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75446",
+      "name": "Brøttemsåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75447",
+      "name": "Brøttemsåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75458",
+      "name": "Buenget"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75463",
+      "name": "Bukkvollan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75464",
+      "name": "Bukkvollan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75468",
+      "name": "Bukta"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75469",
+      "name": "Bukta"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103155",
+      "name": "Buås"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103156",
+      "name": "Buås"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75498",
+      "name": "By"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75499",
+      "name": "By"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:106754",
+      "name": "By gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:106755",
+      "name": "By gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75513",
+      "name": "Byaberget"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75514",
+      "name": "Byaberget"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75519",
+      "name": "Byneset kirke"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75520",
+      "name": "Byneset kirke"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75522",
+      "name": "Bynesveien 16"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75523",
+      "name": "Bynesveien 16"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75528",
+      "name": "Byåsen skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75529",
+      "name": "Byåsen skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75572",
+      "name": "C.J. Hambros vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75573",
+      "name": "C.J. Hambros vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75576",
+      "name": "Carl Schjetnans veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75580",
+      "name": "Casper Lundes veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75581",
+      "name": "Casper Lundes veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75594",
+      "name": "Charlottenlund kirke"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75595",
+      "name": "Charlottenlund kirke"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75404",
+      "name": "Charlottenlund vgs"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75598",
+      "name": "Christian Jelstrups vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75600",
+      "name": "Churchills veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75601",
+      "name": "Churchills veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75609",
+      "name": "City Syd E6"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75610",
+      "name": "City Syd E6"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74500",
+      "name": "Dalgård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74501",
+      "name": "Dalgård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74512",
+      "name": "Dalsaunevegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74513",
+      "name": "Dalsaunevegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74541",
+      "name": "Digre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74543",
+      "name": "Digre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74561",
+      "name": "Djupmyra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74562",
+      "name": "Djupmyra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74579",
+      "name": "Dolpa"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74580",
+      "name": "Dolpa"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74589",
+      "name": "Dora"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74590",
+      "name": "Dora"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:104678",
+      "name": "Dronningens gate"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74649",
+      "name": "Dronningens gate"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76954",
+      "name": "Dullumfeltet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76956",
+      "name": "Dullumfeltet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74661",
+      "name": "Dybdahls veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74662",
+      "name": "Dybdahls veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74731",
+      "name": "E-verket"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74740",
+      "name": "Edgar B. Schieldrops veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74741",
+      "name": "Edgar B. Schieldrops veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74744",
+      "name": "Eggan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74745",
+      "name": "Eggan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74750",
+      "name": "Eggen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74751",
+      "name": "Eggen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74828",
+      "name": "Einar Øfstis veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74829",
+      "name": "Einar Øfstis veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74839",
+      "name": "Einbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74840",
+      "name": "Einbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74848",
+      "name": "Eklesbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74849",
+      "name": "Eklesbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74854",
+      "name": "Eklestrø"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74855",
+      "name": "Eklestrø"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74858",
+      "name": "Ekra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74859",
+      "name": "Ekra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74921",
+      "name": "Engelsås"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74922",
+      "name": "Engelsås"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74934",
+      "name": "Engstrømbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74935",
+      "name": "Engstrømbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74978",
+      "name": "Esp meieri"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74979",
+      "name": "Esp meieri"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74984",
+      "name": "Esp østre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74985",
+      "name": "Esp østre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74992",
+      "name": "Esplykkja"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74993",
+      "name": "Esplykkja"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75001",
+      "name": "Espås"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75002",
+      "name": "Espås"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:109518",
+      "name": "Eventyrskogen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:109519",
+      "name": "Eventyrskogen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77625",
+      "name": "Fagerlia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77626",
+      "name": "Fagerlia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75082",
+      "name": "Fagerliveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75083",
+      "name": "Fagerliveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75091",
+      "name": "Fagervika"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75092",
+      "name": "Fagervika"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75103",
+      "name": "Fallet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75104",
+      "name": "Fallet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74703",
+      "name": "Ferista"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74704",
+      "name": "Ferista"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75185",
+      "name": "Finnaunet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75049",
+      "name": "Fiolsvingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75050",
+      "name": "Fiolsvingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75079",
+      "name": "Fjellsæter"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75080",
+      "name": "Fjellsæter"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75119",
+      "name": "Fjøslia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75120",
+      "name": "Fjøslia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75128",
+      "name": "Fjøsvollan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75129",
+      "name": "Fjøsvollan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75137",
+      "name": "Flakk"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75138",
+      "name": "Flakk"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75146",
+      "name": "Flakk ferjekai"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75163",
+      "name": "Flakkleiva"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75164",
+      "name": "Flakkleiva"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75172",
+      "name": "Flakkråa"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75173",
+      "name": "Flakkråa"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75199",
+      "name": "Flaten"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75200",
+      "name": "Flaten"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75206",
+      "name": "Flatjord"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75207",
+      "name": "Flatjord"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75228",
+      "name": "Flatåsen senter"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75232",
+      "name": "Flatåstoppen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76431",
+      "name": "Flintvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76432",
+      "name": "Flintvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75325",
+      "name": "Folafoten"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75326",
+      "name": "Folafoten"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75317",
+      "name": "Folla"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75318",
+      "name": "Folla"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75353",
+      "name": "Forset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75354",
+      "name": "Forset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75362",
+      "name": "Forsøket"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75365",
+      "name": "Forsøket"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75368",
+      "name": "Fortuna"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75369",
+      "name": "Fortuna"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74004",
+      "name": "Fortunalia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74005",
+      "name": "Fortunalia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75407",
+      "name": "Fossegrenda"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75408",
+      "name": "Fossegrenda"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103159",
+      "name": "Fossen gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103160",
+      "name": "Fossen gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:110273",
+      "name": "Fosslia Fjellhall"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76286",
+      "name": "Fosslia skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103157",
+      "name": "Fosslidalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103158",
+      "name": "Fosslidalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103151",
+      "name": "Fossmo"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103152",
+      "name": "Fossmo"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75450",
+      "name": "Framveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75451",
+      "name": "Framveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75472",
+      "name": "Fremo leir"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75560",
+      "name": "Furuhaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75561",
+      "name": "Furuhaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75577",
+      "name": "Fykenborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75578",
+      "name": "Fykenborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75628",
+      "name": "Gammel-lina"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75629",
+      "name": "Gammel-lina"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75656",
+      "name": "Geilmunnet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75657",
+      "name": "Gildheim"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75658",
+      "name": "Gildheim"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75662",
+      "name": "Gimsan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75663",
+      "name": "Gimsan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75664",
+      "name": "Gimse skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75666",
+      "name": "Gimseflata"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75673",
+      "name": "Gisvold"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75674",
+      "name": "Gisvold"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76524",
+      "name": "Gjevingåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76898",
+      "name": "Gjevingåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75709",
+      "name": "Gogstadbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75710",
+      "name": "Gogstadbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75719",
+      "name": "Grandli"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75720",
+      "name": "Grandli"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75721",
+      "name": "Granhaugan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75722",
+      "name": "Granhaugan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77629",
+      "name": "Granittvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77630",
+      "name": "Granittvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75729",
+      "name": "Granåsen gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75730",
+      "name": "Granåsen gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75727",
+      "name": "Granåsen Idrettspark"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75728",
+      "name": "Granåsen Idrettspark"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75732",
+      "name": "Granåsvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75738",
+      "name": "Grendstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75739",
+      "name": "Grendstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72171",
+      "name": "Grilstadkleiva"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72172",
+      "name": "Grilstadkleiva"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72201",
+      "name": "Grindan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72202",
+      "name": "Grindan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103149",
+      "name": "Grindbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103150",
+      "name": "Grindbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72267",
+      "name": "Grønberg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72268",
+      "name": "Grønberg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72271",
+      "name": "Grønlia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72274",
+      "name": "Grønlia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102735",
+      "name": "Grøset søndre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103687",
+      "name": "Grøset søndre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72343",
+      "name": "Gudruns gate"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72344",
+      "name": "Gudruns gate"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72417",
+      "name": "Gylle"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72418",
+      "name": "Gylle"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72453",
+      "name": "Haakon VII gate 25"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72455",
+      "name": "Haakon VII gate 25"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:109535",
+      "name": "Hagemo"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72486",
+      "name": "Hagen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72515",
+      "name": "Halla"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72517",
+      "name": "Halla"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102729",
+      "name": "Hallset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73032",
+      "name": "Hallset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103146",
+      "name": "Hallvardsplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103162",
+      "name": "Hallvardsplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77342",
+      "name": "Halsen ungdomsskole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77344",
+      "name": "Halsen ungdomsskole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72566",
+      "name": "Halstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72568",
+      "name": "Halstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72572",
+      "name": "Halstein gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72625",
+      "name": "Hammersborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72626",
+      "name": "Hammersborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72635",
+      "name": "Hangeråsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72636",
+      "name": "Hangeråsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72640",
+      "name": "Hangran"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72641",
+      "name": "Hangran"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72645",
+      "name": "Hansensvingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72646",
+      "name": "Hansensvingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72658",
+      "name": "Hanskemakerbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72715",
+      "name": "Haugan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72716",
+      "name": "Haugan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72721",
+      "name": "Haugbjørg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72722",
+      "name": "Haugbjørg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72765",
+      "name": "Haugnessvingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72766",
+      "name": "Haugnessvingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72771",
+      "name": "Haugrønning"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72773",
+      "name": "Haugrønning"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72778",
+      "name": "Haugum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72779",
+      "name": "Haugum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:108591",
+      "name": "Havneveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72847",
+      "name": "Havneveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72851",
+      "name": "Havstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72855",
+      "name": "Havstadsenteret"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72856",
+      "name": "Havstadsenteret"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72931",
+      "name": "Heggsnipen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72932",
+      "name": "Heggsnipen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72880",
+      "name": "Heggstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72881",
+      "name": "Heggstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72884",
+      "name": "Heggstaddalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72885",
+      "name": "Heggstaddalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72890",
+      "name": "Heggstadmoen 2"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72891",
+      "name": "Heggstadmoen 2"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72895",
+      "name": "Heggstadmoen 4"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72897",
+      "name": "Heggstadmoen 4"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75327",
+      "name": "Heimdalshallen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75328",
+      "name": "Heimdalshallen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71135",
+      "name": "Heimdalsvegen 73"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71137",
+      "name": "Heimdalsvegen 73"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102719",
+      "name": "Hesthagen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71204",
+      "name": "Hesthagen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71322",
+      "name": "Hestsjøen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71324",
+      "name": "Hestsjøen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71330",
+      "name": "Hesttrø"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71332",
+      "name": "Hesttrø"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71337",
+      "name": "Hesttrøa"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71426",
+      "name": "Hoeggen skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71427",
+      "name": "Hoeggen skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71540",
+      "name": "Holten"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71541",
+      "name": "Holten"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71562",
+      "name": "Hommelvik sjøside"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71565",
+      "name": "Hommelvik sjøside"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71570",
+      "name": "Hommelvik skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71571",
+      "name": "Hommelvik skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71578",
+      "name": "Hommelvik stasjon"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71579",
+      "name": "Hommelvik stasjon"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71586",
+      "name": "Hommelvik ungdomsskole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71591",
+      "name": "Hommelvikhøgda"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71592",
+      "name": "Hommelvikhøgda"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71645",
+      "name": "Hornebergvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71648",
+      "name": "Hornebergvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71783",
+      "name": "Hundhamaren"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71784",
+      "name": "Hundhamaren"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71811",
+      "name": "Husby"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71812",
+      "name": "Husby"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76425",
+      "name": "Husby"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76426",
+      "name": "Husby"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:109522",
+      "name": "Husbyåsen snuplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71860",
+      "name": "Hyttfossen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71862",
+      "name": "Hyttfossen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73857",
+      "name": "Hårstadkrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73860",
+      "name": "Hårstadkrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71929",
+      "name": "Høgreina"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71930",
+      "name": "Høgreina"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71934",
+      "name": "Høgreina øvre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71935",
+      "name": "Høgreina øvre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71971",
+      "name": "Høstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71972",
+      "name": "Høstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71979",
+      "name": "Høstadkorsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71980",
+      "name": "Høstadkorsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71999",
+      "name": "Høvringen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72000",
+      "name": "Høvringen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72020",
+      "name": "Høyeggen skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72022",
+      "name": "Høyeggen skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103144",
+      "name": "Høyeggen snuplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71957",
+      "name": "Høyset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71959",
+      "name": "Høyset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72045",
+      "name": "Idrettsveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72046",
+      "name": "Idrettsveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72068",
+      "name": "Ilsvika"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72103",
+      "name": "Ingeborg Ofstads veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72104",
+      "name": "Ingeborg Ofstads veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72107",
+      "name": "Ingemann Torps vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72108",
+      "name": "Ingemann Torps vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72139",
+      "name": "Isdammen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72140",
+      "name": "Isdammen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72142",
+      "name": "Isdamvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72144",
+      "name": "Isdamvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73780",
+      "name": "Ivar Skjånes veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73781",
+      "name": "Ivar Skjånes veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77622",
+      "name": "J.P. Holans gate"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73784",
+      "name": "Jakobsli"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73785",
+      "name": "Jakobsli"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72033",
+      "name": "Jakobsli Idrettsplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72034",
+      "name": "Jakobsli Idrettsplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73790",
+      "name": "Jakobslivegen nedre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73791",
+      "name": "Jakobslivegen nedre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73793",
+      "name": "Jakobslivegen øvre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73795",
+      "name": "Jakobslivegen øvre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73843",
+      "name": "Johan Falkbergets vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73845",
+      "name": "Johan Falkbergets vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73847",
+      "name": "Johan Nygaardsvolds vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73851",
+      "name": "Johan Tillers vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73852",
+      "name": "Johan Tillers vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73871",
+      "name": "John P. Kroglunds veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73873",
+      "name": "John P. Kroglunds veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73876",
+      "name": "Jonsborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73877",
+      "name": "Jonsborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73914",
+      "name": "Jørgen B. Lysholms vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75065",
+      "name": "Jørgen B. Lysholms vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73923",
+      "name": "K.O. Thornæs' veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73924",
+      "name": "K.O. Thornæs' veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73971",
+      "name": "Kambru"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73972",
+      "name": "Kambru"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73982",
+      "name": "Karl Jonssons veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73983",
+      "name": "Karl Jonssons veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74008",
+      "name": "Karlstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74009",
+      "name": "Karlstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74014",
+      "name": "Karrosserifabrikken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74015",
+      "name": "Karrosserifabrikken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74026",
+      "name": "Kattemsenteret"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74027",
+      "name": "Kattemsenteret"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74033",
+      "name": "Killingdal"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74034",
+      "name": "Killingdal"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74102",
+      "name": "Klefstadbekken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74103",
+      "name": "Klefstadbekken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74105",
+      "name": "Klefstadbukta"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74106",
+      "name": "Klefstadbukta"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74111",
+      "name": "Klefstadhaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74112",
+      "name": "Klefstadhaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74124",
+      "name": "Kleivplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74125",
+      "name": "Kleivplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74132",
+      "name": "Klett"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74133",
+      "name": "Klett"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:101854",
+      "name": "Klettkrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:101855",
+      "name": "Klettkrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74160",
+      "name": "Klokkerplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74161",
+      "name": "Klokkerplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74166",
+      "name": "Klokkstein"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74167",
+      "name": "Klokkstein"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74185",
+      "name": "Klæbu bygdemuseum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74186",
+      "name": "Klæbu bygdemuseum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74191",
+      "name": "Klæbu sentrum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74192",
+      "name": "Klæbu sentrum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74206",
+      "name": "Knausen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74207",
+      "name": "Knausen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74215",
+      "name": "Kobberdammen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74217",
+      "name": "Kobberdammen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74221",
+      "name": "Koieflata"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74222",
+      "name": "Koieflata"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:104869",
+      "name": "Kolstad kirke"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74237",
+      "name": "Kolstad kirke"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:109005",
+      "name": "Kolstaddalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74241",
+      "name": "Kolstaddalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74250",
+      "name": "Kolstadhaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74251",
+      "name": "Kolstadhaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74255",
+      "name": "Kolsåsdalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74256",
+      "name": "Kolsåsdalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74274",
+      "name": "Konglevegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74276",
+      "name": "Konglevegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:111917",
+      "name": "Kristine Bonnevies veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:111918",
+      "name": "Kristine Bonnevies veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74365",
+      "name": "Kroppan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74366",
+      "name": "Kroppan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74375",
+      "name": "Kroppanmarka"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74376",
+      "name": "Kroppanmarka"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74385",
+      "name": "Krutthusbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74386",
+      "name": "Krutthusbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74458",
+      "name": "Kuset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74464",
+      "name": "Kuset gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74465",
+      "name": "Kuset gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74489",
+      "name": "Kvamshaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74490",
+      "name": "Kvamshaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74502",
+      "name": "Kvenildsmyra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73092",
+      "name": "Kystad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73093",
+      "name": "Kystad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73125",
+      "name": "Lade allé 80"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73128",
+      "name": "Lade allé 80"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72460",
+      "name": "Lade idrettsanlegg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72461",
+      "name": "Lade idrettsanlegg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73143",
+      "name": "Ladehammeren"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73144",
+      "name": "Ladehammeren"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73146",
+      "name": "Ladejarlen vgs."
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73148",
+      "name": "Ladejarlen vgs."
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73152",
+      "name": "Ladeveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73154",
+      "name": "Ladeveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73218",
+      "name": "Langlo"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73220",
+      "name": "Langlo"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73237",
+      "name": "Langåsmyra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73238",
+      "name": "Langåsmyra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73243",
+      "name": "Lappen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73245",
+      "name": "Lappen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73254",
+      "name": "Larsstu"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73255",
+      "name": "Larsstu"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73258",
+      "name": "Lauglo"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73259",
+      "name": "Lauglo"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71363",
+      "name": "Leangen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71365",
+      "name": "Leangen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73276",
+      "name": "Leangen allé"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73277",
+      "name": "Leangen allé"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:21401",
+      "name": "Leangenbukta"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:98649",
+      "name": "Leangenbukta"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73292",
+      "name": "Legårdsbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73293",
+      "name": "Legårdsbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73298",
+      "name": "Leinbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73304",
+      "name": "Leinstrand samfunnshus"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73305",
+      "name": "Leinstrand samfunnshus"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73308",
+      "name": "Leinum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73309",
+      "name": "Leinum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73326",
+      "name": "Leira skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73327",
+      "name": "Leira skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73330",
+      "name": "Leirbrua gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73331",
+      "name": "Leirbrua gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73336",
+      "name": "Leirelva"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73337",
+      "name": "Leirelva"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73340",
+      "name": "Leirfossvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73352",
+      "name": "Leirøya"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73353",
+      "name": "Leirøya"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73356",
+      "name": "Leistadkrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73357",
+      "name": "Leistadkrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73429",
+      "name": "Lersbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73430",
+      "name": "Lersbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73434",
+      "name": "Lettingvold"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73435",
+      "name": "Lettingvold"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73446",
+      "name": "Lia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73447",
+      "name": "Lia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73476",
+      "name": "Lialøkken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73477",
+      "name": "Lialøkken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73532",
+      "name": "Lillerydningen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73533",
+      "name": "Lillerydningen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76904",
+      "name": "Litjbyen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76905",
+      "name": "Litjbyen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73545",
+      "name": "Litjvika"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73546",
+      "name": "Litjvika"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73575",
+      "name": "Loddgårdstrøa"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73576",
+      "name": "Loddgårdstrøa"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73600",
+      "name": "Losgata"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73607",
+      "name": "Lund"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73608",
+      "name": "Lund"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73646",
+      "name": "Lundemobakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73647",
+      "name": "Lundemobakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73658",
+      "name": "Lundåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73659",
+      "name": "Lundåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73664",
+      "name": "Lundåsen nordre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73679",
+      "name": "Lykkmarka"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73683",
+      "name": "Lyngvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73684",
+      "name": "Lyngvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73694",
+      "name": "Lysklett"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73695",
+      "name": "Lysklett"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73715",
+      "name": "Løften"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73717",
+      "name": "Løften"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72577",
+      "name": "Løvaasveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72578",
+      "name": "Løvaasveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72609",
+      "name": "Magnus Berrføtts veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72610",
+      "name": "Magnus Berrføtts veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77100",
+      "name": "Malmtunet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77101",
+      "name": "Malmtunet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72631",
+      "name": "Malvik"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72632",
+      "name": "Malvik"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72649",
+      "name": "Marcus Thranes vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72650",
+      "name": "Marcus Thranes vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72655",
+      "name": "Margretes gate"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72656",
+      "name": "Margretes gate"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72661",
+      "name": "Marie Sørdals veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72662",
+      "name": "Marie Sørdals veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103522",
+      "name": "Marienborg stasjon"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72677",
+      "name": "Marienborg stasjon"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72678",
+      "name": "Marienborg stasjon"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72683",
+      "name": "Markaplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72684",
+      "name": "Markaplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72691",
+      "name": "Markaplassen skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72692",
+      "name": "Markaplassen skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72709",
+      "name": "Martin Kregnes veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72710",
+      "name": "Martin Kregnes veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72719",
+      "name": "Martin Linges veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72720",
+      "name": "Martin Linges veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72729",
+      "name": "Martin Stokkens veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72730",
+      "name": "Martin Stokkens veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72734",
+      "name": "Maskinagentur"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72735",
+      "name": "Maskinagentur"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72740",
+      "name": "Maskinistboligene"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72741",
+      "name": "Maskinistboligene"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72774",
+      "name": "Megarden"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72775",
+      "name": "Megarden"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72878",
+      "name": "Melhus sentrum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72879",
+      "name": "Melhus sentrum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72888",
+      "name": "Melhus skysstasjon"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72889",
+      "name": "Melhus skysstasjon"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72903",
+      "name": "Melhusbrua"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72904",
+      "name": "Melhusbrua"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72964",
+      "name": "Mentz Skjetnes vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72965",
+      "name": "Mentz Skjetnes vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73018",
+      "name": "Midtsandan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73019",
+      "name": "Midtsandan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73046",
+      "name": "Mikkelvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73047",
+      "name": "Mikkelvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73104",
+      "name": "Mjøset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73105",
+      "name": "Mjøset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73140",
+      "name": "Moadalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73141",
+      "name": "Moadalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103147",
+      "name": "Modalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103148",
+      "name": "Modalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73188",
+      "name": "Moen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73189",
+      "name": "Moen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73201",
+      "name": "Moen gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73202",
+      "name": "Moen gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73207",
+      "name": "Moen industriområde"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73208",
+      "name": "Moen industriområde"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73222",
+      "name": "Moenkrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73223",
+      "name": "Moenkrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73235",
+      "name": "Moheim"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73236",
+      "name": "Moheim"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73266",
+      "name": "Moltmyra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73272",
+      "name": "Moltmyra øst"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73274",
+      "name": "Moltmyra øst"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73316",
+      "name": "Moodden"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73318",
+      "name": "Moodden"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73359",
+      "name": "Mortensen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73360",
+      "name": "Mortensen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73416",
+      "name": "Munkaunet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73417",
+      "name": "Munkaunet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73441",
+      "name": "Munkvoll"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73443",
+      "name": "Munkvoll"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73463",
+      "name": "Muruvik"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73465",
+      "name": "Muruvik"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73470",
+      "name": "Muruvik rundkjøringen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73589",
+      "name": "Myrsund"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73612",
+      "name": "Målsjøen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73623",
+      "name": "Målsjøåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73678",
+      "name": "Møllebakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73740",
+      "name": "Nardokrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73741",
+      "name": "Nardokrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73748",
+      "name": "Nardosenteret"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73749",
+      "name": "Nardosenteret"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73769",
+      "name": "Naustkleiva"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73772",
+      "name": "Naustkleiva"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75592",
+      "name": "Nedre Charlottenlund"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75593",
+      "name": "Nedre Charlottenlund"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73776",
+      "name": "Nedre Humlehaugen vest"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73777",
+      "name": "Nedre Humlehaugen vest"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73786",
+      "name": "Nedre Humlehaugen øst"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73787",
+      "name": "Nedre Humlehaugen øst"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73796",
+      "name": "Nedre Jervan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73797",
+      "name": "Nedre Jervan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73804",
+      "name": "Nedre Leirfoss"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73805",
+      "name": "Nedre Leirfoss"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:106534",
+      "name": "Nestingvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73973",
+      "name": "Nidarvoll"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73974",
+      "name": "Nidarvoll"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73978",
+      "name": "Nidarvoll skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73979",
+      "name": "Nidarvoll skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74082",
+      "name": "Nordre Flatåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74083",
+      "name": "Nordre Flatåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74130",
+      "name": "Nordsetrønningen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74172",
+      "name": "Nordslettvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74173",
+      "name": "Nordslettvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74180",
+      "name": "Nordslettvegen snuplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72533",
+      "name": "Nordslettvegen Terrasse"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72534",
+      "name": "Nordslettvegen Terrasse"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74393",
+      "name": "Norrkøpingveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74213",
+      "name": "Nyborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74214",
+      "name": "Nyborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74229",
+      "name": "Nydalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74235",
+      "name": "Nygård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74236",
+      "name": "Nygård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74244",
+      "name": "Nygård Bratsberg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74245",
+      "name": "Nygård Bratsberg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74253",
+      "name": "Nygården"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74254",
+      "name": "Nygården"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74278",
+      "name": "Nyhus"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74279",
+      "name": "Nyhus"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74294",
+      "name": "Nyjord"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74295",
+      "name": "Nyjord"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74303",
+      "name": "Nypan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74304",
+      "name": "Nypan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74313",
+      "name": "Nypantunet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74314",
+      "name": "Nypantunet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103143",
+      "name": "Nypvang skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74329",
+      "name": "Nyveibakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74330",
+      "name": "Nyveibakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74421",
+      "name": "Okstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74422",
+      "name": "Okstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74440",
+      "name": "Okstad skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74441",
+      "name": "Okstad skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74450",
+      "name": "Okstad østre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74451",
+      "name": "Okstad østre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74459",
+      "name": "Okstadplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74460",
+      "name": "Okstadplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74468",
+      "name": "Okstadvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74469",
+      "name": "Okstadvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:109006",
+      "name": "Okstadøy"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74487",
+      "name": "Okstadøy"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74528",
+      "name": "Ola Setroms veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74529",
+      "name": "Ola Setroms veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74539",
+      "name": "Olaf Bulls veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74554",
+      "name": "Olav Engelbrektssons allé"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74555",
+      "name": "Olav Engelbrektssons allé"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74563",
+      "name": "Olav Nygards veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74564",
+      "name": "Olav Nygards veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74603",
+      "name": "Olderdalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74604",
+      "name": "Olderdalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74613",
+      "name": "Ole Ross' veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74614",
+      "name": "Ole Ross' veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76340",
+      "name": "Ole Vig vgs. Sutterøy"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74657",
+      "name": "Omkjøringsveien Nardo"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74658",
+      "name": "Omkjøringsveien Nardo"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74684",
+      "name": "Onsøybakkan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74685",
+      "name": "Onsøybakkan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74756",
+      "name": "Oppsynsmann Eggens veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74757",
+      "name": "Oppsynsmann Eggens veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74845",
+      "name": "Osbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74846",
+      "name": "Osbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74851",
+      "name": "Osbrua"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74853",
+      "name": "Osbrua"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74879",
+      "name": "Osen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74880",
+      "name": "Osen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74913",
+      "name": "Osvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74914",
+      "name": "Osvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74932",
+      "name": "Othilienborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103580",
+      "name": "Paul Skolemesters veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74959",
+      "name": "Paul Skolemesters veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74972",
+      "name": "Peder Morsets veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74973",
+      "name": "Peder Morsets veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75011",
+      "name": "Perstu"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75012",
+      "name": "Perstu"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71138",
+      "name": "Planetringen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71139",
+      "name": "Planetringen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71156",
+      "name": "Prestgårdskrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71157",
+      "name": "Prestgårdskrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71160",
+      "name": "Presthus"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71161",
+      "name": "Presthus"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71166",
+      "name": "Presthusaunet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71167",
+      "name": "Presthusaunet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71225",
+      "name": "Ramstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71226",
+      "name": "Ramstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71240",
+      "name": "Randlia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71241",
+      "name": "Randlia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71247",
+      "name": "Ranheim fabrikker"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71248",
+      "name": "Ranheim fabrikker"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71246",
+      "name": "Ranheim fabrikker E6"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71249",
+      "name": "Ranheim idrettsplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71250",
+      "name": "Ranheim idrettsplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71275",
+      "name": "Rate"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102716",
+      "name": "Ratesvingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77641",
+      "name": "Remyra grendahus"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71335",
+      "name": "Reppe snuplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71382",
+      "name": "Ringve museum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71383",
+      "name": "Ringve museum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71384",
+      "name": "Ringve skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71385",
+      "name": "Ringve skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71389",
+      "name": "Ringvål"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71390",
+      "name": "Ringvål grind"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71391",
+      "name": "Ringvål grind"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71413",
+      "name": "Risvollan senter"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71414",
+      "name": "Risvollan senter"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71425",
+      "name": "Risvollvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71431",
+      "name": "Rognbudalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71432",
+      "name": "Rognbudalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71480",
+      "name": "Romolslia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71484",
+      "name": "Romolslia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71485",
+      "name": "Romolslia nedre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71486",
+      "name": "Romolslia nedre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71491",
+      "name": "Romolslia øvre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71517",
+      "name": "Rostengrenda"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71518",
+      "name": "Rostengrenda"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71522",
+      "name": "Rota"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71523",
+      "name": "Rota"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71528",
+      "name": "Rota"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71529",
+      "name": "Rota"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71542",
+      "name": "Rotvoll"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71543",
+      "name": "Rotvoll"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71574",
+      "name": "Rydland"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71580",
+      "name": "Rydningen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71581",
+      "name": "Rydningen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71584",
+      "name": "Rye"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71585",
+      "name": "Rye"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103140",
+      "name": "Rye skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71587",
+      "name": "Rye skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71588",
+      "name": "Rye skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71690",
+      "name": "Rønningstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71703",
+      "name": "Rørmyra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71704",
+      "name": "Rørmyra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71734",
+      "name": "Røstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71735",
+      "name": "Røstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71769",
+      "name": "Sagmoen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71770",
+      "name": "Sagmoen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71775",
+      "name": "Sagplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71776",
+      "name": "Sagplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71787",
+      "name": "Saksvik"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71788",
+      "name": "Saksvik"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102738",
+      "name": "Saksvikkorsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102739",
+      "name": "Saksvikkorsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76914",
+      "name": "Sandfærhus"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76915",
+      "name": "Sandfærhus"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71820",
+      "name": "Sandmoen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71821",
+      "name": "Sandmoen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71830",
+      "name": "Sandmoen 2"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71831",
+      "name": "Sandmoen 2"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71836",
+      "name": "Sandmoen E6"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71837",
+      "name": "Sandmoen E6"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71903",
+      "name": "Saupstadmyra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71908",
+      "name": "Saupstadringen 109"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71909",
+      "name": "Saupstadringen 109"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71912",
+      "name": "Saupstadsenteret"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71913",
+      "name": "Saupstadsenteret"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71931",
+      "name": "Schiøtz' vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71932",
+      "name": "Schiøtz' vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71983",
+      "name": "Selsbakk"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71984",
+      "name": "Selsbakk"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71987",
+      "name": "Selsbakkflata"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71988",
+      "name": "Selsbakkflata"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72049",
+      "name": "Siemens"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72050",
+      "name": "Siemens"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102736",
+      "name": "Sigrid Saxedatters veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102737",
+      "name": "Sigrid Saxedatters veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:110275",
+      "name": "Sigurd Jarls veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76409",
+      "name": "Sigurd Jarls veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72060",
+      "name": "Sigurd Jorsalfars veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72066",
+      "name": "Siim"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72067",
+      "name": "Siim"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72071",
+      "name": "Sildråpevegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72072",
+      "name": "Sildråpevegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72158",
+      "name": "Sivert Thonstads vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72159",
+      "name": "Sivert Thonstads vei"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72164",
+      "name": "Sjetnhaugan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72182",
+      "name": "Sjøla"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72183",
+      "name": "Sjøla"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72188",
+      "name": "Sjølyst"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72189",
+      "name": "Sjølyst"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72210",
+      "name": "Skansen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72212",
+      "name": "Skansen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72278",
+      "name": "Skavlans veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72279",
+      "name": "Skavlans veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72313",
+      "name": "Skistua"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72324",
+      "name": "Skjefstadbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72325",
+      "name": "Skjefstadbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72377",
+      "name": "Skjetlein"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72378",
+      "name": "Skjetlein"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72409",
+      "name": "Skjøstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72410",
+      "name": "Skjøstad"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:106951",
+      "name": "Skogstadvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:106952",
+      "name": "Skogstadvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102726",
+      "name": "Skonnertvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72451",
+      "name": "Skottvoll"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72452",
+      "name": "Skottvoll"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72484",
+      "name": "Skytterbanen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72485",
+      "name": "Skytterbanen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72489",
+      "name": "Skyttervegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72490",
+      "name": "Skyttervegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72512",
+      "name": "Skårgangen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72513",
+      "name": "Skårgangen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71147",
+      "name": "Sluppenvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73813",
+      "name": "Smeplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73814",
+      "name": "Smeplassen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73816",
+      "name": "Smiskaret"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73818",
+      "name": "Smiskaret"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73836",
+      "name": "Sneisen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73837",
+      "name": "Sneisen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73898",
+      "name": "Solbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73899",
+      "name": "Solbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73905",
+      "name": "Solbakken bru"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73906",
+      "name": "Solbakken bru"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73911",
+      "name": "Solbakken skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73912",
+      "name": "Solbakken skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73915",
+      "name": "Solberg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73916",
+      "name": "Solberg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73955",
+      "name": "Solem bru"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73956",
+      "name": "Solem bru"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73969",
+      "name": "Sollia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73970",
+      "name": "Sollia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73984",
+      "name": "Solunda"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73986",
+      "name": "Solunda"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74012",
+      "name": "Sorgenfri"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74013",
+      "name": "Sorgenfri"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74028",
+      "name": "Spillebakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74037",
+      "name": "Spongdal"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74045",
+      "name": "Spongdal skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74057",
+      "name": "St. Olavs hospital vest"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74058",
+      "name": "St. Olavs hospital vest"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71190",
+      "name": "St. Olavs hospital øst"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71191",
+      "name": "St. Olavs hospital øst"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74072",
+      "name": "Stabells veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74073",
+      "name": "Stabells veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74134",
+      "name": "Stavset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74142",
+      "name": "Stavset senter"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74143",
+      "name": "Stavset senter"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74146",
+      "name": "Stavset senter"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74147",
+      "name": "Stavset senter"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74152",
+      "name": "Stavsetsvingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74153",
+      "name": "Stavsetsvingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74158",
+      "name": "Stavsetvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74159",
+      "name": "Stavsetvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74174",
+      "name": "Steinan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74175",
+      "name": "Steinan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74178",
+      "name": "Steinaunet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74179",
+      "name": "Steinaunet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74183",
+      "name": "Steindalsvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74184",
+      "name": "Steindalsvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74226",
+      "name": "Stene"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74228",
+      "name": "Stene"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102740",
+      "name": "Stibakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102741",
+      "name": "Stibakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102047",
+      "name": "Stjørdal stasjon"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77615",
+      "name": "Stjørdal torg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77616",
+      "name": "Stjørdal torg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76414",
+      "name": "Stjørdalshallen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76415",
+      "name": "Stjørdalshallen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74280",
+      "name": "Stokkan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74282",
+      "name": "Stokkan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:110812",
+      "name": "Stokkan nedre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76445",
+      "name": "Stokkan nedre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76438",
+      "name": "Stokkanvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76439",
+      "name": "Stokkanvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74296",
+      "name": "Stokkhaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74297",
+      "name": "Stokkhaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103153",
+      "name": "Storbergveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103154",
+      "name": "Storbergveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74414",
+      "name": "Storsand 1"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74415",
+      "name": "Storsand 1"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74418",
+      "name": "Storsand 2"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74419",
+      "name": "Storsand 2"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74423",
+      "name": "Storsteinan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74424",
+      "name": "Storsteinan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74434",
+      "name": "Storugla"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74435",
+      "name": "Storugla"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:74446",
+      "name": "Storvollen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73016",
+      "name": "Strandveikaia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73017",
+      "name": "Strandveikaia"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102724",
+      "name": "Strindfjordvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102725",
+      "name": "Strindfjordvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73094",
+      "name": "Stubbanvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73096",
+      "name": "Stubbanvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73126",
+      "name": "Ståggånvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73252",
+      "name": "Sundet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73253",
+      "name": "Sundet"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73328",
+      "name": "Svartbekken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73329",
+      "name": "Svartbekken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73348",
+      "name": "Sve"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73349",
+      "name": "Sve"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73354",
+      "name": "Svean"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73355",
+      "name": "Svean"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73362",
+      "name": "Svebakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73363",
+      "name": "Svebakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72637",
+      "name": "Sveberg Handelspark"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73372",
+      "name": "Sveberghallen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73377",
+      "name": "Svebergkrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73378",
+      "name": "Svebergkrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73383",
+      "name": "Svebergsvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:22719",
+      "name": "Sverresborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75525",
+      "name": "Sverresborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75626",
+      "name": "Sverresborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:75627",
+      "name": "Sverresborg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73482",
+      "name": "Sæterbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73483",
+      "name": "Sæterbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73518",
+      "name": "Sætran"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73519",
+      "name": "Sætran"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73552",
+      "name": "Søndre Flatåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73554",
+      "name": "Søndre Flatåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73574",
+      "name": "Søndre gate Regionbuss"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73565",
+      "name": "Søndre Risvolltun"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73594",
+      "name": "Sørborgen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73595",
+      "name": "Sørborgen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103145",
+      "name": "Sørborgen skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73656",
+      "name": "Tanem bru"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73657",
+      "name": "Tanem bru"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73662",
+      "name": "Tanem gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73663",
+      "name": "Tanem gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73666",
+      "name": "Tanemskrysset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73690",
+      "name": "Tangen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76385",
+      "name": "Tangen nord"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76386",
+      "name": "Tangen nord"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:110276",
+      "name": "Tangen sør"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:77261",
+      "name": "Tangen sør"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73720",
+      "name": "Teigen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73722",
+      "name": "Teigen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73782",
+      "name": "Tempe"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73783",
+      "name": "Tempe"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73734",
+      "name": "Tempevegen 11"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73735",
+      "name": "Tempevegen 11"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73738",
+      "name": "Terminalen Heimdal"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73739",
+      "name": "Terminalen Heimdal"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76345",
+      "name": "Terrassehusene øvre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73744",
+      "name": "Thaulowbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73745",
+      "name": "Thaulowbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73753",
+      "name": "Tiller bru"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73754",
+      "name": "Tiller bru"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71133",
+      "name": "Tiller vgs."
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71136",
+      "name": "Tiller vgs."
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71202",
+      "name": "Tonstadgrenda"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71203",
+      "name": "Tonstadgrenda"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71234",
+      "name": "Torgaardssletta"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71236",
+      "name": "Torgaardssletta"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71251",
+      "name": "Torgardshaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71252",
+      "name": "Torgardshaugen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71273",
+      "name": "Torp"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71274",
+      "name": "Torp"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71285",
+      "name": "Tors veg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71308",
+      "name": "Torvmyra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71309",
+      "name": "Torvmyra"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71316",
+      "name": "Torvtaket"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71317",
+      "name": "Torvtaket"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71373",
+      "name": "Travbanevegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71374",
+      "name": "Travbanevegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71380",
+      "name": "Trolla"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71381",
+      "name": "Trolla"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71393",
+      "name": "Trollahaugen 10"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71398",
+      "name": "Trollahaugen 2"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71404",
+      "name": "Trollahaugen 46"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71407",
+      "name": "Trollahaugen 64"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73792",
+      "name": "Trondheim hovedbrannstasjon"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73794",
+      "name": "Trondheim hovedbrannstasjon"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71795",
+      "name": "Trondheim hurtigbåtterminal"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:100211",
+      "name": "Trondheim lufthavn"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:76109",
+      "name": "Trondheim lufthavn"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71438",
+      "name": "Trondheim Spektrum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71500",
+      "name": "Trøndelag Folkemuseum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71502",
+      "name": "Trøndelag Folkemuseum"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71509",
+      "name": "Trøndertun"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71510",
+      "name": "Trøndertun"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:109680",
+      "name": "Trøåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:109681",
+      "name": "Trøåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71519",
+      "name": "Tulluan nord"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71524",
+      "name": "Tulluan skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71525",
+      "name": "Tulluan skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71532",
+      "name": "Tulluan syd"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71533",
+      "name": "Tulluan syd"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71556",
+      "name": "Tungavegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71576",
+      "name": "Tunvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71577",
+      "name": "Tunvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71622",
+      "name": "Tverregga"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71623",
+      "name": "Tverregga"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71633",
+      "name": "Tvetestien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71634",
+      "name": "Tvetestien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71773",
+      "name": "Ugla"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71774",
+      "name": "Ugla"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71785",
+      "name": "Uglevegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71786",
+      "name": "Uglevegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71846",
+      "name": "Utleirmark"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71847",
+      "name": "Utleirmark"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71848",
+      "name": "Utleirmark"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71906",
+      "name": "Valgrindvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71907",
+      "name": "Valgrindvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71949",
+      "name": "Valset gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71950",
+      "name": "Valset gård"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71954",
+      "name": "Valsetbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:71955",
+      "name": "Valsetbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72092",
+      "name": "Venusvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72093",
+      "name": "Venusvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103161",
+      "name": "Verket"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72101",
+      "name": "Vestlia endeholdeplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72121",
+      "name": "Vestre Rosten"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72122",
+      "name": "Vestre Rosten"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72131",
+      "name": "Vestre Sætran"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72133",
+      "name": "Vestre Sætran"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72219",
+      "name": "Vikelvveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72220",
+      "name": "Vikelvveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72239",
+      "name": "Vikhammer"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72241",
+      "name": "Vikhammer"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72242",
+      "name": "Vikhammer"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:109165",
+      "name": "Vikhammerdalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:73361",
+      "name": "Vikhammerdalen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72253",
+      "name": "Vikhammerløkka"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72254",
+      "name": "Vikhammerløkka"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72259",
+      "name": "Vikhammeråsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72260",
+      "name": "Vikhammeråsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72265",
+      "name": "Vikhammeråsen snuplass"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72273",
+      "name": "Vikhov"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72299",
+      "name": "Vikåsen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72303",
+      "name": "Vikåsen nedre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72305",
+      "name": "Vikåsen nedre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72309",
+      "name": "Vikåsen skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72310",
+      "name": "Vikåsen skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103341",
+      "name": "Være"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72576",
+      "name": "Være"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72571",
+      "name": "Være Ranheimsvegen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72579",
+      "name": "Være østre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72580",
+      "name": "Være østre"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103141",
+      "name": "Væresbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72583",
+      "name": "Væresbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72584",
+      "name": "Væresbakken"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72588",
+      "name": "Væresholmen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72590",
+      "name": "Væresholmen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103339",
+      "name": "Væresletta"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:103340",
+      "name": "Væresletta"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72601",
+      "name": "Værestrøa"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72755",
+      "name": "Åsheim skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72756",
+      "name": "Åsheim skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72785",
+      "name": "Åsvang skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72787",
+      "name": "Åsvang skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72798",
+      "name": "Åsveien skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72799",
+      "name": "Åsveien skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72800",
+      "name": "Åsveien skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72801",
+      "name": "Åsveien skole"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72840",
+      "name": "Østingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72841",
+      "name": "Østingen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72844",
+      "name": "Østmarkneset"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72848",
+      "name": "Østmarkveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72849",
+      "name": "Østmarkveien"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72861",
+      "name": "Østre Rosten"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102402",
+      "name": "Øverbylykkja"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:102403",
+      "name": "Øverbylykkja"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:105436",
+      "name": "Øvre Eggan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:105437",
+      "name": "Øvre Eggan"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72892",
+      "name": "Øvre Flatåsveg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72893",
+      "name": "Øvre Flatåsveg"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72901",
+      "name": "Øvre Tvereggen"
+    },
+    {
+      "board": "trondheim-city-lines-catalog",
+      "node": "NSR:Quay:72902",
+      "name": "Øvre Tvereggen"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-0-1",
+      "name": "Nidarvoll skole"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-0-0",
+      "name": "Nidarvoll skole"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-1-1",
+      "name": "Omkjøringsveien Nardo"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-1-0",
+      "name": "Omkjøringsveien Nardo"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-5-1",
+      "name": "Berg studentby"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-5-0",
+      "name": "Berg studentby"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-8-1",
+      "name": "Hesthagen"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-8-0",
+      "name": "Hesthagen"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-13-1",
+      "name": "Dronningens gate"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-14-1",
+      "name": "Søndre gate Regionbuss"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-15-1",
+      "name": "Bakkegata"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-15-0",
+      "name": "Bakkegata"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-21-1",
+      "name": "Gildheim"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-21-0",
+      "name": "Gildheim"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-22-1",
+      "name": "Leangen"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-22-0",
+      "name": "Leangen"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-23-0",
+      "name": "Ranheim fabrikker"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-24-1",
+      "name": "Ranheim fabrikker E6"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-25-1",
+      "name": "Trondheim lufthavn"
+    },
+    {
+      "board": "trondheim-flybuss-live",
+      "node": "fb73-25-0",
+      "name": "Trondheim lufthavn"
+    }
+  ],
+  "unclearDirections": [
+    {
+      "stop": "original-049",
+      "note": "Both source markers confirmed by user: four platforms total. Platform grouping follows existing catalog routes and the source main-road/Høgskoleringen branch. Baseboard includes route 3 on main-road quays whereas catalog does not; existing runtime configuration is retained."
+    },
+    {
+      "stop": "original-050",
+      "note": "Both source markers confirmed by user: four platforms total. Platform grouping follows existing catalog routes and the source main-road/Høgskoleringen branch. Baseboard includes route 3 on main-road quays whereas catalog does not; existing runtime configuration is retained."
+    }
+  ],
+  "multiLine": [
+    {
+      "stop": "original-000",
+      "routes": [
+        "atb-bus-21-live",
+        "atb-bus-23-live",
+        "atb-bus-28-live"
+      ]
+    },
+    {
+      "stop": "original-001",
+      "routes": [
+        "atb-bus-15-live",
+        "atb-bus-20-live",
+        "atb-bus-54-live"
+      ]
+    },
+    {
+      "stop": "original-002",
+      "routes": [
+        "atb-bus-20-live",
+        "atb-bus-21-live",
+        "atb-bus-23-live",
+        "atb-bus-25-live",
+        "atb-bus-28-live",
+        "atb-bus-70-live",
+        "atb-bus-79-live"
+      ]
+    },
+    {
+      "stop": "original-004",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-41-live",
+        "atb-bus-44-live",
+        "atb-bus-54-live"
+      ]
+    },
+    {
+      "stop": "original-005",
+      "routes": [
+        "atb-bus-2-live",
+        "atb-bus-10-live",
+        "atb-bus-28-live"
+      ]
+    },
+    {
+      "stop": "original-006",
+      "routes": [
+        "atb-bus-2-live",
+        "atb-bus-10-live",
+        "atb-bus-20-live",
+        "atb-bus-21-live",
+        "atb-bus-23-live",
+        "atb-bus-25-live",
+        "atb-bus-70-live",
+        "atb-bus-72-live",
+        "atb-bus-75-live",
+        "atb-bus-76-live",
+        "atb-bus-79-live"
+      ]
+    },
+    {
+      "stop": "original-012",
+      "routes": [
+        "atb-bus-10-live",
+        "atb-bus-2-live",
+        "atb-bus-20-live",
+        "atb-bus-21-live",
+        "atb-bus-23-live",
+        "atb-bus-25-live",
+        "atb-bus-70-live",
+        "atb-bus-72-live",
+        "atb-bus-75-live",
+        "atb-bus-76-live",
+        "atb-bus-79-live"
+      ]
+    },
+    {
+      "stop": "original-014",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-12-live",
+        "atb-bus-22-live",
+        "atb-bus-54-live",
+        "atb-bus-70-live",
+        "atb-bus-71-live",
+        "flybuss-trondheim-fb73-live"
+      ]
+    },
+    {
+      "stop": "original-015",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-10-live",
+        "atb-bus-12-live",
+        "atb-bus-22-live",
+        "atb-bus-28-live",
+        "atb-bus-70-live",
+        "flybuss-trondheim-fb73-live",
+        "atb-bus-54-live"
+      ]
+    },
+    {
+      "stop": "original-016",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-10-live",
+        "atb-bus-12-live",
+        "atb-bus-22-live",
+        "atb-bus-25-live",
+        "atb-bus-70-live",
+        "flybuss-trondheim-fb73-live"
+      ]
+    },
+    {
+      "stop": "original-017",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-10-live",
+        "atb-bus-12-live",
+        "atb-bus-20-live",
+        "atb-bus-21-live",
+        "atb-bus-22-live",
+        "atb-bus-23-live",
+        "atb-bus-25-live",
+        "atb-bus-54-live",
+        "atb-bus-70-live",
+        "atb-bus-71-live",
+        "atb-bus-75-live",
+        "atb-bus-76-live",
+        "atb-bus-79-live",
+        "flybuss-trondheim-fb73-live"
+      ]
+    },
+    {
+      "stop": "original-018",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-10-live",
+        "atb-bus-12-live",
+        "atb-bus-22-live",
+        "atb-bus-25-live",
+        "atb-bus-70-live",
+        "flybuss-trondheim-fb73-live",
+        "atb-bus-13-live",
+        "atb-bus-14-live",
+        "atb-bus-15-live",
+        "atb-bus-20-live",
+        "atb-bus-79-live"
+      ]
+    },
+    {
+      "stop": "original-019",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-10-live",
+        "atb-bus-12-live",
+        "atb-bus-22-live",
+        "atb-bus-25-live",
+        "atb-bus-70-live",
+        "flybuss-trondheim-fb73-live"
+      ]
+    },
+    {
+      "stop": "original-020",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-14-live",
+        "atb-bus-25-live",
+        "atb-bus-70-live"
+      ]
+    },
+    {
+      "stop": "original-024",
+      "routes": [
+        "atb-bus-25-live",
+        "atb-bus-28-live"
+      ]
+    },
+    {
+      "stop": "original-026",
+      "routes": [
+        "atb-bus-10-live",
+        "atb-bus-12-live",
+        "atb-bus-13-live",
+        "atb-bus-15-live",
+        "atb-bus-22-live"
+      ]
+    },
+    {
+      "stop": "original-028",
+      "routes": [
+        "atb-bus-25-live",
+        "atb-bus-28-live"
+      ]
+    },
+    {
+      "stop": "original-029",
+      "routes": [
+        "atb-bus-10-live",
+        "atb-bus-12-live",
+        "atb-bus-15-live"
+      ]
+    },
+    {
+      "stop": "original-030",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "flybuss-trondheim-fb73-live",
+        "atb-bus-10-live",
+        "atb-bus-12-live",
+        "atb-bus-20-live",
+        "atb-bus-21-live",
+        "atb-bus-22-live",
+        "atb-bus-23-live",
+        "atb-bus-25-live",
+        "atb-bus-70-live",
+        "atb-bus-71-live",
+        "atb-bus-72-live",
+        "atb-bus-75-live",
+        "atb-bus-76-live",
+        "atb-bus-79-live",
+        "atb-bus-54-live"
+      ]
+    },
+    {
+      "stop": "original-031",
+      "routes": [
+        "atb-bus-3-live",
+        "atb-bus-11-live",
+        "atb-bus-18-live",
+        "atb-bus-21-live",
+        "atb-bus-28-live",
+        "atb-bus-50-live",
+        "atb-bus-75-live",
+        "atb-bus-76-live"
+      ]
+    },
+    {
+      "stop": "original-032",
+      "routes": [
+        "atb-bus-3-live",
+        "atb-bus-11-live",
+        "atb-bus-18-live",
+        "atb-bus-28-live",
+        "atb-bus-53-live",
+        "atb-bus-72-live",
+        "atb-bus-21-live",
+        "atb-bus-75-live",
+        "atb-bus-76-live"
+      ]
+    },
+    {
+      "stop": "original-033",
+      "routes": [
+        "atb-bus-13-live",
+        "atb-bus-22-live"
+      ]
+    },
+    {
+      "stop": "original-036",
+      "routes": [
+        "atb-bus-10-live",
+        "atb-bus-15-live"
+      ]
+    },
+    {
+      "stop": "original-038",
+      "routes": [
+        "atb-bus-10-live",
+        "atb-bus-15-live"
+      ]
+    },
+    {
+      "stop": "original-039",
+      "routes": [
+        "atb-bus-25-live",
+        "atb-bus-28-live"
+      ]
+    },
+    {
+      "stop": "original-040",
+      "routes": [
+        "atb-bus-10-live",
+        "atb-bus-15-live"
+      ]
+    },
+    {
+      "stop": "original-042",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live",
+        "atb-bus-10-live",
+        "atb-bus-11-live",
+        "atb-bus-12-live",
+        "atb-bus-18-live",
+        "atb-bus-20-live",
+        "atb-bus-22-live",
+        "atb-bus-23-live",
+        "atb-bus-25-live",
+        "atb-bus-28-live",
+        "atb-bus-53-live",
+        "atb-bus-54-live",
+        "atb-bus-70-live",
+        "atb-bus-71-live",
+        "atb-bus-72-live",
+        "atb-bus-79-live",
+        "flybuss-trondheim-fb73-live"
+      ]
+    },
+    {
+      "stop": "original-043",
+      "routes": [
+        "atb-bus-13-live",
+        "atb-bus-22-live"
+      ]
+    },
+    {
+      "stop": "original-045",
+      "routes": [
+        "atb-bus-25-live",
+        "atb-bus-28-live"
+      ]
+    },
+    {
+      "stop": "original-046",
+      "routes": [
+        "atb-bus-10-live",
+        "atb-bus-15-live"
+      ]
+    },
+    {
+      "stop": "original-048",
+      "routes": [
+        "atb-bus-13-live",
+        "atb-bus-22-live"
+      ]
+    },
+    {
+      "stop": "original-049",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live",
+        "atb-bus-10-live",
+        "atb-bus-11-live",
+        "atb-bus-12-live",
+        "atb-bus-18-live",
+        "atb-bus-20-live",
+        "atb-bus-23-live",
+        "atb-bus-70-live",
+        "atb-bus-71-live",
+        "atb-bus-72-live",
+        "atb-bus-79-live",
+        "flybuss-trondheim-fb73-live",
+        "atb-bus-53-live",
+        "atb-bus-54-live"
+      ]
+    },
+    {
+      "stop": "original-050",
+      "routes": [
+        "atb-bus-3-live",
+        "atb-bus-22-live",
+        "atb-bus-25-live",
+        "atb-bus-28-live"
+      ]
+    },
+    {
+      "stop": "original-051",
+      "routes": [
+        "atb-bus-25-live",
+        "atb-bus-28-live"
+      ]
+    },
+    {
+      "stop": "original-054",
+      "routes": [
+        "atb-bus-25-live",
+        "atb-bus-28-live"
+      ]
+    },
+    {
+      "stop": "original-057",
+      "routes": [
+        "atb-bus-3-live",
+        "atb-bus-22-live",
+        "atb-bus-25-live",
+        "atb-bus-28-live"
+      ]
+    },
+    {
+      "stop": "original-058",
+      "routes": [
+        "atb-bus-3-live",
+        "atb-bus-22-live",
+        "atb-bus-25-live"
+      ]
+    },
+    {
+      "stop": "original-059",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-3-live",
+        "atb-bus-10-live",
+        "atb-bus-14-live",
+        "atb-bus-20-live",
+        "atb-bus-53-live",
+        "atb-bus-54-live",
+        "atb-bus-71-live",
+        "atb-bus-72-live",
+        "atb-bus-79-live",
+        "atb-bus-11-live",
+        "atb-bus-13-live",
+        "atb-bus-18-live",
+        "atb-bus-51-live",
+        "flybuss-trondheim-fb73-live",
+        "atb-bus-70-live"
+      ]
+    },
+    {
+      "stop": "original-061",
+      "routes": [
+        "atb-bus-11-live",
+        "atb-bus-13-live",
+        "atb-bus-14-live",
+        "atb-bus-51-live",
+        "flybuss-trondheim-fb73-live",
+        "atb-bus-70-live"
+      ]
+    },
+    {
+      "stop": "original-062",
+      "routes": [
+        "atb-bus-75-live",
+        "atb-bus-78-live"
+      ]
+    },
+    {
+      "stop": "original-063",
+      "routes": [
+        "atb-bus-3-live",
+        "atb-bus-14-live",
+        "atb-bus-13-live",
+        "atb-bus-70-live",
+        "flybuss-trondheim-fb73-live"
+      ]
+    },
+    {
+      "stop": "original-064",
+      "routes": [
+        "atb-bus-3-live",
+        "atb-bus-14-live",
+        "atb-bus-70-live",
+        "flybuss-trondheim-fb73-live"
+      ]
+    },
+    {
+      "stop": "original-065",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-10-live",
+        "atb-bus-14-live",
+        "atb-bus-20-live",
+        "atb-bus-71-live",
+        "atb-bus-72-live",
+        "atb-bus-79-live",
+        "atb-bus-53-live",
+        "atb-bus-54-live",
+        "atb-bus-73-live",
+        "atb-bus-74-live"
+      ]
+    },
+    {
+      "stop": "original-066",
+      "routes": [
+        "atb-bus-3-live",
+        "atb-bus-12-live",
+        "atb-bus-14-live",
+        "atb-bus-15-live",
+        "atb-bus-43-live",
+        "atb-bus-70-live",
+        "flybuss-trondheim-fb73-live"
+      ]
+    },
+    {
+      "stop": "original-067",
+      "routes": [
+        "atb-bus-3-live",
+        "atb-bus-43-live"
+      ]
+    },
+    {
+      "stop": "original-068",
+      "routes": [
+        "atb-bus-3-live",
+        "atb-bus-14-live",
+        "atb-bus-70-live"
+      ]
+    },
+    {
+      "stop": "original-069",
+      "routes": [
+        "atb-bus-3-live",
+        "atb-bus-12-live",
+        "atb-bus-80-live"
+      ]
+    },
+    {
+      "stop": "original-070",
+      "routes": [
+        "atb-bus-12-live",
+        "atb-bus-43-live"
+      ]
+    },
+    {
+      "stop": "original-072",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-10-live",
+        "atb-bus-14-live",
+        "atb-bus-71-live",
+        "atb-bus-72-live",
+        "atb-bus-73-live",
+        "atb-bus-74-live",
+        "atb-bus-79-live"
+      ]
+    },
+    {
+      "stop": "original-073",
+      "routes": [
+        "atb-bus-3-live",
+        "atb-bus-12-live",
+        "atb-bus-80-live"
+      ]
+    },
+    {
+      "stop": "original-074",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-71-live",
+        "atb-bus-72-live"
+      ]
+    },
+    {
+      "stop": "original-075",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-15-live",
+        "atb-bus-71-live",
+        "atb-bus-10-live",
+        "atb-bus-18-live",
+        "atb-bus-40-live",
+        "atb-bus-45-live",
+        "atb-bus-54-live",
+        "atb-bus-23-live"
+      ]
+    },
+    {
+      "stop": "original-082",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-15-live",
+        "atb-bus-16-live",
+        "atb-bus-18-live",
+        "atb-bus-53-live",
+        "atb-bus-54-live",
+        "atb-bus-71-live",
+        "atb-bus-72-live"
+      ]
+    },
+    {
+      "stop": "original-083",
+      "routes": [
+        "atb-bus-2-live",
+        "atb-bus-16-live",
+        "atb-bus-23-live",
+        "atb-bus-50-live",
+        "atb-bus-52-live",
+        "atb-bus-53-live",
+        "atb-bus-40-live"
+      ]
+    },
+    {
+      "stop": "original-087",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-16-live",
+        "atb-bus-23-live",
+        "atb-bus-50-live",
+        "atb-bus-71-live",
+        "atb-bus-72-live"
+      ]
+    },
+    {
+      "stop": "original-088",
+      "routes": [
+        "atb-bus-2-live",
+        "atb-bus-16-live",
+        "atb-bus-23-live",
+        "atb-bus-50-live",
+        "atb-bus-53-live"
+      ]
+    },
+    {
+      "stop": "original-095",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-46-live",
+        "atb-bus-52-live",
+        "atb-bus-78-live",
+        "atb-bus-53-live"
+      ]
+    },
+    {
+      "stop": "original-096",
+      "routes": [
+        "atb-bus-1-live",
+        "atb-bus-2-live",
+        "atb-bus-16-live",
+        "atb-bus-46-live",
+        "atb-bus-50-live",
+        "atb-bus-77-live",
+        "atb-bus-78-live",
+        "atb-bus-53-live"
+      ]
+    },
+    {
+      "stop": "original-101",
+      "routes": [
+        "atb-bus-15-live",
+        "atb-bus-16-live",
+        "atb-bus-46-live"
+      ]
+    }
+  ],
+  "duplicates": [],
+  "unconfirmed": [
+    "original-003",
+    "original-007",
+    "original-008",
+    "original-009",
+    "original-010",
+    "original-011",
+    "original-013",
+    "original-021",
+    "original-025",
+    "original-027",
+    "original-034",
+    "original-035",
+    "original-055",
+    "original-076",
+    "original-077",
+    "original-078",
+    "original-079",
+    "original-080",
+    "original-081",
+    "original-084",
+    "original-085",
+    "original-086",
+    "original-089",
+    "original-090",
+    "original-091",
+    "original-092",
+    "original-093",
+    "original-094",
+    "original-097",
+    "original-098",
+    "original-099",
+    "original-100"
+  ],
+  "unconfirmedNames": [
+    "original-003",
+    "original-007",
+    "original-008",
+    "original-009",
+    "original-010",
+    "original-011",
+    "original-013",
+    "original-076",
+    "original-077",
+    "original-079",
+    "original-080",
+    "original-084",
+    "original-085",
+    "original-086",
+    "original-089",
+    "original-090",
+    "original-091",
+    "original-093",
+    "original-094",
+    "original-097",
+    "original-098",
+    "original-099",
+    "original-100"
+  ],
+  "invalidBindings": [],
+  "unresolvedPaths": [
+    "trace-01",
+    "trace-02",
+    "trace-03",
+    "trace-04",
+    "trace-05",
+    "trace-06",
+    "trace-07",
+    "trace-08",
+    "trace-09",
+    "trace-10",
+    "trace-11",
+    "trace-12",
+    "trace-13",
+    "trace-14",
+    "trace-15",
+    "trace-16",
+    "trace-17",
+    "trace-18"
+  ]
+}

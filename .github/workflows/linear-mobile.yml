@@ -5,6 +5,7 @@ on:
       - 'web/linear/**'
       - 'web/shared/**'
       - 'scripts/test-linear-mobile-integration.mjs'
+      - 'scripts/test-intransit-map.mjs'
       - '.github/workflows/linear-mobile.yml'
   push:
     branches: [main]
@@ -12,6 +13,7 @@ on:
       - 'web/linear/**'
       - 'web/shared/**'
       - 'scripts/test-linear-mobile-integration.mjs'
+      - 'scripts/test-intransit-map.mjs'
       - '.github/workflows/linear-mobile.yml'
 permissions:
   contents: read
@@ -28,3 +30,6 @@ jobs:
           node-version: '22'
       - name: Verify Linear production defaults and opt-in Bus1 GPS Debug
         run: node scripts/test-linear-mobile-integration.mjs
+
+      - name: Verify InTransit layout, mapping and editor
+        run: node scripts/test-intransit-map.mjs
