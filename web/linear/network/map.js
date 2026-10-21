@@ -1,17 +1,18 @@
 (function(root){
  'use strict';
- const NS='http://www.w3.org/2000/svg',M=root.InTransitMapModel,S=root.TransitCoreSignals;
+ const NS='http://www.w3.org/2000/svg',M=root.InTransitMapModel,S=root.TransitCoreSignals,L=root.InTransitMapLayoutOps;
  const el=(tag,attrs={})=>{const n=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;};
  function download(name,text){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  root.InTransitNetwork={async create(host){
   const response=await fetch('network/trondheim-layout.json');if(!response.ok)throw Error('Kartlayout HTTP '+response.status);
   const initial=await response.json();const errors=M.validate(initial);if(errors.length)throw Error(errors.join(', '));
-  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><div class="map-editor" id="networkEditor" hidden><button data-act="undo">Angre</button><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
+  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><div class="map-editor" id="networkEditor" hidden><button data-act="addStop">+ Ny holdeplass</button><button data-act="addPath">+ Ny kartlinje</button><button data-act="undo">Angre</button><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
   const q=r=>host.querySelector(`[data-role="${r}"]`),svg=host.querySelector('svg'),editorPanel=host.querySelector('#networkEditor');
   let layout=initial,context={},editing=false,selection=null,selectedSegmentIndex=0,drag=null,box=[0,0,913,1280],phase=0,report={},frame=null;
   const routeReview=q('reviewPath'),reference=q('reference'),routeColors=q('routeColors'),largeLabels=q('largeLabels');
   const editor=root.InTransitMapEditor(initial,next=>{layout=next;draw();fields();});
   const setBox=()=>svg.setAttribute('viewBox',box.join(' '));
+  const viewportCenter=()=>({x:box[0]+box[2]/2,y:box[1]+box[3]/2});
   function zoom(f,cx=box[0]+box[2]/2,cy=box[1]+box[3]/2){const w=Math.min(1826,Math.max(40,box[2]*f)),h=w*1280/913;box=[cx-(cx-box[0])*w/box[2],cy-(cy-box[1])*h/box[3],w,h];setBox();}
   function coords(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
   function details(stop){const values=M.signals(stop,context.board,context.hardware,frame,context.all?null:context.line),age=(Date.now()-Date.parse(frame?.generatedAt))/1000;
@@ -71,7 +72,7 @@
    report=M.report(layout,context.boards||[]);
     report.routeEvidence={method:'consecutive Quays or catalog-verified, uniquely mapped StopPlaces',manualApproved:reviewed.length,drawn,possibleEdges:layout.paths.reduce((count,p)=>count+Math.max(0,p.points.length-1),0),exactOnly:edges.filter(e=>e.routes.every(r=>r.evidence==='exact-quay')).length,withStopPlace:edges.filter(e=>e.routes.some(r=>r.evidence==='unique-stopplace')).length,edges:edges.map(e=>({path:e.pathId,edge:e.edgeIndex,from:e.from,to:e.to,routes:e.routes.map(r=>({id:r.id,evidence:r.evidence}))})),byPath:layout.paths.map(p=>({id:p.id,documented:edges.filter(e=>e.pathId===p.id).length,segments:Math.max(0,p.points.length-1),fullRouteVerified:false}))};
     q('report').textContent=JSON.stringify(report,null,2);
-   q('notice').textContent='Kartet er delvis verifisert: '+report.unconfirmed.length+' stopp uten datakobling, '+report.unconfirmedNames.length+' uten navn. '+edges.length+'/'+report.routeEvidence.possibleEdges+' naboforbindelser dokumentert i rutekonfigurasjon; '+drawn+' vist med farge for valgte ruter. Andre segmenter er nøytrale. '+reviewed.length+' delstrekninger har manuell rutegodkjenning som er skilt fra ruteprofil-bevis. Ingen av de 18 hele linjeføringene eller full live-dekning er bekreftet.';
+   q('notice').textContent=(report.coverage.scope==='selected-corridors'?'Kartet viser et bevisst utvalg av strekninger; bussrutene trenger ikke være komplette fra ende til ende. Flere kan legges til senere. ':'')+'Datakoblinger som gjenstår: '+report.unconfirmed.length+' stopp; '+report.unconfirmedNames.length+' uten navn. '+edges.length+'/'+report.routeEvidence.possibleEdges+' naboforbindelser dokumentert i rutekonfigurasjonen; '+drawn+' fargevises for valgte ruter. '+reviewed.length+' delstrekninger er manuelt godkjent. Uavklarte delstrekninger er nøytrale. Full samtidig live-dekning er ikke bekreftet.';
    paint();
   }
   function paint(){
@@ -81,8 +82,8 @@
     group.dataset.state=v?.state||'OFF';const rgb=v?.rgb;group.style.color=Array.isArray(rgb)&&rgb.length===3&&rgb.every(n=>Number.isInteger(n)&&n>=0&&n<=255)?`rgb(${rgb.join(',')})`:'#70839a';group.querySelector('text').textContent=context.numbers&&v?String(v.line||'?'):'';
    }
    const active=all.filter(v=>v.state!=='PASSED'),known=active.every(v=>v.id),count=new Set(active.map(v=>v.id)).size;
-   q('summary').textContent=`${layout.stops.length} kartpunkter · ${report.unmapped?.length||0} uten kobling · `+(known&&active.length?`${count} identifiserte aktive busser i kartets tilgjengelige feed`:'Aktivt bussantall ikke bekreftet')+' · Linjevalg bruker eksisterende Linear-feed; dekning av alle kartlinjer er ikke bekreftet.';
-   if(selection?.type==='stop')details(layout.stops.find(s=>s.id===selection.id));
+   q('summary').textContent=`${layout.stops.length} kartpunkter · ${report.unmapped?.length||0} uten kobling · `+(known&&active.length?`${count} identifiserte aktive busser i kartets tilgjengelige feed`:'Aktivt bussantall ikke bekreftet')+' · Viser bare tegnede strekninger og data fra eksisterende Linear-feed; ikke nødvendigvis komplette bussruter.';
+   if(selection?.type==='stop'){const selected=layout.stops.find(s=>s.id===selection.id);if(selected)details(selected);else selection=null;}
   }
 
   function reviewPath(id){
@@ -121,9 +122,29 @@
        p.reviewedSegments[id]={verification:'user-reviewed',routes:[...new Set([...old,route.value])]};});}catch(e){q('details').textContent=e.message;}};
      const clear=document.createElement('button');clear.type='button';clear.textContent='Fjern godkjenning for denne delstrekningen';
      clear.onclick=()=>{try{editor.change(next=>{const p=pick(next);if(p.reviewedSegments)delete p.reviewedSegments[segment.value];});}catch(e){q('details').textContent=e.message;}};
-     review.append(segment,route,approve,clear,note);area.append(review);refresh();return;
+     const geometry=document.createElement('section');geometry.className='map-geometry-editor';
+     const label=document.createElement('strong');label.textContent='Tegn og endre kartlinjen';geometry.append(label);
+     const help=document.createElement('small');help.textContent='Ny endepunkt eller knekkpunkt kan dras i kartet etterpå. Berørte manuelle rutegodkjenninger fjernes ved innsetting.';geometry.append(help);
+     const addEnd=document.createElement('button');addEnd.type='button';addEnd.textContent='+ Forleng linjen';
+     addEnd.onclick=()=>{try{editor.change(next=>L.extendPath(next,item.id));selectedSegmentIndex=Math.max(0,layout.paths.find(p=>p.id===item.id).points.length-2);fields();}catch(e){q('details').textContent=e.message;}};
+     const insert=document.createElement('button');insert.type='button';insert.textContent='+ Knekkpunkt i valgt delstrekning';
+     insert.onclick=()=>{try{const idx=Number(segment.value);editor.change(next=>L.insertVertex(next,item.id,idx));selectedSegmentIndex=idx;fields();}catch(e){q('details').textContent=e.message;}};
+     const removeEnd=document.createElement('button');removeEnd.type='button';removeEnd.textContent='Fjern siste knekkpunkt';
+     removeEnd.onclick=()=>{try{editor.change(next=>L.removeLastVertex(next,item.id));selectedSegmentIndex=Math.max(0,selectedSegmentIndex-1);fields();}catch(e){q('details').textContent=e.message;}};
+     geometry.append(addEnd,insert,removeEnd);
+     if(item.id.startsWith('custom-path-')){
+      const del=document.createElement('button');del.type='button';del.textContent='Slett ny linje';
+      del.onclick=()=>{try{editor.change(next=>L.deleteNewPath(next,item.id));selection=null;fields();}catch(e){q('details').textContent=e.message;}};
+      geometry.append(del);
+     }
+     review.append(segment,route,approve,clear,note);area.append(review,geometry);refresh();return;
     }
-   input('Kartetikett',item.name,'text',(n,v)=>pick(n).name=v);input('Punktstørrelse',item.radius,'number',(n,v)=>pick(n).radius=v);input('Vis etikett',item.label.visible,'checkbox',(n,v)=>pick(n).label.visible=v);input('To dioder',item.diodeMode==='split','checkbox',(n,v)=>pick(n).diodeMode=v?'split':'shared');
+   if(item.id.startsWith('custom-stop-')){
+    const del=document.createElement('button');del.type='button';del.textContent='Slett ny holdeplass';
+    del.onclick=()=>{try{editor.change(next=>L.deleteNewStop(next,item.id));selection=null;fields();}catch(e){q('details').textContent=e.message;}};
+    area.append(del);
+   }
+   input('Kartetikett',item.name,'text',(n,v)=>{pick(n).name=v;pick(n).nameConfirmed=true;});input('Punktstørrelse',item.radius,'number',(n,v)=>pick(n).radius=v);input('Vis etikett',item.label.visible,'checkbox',(n,v)=>pick(n).label.visible=v);input('To dioder',item.diodeMode==='split','checkbox',(n,v)=>pick(n).diodeMode=v?'split':'shared');
    const label=document.createElement('label');label.textContent='Godkjent stasjon fra eksisterende konfigurasjon';const select=document.createElement('select');select.append(new Option('Velg bekreftet kartpunkt …',''));
    for(const board of context.boards||[]){const seen=new Set;for(const node of board.nodes){if(seen.has(node.stationId))continue;seen.add(node.stationId);select.append(new Option(board.id+' · '+node.name,board.id+'|'+node.stationId));}}
    select.onchange=()=>{if(!select.value)return;const [bid,sid]=select.value.split('|'),b=context.boards.find(b=>b.id===bid);editor.change(next=>{const s=pick(next),nodes=b.nodes.filter(n=>n.stationId===sid);if(!s.nameConfirmed){s.name=nodes[0].name;s.nameConfirmed=true;}s.verification='confirmed';s.bindings=s.bindings.filter(b=>b.boardId!==bid).concat(nodes.flatMap(n=>(n.stopIds||[]).map(stopId=>({boardId:bid,nodeId:n.id,stationId:sid,stopId}))));});};label.append(select);area.append(label);
@@ -137,6 +158,18 @@
   host.querySelectorAll('[data-act]').forEach(button=>button.onclick=()=>{try{switch(button.dataset.act){
    case'in':zoom(.75);break;case'out':zoom(1.33);break;case'fit':box=[0,0,913,1280];setBox();break;
    case'edit':editing=!editing;editorPanel.hidden=!editing;button.setAttribute('aria-pressed',editing);draw();fields();break;
+   case'addStop':{
+    if(!editing)break;
+    const at=viewportCenter();let id;
+    editor.change(next=>{id=L.addStop(next,at.x,at.y);});
+    selection={type:'stop',id};draw();fields();break;
+   }
+   case'addPath':{
+    if(!editing)break;
+    const at=viewportCenter();let id;
+    editor.change(next=>{id=L.addPath(next,at.x,at.y);});
+    selection={type:'path',id};selectedSegmentIndex=0;draw();fields();break;
+   }
    case'undo':editor.undo();break;case'discard':editor.discard();break;case'export':download('trondheim-layout.json',editor.export());break;
    case'report':download('trondheim-mapping-report.json',JSON.stringify(report,null,2));break;
    case'save':localStorage.setItem('intransit-map-draft-v1',editor.export());break;
@@ -155,7 +188,7 @@
    const prev=[...pointers.values()];pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){const next=[...pointers.values()],dist=a=>Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);zoom(dist(prev)/Math.max(1,dist(next)));drag.target=null;drag.start=coords(e);drag.box=[...box];return;}
    const p=coords(e),t=drag.target;if(!t){box=[box[0]+drag.start.x-p.x,box[1]+drag.start.y-p.y,box[2],box[3]];setBox();return;}
    const next=structuredClone(drag.before),x=Math.max(0,Math.min(913,p.x)),y=Math.max(0,Math.min(1280,p.y));
-   if(t.dataset.path){const path=next.paths.find(v=>v.id===t.dataset.path);path.points[Number(t.dataset.index)]={x,y};}
+   if(t.dataset.path){const path=next.paths.find(v=>v.id===t.dataset.path),i=Number(t.dataset.index);path.points[i]={x,y};if(path.reviewedSegments){delete path.reviewedSegments[i];delete path.reviewedSegments[i-1];}}
    else{const s=next.stops.find(s=>s.id===(t.dataset.stop||t.dataset.label));Object.assign(t.dataset.label?s.label:s,{x,y});}
    drag.next=next;layout=next;draw();
   };

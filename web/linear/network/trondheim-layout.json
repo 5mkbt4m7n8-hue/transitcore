@@ -8,6 +8,11 @@
     1280
   ],
   "status": "partially-mapped-needs-review",
+  "coverage": {
+    "scope": "selected-corridors",
+    "endToEndRequired": false,
+    "expandable": true
+  },
   "reference": {
     "path": "./assets/trondheim-original.jpg",
     "available": true,

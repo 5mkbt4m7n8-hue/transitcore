@@ -60,8 +60,11 @@ layout som `Uavklart NNN` med `bindings: []`.
    disse trenger kontroll av ID/eksakt navnevariant.
 4. Test rutefilter, `OFF` på ubundne punkter, én/to retninger og
    om sanntidsskifte fortsetter på de godkjente markørene.
-5. Behold PR #226 som **draft** til navn, ID-er, polylinjer og
-   faktisk dekning er godkjent.
+5. Behold PR #226 som **draft** mens tilordning av navn, ID-er og viste
+   delstrekninger kvalitetssikres. Kartet er med vilje et utvalg av
+   korridorer; komplett ende-til-ende-rute og alle stopp i Trondheim
+   er **ikke** et akseptansekriterium. Live-dekningen for viste stopp
+   må fortsatt opplyses korrekt.
 
 Neste område etter nordøst (kan fortsette uten å vente på de sju navnene): de fem navngitte men uverifiserte punktene
 i indre østlige nett (021, 025, 027, 034, 035).

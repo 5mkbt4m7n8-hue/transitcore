@@ -61,6 +61,25 @@ try{
  assert.equal(calls,auditRequests,'Map review controls must not fetch live frames');
  const box=await page.locator('svg.map-viewport').getAttribute('viewBox');await page.locator('[data-act=in]').click();assert.notEqual(await page.locator('svg.map-viewport').getAttribute('viewBox'),box);await page.locator('[data-act=fit]').click();
  await page.locator('[data-act=edit]').click();
+ // The original white drawing is not modified when adding/removing a new element.
+ const initialStops=await page.locator('.map-stop').count(),initialPaths=await page.locator('.map-route').count();
+ await page.locator('[data-act=addStop]').click();
+ assert.equal(await page.locator('.map-stop').count(),initialStops+1);
+ assert.equal(await page.locator('.map-stop[data-stop="custom-stop-001"][data-unresolved="true"][data-state="OFF"]').count(),1,'Unmapped new stop is never displayed as live');
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-stop').count(),initialStops,'Undo removes only the newly added stop');
+ await page.locator('[data-act=addPath]').click();
+ assert.equal(await page.locator('.map-route').count(),initialPaths+1,'New schematic line has two vertices and renders');
+ assert.equal(await page.locator('[data-route-path="custom-path-001"]').count(),1);
+ await page.getByRole('button',{name:'+ Forleng linjen'}).click();
+ assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(s=>s.trim().split(' ').length),3);
+ await page.getByRole('button',{name:'+ Knekkpunkt i valgt delstrekning'}).click();
+ assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(s=>s.trim().split(' ').length),4);
+ await page.locator('[data-act=undo]').click();
+ await page.locator('[data-act=undo]').click();
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-route').count(),initialPaths,'Undo restores all original 18 paths');
+ assert.equal(await page.locator('.map-stop').count(),initialStops,'Original stops are preserved');
  // Review one edge in the offline fixture. Undo restores the untouched layout.
  await page.locator('[data-role=reviewPath]').selectOption('trace-04');
  await page.locator('.map-segment-editor select[aria-label="Velg delstrekning"]').selectOption('0');

@@ -4,6 +4,9 @@
  function validate(layout){
   const errors=[],ids=new Set;
   if(layout?.schemaVersion!==1||layout?.viewBox?.join(' ')!=='0 0 913 1280')errors.push('Ukjent kartformat / viewBox');
+  // Deliberately selected schematic corridors are allowed to end partway
+  // through physical bus routes. Validate known metadata, not completeness.
+  if(layout?.coverage!==undefined&&(layout.coverage?.scope!=='selected-corridors'||layout.coverage.endToEndRequired!==false||layout.coverage.expandable!==true))errors.push('Ugyldig omfang for delvis busskart');
   if(!Array.isArray(layout?.stops)||!Array.isArray(layout?.paths))return [...errors,'Mangler stopp eller linjer'];
   if(layout.stops.length>3000||layout.paths.length>1000)errors.push('For stort kart');
   for(const s of layout.stops){
@@ -44,7 +47,7 @@
   }).filter(v=>v.state!=='OFF');
  }
  function report(layout,boards){
-  const result={complete:false,unmapped:[],feedStopsMissing:[],unclearDirections:[],multiLine:[],duplicates:[],unconfirmed:[],unconfirmedNames:[],invalidBindings:[],unresolvedPaths:layout.paths.filter(p=>p.verification!=='confirmed').map(p=>p.id)},seen=new Map;
+  const result={complete:false,coverage:layout.coverage||{scope:'unspecified',endToEndRequired:null},unmapped:[],feedStopsMissing:[],unclearDirections:[],multiLine:[],duplicates:[],unconfirmed:[],unconfirmedNames:[],invalidBindings:[],unresolvedPaths:layout.paths.filter(p=>p.verification!=='confirmed').map(p=>p.id)},seen=new Map;
   for(const s of layout.stops){
    if(s.verification!=='confirmed')result.unconfirmed.push(s.id);
    if(!s.nameConfirmed)result.unconfirmedNames.push(s.id);

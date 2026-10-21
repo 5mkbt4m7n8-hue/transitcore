@@ -28,3 +28,9 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-segment-editor strong,.map-segment-note{grid-column:1/-1}
 .map-segment-note{color:#cbdff5;line-height:1.5}
 .map-segment-editor select{width:100%;min-width:0}
+
+/* Future extensions are edited in the same SVG layout; source reference remains unmodified. */
+.map-geometry-editor{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-width:0;flex:1 1 100%;padding:10px;border:1px solid #3a6074;border-radius:10px;background:#102134}
+.map-geometry-editor strong,.map-geometry-editor small{flex:1 1 100%}
+.map-geometry-editor small{color:#c1d6ee}
+.map-editor>button[data-act=addStop],.map-editor>button[data-act=addPath]{border:1px solid #468fbd;background:#153a51}

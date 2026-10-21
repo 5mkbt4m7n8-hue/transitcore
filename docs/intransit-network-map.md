@@ -93,3 +93,62 @@ samme måte som øvrig layout. Validering stopper ugyldige segmentnumre,
 dupliserte eller uventede rute-ID-er. Ingen forhåndsgodkjenninger legges
 til i original-layoutfilen; 104 fremdeles uavklarte delstrekninger forblir
 åpne inntil brukeren har verifisert dem mot originalkartet.
+
+## Avgrensning: bevisst ufullstendige bussruter (beslutning 2026-10-21)
+
+Brukerens originale hvite kart er et **utvalg av strekninger** i Trondheim,
+ikke nødvendigvis komplette bussruter fra første til siste holdeplass.
+Dette er et ønsket produktomfang, ikke en datakvalitetsfeil. Fremtidige
+utvidelser kan legge til flere tegnede segmenter, stopp og linjer.
+Layouten har derfor eksplisitt `coverage: {scope: "selected-corridors",
+endToEndRequired: false, expandable: true}`.
+
+- Ikke forsøk å fylle inn manglende deler av faktiske bussruter ved GPS,
+  antatt geometri, korteste vei eller rutens komplette stoppliste.
+- Eksisterende kartpunkter, segment-ID-er og de to Samfundet-markørene
+  skal beholdes ved senere utvidelser. Legg til nye stabile ID-er.
+- Kontrollér kun at **det som er tegnet og påstås korrekt**, faktisk er
+  koblet til riktige stopp og ruter. En synlig delstrekning med manglende
+  mapping/rutefarge er fortsatt uavklart, selv om rutens videre forløp
+  utenfor tegningen aldri blir lagt inn.
+- `feedStopsMissing` representerer blant annet stopp *utenfor tegnet omfang*.
+  Disse skal ikke telle som krav om at alle byens stopp må legges inn.
+- `complete: false` i datavalideringsrapporten betyr fortsatt at
+  kvalitetssikringen av **eksisterende tegnede punkter** er uferdig;
+  det innebærer ikke krav om komplett ende-til-ende-dekning.
+- Statuspanelet i «Hele kartet» opplyser om bevisst delvis dekning og
+  viser fortsatt begrensninger i tilgjengelige live-data.
+
+## Utvidelse av selve tegningen – kontrollert redigering
+
+Kartet er ikke en låst bildefil. Det hvite originalbildet beholdes
+uendret som referanse, mens stopp og traséer er separate SVG-punkter og
+polylinjer som lagres i kartlayoutens JSON.
+
+I «Hele kartet» → «Rediger kart» kan eieren nå:
+- legge til nye holdeplasser i midten av det synlige kartutsnittet,
+  flytte dem og redigere tekst/etikett etterpå;
+- legge til nye linjer som to punkter og dra disse videre;
+- forlenge en valgt linje, sette inn knekkpunkt på en delstrekning
+  eller fjerne siste knekkpunkt;
+- fjerne **egne nylig tilføyde** holdeplasser/linjer, mens de
+  opprinnelige 100 holdeplassene og 18 linjene er beskyttet
+  mot direkte sletting;
+- angre endringer og importere/eksportere alle nye geometridata i
+  samme JSON, som senere kan versjoneres i Git.
+
+Nye holdeplasser får stabile `custom-stop-NNN`-ID-er, vises som
+uavklart uten live-status, og får ikke oppdiktet navn eller Quay-ID.
+Nye linjer får `custom-path-NNN`-ID-er og er nøytrale frem til
+rutetilhørighet er bekreftet. Eksisterende Samfundet-grupper,
+databindinger og fysisk LED-mapping endres ikke.
+
+Når et godkjent segment deles eller får endret geometri, ugyldiggjøres
+berørte manuelle rutegodkjenninger; godkjenninger på uberørte segmenter
+bevares. Utvidelser er **mulige innenfor nåværende SVG-kartflate**
+(`0 0 913 1280`). Hvis kartet senere skal tegnes videre utenfor
+originalarkets grenser, må vi også utvide viewBox/kartflaten som et eget
+versjonert steg. Ingen eksisterende punkter skal da forskyves, og
+originalbildet skal forbli forankret i sine opprinnelige koordinater.
+
+Arbeidskopien påvirker ikke produksjons-Worker, ESP32 eller andre tavler.
