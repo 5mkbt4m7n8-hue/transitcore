@@ -43,3 +43,14 @@ Kjør `node scripts/test-intransit-map.mjs` for eksakte ID-/LED-koblinger, linje
 Chromium-testen kjøres automatisk på PR i GitHub Actions med en eksplisitt pinnet Playwright-versjon og nettleserinstallasjon. Den laster opp artefakten `intransit-map-review` med fire skjermbilder (mørk desktop, mørk mobil, hvitt referanselag, gjennomgang av `trace-04`), slik at kartets visuelle kvalitet kan godkjennes før merge. Skjermbildene viser **offline testframes** og er ikke bevis for sanntidsdekning eller geografisk korrekt rutetilhørighet. De gir ingen deploy. Lokalt kan den samme testen kjøres: `PLAYWRIGHT_MODULE=/path/to/playwright BROWSER_PATH=/usr/bin/chromium node scripts/browser-intransit-map.mjs`. Sanntidskall bruker lokale testframes eller eksplisitte feilresponser. Testen verifiserer modusbytte uten ekstra framekall, uendret Linear-DOM, zoom, én/to dioder, angre, eksport, ETA-kildetekst, ekte frame-utløp i klienten, staging-feil og mobilbredde. Testdata vises aldri i live-produktet.
 
 Før leveransen kan godkjennes som komplett må polylinjenes rutetilhørighet, de 32 gjenværende mappingene og konfigurasjonsavviket ved Samfundet og full nettverksdekning gjennomgås. PR-en er derfor et utkast, ikke en erklæring om at alle akseptansekriterier er oppfylt.
+
+## Lesbarhet bekreftet med skjermbilder
+
+En faktisk Chromium-gjennomgang av PR #226 viste at stoppnavnene er svært små
+når hele den høye originaltegningen tilpasses vinduet. Derfor har kartet
+nå «Større navn» som en **ren visningsinnstilling**. Standardnavn er litt
+større, og brukeren kan slå på større navn under kontroll og zoom. I tillegg
+har nøytrale rutelinjer og stoppmarkører fått bedre kontrast, og kartområdet
+får mer høyde på desktop. Ingen koordinater, stasjons-ID-er, farger fra
+ruteprofilene eller eksisterende live-motor er endret. Kontrollskjermbildene
+i CI-artefakten inkluderer nå også visningen med større navn.

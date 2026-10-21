@@ -12,3 +12,12 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-toggle input{accent-color:#54b2ff;width:16px;height:16px;cursor:pointer}
 .map-review-label select{width:min(220px,100%);min-width:0;background:#15243a;color:#e5eefb;border:1px solid #405470;border-radius:5px;padding:5px}
 @media(max-width:560px){.map-review-label{flex:1 1 100%}.map-review-label select{width:100%}}
+
+/* Legibility improvement from actual desktop/mobile Chromium screenshots.
+   SVG coordinates, labels' x/y positions and route mappings are untouched. */
+.map-viewport{height:min(95vh,1100px)}
+.map-label{font-size:9px;stroke-width:2.5px}
+.map-viewport.map-big-labels .map-label{font-size:13px;stroke-width:3px}
+.map-route{filter:drop-shadow(0 0 1px #9eb6d2)}
+.map-stop circle{stroke:#9eb9d2;stroke-width:1.3}
+@media(max-width:560px){.map-viewport{height:65vh}}

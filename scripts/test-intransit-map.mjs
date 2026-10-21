@@ -59,6 +59,8 @@ const ui=read('web/linear/network/map.js');
 assert.match(ui,/data-role="reviewPath"/);
 assert.match(ui,/data-role="reference"/);
 assert.match(ui,/data-role="routeColors"/);
+assert.match(ui,/data-role="largeLabels"/);
+assert.match(ui,/largeLabels\.onchange=\(\)=>draw\(\)/);
 assert.match(ui,/report\.routeEvidence=/);
 assert.match(ui,/reference\.onchange=\(\)=>draw\(\)/);
 assert.match(ui,/routeColors\.onchange=\(\)=>draw\(\)/);

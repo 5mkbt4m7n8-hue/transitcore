@@ -38,6 +38,13 @@ try{
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Mobile map must not overflow');
  await saveScreenshot('02-dark-network-mobile.png');
  await page.setViewportSize({width:1280,height:1000});
+ const largeLabels=page.locator('[data-role=largeLabels]');
+ assert.equal(await largeLabels.isChecked(),false);
+ await largeLabels.check();
+ assert.equal(await page.locator('svg.map-viewport').evaluate(el=>el.classList.contains('map-big-labels')),true);
+ await saveScreenshot('05-large-stop-labels.png');
+ await largeLabels.uncheck();
+ assert.equal(await page.locator('svg.map-viewport').evaluate(el=>el.classList.contains('map-big-labels')),false);
  const auditRequests=calls;
  const reference=page.locator('[data-role=reference]'),routeColors=page.locator('[data-role=routeColors]');
  assert.equal(await reference.isChecked(),false);
