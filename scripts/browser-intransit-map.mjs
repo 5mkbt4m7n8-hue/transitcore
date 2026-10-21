@@ -25,6 +25,17 @@ try{
  assert.equal(calls,before,'Mode switch must not request another frame');assert.equal(await page.locator('#route').inputValue(),route);
  assert.equal(await page.locator('#linearView').isVisible(),false);
  assert.equal(await page.locator('.map-stop[data-state="OFF"]').count(),await page.locator('.map-stop').count(),'Unresolved points must stay OFF');
+ const auditRequests=calls;
+ const reference=page.locator('[data-role=reference]'),routeColors=page.locator('[data-role=routeColors]');
+ assert.equal(await reference.isChecked(),false);
+ await reference.check();assert.equal(await page.locator('svg.map-viewport image').getAttribute('opacity'),'0.55');
+ await reference.uncheck();assert.equal(await page.locator('svg.map-viewport image').getAttribute('opacity'),'0.08');
+ assert.equal(await routeColors.isChecked(),true);
+ await routeColors.uncheck();assert.equal(await page.locator('.map-route-confirmed').count(),0);
+ await routeColors.check();
+ await page.locator('[data-role=reviewPath]').selectOption('trace-04');
+ assert.match(await page.locator('[data-role=details]').innerText(),/trace-04/);
+ assert.equal(calls,auditRequests,'Map review controls must not fetch live frames');
  const box=await page.locator('svg.map-viewport').getAttribute('viewBox');await page.locator('[data-act=in]').click();assert.notEqual(await page.locator('svg.map-viewport').getAttribute('viewBox'),box);await page.locator('[data-act=fit]').click();
  await page.locator('[data-act=edit]').click();await page.locator('.map-stop').first().click();
  await page.getByLabel('To dioder',{exact:true}).check();assert.equal(await page.locator('.map-stop[data-direction]').count(),2);

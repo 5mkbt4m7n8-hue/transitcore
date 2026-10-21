@@ -24,6 +24,8 @@ Aktivt bussantall vises bare hvis alle aktuelle observasjoner har kjøretøy-ID;
 
 En felles diode er standard. `diodeMode: "split"` kan velges per stopp; node-/Quay-/retnings-ID-er holdes separat. Endringen påvirker bare SVG, aldri hardware-konfigurasjon.
 
+Kartet har nå en egen gjennomgangsmodus direkte i den eksisterende kartvisningen: «Vis originaltegningen» viser det faktiske vedlagte hvite kartet tydeligere som referanselag; «Vis dokumenterte rutefarger» slår kun fargeoverlaget av/på; og «Gjennomgå linje» lar brukeren velge én av de 18 tegnede polylinjene. Visningen zoomer da inn på den valgte polylinjen og viser antall enkeltkanter med dokumentert eksakt Quay-naboskap og hvilke stasjoner/linjer som støtter dem. Valideringsrapporten får `routeEvidence.byPath` med antall dokumenterte segmenter per linje, og `fullRouteVerified: false` for alle. De avtegnede rutene forblir uavklarte der data mangler. Dette er visuelle kontrollfunksjoner og utløser **ingen ekstra live-API-kall**. Originalfilen og kartkoordinatene endres ikke.
+
 Kartet støtter zoom, dra, pinch, tilpass og punktfokus. Stopp, etiketter og linjeknekkpunkter flyttes med mus/berøring. Redigeringspanelet gir kartetikett, størrelse, én/to dioder, synlighet, stasjonskobling, linjefarge og tykkelse. Arbeidskopien har angre, forkast, eksplisitt lokal lagring/gjenoppretting og JSON-import/-eksport. Import valideres før aktiv layout erstattes. Eksportert layout kan committes til GitHub.
 
 `web/linear/network/model.js` validerer bindinger mot eksakt node-ID, stationId og stopId, og oversetter logisk LED til fysisk LED via aktiv hardware-konfigurasjon. Ingen kobling skjer via navn eller koordinater ved runtime.

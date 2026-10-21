@@ -6,9 +6,10 @@
  root.InTransitNetwork={async create(host){
   const response=await fetch('network/trondheim-layout.json');if(!response.ok)throw Error('Kartlayout HTTP '+response.status);
   const initial=await response.json();const errors=M.validate(initial);if(errors.length)throw Error(errors.join(', '));
-  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><select data-role="focus" aria-label="Fokus på holdeplass"></select><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><div class="map-editor" id="networkEditor" hidden><button data-act="undo">Angre</button><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
+  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><div class="map-editor" id="networkEditor" hidden><button data-act="undo">Angre</button><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
   const q=r=>host.querySelector(`[data-role="${r}"]`),svg=host.querySelector('svg'),editorPanel=host.querySelector('#networkEditor');
   let layout=initial,context={},editing=false,selection=null,drag=null,box=[0,0,913,1280],phase=0,report={},frame=null;
+  const routeReview=q('reviewPath'),reference=q('reference'),routeColors=q('routeColors');
   const editor=root.InTransitMapEditor(initial,next=>{layout=next;draw();fields();});
   const setBox=()=>svg.setAttribute('viewBox',box.join(' '));
   function zoom(f,cx=box[0]+box[2]/2,cy=box[1]+box[3]/2){const w=Math.min(1826,Math.max(40,box[2]*f)),h=w*1280/913;box=[cx-(cx-box[0])*w/box[2],cy-(cy-box[1])*h/box[3],w,h];setBox();}
@@ -19,7 +20,7 @@
   function draw(){
    svg.replaceChildren();setBox();
    // Only a repository-relative, supplied reference image can be displayed.
-   if(layout.reference?.available&&/^\.\/assets\/[\w.-]+\.(png|jpg|svg|webp)$/.test(layout.reference.path||''))svg.append(el('image',{href:layout.reference.path,x:0,y:0,width:913,height:1280,opacity:editing?.35:.08}));
+   if(layout.reference?.available&&/^\.\/assets\/[\w.-]+\.(png|jpg|svg|webp)$/.test(layout.reference.path||''))svg.append(el('image',{href:layout.reference.path,x:0,y:0,width:913,height:1280,opacity:reference.checked?.55:editing?.28:.08}));
    for(const path of layout.paths){if(path.routes.length&&!context.all&&!path.routes.includes(context.route))continue;
     const p=el('polyline',{points:path.points.map(p=>p.x+','+p.y).join(' '),stroke:path.color,'stroke-width':path.width,class:'map-route',tabindex:0,'aria-label':path.id});
     p.onclick=()=>{selection={type:'path',id:path.id};fields();q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');};p.dataset.routePath=path.id;svg.append(p);
@@ -31,7 +32,7 @@
    let drawn=0;
    for(const edge of edges){
     const routes=context.all?edge.routes:edge.routes.filter(r=>r.id===context.route);
-    if(!routes.length)continue;
+    if(!routes.length||!routeColors.checked)continue;
     const dx=edge.b.x-edge.a.x,dy=edge.b.y-edge.a.y,len=Math.hypot(dx,dy);if(len<0.1)continue;
     drawn++;
     routes.forEach((route,i)=>{
@@ -48,10 +49,13 @@
     if(stop.label.visible){const label=el('text',{x:stop.label.x,y:stop.label.y,class:'map-label'});label.textContent=stop.name;label.dataset.label=stop.id;svg.append(label);}
    }
    q('focus').replaceChildren(new Option('Fokus på punkt …',''),...layout.stops.map(s=>new Option(s.name,s.id)));
+   const currentPath=routeReview.value;
+   routeReview.replaceChildren(new Option('Gjennomgå kartlinje …',''),...layout.paths.map(p=>new Option(p.id+' · '+edges.filter(e=>e.pathId===p.id).length+'/'+(p.points.length-1)+' nabokoblinger',p.id)));
+   routeReview.value=layout.paths.some(p=>p.id===currentPath)?currentPath:'';
    report=M.report(layout,context.boards||[]);
-    report.routeEvidence={method:'consecutive exact Quay IDs in route profiles',drawn,edges:edges.map(e=>({path:e.pathId,edge:e.edgeIndex,from:e.from,to:e.to,routes:e.routes.map(r=>r.id)}))};
+    report.routeEvidence={method:'consecutive exact Quay IDs in route profiles',drawn,possibleEdges:layout.paths.reduce((count,p)=>count+Math.max(0,p.points.length-1),0),edges:edges.map(e=>({path:e.pathId,edge:e.edgeIndex,from:e.from,to:e.to,routes:e.routes.map(r=>r.id)})),byPath:layout.paths.map(p=>({id:p.id,documented:edges.filter(e=>e.pathId===p.id).length,segments:Math.max(0,p.points.length-1),fullRouteVerified:false}))};
     q('report').textContent=JSON.stringify(report,null,2);
-   q('notice').textContent='Kartet er delvis verifisert mot originalen. '+report.unconfirmed.length+' stopp uten bekreftet datakobling; '+report.unconfirmedNames.length+' mangler navn. '+drawn+' delstrekninger er fargelagt fra sikre nabostopp i ruteprofiler. Øvrige er nøytrale. Full rutetilhørighet for 18 hovedtraséer og full live-dekning er fortsatt uavklart.';
+   q('notice').textContent='Kartet er delvis verifisert: '+report.unconfirmed.length+' stopp uten datakobling, '+report.unconfirmedNames.length+' uten navn. '+edges.length+'/'+report.routeEvidence.possibleEdges+' naboforbindelser dokumentert i rutekonfigurasjon; '+drawn+' vist med farge for valgte ruter. Andre segmenter er nøytrale. Ingen av de 18 hele linjeføringene eller full live-dekning er bekreftet.';
    paint();
   }
   function paint(){
@@ -63,6 +67,18 @@
    const active=all.filter(v=>v.state!=='PASSED'),known=active.every(v=>v.id),count=new Set(active.map(v=>v.id)).size;
    q('summary').textContent=`${layout.stops.length} kartpunkter · ${report.unmapped?.length||0} uten kobling · `+(known&&active.length?`${count} identifiserte aktive busser i kartets tilgjengelige feed`:'Aktivt bussantall ikke bekreftet')+' · Linjevalg bruker eksisterende Linear-feed; dekning av alle kartlinjer er ikke bekreftet.';
    if(selection?.type==='stop')details(layout.stops.find(s=>s.id===selection.id));
+  }
+
+  function reviewPath(id){
+   const p=layout.paths.find(p=>p.id===id);if(!p)return;
+   selection={type:'path',id};fields();
+   const known=M.verifiedSegments(layout,context.profiles||[]).filter(e=>e.pathId===id);
+   q('details').textContent=p.id+' · '+known.length+' av '+(p.points.length-1)+' delstrekninger med dokumentert naboskap i ruteprofil.\n'+
+    (known.length?known.map(e=>'Del '+(e.edgeIndex+1)+': '+(layout.stops.find(s=>s.id===e.from)?.name||e.from)+' → '+(layout.stops.find(s=>s.id===e.to)?.name||e.to)+' · buss '+e.routes.map(r=>r.line).join(', ')).join('\n'):'Ingen dokumenterte Quay-nabostopp.')+
+    '\nDette bekrefter ikke komplett trasé eller live-GPS.';
+   const vs=p.points,xs=vs.map(v=>v.x),ys=vs.map(v=>v.y),cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2;
+   const w=Math.min(913,Math.max(110,Math.max(...xs)-Math.min(...xs)+45,(Math.max(...ys)-Math.min(...ys)+45)*913/1280));
+   box=[cx-w/2,cy-w*1280/913/2,w,w*1280/913];setBox();
   }
   function fields(){
    const area=q('fields');area.replaceChildren();if(!editing||!selection)return;
@@ -91,6 +107,9 @@
   }}catch(e){q('details').textContent=e.message;}});
   q('import').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>2000000)throw Error('JSON er for stor');editor.import(JSON.parse(await file.text()));}catch(error){q('details').textContent=error.message;}finally{e.target.value='';}};
   q('focus').onchange=()=>{const s=layout.stops.find(s=>s.id===q('focus').value);if(s){box=[s.x-80,s.y-112,160,224];setBox();details(s);}};
+  routeReview.onchange=()=>{if(routeReview.value)reviewPath(routeReview.value);};
+  reference.onchange=()=>draw();
+  routeColors.onchange=()=>draw();
   svg.onwheel=e=>{e.preventDefault();const p=coords(e);zoom(e.deltaY<0?.85:1.18,p.x,p.y);};
   const pointers=new Map;
   svg.onpointerdown=e=>{svg.setPointerCapture(e.pointerId);const p=coords(e);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});const target=e.target.closest('[data-stop],[data-label],[data-path],[data-route-path]');if(target?.dataset.routePath){selection={type:'path',id:target.dataset.routePath};fields();const path=layout.paths.find(p=>p.id===selection.id);q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');}if(target&&(target.dataset.stop||target.dataset.label)){const id=target.dataset.stop||target.dataset.label;selection={type:'stop',id};fields();details(layout.stops.find(s=>s.id===id));}drag={id:e.pointerId,start:p,box:[...box],target:editing&&target&&!target.dataset.routePath?target:null,before:editor.get(),next:null};};
