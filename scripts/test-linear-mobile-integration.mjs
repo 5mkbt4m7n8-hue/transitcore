@@ -155,4 +155,43 @@ await new Promise(resolve=>setImmediate(resolve));
 assert.equal(debugEl('gpsDebug').hidden,true);
 assert.equal(debugRequests.filter(url=>String(url).includes('/diagnostics')).length,beforeProduction,'Production must not read staging diagnostics');
 
-console.log('Linear HTML, full Bus1 147 mapping, mobile bookmark/defaults, other profiles, source/route switching and authoritative expiry and opt-in GPS Debug PASS');
+
+// All-bus stops: three presentation-only choices on the same canonical frame.
+assert.match(html,/<select id="routeBadgeMode"><option value="details">Detaljer<\/option><option value="colors">Kun farger<\/option><option value="numbers">Linjenummer i diode<\/option><\/select>/);
+const multiItems=[{id:12,rgb:[237,83,80],occupants:[
+ {line:'1',state:'AT_STOP',destination:'Ranheim',rgb:[237,83,80]},
+ {line:'3',state:'APPROACHING',destination:'Sentrum',rgb:[20,140,90]},
+ {line:'3',state:'AT_STOP',destination:'Sentrum',rgb:[20,140,90]}
+]}];
+const makeMarkup=mode=>vm.runInContext('renderStationBuses('+JSON.stringify(multiItems)+','+JSON.stringify(mode)+')',context);
+const details=makeMarkup('details'),colors=makeMarkup('colors'),numbers=makeMarkup('numbers');
+assert.equal((details.match(/class="badge"/g)||[]).length,3,'Existing detailed bus rows retained');
+assert.match(details,/1 · AT_STOP · Ranheim/);
+assert.equal((colors.match(/class="route-pip"/g)||[]).length,3,'One colored dot per bus, including same-line buses');
+assert(!colors.includes('class="badge"'));
+assert.match(colors,/--route-color:rgb\(237,83,80\)/);
+assert.match(colors,/--route-color:rgb\(20,140,90\)/);
+assert.match(colors,/aria-label="Linje 3 · AT_STOP · Sentrum"/);
+assert((colors.match(/class="route-pip"[^>]*><\/span>/g)||[]).length===3,'Color-only dots must contain no visible text');
+assert.equal((numbers.match(/class="route-pip numbered"/g)||[]).length,3);
+assert.match(numbers,/>1<\/span>/);
+assert.equal((numbers.match(/>3<\/span>/g)||[]).length,2,'Both vehicles on line 3 must be represented');
+assert(!numbers.includes('class="badge"'));
+const untrusted=vm.runInContext('renderStationBuses('+JSON.stringify([{id:1,rgb:[1,2,3],occupants:[{line:'<svg>',state:'AT_STOP',destination:'<img src=x>',rgb:[9,9,9]}]}])+',"numbers")',context);
+assert.match(untrusted,/&lt;svg&gt;/);assert.match(untrusted,/&lt;img src=x&gt;/);
+assert(!untrusted.includes('<svg>')&&!untrusted.includes('<img src=x>'));
+// The preference only changes visual markup: no refetch, no engine or board change.
+el('route').value='atb-bus-1-live';el('route').onchange();await new Promise(resolve=>setImmediate(resolve));
+assert.equal(el('routeViewOptions').hidden,true);
+el('allRoutes').checked=true;el('allRoutes').onchange();await new Promise(resolve=>setImmediate(resolve));
+assert.equal(el('routeViewOptions').hidden,false);
+const clientCount=clients.length;
+el('routeBadgeMode').value='numbers';el('routeBadgeMode').onchange();
+assert.equal(clients.length,clientCount,'Changing display mode cannot poll the feed');
+el('allRoutes').checked=false;el('allRoutes').onchange();await new Promise(resolve=>setImmediate(resolve));
+assert.equal(el('routeViewOptions').hidden,true);
+assert.equal(el('routeBadgeMode').value,'numbers','Display preference survives temporary hiding');
+el('route').value='flybuss-trondheim-fb73-live';el('route').onchange();await new Promise(resolve=>setImmediate(resolve));
+assert.equal(el('routeViewOptions').hidden,true,'Flybuss cannot activate multi-route view');
+
+console.log('Linear HTML, full Bus1 147 mapping, multi-route badges, mobile bookmark/defaults, source/route switching and authoritative expiry and opt-in GPS Debug PASS');

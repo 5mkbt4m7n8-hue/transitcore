@@ -11,6 +11,11 @@
     h1{margin:0;font-size:26px}.sub{color:var(--muted);margin:6px 0 14px}.tools,.summary,.legend{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
     select,button{font:inherit;color:var(--text);background:#1b222c;border:1px solid #3b4654;border-radius:9px;padding:9px 12px}button{cursor:pointer}.status{margin-left:auto;color:var(--muted)}
     .badge{background:#171d25;border:1px solid #2c3541;border-radius:999px;padding:6px 10px}.badge b{color:#fff}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+    .station-buses{gap:5px!important;align-items:center;min-height:0}
+    .route-pip{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:16px;height:16px;border-radius:50%;background:var(--route-color);box-shadow:0 0 0 1px #ffffff80}
+    .route-pip.numbered{width:28px;min-width:28px;height:28px;padding:0 3px;color:#fff;font-size:11px;font-weight:800;line-height:1;letter-spacing:-.3px;text-shadow:0 1px 2px #000,0 0 2px #000}
+    .route-pip.passed{opacity:.35}
+    .route-view-options[hidden]{display:none}
     .board{border:1px solid #252b34;background:var(--panel);border-radius:12px;padding:12px 8px 18px;overflow:hidden}.head,.row{display:grid;grid-template-columns:minmax(130px,1fr) 94px 94px;align-items:center}
     .head{position:sticky;top:0;z-index:4;background:var(--panel);padding:9px 0;color:var(--muted);font-size:12px}.head span{text-align:center}.station{text-align:right;padding-right:18px;font-weight:600}
     .cell{height:42px;position:relative;display:grid;place-items:center}.cell:before{content:"";position:absolute;inset:0 auto 0 50%;width:4px;transform:translateX(-50%);background:var(--line)}.cell.shared{grid-column:2/4}.cell.shared:before{left:25%}.cell.shared:after{content:"";position:absolute;inset:0 auto 0 75%;width:4px;transform:translateX(-50%);background:var(--line)}.row.first .cell:before,.row.first .cell:after{top:50%}.row.last .cell:before,.row.last .cell:after{bottom:50%}
@@ -26,6 +31,7 @@
   <div class="tools"><label>Linje <select id="route"></select></label><button id="refresh">Oppdater</button><button id="test">LED-test</button><span class="status" id="status">Starter ...</span></div>
   <div class="tools"><label>Datakilde <select id="source"><option value="production">Eksisterende tavler</option><option value="staging">STAGING · Unified Engine</option></select></label></div>
   <label><input type="checkbox" id="allRoutes"> Vis alle bylinjer på disse holdeplassene</label>
+  <div class="tools route-view-options" id="routeViewOptions" hidden><label>Visning per holdeplass <select id="routeBadgeMode"><option value="details">Detaljer</option><option value="colors">Kun farger</option><option value="numbers">Linjenummer i diode</option></select></label></div>
   <p class="sub" id="scopeNote">Viser valgt linje. Klikk på en diode for detaljer.</p>
   <div class="summary"><span class="badge">Holdeplasser <b id="stationCount">-</b></span><span class="badge">Aktive LED-er <b id="activeCount">-</b></span><span class="badge">Frame <b id="quality">-</b></span></div>
   <div class="legend" id="legend"></div>
@@ -80,6 +86,7 @@ const stagingSelected=()=>$("source").value==="staging";
 const STAGING_ORIGIN="https://transitcore-linear-staging.lgb84.workers.dev";
 const BUS1_GPS_BOARD="trondheim-bus-1-gps-staging",BUS1_ROUTE="atb-bus-1-live";
 const allRoutes=()=>$("allRoutes").checked&&profile?.id!==FLYBUSS;
+const routeBadgeMode=()=>["colors","numbers"].includes($("routeBadgeMode").value)?$("routeBadgeMode").value:"details";
 const bus1GpsSelected=()=>stagingSelected()&&profile?.id===BUS1_ROUTE&&!allRoutes();
 
 async function json(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error(`HTTP ${response.status}`);return response.json()}
@@ -106,6 +113,7 @@ function build(){
   document.querySelectorAll(".led").forEach(led=>led.classList.remove("on","approaching","departed"));
   profile=profiles.find(item=>item.id===$("route").value)||profiles[0];useProfileLayout(profile);const directions=profile.directions.slice(0,2),physical=new Map(hardware.assignments.map(a=>[a.logicalLed,a.physicalLed]));stationRows();
   $("allRoutes").disabled=profile.id===FLYBUSS;
+  $("routeViewOptions").hidden=!allRoutes();
   $("scopeNote").textContent=allRoutes()?"Viser katalogførte bylinjer på nøyaktig de samme plattformene. Hver buss vises nedenfor med linjenummer, farge og status. GPS-data kan være forsinket.":profile.id===FLYBUSS?"Flybussen bruker estimerte ankomsttider. Flerlinjevisning er tilgjengelig for bybussene.":"Viser valgt linje. Klikk på en diode for detaljer.";
   if(stagingSelected())$("scopeNote").textContent="STAGING · "+board.id+" · "+hardware.leds.count+" LED · samme PixelFrame-motor, ikke målt fysisk ESP. Ingen automatisk overgang til produksjonsfeed ved feil.";
   if(bus1GpsSelected())$("scopeNote").textContent="STAGING · Bus1 GPS Proximity · 147 LED · ved holdeplassen innenfor 70 m, slukker etter 90 m. GPS-data kan være forsinket.";
@@ -133,6 +141,19 @@ function prioritizedOccupants(item){
 function cycleLedColors(){
   document.querySelectorAll(".led.on[data-colors]").forEach(led=>{const colors=JSON.parse(led.dataset.colors||"[]");if(colors.length<2)return;const index=(Number(led.dataset.colorIndex||0)+1)%colors.length;led.dataset.colorIndex=String(index);led.style.color=`rgb(${colors[index].join(",")})`});
 }
+// Each bus gets its own colored marker in the station row (not another hardware LED).
+function renderStationBuses(items,mode=routeBadgeMode()){
+ return items.flatMap(item=>(item.occupants||[]).map(value=>{
+  const line=String(value.line||"?"),dest=String(value.destination||"Ukjent destinasjon");
+  const state=String(item.lifecycle==="PASSED"?"PASSED":value.state||item.state||"Ukjent");
+  const rgb=Array.isArray(value.rgb)?value.rgb:item.rgb;
+  const color=Array.isArray(rgb)&&rgb.length===3&&rgb.every(x=>Number.isInteger(x)&&x>=0&&x<=255)?`rgb(${rgb.join(",")})`:"rgb(130,140,155)";
+  const description=`Linje ${line} · ${state} · ${dest}`;
+  if(mode==="details")return `<span class="badge" title="${esc(dest)}"><i class="dot" style="background:${color}"></i>${esc(line)} · ${esc(state)} · ${esc(dest)}</span>`;
+  const numbered=mode==="numbers";
+  return `<span class="route-pip${numbered?" numbered":""}${state==="PASSED"?" passed":""}" style="--route-color:${color}" title="${esc(description)}" aria-label="${esc(description)}">${numbered?esc(line):""}</span>`;
+ })).join("");
+}
 function paint(frame){
   lastFrame=frame;
   const visibleIds=new Set([...document.querySelectorAll('.led[data-id]')].map(led=>led.dataset.id));
@@ -142,7 +163,7 @@ function paint(frame){
   $("legend").innerHTML=[...lineColors].sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true})).map(([line,rgb])=>`<span><i class="dot" style="background:rgb(${rgb.join(',')})"></i>Linje ${esc(line)}</span>`).join('');
   document.querySelectorAll('.station-buses').forEach(container=>{
     const ids=new Set([...container.parentElement.querySelectorAll('.led[data-id]')].map(led=>led.dataset.id));
-    container.innerHTML=allRoutes()?visibleItems.filter(item=>ids.has(String(item.id))).flatMap(item=>item.occupants.map(value=>`<span class="badge" title="${esc(value.destination||'Ukjent destinasjon')}"><i class="dot" style="background:rgb(${(value.rgb||item.rgb).join(',')})"></i>${esc(value.line)} · ${esc(value.state)} · ${esc(value.destination||'?')}</span>`)).join(''):'';
+    container.innerHTML=allRoutes()?renderStationBuses(visibleItems.filter(item=>ids.has(String(item.id)))):"";
   });
   document.querySelectorAll(".led").forEach(led=>{led.classList.remove("on","approaching","departed");delete led.dataset.state;delete led.dataset.vehicle;delete led.dataset.occupants;delete led.dataset.colors;delete led.dataset.colorIndex});
   for(const item of visibleItems){
@@ -284,6 +305,7 @@ $("gpsVehicle").onchange=()=>{selectedGpsVehicle=$("gpsVehicle").value;renderGps
 $("gpsDebug").ontoggle=()=>{if($("gpsDebug").open&&bus1GpsSelected())refresh();};
 $("close").onclick=()=>$("info").classList.remove("show");$("refresh").onclick=refresh;$("route").onchange=()=>{resetSourceView();build();refresh()};
 $("allRoutes").onchange=()=>{resetSourceView();build();refresh()};
+$("routeBadgeMode").onchange=()=>{if(lastFrame&&allRoutes())paint(lastFrame);};
 $("test").onclick=()=>{testing=!testing;$("test").textContent=testing?"Stopp test":"LED-test";if(!testing)return refresh();const leds=[...document.querySelectorAll(".led:not(.empty)")];let index=0;const step=()=>{if(!testing)return;document.querySelectorAll(".led").forEach(led=>led.classList.remove("on"));leds[index++%leds.length].classList.add("on");$("status").textContent=`LED-test ${index}/${leds.length}`;setTimeout(step,250)};step()};
 Promise.all([json(`${BASE}boards/trondheim-bus-board.json`),json(`${BASE}hardware/trondheim-bus-board-hardware.json`),json(`${BASE}boards/trondheim-flybuss-live.json`),json(`${BASE}hardware/trondheim-flybuss-live-hardware.json`),json(`${BASE}boards/trondheim-city-lines-catalog.json`)]).then(async values=>{[baseBoard,baseHardware,flyBoard,flyHardware,catalogBoard]=values;catalogHardware={leds:{count:catalogBoard.leds.count},assignments:catalogBoard.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))};board=baseBoard;hardware=baseHardware;profiles=await Promise.all([...new Set([...catalogBoard.routes,FLYBUSS])].map(id=>json(`${BASE}routes/${id}.json`)));$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");const params=new URLSearchParams(location.search),requested=params.get("route");if(profiles.some(p=>p.id===requested))$("route").value=requested;$("source").value=params.get("source")==="staging"?"staging":"production";build();refresh()}).catch(error=>$("status").textContent=error.message);
 </script></body></html>
