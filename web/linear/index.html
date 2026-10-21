@@ -316,7 +316,7 @@ $("routeBadgeMode").onchange=()=>{if(lastFrame&&allRoutes())paint(lastFrame);};
 $("test").onclick=()=>{testing=!testing;if(testing)networkMap?.clear();$("test").textContent=testing?"Stopp test":"LED-test";if(!testing)return refresh();const leds=[...document.querySelectorAll(".led:not(.empty)")];let index=0;const step=()=>{if(!testing)return;document.querySelectorAll(".led").forEach(led=>led.classList.remove("on"));leds[index++%leds.length].classList.add("on");$("status").textContent=`LED-test ${index}/${leds.length}`;setTimeout(step,250)};step()};
 let networkMap=null,networkLoading=null;
 function updateNetworkMap(){
- if(networkMap&&profile)networkMap.update({board,hardware,boards:[baseBoard,catalogBoard,flyBoard].filter(Boolean),route:profile.id,line:profile.line.publicCode,routesByLine:Object.fromEntries(profiles.map(p=>[String(p.line.publicCode),p.id])),all:allRoutes(),numbers:routeBadgeMode()==="numbers",frame:testing?null:lastFrame});
+ if(networkMap&&profile)networkMap.update({board,hardware,boards:[baseBoard,catalogBoard,flyBoard].filter(Boolean),profiles,route:profile.id,line:profile.line.publicCode,routesByLine:Object.fromEntries(profiles.map(p=>[String(p.line.publicCode),p.id])),all:allRoutes(),numbers:routeBadgeMode()==="numbers",frame:testing?null:lastFrame});
 }
 async function setMapMode(network){
  $("networkView").hidden=!network;$("linearView").hidden=network;

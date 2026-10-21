@@ -31,6 +31,24 @@ assert.deepEqual(M.signals({...stop,verification:'unresolved'},board,hardware,fr
 assert.deepEqual(M.resolve({...stop,bindings:[{...stop.bindings[0],nodeId:'bad'}]},board,hardware),[]);
 assert.deepEqual(M.resolve(stop,{...board,id:'other-board'},hardware),[]);
 for(const lifecycle of ['PASSED','PARKED'])assert(M.signals(stop,board,hardware,{...frame,leds:frame.leds.map(l=>({...l,lifecycle}))},null,now).every(v=>v.state===lifecycle));
+
+// Route colors require exact consecutive Quay IDs on both uniquely mapped
+// diagram endpoints. They are not inferred for an entire drawn path.
+const route1=JSON.parse(read('config/routes/atb-bus-1-live.json'));
+const route3=JSON.parse(read('config/routes/atb-bus-3-live.json'));
+const route12=JSON.parse(read('config/routes/atb-bus-12-live.json'));
+const evidence=M.verifiedSegments(layout,[route1,route3,route12]);
+assert(evidence.some(e=>e.pathId==='trace-04'&&e.from==='original-014'&&e.to==='original-015'&&e.routes.some(r=>r.line==='1')),'Solsiden–Buran adjacency on line 1');
+assert(evidence.some(e=>e.pathId==='trace-06'&&e.routes.some(r=>r.line==='1')),'Main corridor contains adjacent line 1 stops');
+assert(!evidence.some(e=>e.pathId==='trace-05'&&e.edgeIndex>=1),'Unmapped Lade branch must stay neutral');
+assert(!evidence.some(e=>e.pathId==='trace-14'),'Unmapped Tyholt branch must stay neutral');
+const removed=structuredClone(route1);removed.stops=removed.stops.filter(s=>s.name!=='Buran');
+assert(!M.verifiedSegments(layout,[removed]).some(e=>e.pathId==='trace-04'&&e.from==='original-014'&&e.to==='original-015'),'Route segment must be consecutive');
+assert.equal(M.verifiedSegments(layout,[]).length,0,'No route data means no inferred colors');
+assert.equal(M.verifiedSegments(layout,[{...route1,stops:[{id:'NSR:Quay:00001'},{id:'NSR:Quay:00002'}]}]).length,0,'No invented IDs');
+const exact=structuredClone(layout);M.verifiedSegments(layout,[route1,route3,route12]);assert.deepEqual(layout,exact,'Do not change original geometry');
+assert.equal(layout.paths.filter(p=>p.verification==='unresolved').length,18,'Whole-path route evidence remains incomplete');
+
 const report=M.report({...layout,stops:[stop,{...stop,id:'duplicate'},...layout.stops]},[board]);
 assert(report.duplicates.length);assert(report.unconfirmed.length);assert(report.feedStopsMissing.length);assert(report.multiLine.length>0);
 assert.equal(M.report(layout,[board]).complete,false);

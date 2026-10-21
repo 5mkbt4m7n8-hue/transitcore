@@ -3,3 +3,6 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 
 .map-editor select{width:min(100%,300px)}
 .map-stop[data-unresolved] circle{stroke:#b89d67;stroke-dasharray:2 1}.map-stop:focus-visible circle{stroke:#fff;stroke-width:2}
+
+/* Adjacent-stop evidence overlays use existing route colors; never create additional stops or LEDs. */
+.map-route-confirmed{fill:none;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;opacity:.97;filter:drop-shadow(0 0 1.5px currentColor)}

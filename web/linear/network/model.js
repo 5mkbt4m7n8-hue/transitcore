@@ -55,5 +55,33 @@
   for(const board of boards)for(const n of board.nodes)if(!seen.has(board.id+':'+n.id))result.feedStopsMissing.push({board:board.id,node:n.id,name:n.name});
   return result;
  }
- return {validate,resolve,signals,report};
+
+ // Only exact, consecutive Quay IDs within the same route profile may color
+ // an edge whose *two* vertices uniquely match verified schematic stops.
+ // Names, GPS distances, ETA and inferred full-path route membership are insufficient.
+ function verifiedSegments(layout,profiles){
+  const stops=(layout.stops||[]).filter(s=>s.verification==='confirmed'&&s.bindings?.length);
+  const quays=s=>new Set(s.bindings.map(b=>b.stopId).filter(x=>typeof x==='string'&&x.startsWith('NSR:Quay:')));
+  const matched=p=>{const found=stops.filter(s=>Math.hypot(s.x-p.x,s.y-p.y)<=0.8);return found.length===1?found[0]:null;};
+  const pair=(a,b)=>a<b?a+'|'+b:b+'|'+a,adjacency=new Map;
+  for(const profile of profiles||[]){
+   if(!profile?.id||!Array.isArray(profile.stops)||!/^#[0-9a-f]{6}$/i.test(profile.line?.color||''))continue;
+   for(let i=1;i<profile.stops.length;i++){
+    const a=profile.stops[i-1]?.id,b=profile.stops[i]?.id;
+    if(typeof a!=='string'||typeof b!=='string'||a===b||!a.startsWith('NSR:Quay:')||!b.startsWith('NSR:Quay:'))continue;
+    const key=pair(a,b),hits=adjacency.get(key)||new Map;
+    hits.set(profile.id,{id:profile.id,line:String(profile.line.publicCode||'?'),color:profile.line.color});adjacency.set(key,hits);
+   }
+  }
+  const edges=[];
+  for(const path of layout.paths||[])for(let i=1;i<path.points.length;i++){
+   const a=matched(path.points[i-1]),b=matched(path.points[i]);
+   if(!a||!b||a.id===b.id)continue;
+   const routes=new Map;
+   for(const x of quays(a))for(const y of quays(b))for(const [key,value] of adjacency.get(pair(x,y))||[])routes.set(key,value);
+   if(routes.size)edges.push({pathId:path.id,edgeIndex:i-1,a:path.points[i-1],b:path.points[i],from:a.id,to:b.id,routes:[...routes.values()].sort((x,y)=>x.line.localeCompare(y.line,'no',{numeric:true}))});
+  }
+  return edges;
+ }
+ return {validate,resolve,signals,report,verifiedSegments};
 });

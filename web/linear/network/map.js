@@ -25,6 +25,21 @@
     p.onclick=()=>{selection={type:'path',id:path.id};fields();q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');};p.dataset.routePath=path.id;svg.append(p);
     if(editing)path.points.forEach((v,i)=>{const h=el('circle',{cx:v.x,cy:v.y,r:4,class:'map-handle'});h.dataset.path=path.id;h.dataset.index=i;svg.append(h);});
    }
+   // Overlay only edges with direct Quay-to-Quay adjacency in loaded profiles.
+   // This does not establish the route of an entire polyline or live coverage.
+   const edges=M.verifiedSegments(layout,context.profiles||[]);
+   let drawn=0;
+   for(const edge of edges){
+    const routes=context.all?edge.routes:edge.routes.filter(r=>r.id===context.route);
+    if(!routes.length)continue;
+    const dx=edge.b.x-edge.a.x,dy=edge.b.y-edge.a.y,len=Math.hypot(dx,dy);if(len<0.1)continue;
+    drawn++;
+    routes.forEach((route,i)=>{
+     const offset=(i-(routes.length-1)/2)*2,ox=-dy/len*offset,oy=dx/len*offset;
+     const stroke=el('line',{x1:edge.a.x+ox,y1:edge.a.y+oy,x2:edge.b.x+ox,y2:edge.b.y+oy,stroke:route.color,'stroke-width':1.8,class:'map-route-confirmed','data-route':route.id,'data-path':edge.pathId,'data-edge':edge.edgeIndex,'aria-label':'Linje '+route.line+' · nabostopp i ruteprofil'});
+     stroke.dataset.routeEvidence='consecutive-quays';svg.append(stroke);
+    });
+   }
    for(const stop of layout.stops){
     const resolved=M.resolve(stop,context.board,context.hardware);
     if(stop.verification==='confirmed'&&!context.all&&!resolved.some(b=>b.node.routes.includes(context.route)))continue;
@@ -33,8 +48,10 @@
     if(stop.label.visible){const label=el('text',{x:stop.label.x,y:stop.label.y,class:'map-label'});label.textContent=stop.name;label.dataset.label=stop.id;svg.append(label);}
    }
    q('focus').replaceChildren(new Option('Fokus på punkt …',''),...layout.stops.map(s=>new Option(s.name,s.id)));
-   report=M.report(layout,context.boards||[]);q('report').textContent=JSON.stringify(report,null,2);
-   q('notice').textContent='Kartet er delvis verifisert mot originalen. '+report.unconfirmed.length+' stopp mangler bekreftet datakobling; '+report.unconfirmedNames.length+' mangler navn. Rutetilhørighet for kartlinjene er fortsatt uavklart. Uavklarte stopp viser aldri live-status.';
+   report=M.report(layout,context.boards||[]);
+    report.routeEvidence={method:'consecutive exact Quay IDs in route profiles',drawn,edges:edges.map(e=>({path:e.pathId,edge:e.edgeIndex,from:e.from,to:e.to,routes:e.routes.map(r=>r.id)}))};
+    q('report').textContent=JSON.stringify(report,null,2);
+   q('notice').textContent='Kartet er delvis verifisert mot originalen. '+report.unconfirmed.length+' stopp uten bekreftet datakobling; '+report.unconfirmedNames.length+' mangler navn. '+drawn+' delstrekninger er fargelagt fra sikre nabostopp i ruteprofiler. Øvrige er nøytrale. Full rutetilhørighet for 18 hovedtraséer og full live-dekning er fortsatt uavklart.';
    paint();
   }
   function paint(){
