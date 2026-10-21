@@ -21,3 +21,10 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-route{filter:drop-shadow(0 0 1px #9eb6d2)}
 .map-stop circle{stroke:#9eb9d2;stroke-width:1.3}
 @media(max-width:560px){.map-viewport{height:65vh}}
+
+/* User-reviewed route assignment is visibly distinct from catalog proof. */
+.map-route-reviewed{fill:none;pointer-events:none;stroke-linecap:round;stroke-dasharray:4 2;opacity:.95;filter:drop-shadow(0 0 2px currentColor)}
+.map-segment-editor{flex:1 1 100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;padding:12px;border:1px dashed #a2c5e9;border-radius:10px;background:#10223b}
+.map-segment-editor strong,.map-segment-note{grid-column:1/-1}
+.map-segment-note{color:#cbdff5;line-height:1.5}
+.map-segment-editor select{width:100%;min-width:0}

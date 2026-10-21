@@ -12,7 +12,16 @@
    if(!point(s)||!point(s.label)||typeof s.name!=='string'||typeof s.label.visible!=='boolean'||!['shared','split'].includes(s.diodeMode)||!Number.isFinite(s.radius)||s.radius<2||s.radius>20||!Array.isArray(s.bindings))errors.push('Ugyldig stopp '+s.id);
    for(const b of Array.isArray(s.bindings)?s.bindings:[])if(!b||typeof b.boardId!=='string'||typeof b.nodeId!=='string')errors.push('Ugyldig kobling '+s.id);
   }
-  for(const p of layout.paths)if(!p||typeof p.id!=='string'||ids.has(p.id)||!/^#[a-f\d]{6}$/i.test(p.color)||!Number.isFinite(p.width)||p.width<.5||p.width>15||!Array.isArray(p.points)||p.points.length<2||!p.points.every(point)||!Array.isArray(p.routes))errors.push('Ugyldig linje '+p.id);else ids.add(p.id);
+  for(const p of layout.paths){
+   if(!p||typeof p.id!=='string'||ids.has(p.id)||!/^#[a-f\d]{6}$/i.test(p.color)||!Number.isFinite(p.width)||p.width<.5||p.width>15||!Array.isArray(p.points)||p.points.length<2||!p.points.every(point)||!Array.isArray(p.routes)){errors.push('Ugyldig linje '+p?.id);continue;}
+   ids.add(p.id);
+   if(p.reviewedSegments!==undefined){
+    if(!p.reviewedSegments||typeof p.reviewedSegments!=='object'||Array.isArray(p.reviewedSegments)){errors.push('Ugyldige godkjente delstrekninger '+p.id);continue;}
+    for(const [index,item] of Object.entries(p.reviewedSegments)){
+     if(!/^(0|[1-9]\d*)$/.test(index)||Number(index)>=p.points.length-1||!item||item.verification!=='user-reviewed'||!Array.isArray(item.routes)||item.routes.length<1||item.routes.length>12||new Set(item.routes).size!==item.routes.length||item.routes.some(id=>typeof id!=='string'||!/^atb-bus-\d+-live$/.test(id)))errors.push('Ugyldig manuell rutetilknytning '+p.id+'/'+index);
+    }
+   }
+  }
   return errors;
  }
  function resolve(stop,board,hardware){

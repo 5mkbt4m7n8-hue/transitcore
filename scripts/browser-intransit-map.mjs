@@ -60,7 +60,16 @@ try{
  assert.match(await page.locator('[data-role=details]').innerText(),/trace-04/);
  assert.equal(calls,auditRequests,'Map review controls must not fetch live frames');
  const box=await page.locator('svg.map-viewport').getAttribute('viewBox');await page.locator('[data-act=in]').click();assert.notEqual(await page.locator('svg.map-viewport').getAttribute('viewBox'),box);await page.locator('[data-act=fit]').click();
- await page.locator('[data-act=edit]').click();await page.locator('.map-stop').first().click();
+ await page.locator('[data-act=edit]').click();
+ // Review one edge in the offline fixture. Undo restores the untouched layout.
+ await page.locator('[data-role=reviewPath]').selectOption('trace-04');
+ await page.locator('.map-segment-editor select[aria-label="Velg delstrekning"]').selectOption('0');
+ await page.locator('.map-segment-editor select[aria-label="Busslinje for delstrekning"]').selectOption('atb-bus-1-live');
+ await page.locator('.map-segment-editor button').first().click();
+ assert.equal(await page.locator('.map-route-reviewed[data-path="trace-04"][data-edge="0"]').count(),1,'Manually reviewed route overlay must appear for current line');
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-route-reviewed').count(),0,'Undo must remove reviewed route overlay');
+ await page.locator('.map-stop').first().click();
  await page.getByLabel('To dioder',{exact:true}).check();assert.equal(await page.locator('.map-stop[data-direction]').count(),2);
  await page.locator('[data-act=undo]').click();assert.equal(await page.locator('.map-stop[data-direction]').count(),0);
  const download=page.waitForEvent('download');await page.locator('[data-act=export]').click();assert.equal((await download).suggestedFilename(),'trondheim-layout.json');

@@ -52,6 +52,17 @@ assert(!M.verifiedSegments(layout,[removed]).some(e=>e.pathId==='trace-04'&&e.fr
 assert.equal(M.verifiedSegments(layout,[]).length,0,'No route data means no inferred colors');
 assert.equal(M.verifiedSegments(layout,[{...route1,stops:[{id:'NSR:Quay:00001'},{id:'NSR:Quay:00002'}]}]).length,0,'No invented IDs');
 const exact=structuredClone(layout);M.verifiedSegments(layout,[route1,route3,route12],[catalog]);assert.deepEqual(layout,exact,'Do not change original geometry');
+const userReviewed=structuredClone(layout);
+userReviewed.paths[3].reviewedSegments={'0':{verification:'user-reviewed',routes:['atb-bus-1-live']}};
+assert.deepEqual(M.validate(userReviewed),[],'Explicit per-edge review is valid and must not move map points');
+for(const badIndex of ['99','-1','__proto__']){
+ const bad=structuredClone(userReviewed);bad.paths[3].reviewedSegments[badIndex]={verification:'user-reviewed',routes:['atb-bus-1-live']};
+ if(badIndex!=='__proto__')assert(M.validate(bad).length,'Out of bounds path segments must be rejected');
+}
+for(const wrong of [{verification:'automatic',routes:['atb-bus-1-live']},{verification:'user-reviewed',routes:['other-route']},{verification:'user-reviewed',routes:[]},{verification:'user-reviewed',routes:['atb-bus-1-live','atb-bus-1-live']}]){
+ const bad=structuredClone(userReviewed);bad.paths[3].reviewedSegments['0']=wrong;assert(M.validate(bad).length,'Reject untrusted route approvals');
+}
+
 assert.equal(layout.paths.filter(p=>p.verification==='unresolved').length,18,'Whole-path route evidence remains incomplete');
 
 const report=M.report({...layout,stops:[stop,{...stop,id:'duplicate'},...layout.stops]},[board]);

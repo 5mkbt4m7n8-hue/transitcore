@@ -76,3 +76,20 @@ fordeling per tegnede kartlinje og gjenstående uavklarte delstrekninger.
 Dette er **rutetilknytnings-evidens**, ikke full live-dekning, og
 mangler fortsatt full godkjenning av de 18 hele traseene.
 Ingen data eller kartkoordinater er endret; heller ingen produksjons-API.
+
+## Redigerbar manuell rutetilhørighet per delstrekning
+
+Brukeren kan i «Rediger kart» velge en av de 18 polylinjene, velge en enkelt
+kant/delstrekning og uttrykkelig godkjenne en busslinje der. En segmentgodkjenning
+lagres som `path.reviewedSegments[index] = {verification: 'user-reviewed', routes: [...]}`
+i eksportert JSON. Flere linjer kan godkjennes på samme segment. Dette
+ligger i den eksisterende versjonerte kartlayouten og er **ikke live-/GPS-data**.
+Manuelle rutefarger er stiplede for å være synlig forskjellige fra offisielt
+bevist naboskap; de er ikke en påstand om at sanntidsdekningen er komplett.
+
+Godkjenningen skjer bare etter en eksplisitt handling, ikke automatisk fra
+profil eller geografi. Editorens angre/import/eksport behandler feltet på
+samme måte som øvrig layout. Validering stopper ugyldige segmentnumre,
+dupliserte eller uventede rute-ID-er. Ingen forhåndsgodkjenninger legges
+til i original-layoutfilen; 104 fremdeles uavklarte delstrekninger forblir
+åpne inntil brukeren har verifisert dem mot originalkartet.
