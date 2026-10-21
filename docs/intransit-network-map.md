@@ -54,3 +54,25 @@ har nøytrale rutelinjer og stoppmarkører fått bedre kontrast, og kartområdet
 får mer høyde på desktop. Ingen koordinater, stasjons-ID-er, farger fra
 ruteprofilene eller eksisterende live-motor er endret. Kontrollskjermbildene
 i CI-artefakten inkluderer nå også visningen med større navn.
+
+## Rutefarge-evidens: kontrollert alternativ Quay/StopPlace
+
+Tidligere krevde fargeoverlaget at *eksakt samme Quay-ID* for begge
+endestopp var påfølgende i en ruteprofil. Det ga falske negative når
+ruteprofilen bruker den andre retningens Quay ved samme holdeplass.
+`verifiedSegments(layout,profiles,boards)` støtter nå også nabo-StopPlace
+når **begge Quay-ID-er er slått opp til entydige StopPlace-ID-er i den
+allerede innlastede Trondheim-katalogen**, og begge kartpunktene er bekreftet.
+Regelen gjelder bare StopPlace som forekommer på nøyaktig én markør på kartet.
+Derfor er begge Samfundet-markørene **ekskludert** fra denne nye
+StopPlace-fallbacken og beholder hver sine fire konkrete Quay-bindinger
+fordelt i to grupper. Eksakt Quay-naboskap har prioritet.
+
+Et nytt, offline CI-skript `scripts/audit-intransit-route-evidence.mjs`
+leser alle tilgjengelige `atb-bus-*-live.json`-profiler og skriver
+`route-evidence-audit.json` i `intransit-map-review`-artefakten.
+Rapporten viser antall eksakte Quay-koblinger, nye StopPlace-koblinger,
+fordeling per tegnede kartlinje og gjenstående uavklarte delstrekninger.
+Dette er **rutetilknytnings-evidens**, ikke full live-dekning, og
+mangler fortsatt full godkjenning av de 18 hele traseene.
+Ingen data eller kartkoordinater er endret; heller ingen produksjons-API.

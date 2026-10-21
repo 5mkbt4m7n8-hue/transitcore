@@ -38,6 +38,11 @@ const route1=JSON.parse(read('config/routes/atb-bus-1-live.json'));
 const route3=JSON.parse(read('config/routes/atb-bus-3-live.json'));
 const route12=JSON.parse(read('config/routes/atb-bus-12-live.json'));
 const evidence=M.verifiedSegments(layout,[route1,route3,route12]);
+const enhanced=M.verifiedSegments(layout,[route1,route3,route12],[catalog]);
+assert(enhanced.length>=evidence.length,'Catalog-verified equivalence must never remove exact Quay evidence');
+assert(enhanced.every(e=>e.routes.every(r=>['exact-quay','unique-stopplace'].includes(r.evidence))),'Every colored segment must have explicit evidence');
+assert.equal(enhanced.filter(e=>e.pathId==='trace-07'&&e.edgeIndex===0).flatMap(e=>e.routes).filter(r=>r.evidence==='unique-stopplace').length,0,'Distinct Samfundet map markers must never merge via shared StopPlace');
+assert(enhanced.every(e=>e.routes.some(r=>r.evidence==='exact-quay')||e.routes.some(r=>r.evidence==='unique-stopplace')));
 assert(evidence.some(e=>e.pathId==='trace-04'&&e.from==='original-014'&&e.to==='original-015'&&e.routes.some(r=>r.line==='1')),'Solsiden–Buran adjacency on line 1');
 assert(evidence.some(e=>e.pathId==='trace-06'&&e.routes.some(r=>r.line==='1')),'Main corridor contains adjacent line 1 stops');
 assert(!evidence.some(e=>e.pathId==='trace-05'&&e.edgeIndex>=1),'Unmapped Lade branch must stay neutral');
@@ -46,7 +51,7 @@ const removed=structuredClone(route1);removed.stops=removed.stops.filter(s=>s.na
 assert(!M.verifiedSegments(layout,[removed]).some(e=>e.pathId==='trace-04'&&e.from==='original-014'&&e.to==='original-015'),'Route segment must be consecutive');
 assert.equal(M.verifiedSegments(layout,[]).length,0,'No route data means no inferred colors');
 assert.equal(M.verifiedSegments(layout,[{...route1,stops:[{id:'NSR:Quay:00001'},{id:'NSR:Quay:00002'}]}]).length,0,'No invented IDs');
-const exact=structuredClone(layout);M.verifiedSegments(layout,[route1,route3,route12]);assert.deepEqual(layout,exact,'Do not change original geometry');
+const exact=structuredClone(layout);M.verifiedSegments(layout,[route1,route3,route12],[catalog]);assert.deepEqual(layout,exact,'Do not change original geometry');
 assert.equal(layout.paths.filter(p=>p.verification==='unresolved').length,18,'Whole-path route evidence remains incomplete');
 
 const report=M.report({...layout,stops:[stop,{...stop,id:'duplicate'},...layout.stops]},[board]);

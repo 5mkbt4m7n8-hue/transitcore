@@ -28,7 +28,7 @@
    }
    // Overlay only edges with direct Quay-to-Quay adjacency in loaded profiles.
    // This does not establish the route of an entire polyline or live coverage.
-   const edges=M.verifiedSegments(layout,context.profiles||[]);
+   const edges=M.verifiedSegments(layout,context.profiles||[],context.boards||[]);
    let drawn=0;
    for(const edge of edges){
     const routes=context.all?edge.routes:edge.routes.filter(r=>r.id===context.route);
@@ -38,7 +38,7 @@
     routes.forEach((route,i)=>{
      const offset=(i-(routes.length-1)/2)*2,ox=-dy/len*offset,oy=dx/len*offset;
      const stroke=el('line',{x1:edge.a.x+ox,y1:edge.a.y+oy,x2:edge.b.x+ox,y2:edge.b.y+oy,stroke:route.color,'stroke-width':1.8,class:'map-route-confirmed','data-route':route.id,'data-path':edge.pathId,'data-edge':edge.edgeIndex,'aria-label':'Linje '+route.line+' · nabostopp i ruteprofil'});
-     stroke.dataset.routeEvidence='consecutive-quays';svg.append(stroke);
+     stroke.dataset.routeEvidence=route.evidence;svg.append(stroke);
     });
    }
    for(const stop of layout.stops){
@@ -53,7 +53,7 @@
    routeReview.replaceChildren(new Option('Gjennomgå kartlinje …',''),...layout.paths.map(p=>new Option(p.id+' · '+edges.filter(e=>e.pathId===p.id).length+'/'+(p.points.length-1)+' nabokoblinger',p.id)));
    routeReview.value=layout.paths.some(p=>p.id===currentPath)?currentPath:'';
    report=M.report(layout,context.boards||[]);
-    report.routeEvidence={method:'consecutive exact Quay IDs in route profiles',drawn,possibleEdges:layout.paths.reduce((count,p)=>count+Math.max(0,p.points.length-1),0),edges:edges.map(e=>({path:e.pathId,edge:e.edgeIndex,from:e.from,to:e.to,routes:e.routes.map(r=>r.id)})),byPath:layout.paths.map(p=>({id:p.id,documented:edges.filter(e=>e.pathId===p.id).length,segments:Math.max(0,p.points.length-1),fullRouteVerified:false}))};
+    report.routeEvidence={method:'consecutive Quays or catalog-verified, uniquely mapped StopPlaces',drawn,possibleEdges:layout.paths.reduce((count,p)=>count+Math.max(0,p.points.length-1),0),exactOnly:edges.filter(e=>e.routes.every(r=>r.evidence==='exact-quay')).length,withStopPlace:edges.filter(e=>e.routes.some(r=>r.evidence==='unique-stopplace')).length,edges:edges.map(e=>({path:e.pathId,edge:e.edgeIndex,from:e.from,to:e.to,routes:e.routes.map(r=>({id:r.id,evidence:r.evidence}))})),byPath:layout.paths.map(p=>({id:p.id,documented:edges.filter(e=>e.pathId===p.id).length,segments:Math.max(0,p.points.length-1),fullRouteVerified:false}))};
     q('report').textContent=JSON.stringify(report,null,2);
    q('notice').textContent='Kartet er delvis verifisert: '+report.unconfirmed.length+' stopp uten datakobling, '+report.unconfirmedNames.length+' uten navn. '+edges.length+'/'+report.routeEvidence.possibleEdges+' naboforbindelser dokumentert i rutekonfigurasjon; '+drawn+' vist med farge for valgte ruter. Andre segmenter er nøytrale. Ingen av de 18 hele linjeføringene eller full live-dekning er bekreftet.';
    paint();
@@ -72,10 +72,10 @@
   function reviewPath(id){
    const p=layout.paths.find(p=>p.id===id);if(!p)return;
    selection={type:'path',id};fields();
-   const known=M.verifiedSegments(layout,context.profiles||[]).filter(e=>e.pathId===id);
-   q('details').textContent=p.id+' · '+known.length+' av '+(p.points.length-1)+' delstrekninger med dokumentert naboskap i ruteprofil.\n'+
+   const known=M.verifiedSegments(layout,context.profiles||[],context.boards||[]).filter(e=>e.pathId===id);
+   q('details').textContent=p.id+' · '+known.length+' av '+(p.points.length-1)+' delstrekninger med verifisert Quay-/holdeplassnaboskap i ruteprofil.\n'+
     (known.length?known.map(e=>'Del '+(e.edgeIndex+1)+': '+(layout.stops.find(s=>s.id===e.from)?.name||e.from)+' → '+(layout.stops.find(s=>s.id===e.to)?.name||e.to)+' · buss '+e.routes.map(r=>r.line).join(', ')).join('\n'):'Ingen dokumenterte Quay-nabostopp.')+
-    '\nDette bekrefter ikke komplett trasé eller live-GPS.';
+    '\nHoldplasskoblinger via StopPlace er bare tillatt når holdeplassen har én unik kartmarkør. Dette bekrefter ikke komplett trasé eller live-GPS.';
    const vs=p.points,xs=vs.map(v=>v.x),ys=vs.map(v=>v.y),cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2;
    const w=Math.min(913,Math.max(110,Math.max(...xs)-Math.min(...xs)+45,(Math.max(...ys)-Math.min(...ys)+45)*913/1280));
    box=[cx-w/2,cy-w*1280/913/2,w,w*1280/913];setBox();

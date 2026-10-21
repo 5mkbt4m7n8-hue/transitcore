@@ -7,6 +7,7 @@ on:
       - 'scripts/test-linear-mobile-integration.mjs'
       - 'scripts/test-intransit-map.mjs'
       - 'scripts/browser-intransit-map.mjs'
+      - 'scripts/audit-intransit-route-evidence.mjs'
       - '.github/workflows/linear-mobile.yml'
   push:
     branches: [main]
@@ -16,6 +17,7 @@ on:
       - 'scripts/test-linear-mobile-integration.mjs'
       - 'scripts/test-intransit-map.mjs'
       - 'scripts/browser-intransit-map.mjs'
+      - 'scripts/audit-intransit-route-evidence.mjs'
       - '.github/workflows/linear-mobile.yml'
 permissions:
   contents: read
@@ -36,6 +38,11 @@ jobs:
       - name: Verify InTransit layout, mapping and editor
         run: node scripts/test-intransit-map.mjs
 
+      - name: Audit schematic route coverage without fetching live data
+        env:
+          INTRANSIT_AUDIT_DIR: artifacts/intransit-map
+        run: node scripts/audit-intransit-route-evidence.mjs
+
       - name: Install pinned Playwright and Chromium (no deploy)
         run: |
           npm install --no-save --no-package-lock playwright@1.56.1
@@ -51,6 +58,8 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: intransit-map-review
-          path: artifacts/intransit-map/*.png
+          path: |
+            artifacts/intransit-map/*.png
+            artifacts/intransit-map/route-evidence-audit.json
           if-no-files-found: warn
           retention-days: 7

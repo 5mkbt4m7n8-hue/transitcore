@@ -56,29 +56,63 @@
   return result;
  }
 
- // Only exact, consecutive Quay IDs within the same route profile may color
- // an edge whose *two* vertices uniquely match verified schematic stops.
- // Names, GPS distances, ETA and inferred full-path route membership are insufficient.
- function verifiedSegments(layout,profiles){
+ // Route evidence is only created from an actual adjacency in a route
+ // profile. Resolve at Quay level first. When a profile uses the opposite
+ // platform of an already verified stop, allow a catalog-verified StopPlace
+ // match, *unless* that StopPlace has multiple separately drawn map markers
+ // (e.g. Samfundet). Never use the physical pixel distance as route evidence.
+ function verifiedSegments(layout,profiles,boards=[]){
   const stops=(layout.stops||[]).filter(s=>s.verification==='confirmed'&&s.bindings?.length);
   const quays=s=>new Set(s.bindings.map(b=>b.stopId).filter(x=>typeof x==='string'&&x.startsWith('NSR:Quay:')));
   const matched=p=>{const found=stops.filter(s=>Math.hypot(s.x-p.x,s.y-p.y)<=0.8);return found.length===1?found[0]:null;};
-  const pair=(a,b)=>a<b?a+'|'+b:b+'|'+a,adjacency=new Map;
+  const pair=(a,b)=>a<b?a+'|'+b:b+'|'+a;
+  const placeOwners=new Map;
+  for(const s of stops)for(const place of new Set(s.bindings.map(b=>b.stopPlaceId).filter(x=>typeof x==='string'&&x.startsWith('NSR:StopPlace:')))){
+   const owners=placeOwners.get(place)||new Set;owners.add(s.id);placeOwners.set(place,owners);
+  }
+  const uniquePlace=s=>{
+   const ids=new Set(s.bindings.map(b=>b.stopPlaceId).filter(Boolean));
+   if(ids.size!==1)return null;
+   const id=[...ids][0];return placeOwners.get(id)?.size===1?id:null;
+  };
+  // Use only the preloaded official catalog: a street-nearest or name match is
+  // not enough to assert two Quays belong to the same StopPlace.
+  const catalog=(boards||[]).find(b=>b?.id==='trondheim-city-lines-catalog');
+  const quayToPlace=new Map;
+  for(const n of catalog?.nodes||[]){
+   if(!n.stationId?.startsWith('NSR:StopPlace:'))continue;
+   for(const id of n.stopIds||[]){
+    if(!id.startsWith('NSR:Quay:'))continue;
+    if(quayToPlace.has(id)&&quayToPlace.get(id)!==n.stationId)quayToPlace.set(id,null);
+    else if(!quayToPlace.has(id))quayToPlace.set(id,n.stationId);
+   }
+  }
+  const direct=new Map,byPlace=new Map;
   for(const profile of profiles||[]){
    if(!profile?.id||!Array.isArray(profile.stops)||!/^#[0-9a-f]{6}$/i.test(profile.line?.color||''))continue;
    for(let i=1;i<profile.stops.length;i++){
     const a=profile.stops[i-1]?.id,b=profile.stops[i]?.id;
     if(typeof a!=='string'||typeof b!=='string'||a===b||!a.startsWith('NSR:Quay:')||!b.startsWith('NSR:Quay:'))continue;
-    const key=pair(a,b),hits=adjacency.get(key)||new Map;
-    hits.set(profile.id,{id:profile.id,line:String(profile.line.publicCode||'?'),color:profile.line.color});adjacency.set(key,hits);
+    const info={id:profile.id,line:String(profile.line.publicCode||'?'),color:profile.line.color};
+    const directKey=pair(a,b),hits=direct.get(directKey)||new Map;
+    hits.set(profile.id,info);direct.set(directKey,hits);
+    const pA=quayToPlace.get(a),pB=quayToPlace.get(b);
+    if(pA&&pB&&pA!==pB){
+     const placeKey=pair(pA,pB),places=byPlace.get(placeKey)||new Map;
+     places.set(profile.id,info);byPlace.set(placeKey,places);
+    }
    }
   }
   const edges=[];
   for(const path of layout.paths||[])for(let i=1;i<path.points.length;i++){
-   const a=matched(path.points[i-1]),b=matched(path.points[i]);
-   if(!a||!b||a.id===b.id)continue;
+   const a=matched(path.points[i-1]),b=matched(path.points[i]);if(!a||!b||a.id===b.id)continue;
    const routes=new Map;
-   for(const x of quays(a))for(const y of quays(b))for(const [key,value] of adjacency.get(pair(x,y))||[])routes.set(key,value);
+   for(const x of quays(a))for(const y of quays(b))
+    for(const [key,value] of direct.get(pair(x,y))||[])routes.set(key,{...value,evidence:'exact-quay'});
+   const aPlace=uniquePlace(a),bPlace=uniquePlace(b);
+   if(aPlace&&bPlace&&aPlace!==bPlace)
+    for(const [key,value] of byPlace.get(pair(aPlace,bPlace))||[])
+     if(!routes.has(key))routes.set(key,{...value,evidence:'unique-stopplace'});
    if(routes.size)edges.push({pathId:path.id,edgeIndex:i-1,a:path.points[i-1],b:path.points[i],from:a.id,to:b.id,routes:[...routes.values()].sort((x,y)=>x.line.localeCompare(y.line,'no',{numeric:true}))});
   }
   return edges;
