@@ -236,4 +236,21 @@ assert.equal(el('routeBadgeMode').value,'details','Display choice survives tempo
 el('route').value='flybuss-trondheim-fb73-live';el('route').onchange();await new Promise(resolve=>setImmediate(resolve));
 assert.equal(el('routeViewOptions').hidden,true,'Flybuss cannot activate multi-route view');
 
+assert.match(html,/body\.fb73-eta \.led\.approaching\{animation:none/,'Flybuss ETA LEDs must not blink');
+assert.match(html,/Datagrunnlag:<\/strong>/,'ETA detail must identify the forecast source');
+const etaFixture={boardProfile:'trondheim-flybuss-live',leds:[
+ {id:36,state:'AT_STOP',vehicle:{id:'UNI:ServiceJourney:trip-42'}},
+ {id:38,state:'AT_STOP',vehicle:{id:'UNI:ServiceJourney:trip-42'}},
+ {id:40,state:'AT_STOP',vehicle:{id:'UNI:ServiceJourney:trip-42'}},
+ {id:30,state:'APPROACHING',vehicle:{id:'UNI:ServiceJourney:trip-43'}},
+ {id:31,state:'AT_STOP',vehicle:{id:'UNI:ServiceJourney:trip-44'}}
+]};
+const originalEta=JSON.stringify(etaFixture);
+const projected=vm.runInContext('projectFb73EtaFrame('+originalEta+')',context);
+assert.deepEqual(Array.from(projected.leds,item=>item.id),[31,36],
+ 'FB73 must keep separate trips but show at most one stable stop per journey; do not render early APPROACHING');
+assert.equal(JSON.stringify(etaFixture),originalEta,'ETA projection cannot mutate the fetched PixelFrame');
+assert.equal(projected.leds.filter(v=>v.vehicle.id==='UNI:ServiceJourney:trip-42').length,1,'Same FB73 departure cannot light three consecutive stops');
+
+
 console.log('Linear HTML, full Bus1 147 mapping, one cycling LED with synchronized route number, mobile defaults, GPS Debug PASS');

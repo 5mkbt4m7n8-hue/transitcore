@@ -19,7 +19,7 @@
     .board{border:1px solid #252b34;background:var(--panel);border-radius:12px;padding:12px 8px 18px;overflow:hidden}.head,.row{display:grid;grid-template-columns:minmax(130px,1fr) 94px 94px;align-items:center}
     .head{position:sticky;top:0;z-index:4;background:var(--panel);padding:9px 0;color:var(--muted);font-size:12px}.head span{text-align:center}.station{text-align:right;padding-right:18px;font-weight:600}
     .cell{height:42px;position:relative;display:grid;place-items:center}.cell:before{content:"";position:absolute;inset:0 auto 0 50%;width:4px;transform:translateX(-50%);background:var(--line)}.cell.shared{grid-column:2/4}.cell.shared:before{left:25%}.cell.shared:after{content:"";position:absolute;inset:0 auto 0 75%;width:4px;transform:translateX(-50%);background:var(--line)}.row.first .cell:before,.row.first .cell:after{top:50%}.row.last .cell:before,.row.last .cell:after{bottom:50%}
-    .led{position:relative;z-index:2;width:16px;height:16px;border-radius:50%;background:#30363e;border:2px solid #505966;cursor:pointer}.led.on{background:currentColor;border-color:#fff;box-shadow:0 0 10px 3px currentColor}.led.approaching{animation:transitCoreApproachPulse var(--tc-approach-pulse) ease-in-out infinite}.led.departed{background:currentColor;border-color:currentColor;opacity:.22;box-shadow:0 0 5px 1px currentColor;transition:opacity var(--tc-afterglow-duration) linear,box-shadow var(--tc-afterglow-duration) linear}.led.empty{opacity:.14;cursor:default}
+    .led{position:relative;z-index:2;width:16px;height:16px;border-radius:50%;background:#30363e;border:2px solid #505966;cursor:pointer}.led.on{background:currentColor;border-color:#fff;box-shadow:0 0 10px 3px currentColor}.led.approaching{animation:transitCoreApproachPulse var(--tc-approach-pulse) ease-in-out infinite}body.fb73-eta .led.approaching{animation:none;opacity:1;transform:none}body.fb73-eta .led.on{background:currentColor;opacity:1;box-shadow:0 0 10px 3px currentColor}.led.departed{background:currentColor;border-color:currentColor;opacity:.22;box-shadow:0 0 5px 1px currentColor;transition:opacity var(--tc-afterglow-duration) linear,box-shadow var(--tc-afterglow-duration) linear}.led.empty{opacity:.14;cursor:default}
     .ledno{position:absolute;left:22px;top:-3px;color:#778292;font:10px ui-monospace,monospace;white-space:nowrap}.ledstack{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:7px;max-width:92px;flex-wrap:wrap}.ledunit{display:flex;align-items:center;gap:3px}.ledunit .ledno{position:static;font-size:9px}.ledstack .led{flex:0 0 auto}.info{display:none;position:fixed;z-index:20;left:50%;bottom:18px;transform:translateX(-50%);width:min(94vw,520px);background:#18202a;border:1px solid #465467;border-radius:13px;padding:14px;box-shadow:0 18px 50px #000b}.info.show{display:block}.info h2{font-size:17px;margin:0 0 8px}.info p{margin:5px 0;color:#c8d1dc}.info strong{color:#fff}.close{float:right;padding:4px 8px}
     .diagnostics{margin:12px 0;border:1px solid #2c3541;background:#10151c;border-radius:12px}.diagnostics summary{cursor:pointer;padding:12px 14px;font-weight:700}.diagbody{padding:0 14px 14px}.diaggrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px}.diagitem{background:#171d25;border:1px solid #2c3541;border-radius:9px;padding:9px}.diagitem span{display:block;color:var(--muted);font-size:11px}.diagitem b{display:block;margin-top:3px;font-size:18px}.diagok{color:var(--ok)}.diagwarn{color:var(--warn)}.diagbad{color:var(--bad)}.diagnote{margin:10px 0 0;color:var(--muted);font-size:12px}
     @media(max-width:560px){main{padding:10px}.head,.row{grid-template-columns:minmax(105px,1fr) 72px 72px}.station{font-size:12px;padding-right:9px}.ledno{display:none}.status{width:100%;margin-left:0}}
@@ -114,10 +114,10 @@ function ledMarkup(id,name,direction,color,suffix=""){
 }
 function build(){
   document.querySelectorAll(".led").forEach(led=>led.classList.remove("on","approaching","departed"));
-  profile=profiles.find(item=>item.id===$("route").value)||profiles[0];useProfileLayout(profile);const directions=profile.directions.slice(0,2),physical=new Map(hardware.assignments.map(a=>[a.logicalLed,a.physicalLed]));stationRows();
+  profile=profiles.find(item=>item.id===$("route").value)||profiles[0];useProfileLayout(profile);document.body?.classList?.toggle('fb73-eta',profile.id===FLYBUSS);const directions=profile.directions.slice(0,2),physical=new Map(hardware.assignments.map(a=>[a.logicalLed,a.physicalLed]));stationRows();
   $("allRoutes").disabled=profile.id===FLYBUSS;
   $("routeViewOptions").hidden=!allRoutes();
-  $("scopeNote").textContent=allRoutes()?"Viser katalogførte bylinjer på nøyaktig de samme plattformene. Hver buss vises nedenfor med linjenummer, farge og status. GPS-data kan være forsinket.":profile.id===FLYBUSS?"Flybussen bruker estimerte ankomsttider. Flerlinjevisning er tilgjengelig for bybussene.":"Viser valgt linje. Klikk på en diode for detaljer.";
+  $("scopeNote").textContent=allRoutes()?"Viser katalogførte bylinjer på nøyaktig de samme plattformene. Hver buss vises nedenfor med linjenummer, farge og status. GPS-data kan være forsinket.":profile.id===FLYBUSS?"FB73: Kun anslåtte ankomster, ikke GPS. Én stabil LED per avgang vises ved beregnet ankomst. Virkelig bussposisjon kan avvike.":"Viser valgt linje. Klikk på en diode for detaljer.";
   if(stagingSelected())$("scopeNote").textContent="STAGING · "+board.id+" · "+hardware.leds.count+" LED · samme PixelFrame-motor, ikke målt fysisk ESP. Ingen automatisk overgang til produksjonsfeed ved feil.";
   if(bus1GpsSelected())$("scopeNote").textContent="STAGING · Bus1 GPS Proximity · 147 LED · ved holdeplassen innenfor 70 m, slukker etter 90 m. GPS-data kan være forsinket.";
   $("gpsDebug").hidden=!bus1GpsSelected();if(!bus1GpsSelected())$("gpsDebug").open=false;
@@ -160,7 +160,36 @@ function renderStationBuses(items,mode=routeBadgeMode()){
   return `<span class="badge" title="${esc(value.destination||"Ukjent destinasjon")}"><i class="dot" style="background:${color}"></i>${esc(value.line)} · ${esc(item.lifecycle==="PASSED"?"PASSED":value.state||item.state)} · ${esc(value.destination||"?")}</span>`;
  })).join("");
 }
+
+// FB73 provides calls/ETA, not measured location. Multiple calls for one
+// ServiceJourney are NOT multiple buses and may overlap on adjacent stops.
+// Draw at most one solid diode per journey, only inside the worker's nearer
+// AT_STOP prediction window; never expose APPROACHING as measured movement.
+function projectFb73EtaFrame(frame){
+ if(profile?.id!==FLYBUSS)return frame;
+ const physical=new Map((hardware.assignments||[]).map(a=>[a.logicalLed,a.physicalLed]));
+ const stations=new Map;
+ for(const node of board.nodes||[]){
+  const match=/^fb73-(\d+)-([01])$/.exec(node.id||'');
+  if(match)stations.set(physical.get(node.led),{index:Number(match[1]),direction:match[2]});
+ }
+ const selected=new Map;
+ for(const item of frame.leds||[]){
+  if(item.state!=='AT_STOP'&&item.lifecycle!=='AT_STOP')continue;
+  const journey=String(item.vehicle?.id||'');
+  if(!journey||!stations.has(item.id))continue; // no location evidence
+  const stop=stations.get(item.id),before=selected.get(journey);
+  if(!before){selected.set(journey,item);continue;}
+  const previous=stations.get(before.id);
+  const preferCurrent=stop.direction===previous.direction
+   ?(stop.direction==='1'?stop.index<previous.index:stop.index>previous.index)
+   :item.id<before.id;
+  if(preferCurrent)selected.set(journey,item);
+ }
+ return {...frame,leds:[...selected.values()].sort((a,b)=>a.id-b.id)};
+}
 function paint(frame){
+  frame=projectFb73EtaFrame(frame);
   lastFrame=frame;
   updateNetworkMap();
   const visibleIds=new Set([...document.querySelectorAll('.led[data-id]')].map(led=>led.dataset.id));
@@ -178,7 +207,7 @@ function paint(frame){
     for(const led of document.querySelectorAll(`.led[data-id="${id}"]`)){
       led.style.color=`rgb(${(colors[0]||item.rgb).join(",")})`;
       if(item.lifecycle==="PASSED")led.classList.add("departed");else led.classList.add("on");
-      if(effectiveState==="APPROACHING")led.classList.add("approaching");
+      if(effectiveState==="APPROACHING"&&profile?.id!==FLYBUSS)led.classList.add("approaching");
       led.dataset.state=effectiveState;led.dataset.vehicle=JSON.stringify(effective);led.dataset.occupants=JSON.stringify(item.occupants||[]);led.dataset.colors=JSON.stringify(colors);led.dataset.lines=JSON.stringify(lines);led.dataset.colorIndex="0";
       if(allRoutes()&&routeBadgeMode()==="numbers"){led.classList.add("numbered");led.dataset.line=lines[0];}
     }
@@ -228,9 +257,22 @@ function updateDiagnostics(items,frameAge,fresh){
   $("diagNote").className=`diagnote ${fresh?"diagok":"diagbad"}`;
 }
 function showInfo(led){
-  const item=(lastFrame?.leds||[]).find(value=>String(value.id)===led.dataset.id),vehicle=JSON.parse(led.dataset.vehicle||"{}"),occupants=JSON.parse(led.dataset.occupants||"[]"),displayState=led.classList.contains("departed")?"PASSED":led.dataset.state||item?.state||"AV";$("infoTitle").textContent=`${led.dataset.name} - LED ${led.dataset.id}`;
-  const occupantHtml=occupants.length?`<p><strong>Busser på samme LED:</strong></p>${occupants.map(value=>`<p><i class="dot" style="background:rgb(${esc((value.rgb||[]).join(","))})"></i>Linje ${esc(value.line||"?")} - ${esc(value.destination||"Ukjent")} - ${esc(value.state||"?")} (${esc(value.distanceMeters??"?")} m)</p>`).join("")}`:"";
-  $("infoBody").innerHTML=`<p><strong>Retning:</strong> ${esc(led.dataset.direction)}</p><p><strong>Vist tilstand:</strong> ${esc(displayState)}</p>${item?`<p><strong>Prioritert linje/kjøretøy:</strong> ${esc(vehicle.line||profile.line.publicCode)}${vehicle.id?` - ${esc(vehicle.id)}`:""}</p><p><strong>Destinasjon:</strong> ${esc(vehicle.destination||"Ikke oppgitt")}</p>${occupantHtml}<p><strong>Datakvalitet:</strong> ${vehicle.ageSeconds!=null?`${esc(vehicle.ageSeconds)} s gammel posisjon`:"Live frame"}</p>`:"<p>Ingen aktiv buss på denne dioden nå.</p>"}`;$("info").classList.add("show");
+ const item=(lastFrame?.leds||[]).find(value=>String(value.id)===led.dataset.id),
+  vehicle=JSON.parse(led.dataset.vehicle||"{}"),occupants=JSON.parse(led.dataset.occupants||"[]"),
+  isEta=profile?.id===FLYBUSS,
+  displayState=led.classList.contains("departed")?"PASSED":led.dataset.state||item?.state||"AV";
+ $("infoTitle").textContent=`${led.dataset.name} - LED ${led.dataset.id}`;
+ const details=occupants.length?'<p><strong>Busser på samme LED:</strong></p>'+occupants.map(value=>
+   '<p><i class="dot" style="background:rgb('+esc((value.rgb||[]).join(","))+')"></i>'+
+   'Linje '+esc(value.line||'?')+' – '+esc(value.destination||"Ukjent")+
+   ' – '+esc(value.state||'?')+(isEta?' (ETA, ikke målt avstand)':' ('+esc(value.distanceMeters??'?')+' m)')+'</p>').join(''):'';
+ $("infoBody").innerHTML='<p><strong>Retning:</strong> '+esc(led.dataset.direction)+'</p>'+
+  '<p><strong>Vist tilstand:</strong> '+(isEta?'Estimert ved stopp (ikke GPS-posisjon)':esc(displayState))+'</p>'+
+  (item?'<p><strong>Avgang:</strong> '+esc(vehicle.id||'Ukjent')+'</p>'+
+   '<p><strong>Linje:</strong> '+esc(isEta?'FB73':vehicle.line||profile.line.publicCode)+'</p>'+
+   '<p><strong>Datagrunnlag:</strong> '+(isEta?'Ankomstprognose (ETA). Tidspunkt kan avvike fra faktisk ankomst. Ingen målt avstand eller posisjonsalder.':esc(vehicle.ageSeconds!=null?vehicle.ageSeconds+' s gammel posisjon':'Live frame'))+'</p>'+details:
+   '<p>Ingen aktiv avgang på denne dioden nå.</p>');
+ $("info").classList.add("show");
 }
 // Public read-only diagnostics only. Never call Entur directly or expose tokens.
 const gpsClock=ms=>Number.isFinite(ms)&&ms>=0?new Date(ms).toLocaleTimeString("no-NO",{hour:"2-digit",minute:"2-digit",second:"2-digit"}):"–";
