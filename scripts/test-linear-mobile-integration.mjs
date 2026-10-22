@@ -247,9 +247,23 @@ const etaFixture={boardProfile:'trondheim-flybuss-live',leds:[
 ]};
 const originalEta=JSON.stringify(etaFixture);
 const projected=vm.runInContext('projectFb73EtaFrame('+originalEta+')',context);
-assert.deepEqual(Array.from(projected.leds,item=>item.id),[31,36],
- 'FB73 must keep separate trips but show at most one stable stop per journey; do not render early APPROACHING');
+assert.deepEqual(Array.from(projected.leds,item=>item.id),[30,31,36],
+ 'FB73 must keep separate departures and show approaching ETA without multiple LEDs for one departure');
 assert.equal(JSON.stringify(etaFixture),originalEta,'ETA projection cannot mutate the fetched PixelFrame');
+
+// A future estimated call must be shown, but one journey cannot light multiple stops.
+const future=vm.runInContext('projectFb73EtaFrame('+JSON.stringify({...etaFixture,leds:[
+ {id:36,state:'APPROACHING',vehicle:{id:'journey-a'}},
+ {id:38,state:'APPROACHING',vehicle:{id:'journey-a'}},
+ {id:40,state:'APPROACHING',vehicle:{id:'journey-a'}},
+ {id:30,state:'AT_STOP',vehicle:{id:'journey-b'}},
+ {id:32,state:'APPROACHING',vehicle:{id:'journey-b'}}
+]})+')',context);
+assert.equal(future.leds.length,2,'One LED per FB73 journey including approaching journeys');
+assert(future.leds.some(item=>item.vehicle.id==='journey-a'&&item.state==='APPROACHING'),'Future ETA should not disappear');
+assert(future.leds.some(item=>item.vehicle.id==='journey-b'&&item.id===30),'Nearer AT_STOP has priority for same journey');
+assert.match(html,/profile\.id===FLYBUSS&&frame\.boardProfile===board\.id/,'FB73 board frames must not require vehicle.line metadata absent from estimated calls');
+
 assert.equal(projected.leds.filter(v=>v.vehicle.id==='UNI:ServiceJourney:trip-42').length,1,'Same FB73 departure cannot light three consecutive stops');
 
 
