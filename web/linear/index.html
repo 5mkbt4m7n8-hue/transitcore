@@ -117,7 +117,7 @@ function build(){
   profile=profiles.find(item=>item.id===$("route").value)||profiles[0];useProfileLayout(profile);document.body?.classList?.toggle('fb73-eta',profile.id===FLYBUSS);const directions=profile.directions.slice(0,2),physical=new Map(hardware.assignments.map(a=>[a.logicalLed,a.physicalLed]));stationRows();
   $("allRoutes").disabled=profile.id===FLYBUSS;
   $("routeViewOptions").hidden=!allRoutes();
-  $("scopeNote").textContent=allRoutes()?"Viser katalogførte bylinjer på nøyaktig de samme plattformene. Hver buss vises nedenfor med linjenummer, farge og status. GPS-data kan være forsinket.":profile.id===FLYBUSS?"FB73: Kun anslåtte ankomster, ikke GPS. Én stabil LED per avgang vises ved beregnet ankomst. Virkelig bussposisjon kan avvike.":"Viser valgt linje. Klikk på en diode for detaljer.";
+  $("scopeNote").textContent=allRoutes()?"Viser katalogførte bylinjer på nøyaktig de samme plattformene. Hver buss vises nedenfor med linjenummer, farge og status. GPS-data kan være forsinket.":profile.id===FLYBUSS?"FB73: Kun anslåtte ankomster (ETA), ikke GPS. Én stabil LED per avgang vises når ankomst er anslått innen omtrent 2 minutter. Ingen LED utenfor dette vinduet betyr ikke at bussen står stille eller at det ikke går busser.":"Viser valgt linje. Klikk på en diode for detaljer.";
   if(stagingSelected())$("scopeNote").textContent="STAGING · "+board.id+" · "+hardware.leds.count+" LED · samme PixelFrame-motor, ikke målt fysisk ESP. Ingen automatisk overgang til produksjonsfeed ved feil.";
   if(bus1GpsSelected())$("scopeNote").textContent="STAGING · Bus1 GPS Proximity · 147 LED · ved holdeplassen innenfor 70 m, slukker etter 90 m. GPS-data kan være forsinket.";
   $("gpsDebug").hidden=!bus1GpsSelected();if(!bus1GpsSelected())$("gpsDebug").open=false;
@@ -175,15 +175,18 @@ function projectFb73EtaFrame(frame){
  }
  const selected=new Map;
  for(const item of frame.leds||[]){
-  if(item.state!=='AT_STOP'&&item.lifecycle!=='AT_STOP')continue;
+  if(!['AT_STOP','APPROACHING'].includes(item.lifecycle||item.state))continue;
   const journey=String(item.vehicle?.id||'');
   if(!journey||!stations.has(item.id))continue; // no location evidence
   const stop=stations.get(item.id),before=selected.get(journey);
   if(!before){selected.set(journey,item);continue;}
   const previous=stations.get(before.id);
-  const preferCurrent=stop.direction===previous.direction
-   ?(stop.direction==='1'?stop.index<previous.index:stop.index>previous.index)
-   :item.id<before.id;
+  const statePriority=x=>(x.lifecycle||x.state)==='AT_STOP'?2:1;
+  const preferCurrent=statePriority(item)!==statePriority(before)
+   ?statePriority(item)>statePriority(before)
+   :stop.direction===previous.direction
+    ?(stop.direction==='1'?stop.index<previous.index:stop.index>previous.index)
+    :item.id<before.id;
   if(preferCurrent)selected.set(journey,item);
  }
  return {...frame,leds:[...selected.values()].sort((a,b)=>a.id-b.id)};
@@ -193,7 +196,7 @@ function paint(frame){
   lastFrame=frame;
   updateNetworkMap();
   const visibleIds=new Set([...document.querySelectorAll('.led[data-id]')].map(led=>led.dataset.id));
-  const visibleItems=(frame.leds||[]).filter(item=>visibleIds.has(String(item.id))&&(allRoutes()||[item.vehicle,...(item.occupants||[])].some(v=>String(v?.line)===String(profile.line.publicCode)))).map(item=>({...item,occupants:item.occupants||[item.vehicle||{}]}));
+  const visibleItems=(frame.leds||[]).filter(item=>visibleIds.has(String(item.id))&&(profile.id===FLYBUSS&&frame.boardProfile===board.id||allRoutes()||[item.vehicle,...(item.occupants||[])].some(v=>String(v?.line)===String(profile.line.publicCode)))).map(item=>({...item,occupants:item.occupants?.length?item.occupants:profile.id===FLYBUSS?[{...item.vehicle,line:'FB73',destination:'Beregnet avgang',state:item.state,rgb:item.rgb}]:[item.vehicle||{}]}));
   const lineColors=new Map();
   for(const item of visibleItems)for(const value of item.occupants)lineColors.set(String(value.line),value.rgb||item.rgb);
   $("legend").innerHTML=[...lineColors].sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true})).map(([line,rgb])=>`<span><i class="dot" style="background:rgb(${rgb.join(',')})"></i>Linje ${esc(line)}</span>`).join('');
@@ -267,7 +270,7 @@ function showInfo(led){
    'Linje '+esc(value.line||'?')+' – '+esc(value.destination||"Ukjent")+
    ' – '+esc(value.state||'?')+(isEta?' (ETA, ikke målt avstand)':' ('+esc(value.distanceMeters??'?')+' m)')+'</p>').join(''):'';
  $("infoBody").innerHTML='<p><strong>Retning:</strong> '+esc(led.dataset.direction)+'</p>'+
-  '<p><strong>Vist tilstand:</strong> '+(isEta?'Estimert ved stopp (ikke GPS-posisjon)':esc(displayState))+'</p>'+
+  '<p><strong>Vist tilstand:</strong> '+(isEta?(displayState==='APPROACHING'?'Beregnet ankomst nærmer seg (ETA, ikke GPS)':'Estimert ved stopp (ETA, ikke GPS)'):esc(displayState))+'</p>'+
   (item?'<p><strong>Avgang:</strong> '+esc(vehicle.id||'Ukjent')+'</p>'+
    '<p><strong>Linje:</strong> '+esc(isEta?'FB73':vehicle.line||profile.line.publicCode)+'</p>'+
    '<p><strong>Datagrunnlag:</strong> '+(isEta?'Ankomstprognose (ETA). Tidspunkt kan avvike fra faktisk ankomst. Ingen målt avstand eller posisjonsalder.':esc(vehicle.ageSeconds!=null?vehicle.ageSeconds+' s gammel posisjon':'Live frame'))+'</p>'+details:
