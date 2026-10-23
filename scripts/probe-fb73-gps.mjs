@@ -24,4 +24,20 @@ for(const codespace of ['UNI','NBU']){
       (codespace==='NBU'?' (not identified as Værnesekspressen)':''));
   }catch(e){console.log(codespace+': probe unavailable ('+(e?.name||'fetch error')+'); no source conclusion');}
 }
+
+// Independent SIRI-VM endpoint. It is not the same backend as the GraphQL
+// vehicle positions API. A dataset-restricted sample is not a permanent
+// negative finding; XML contains no per-vehicle sensitive data in logs.
+for(const codespace of ['UNI','NBU']){
+  try{
+    const url='https://api.entur.io/realtime/v1/rest/vm?datasetId='+codespace+'&maxSize=30';
+    const response=await fetch(url,{signal:AbortSignal.timeout(12000),headers:{'ET-Client-Name':'transitcore-fb73-gps-probe','Accept':'application/xml'}});
+    if(!response.ok){console.log('SIRI-VM '+codespace+': HTTP '+response.status+' (not verified)');continue;}
+    const body=await response.text();
+    const activityCount=(body.match(/<(?:[a-zA-Z0-9_.-]+:)?VehicleActivity(?:\\s|>)/g)||[]).length;
+    const fb73Mention=/(?:UNI:Line:FB73|<[^>]*LineRef[^>]*>\\s*(?:UNI:Line:)?FB73\\s*<)/i.test(body);
+    console.log('SIRI-VM '+codespace+': vehicle_activities='+activityCount+', mentions_FB73='+fb73Mention+' (single limited sample)');
+  }catch(e){console.log('SIRI-VM '+codespace+': request failed ('+(e?.name||'error')+'); source not verified');}
+}
+
 // Output is a one-time sample, not proof that positions are always present.
