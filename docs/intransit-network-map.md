@@ -181,3 +181,26 @@ Arbeidskopien påvirker ikke produksjons-Worker, ESP32 eller andre tavler.
 - Dette påvirker bare **web/linear**-kartredigering, ikke sanntidsmotore,
   Cloudflare Worker eller ESP32.
 
+
+
+## Flerpunkts tegning av busslinjer (2026-10-24)
+
+**Hele kartet → Rediger kart → + Ny kartlinje:** Trykk så mange
+punkter langs ønsket trasé som nødvendig. Tegningen vises som en
+**stiplet, midlertidig forhåndsvisning** med punkter; ingenting legges i
+den lagrede JSON-en før brukeren velger **Fullfør linjen** (minst to
+punkter). **Fjern siste punkt** tar bort siste klikk; **Avbryt tegning**
+eller Escape forkaster hele forhåndsvisningen. Enter fullfører og
+Backspace fjerner et punkt når fokus ikke er i et skjemafelt.
+
+Velg en eksisterende kartlinje i editoren og bruk
+**Fortsett å tegne fra siste punkt** for å føye til et beliebig
+antall nye punkter (minst ett). Nye segmenter får aldri automatisk
+ruteverifisering. Alle eksisterende manuelt godkjente segmenter
+beholder sine egne indekser og godkjenninger. Ferdig tegning
+er **én angrebar, automatisk lagret redigering**.
+
+Flerpunkts tegning er foreløpig i det opprinnelige SVG-skjemaets
+koordinater (913 x 1280), **ikke et geografisk kart**. Se
+`docs/intransit-geographic-map-plan.md` for den alternative
+kartmodusen. Ingen GPS eller sanntidsstatus utledes av tegnede streker.

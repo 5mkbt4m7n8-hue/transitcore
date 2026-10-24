@@ -38,3 +38,13 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 /* Editor insertion mode and local-only draft persistence */
 .map-viewport.map-placing,.map-viewport.map-placing *{cursor:crosshair!important}
 .map-draft-status{display:inline-flex;align-items:center;min-height:32px;padding:5px 9px;border:1px solid #35536d;border-radius:8px;background:#13243b;color:#c7e3ed;font-size:12px}
+
+/* Multi-tap sketch is a temporary preview, not a saved/verified route. */
+.map-viewport.map-drawing,.map-viewport.map-drawing *{cursor:crosshair!important}
+.map-sketch-preview{pointer-events:none}
+.map-sketch-line{fill:none;stroke:#f8c969;stroke-width:3;stroke-dasharray:7 4;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 3px #e9a537)}
+.map-sketch-vertex{fill:#f8c969;stroke:#18253a;stroke-width:1.2}
+.map-sketch-controls{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:8px;border:1px solid #a28544;background:#292419;padding:10px;border-radius:10px}
+.map-sketch-controls strong{flex:1 1 100%;color:#ffdda1}
+.map-sketch-controls button:disabled{opacity:.4;cursor:not-allowed}
+.map-sketch-controls[hidden]{display:none!important}

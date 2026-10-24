@@ -72,6 +72,34 @@
   path.points.pop();
   if(path.reviewedSegments)delete path.reviewedSegments[edge];
  }
+ // Drawing is stored as a complete validated transaction, never as
+ // half-finished geometry in the persistent JSON draft.
+ function validateVertices(vertices,previous=null){
+  if(!Array.isArray(vertices)||!vertices.length||vertices.length>1000)throw Error('Ugyldig antall linjepunkter');
+  let last=previous,points=[];
+  for(const v of vertices){
+   if(!v||!Number.isFinite(v.x)||!Number.isFinite(v.y)||v.x<0||v.y<0||v.x>W||v.y>H)
+    throw Error('Linjepunkt må være innenfor kartet');
+   if(last&&Math.hypot(v.x-last.x,v.y-last.y)<1)throw Error('To linjepunkter er for nær hverandre');
+   const at={x:v.x,y:v.y};
+   points.push(at);last=at;
+  }
+  return points;
+ }
+ function drawPath(layout,vertices){
+  if(!Array.isArray(vertices)||vertices.length<2)throw Error('Minst to punkter kreves for en ny linje');
+  const points=validateVertices(vertices),id=availableId(layout.paths,'custom-path-');
+  layout.paths.push({id,color:'#60758c',width:1.5,routes:[],verification:'unresolved',points});
+  return id;
+ }
+ function appendPath(layout,id,vertices){
+  const path=pathById(layout,id),added=validateVertices(vertices,path.points[path.points.length-1]);
+  if(path.points.length+added.length>1000)throw Error('For mange linjepunkter');
+  path.points.push(...added);
+  // Existing reviewedSegments are edge-indexed. Appending to the tail
+  // preserves all reviewed old edges; new edges start without approvals.
+  return path.points.length;
+ }
  function deleteNewStop(layout,id){
   if(!/^custom-stop-\d+$/.test(id))throw Error('Opprinnelige holdeplasser kan ikke slettes');
   const index=layout.stops.findIndex(s=>s.id===id);
@@ -84,5 +112,5 @@
   if(index<0)throw Error('Ukjent kartlinje');
   layout.paths.splice(index,1);
  }
- return {addStop,addPath,extendPath,insertVertex,removeLastVertex,deleteNewStop,deleteNewPath};
+ return {addStop,addPath,extendPath,insertVertex,removeLastVertex,drawPath,appendPath,deleteNewStop,deleteNewPath};
 });
