@@ -75,22 +75,25 @@ try{
  assert.equal(await page.locator('[data-role=sketchControls]').isVisible(),true,'Multi-tap sketch controls should open: '+await page.locator('[data-role=details]').innerText());
  assert.equal(await page.locator('.map-route').count(),initialPaths,'Drawing only starts a preview');
  const canvas=page.locator('svg.map-viewport');
- await canvas.click({position:{x:200,y:220}});
+ const tapMap=async(x,y)=>{
+  const position=await canvas.evaluate((svg,point)=>{
+   const p=svg.createSVGPoint();p.x=point.x;p.y=point.y;
+   const screen=p.matrixTransform(svg.getScreenCTM()),rect=svg.getBoundingClientRect();
+   return {x:screen.x-rect.left,y:screen.y-rect.top};
+  },{x,y});
+  await canvas.click({position});
+ };
+ await tapMap(320,370);
  assert.equal(await page.locator('.map-route').count(),initialPaths,'One preview point is not a saved line');
- assert.equal(await page.locator('.map-sketch-vertex').count(),1,JSON.stringify(await page.evaluate(()=>({
-  help:document.querySelector('[data-role=sketchHelp]')?.textContent,
-  details:document.querySelector('[data-role=details]')?.textContent,
-  classes:document.querySelector('svg.map-viewport')?.getAttribute('class'),
-  preview:document.querySelectorAll('.map-sketch-preview').length
- }))));
+ assert.equal(await page.locator('.map-sketch-vertex').count(),1,'First map coordinate creates a draft vertex');
  assert.equal(await page.locator('[data-act=finishSketch]').isDisabled(),true);
- await canvas.click({position:{x:245,y:240}});
+ await tapMap(370,415);
  assert.equal(await page.locator('.map-sketch-vertex').count(),2);
- await canvas.click({position:{x:280,y:280}});
+ await tapMap(415,465);
  assert.equal(await page.locator('.map-sketch-vertex').count(),3);
  await page.locator('[data-act=sketchUndo]').click();
  assert.equal(await page.locator('.map-sketch-vertex').count(),2,'Remove last unsaved vertex');
- await canvas.click({position:{x:280,y:280}});
+ await tapMap(415,465);
  await page.locator('[data-act=finishSketch]').click();
  assert.equal(await page.locator('.map-sketch-vertex').count(),0,'Preview is cleared on completion');
  assert.equal(await page.locator('.map-route').count(),initialPaths+1,'Completed 3-vertex route is saved');
@@ -98,8 +101,8 @@ try{
  assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(v=>v.trim().split(' ').length),3);
  // Extend the same route by drawing more vertices; existing points stay fixed.
  await page.getByRole('button',{name:'Fortsett å tegne fra siste punkt'}).click();
- await canvas.click({position:{x:340,y:330}});
- await canvas.click({position:{x:390,y:380}});
+ await tapMap(470,520);
+ await tapMap(520,560);
  assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(v=>v.trim().split(' ').length),3,'No partial edits while drawing');
  await page.locator('[data-act=finishSketch]').click();
  assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(v=>v.trim().split(' ').length),5,'Extended route includes new drawn vertices');
@@ -107,7 +110,7 @@ try{
  assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(v=>v.trim().split(' ').length),3,'Undo the complete extension');
  // Cancel a sketch without touching existing geometry.
  await page.locator('[data-act=addPath]').click();
- await canvas.click({position:{x:160,y:160}});
+ await tapMap(240,230);
  await page.keyboard.press('Escape');
  assert.equal(await page.locator('[data-role=sketchControls]').isVisible(),false,'Escape cancels unfinished sketch');
  assert.equal(await page.locator('.map-route').count(),initialPaths+1);
