@@ -37,9 +37,9 @@ try{
  const url='http://127.0.0.1:'+server.address().port+'/web/linear/geo/index.html';
  await page.goto(url);
  await page.waitForFunction(()=>document.querySelector('.geo-canvas')?._leaflet_id>0,{timeout:25000});
- await page.waitForFunction(()=>document.querySelectorAll('.leaflet-interactive').length>0,{timeout:20000});
+ await page.waitForFunction(()=>document.querySelector('.leaflet-overlay-pane canvas')!==null,{timeout:20000});
  assert.equal(await page.locator('#boardSelect').inputValue(),'trondheim-bus-board');
- const initial=await page.locator('.leaflet-interactive').count();
+ const initial=await page.locator('.leaflet-overlay-pane canvas').count();
  assert(initial>0,'At least one distinct Quay candidate should be rendered');
  await page.locator('[data-g=stop]').selectOption('original-000');
  await page.locator('[data-g=place]').click();
