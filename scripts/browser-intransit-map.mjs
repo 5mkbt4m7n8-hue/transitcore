@@ -123,7 +123,7 @@ try{
  assert.equal(await editPage.locator('.map-stop').count(),baseStopCount+1,'Tap creates exactly one mapped-position draft stop');
  assert.match(await editPage.locator('[data-role=draftStatus]').innerText(),/lagret automatisk/);
  const draft=await editPage.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')));
- assert.equal(draft.layout.stops.length,baseStopCount+1);
+ assert.equal(draft.layout.stops.length,101,'Auto-draft contains all 100 original stops and exactly one new stop');
  await editPage.reload();
  await editPage.waitForFunction(()=>document.querySelectorAll('#rows .row').length>0);
  await editPage.locator('#networkMode').click();
