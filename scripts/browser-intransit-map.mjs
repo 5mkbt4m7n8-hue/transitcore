@@ -72,11 +72,17 @@ try{
  assert.equal(await page.locator('.map-stop').count(),initialStops,'Undo removes only the newly added stop');
  // Draw a new line by consecutive taps, without saving an invalid partial route.
  await page.locator('[data-act=addPath]').click();
+ assert.equal(await page.locator('[data-role=sketchControls]').isVisible(),true,'Multi-tap sketch controls should open: '+await page.locator('[data-role=details]').innerText());
  assert.equal(await page.locator('.map-route').count(),initialPaths,'Drawing only starts a preview');
  const canvas=page.locator('svg.map-viewport');
  await canvas.click({position:{x:200,y:220}});
  assert.equal(await page.locator('.map-route').count(),initialPaths,'One preview point is not a saved line');
- assert.equal(await page.locator('.map-sketch-vertex').count(),1);
+ assert.equal(await page.locator('.map-sketch-vertex').count(),1,JSON.stringify(await page.evaluate(()=>({
+  help:document.querySelector('[data-role=sketchHelp]')?.textContent,
+  details:document.querySelector('[data-role=details]')?.textContent,
+  classes:document.querySelector('svg.map-viewport')?.getAttribute('class'),
+  preview:document.querySelectorAll('.map-sketch-preview').length
+ }))));
  assert.equal(await page.locator('[data-act=finishSketch]').isDisabled(),true);
  await canvas.click({position:{x:245,y:240}});
  assert.equal(await page.locator('.map-sketch-vertex').count(),2);
