@@ -70,15 +70,54 @@ try{
  assert.equal(await page.locator('.map-stop[data-stop="custom-stop-001"][data-unresolved="true"][data-state="OFF"]').count(),1,'Unmapped new stop is never displayed as live');
  await page.locator('[data-act=undo]').click();
  assert.equal(await page.locator('.map-stop').count(),initialStops,'Undo removes only the newly added stop');
+ // Draw a new line by consecutive taps, without saving an invalid partial route.
  await page.locator('[data-act=addPath]').click();
- assert.equal(await page.locator('.map-route').count(),initialPaths,'Await tap before adding map line');
- await page.locator('svg.map-viewport').click({position:{x:200,y:220}});
- assert.equal(await page.locator('.map-route').count(),initialPaths+1,'New schematic line has two vertices and renders');
+ assert.equal(await page.locator('[data-role=sketchControls]').isVisible(),true,'Multi-tap sketch controls should open: '+await page.locator('[data-role=details]').innerText());
+ assert.equal(await page.locator('.map-route').count(),initialPaths,'Drawing only starts a preview');
+ const canvas=page.locator('svg.map-viewport');
+ const tapMap=async(x,y)=>{
+  const position=await canvas.evaluate((svg,point)=>{
+   const p=svg.createSVGPoint();p.x=point.x;p.y=point.y;
+   const screen=p.matrixTransform(svg.getScreenCTM()),rect=svg.getBoundingClientRect();
+   return {x:screen.x-rect.left,y:screen.y-rect.top};
+  },{x,y});
+  await canvas.click({position});
+ };
+ await tapMap(320,370);
+ assert.equal(await page.locator('.map-route').count(),initialPaths,'One preview point is not a saved line');
+ assert.equal(await page.locator('.map-sketch-vertex').count(),1,'First map coordinate creates a draft vertex');
+ assert.equal(await page.locator('[data-act=finishSketch]').isDisabled(),true);
+ await tapMap(370,415);
+ assert.equal(await page.locator('.map-sketch-vertex').count(),2);
+ await tapMap(415,465);
+ assert.equal(await page.locator('.map-sketch-vertex').count(),3);
+ await page.locator('[data-act=sketchUndo]').click();
+ assert.equal(await page.locator('.map-sketch-vertex').count(),2,'Remove last unsaved vertex');
+ await tapMap(415,465);
+ await page.locator('[data-act=finishSketch]').click();
+ assert.equal(await page.locator('.map-sketch-vertex').count(),0,'Preview is cleared on completion');
+ assert.equal(await page.locator('.map-route').count(),initialPaths+1,'Completed 3-vertex route is saved');
  assert.equal(await page.locator('[data-route-path="custom-path-001"]').count(),1);
+ assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(v=>v.trim().split(' ').length),3);
+ // Extend the same route by drawing more vertices; existing points stay fixed.
+ await page.getByRole('button',{name:'Fortsett å tegne fra siste punkt'}).click();
+ await tapMap(470,520);
+ await tapMap(520,560);
+ assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(v=>v.trim().split(' ').length),3,'No partial edits while drawing');
+ await page.locator('[data-act=finishSketch]').click();
+ assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(v=>v.trim().split(' ').length),5,'Extended route includes new drawn vertices');
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(v=>v.trim().split(' ').length),3,'Undo the complete extension');
+ // Cancel a sketch without touching existing geometry.
+ await page.locator('[data-act=addPath]').click();
+ await tapMap(240,230);
+ await page.keyboard.press('Escape');
+ assert.equal(await page.locator('[data-role=sketchControls]').isVisible(),false,'Escape cancels unfinished sketch');
+ assert.equal(await page.locator('.map-route').count(),initialPaths+1);
  await page.getByRole('button',{name:'+ Forleng linjen'}).click();
- assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(s=>s.trim().split(' ').length),3);
+ assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(v=>v.trim().split(' ').length),4);
  await page.getByRole('button',{name:'+ Knekkpunkt i valgt delstrekning'}).click();
- assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(s=>s.trim().split(' ').length),4);
+ assert.equal(await page.locator('.map-route[data-route-path="custom-path-001"]').getAttribute('points').then(v=>v.trim().split(' ').length),5);
  await page.locator('[data-act=undo]').click();
  await page.locator('[data-act=undo]').click();
  await page.locator('[data-act=undo]').click();

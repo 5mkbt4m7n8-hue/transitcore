@@ -110,6 +110,29 @@ const Ops=require('../web/linear/network/layout-ops.js');
  const next=Ops.addStop(grown,403,526);
  assert.equal(next,stopId,'New elements reuse available stable IDs after removal');
 }
+
+{
+ const drawn=structuredClone(layout);
+ const existingPaths=drawn.paths.map(p=>({id:p.id,points:structuredClone(p.points),reviewedSegments:structuredClone(p.reviewedSegments||{})}));
+ const id=Ops.drawPath(drawn,[{x:100,y:100},{x:120,y:113},{x:160,y:160}]);
+ assert.equal(id,'custom-path-001');
+ assert.deepEqual(drawn.paths.at(-1).points,[{x:100,y:100},{x:120,y:113},{x:160,y:160}]);
+ assert.deepEqual(M.validate(drawn),[]);
+ assert.throws(()=>Ops.drawPath(drawn,[{x:80,y:80}]),/Minst to punkter/);
+ assert.throws(()=>Ops.drawPath(drawn,[{x:80,y:80},{x:80,y:80}]),/for nær/);
+ assert.throws(()=>Ops.drawPath(drawn,[{x:80,y:80},{x:914,y:100}]),/innenfor/);
+ assert.equal(drawn.paths.length,layout.paths.length+1,'Invalid sketches must not persist');
+ drawn.paths.at(-1).reviewedSegments={'0':{verification:'user-reviewed',routes:['atb-bus-1-live']}};
+ const before=structuredClone(drawn.paths.at(-1).reviewedSegments);
+ Ops.appendPath(drawn,id,[{x:220,y:180},{x:260,y:200}]);
+ assert.equal(drawn.paths.at(-1).points.length,5);
+ assert.deepEqual(drawn.paths.at(-1).reviewedSegments,before,'Extending tail must preserve previous review evidence');
+ assert.throws(()=>Ops.appendPath(drawn,id,[{x:260,y:200}]),/for nær/);
+ assert.throws(()=>Ops.appendPath(drawn,id,[{x:1000,y:200}]),/innenfor/);
+ assert.deepEqual(drawn.paths.slice(0,layout.paths.length).map(p=>({id:p.id,points:p.points,reviewedSegments:p.reviewedSegments||{}})),existingPaths,'100 original stops and 18 traced paths must stay unchanged');
+ assert.equal(drawn.stops.length,100);
+ assert.deepEqual(M.validate(drawn),[]);
+}
 const context={structuredClone,InTransitMapModel:M};vm.createContext(context);vm.runInContext(read('web/linear/network/editor.js'),context);
 let changed;const editor=context.InTransitMapEditor(layout,v=>changed=v);editor.change(v=>v.stops[0].x=100);assert.equal(changed.stops[0].x,100);editor.undo();assert.equal(changed.stops[0].x,layout.stops[0].x);editor.import(JSON.parse(editor.export()));assert.throws(()=>editor.import({}));editor.change(v=>v.stops[0].diodeMode='split');editor.discard();assert.equal(changed.stops[0].diodeMode,'shared');
 const ui=read('web/linear/network/map.js');
@@ -124,6 +147,12 @@ assert.match(ui,/svg\.addEventListener\('click'/,'Placement must use map coordin
 assert.match(ui,/placementGestureMoved/,'Dragging must not accidentally create a stop');
 assert.match(ui,/L\.insertVertex/);
 assert.match(ui,/L\.extendPath/);
+assert.match(ui,/sketchTap\(p\)/,'Tap adds provisional route vertices');
+assert.match(ui,/L\.drawPath/,'New sketch is committed on finish');
+assert.match(ui,/L\.appendPath/,'Existing route can be extended by taps');
+assert.match(ui,/data-act="finishSketch"/,'Explicit finish button');
+assert.match(ui,/data-act="sketchCancel"/,'Explicit cancel button');
+
 assert.match(ui,/data-role="reference"/);
 assert.match(ui,/data-role="routeColors"/);
 assert.match(ui,/data-role="largeLabels"/);

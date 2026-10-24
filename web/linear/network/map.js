@@ -6,10 +6,10 @@
  root.InTransitNetwork={async create(host){
   const response=await fetch('network/trondheim-layout.json');if(!response.ok)throw Error('Kartlayout HTTP '+response.status);
   const initial=await response.json();const errors=M.validate(initial);if(errors.length)throw Error(errors.join(', '));
-  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><div class="map-editor" id="networkEditor" hidden><button data-act="addStop">+ Ny holdeplass</button><button data-act="addPath">+ Ny kartlinje</button><button data-act="undo">Angre</button><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><span class="map-draft-status" data-role="draftStatus" aria-live="polite">Ingen nye endringer</span><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
+  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><div class="map-editor" id="networkEditor" hidden><button data-act="addStop">+ Ny holdeplass</button><button data-act="addPath">+ Ny kartlinje</button><button data-act="undo">Angre</button><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><span class="map-draft-status" data-role="draftStatus" aria-live="polite">Ingen nye endringer</span><div class="map-sketch-controls" data-role="sketchControls" hidden><strong data-role="sketchHelp" aria-live="polite"></strong><button data-act="finishSketch">Fullfør linjen</button><button data-act="sketchUndo">Fjern siste punkt</button><button data-act="sketchCancel">Avbryt tegning</button></div><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
   const q=r=>host.querySelector(`[data-role="${r}"]`),svg=host.querySelector('svg'),editorPanel=host.querySelector('#networkEditor');
   let layout=initial,context={},editing=false,selection=null,selectedSegmentIndex=0,drag=null,box=[0,0,913,1280],phase=0,report={},frame=null;
-  let placementMode=null,placementGestureMoved=false,suppressAutoSave=false;
+  let placementMode=null,routeSketch=null,placementGestureMoved=false,suppressAutoSave=false;
   const autoDraftKey='intransit-map-autodraft-v1',manualDraftKey='intransit-map-draft-v1';
   // Fingerprint the shipped layout, so an old local draft never silently
   // overrides a changed version of the canonical map.
@@ -57,6 +57,79 @@
   const viewportCenter=()=>({x:box[0]+box[2]/2,y:box[1]+box[3]/2});
   function zoom(f,cx=box[0]+box[2]/2,cy=box[1]+box[3]/2){const w=Math.min(1826,Math.max(40,box[2]*f)),h=w*1280/913;box=[cx-(cx-box[0])*w/box[2],cy-(cy-box[1])*h/box[3],w,h];setBox();}
   function coords(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+  function syncSketchControls(){
+   const controls=q('sketchControls'),active=!!routeSketch;
+   controls.hidden=!active;
+   svg.classList.toggle('map-drawing',active);
+   svg.classList.toggle('map-placing',!!placementMode);
+   if(!active)return;
+   const n=routeSketch.points.length,continued=!!routeSketch.pathId;
+   q('sketchHelp').textContent=continued
+    ?'Forleng eksisterende linje: '+n+' nye punkt. Trykk flere steder på kartet.'
+    :'Ny linje: '+n+' av minst 2 punkt. Trykk langs traseen.';
+   const done=controls.querySelector('[data-act="finishSketch"]');
+   done.disabled=n<(continued?1:2);
+   controls.querySelector('[data-act="sketchUndo"]').disabled=n===0;
+  }
+  function showSketchPreview(){
+   svg.querySelector('.map-sketch-preview')?.remove();
+   if(!routeSketch)return;
+   const parent=el('g',{class:'map-sketch-preview','aria-hidden':'true'});
+   const anchor=routeSketch.pathId?layout.paths.find(p=>p.id===routeSketch.pathId)?.points.at(-1):null;
+   const points=[...(anchor?[anchor]:[]),...routeSketch.points];
+   const future=routeSketch.cursor&&points.length?[...points,routeSketch.cursor]:points;
+   if(future.length>1)parent.append(el('polyline',{
+    class:'map-sketch-line',points:future.map(v=>v.x+','+v.y).join(' ')
+   }));
+   for(const p of routeSketch.points)parent.append(el('circle',{
+    class:'map-sketch-vertex',cx:p.x,cy:p.y,r:3.3
+   }));
+   svg.append(parent);
+  }
+  function cancelSketch(){
+   routeSketch=null;syncSketchControls();showSketchPreview();
+  }
+  function startSketch(pathId=null){
+   if(pathId&&!layout.paths.some(p=>p.id===pathId))throw Error('Fant ikke kartlinjen');
+   placementMode=null;
+   routeSketch={pathId,points:[],cursor:null};
+   placementGestureMoved=false;
+   syncSketchControls();showSketchPreview();
+   q('details').textContent=pathId
+    ?'Trykk på kartet for hvert nytt knekkpunkt. Fullfør når forlengelsen er ferdig.'
+    :'Tegn trasé: trykk på startpunktet og deretter langs traséen. Minst to punkt kreves.';
+  }
+  function sketchTap(p){
+   if(!routeSketch)return;
+   if(!Number.isFinite(p.x)||!Number.isFinite(p.y)||p.x<0||p.x>913||p.y<0||p.y>1280){
+    q('details').textContent='Velg et punkt innenfor kartflaten.';return;
+   }
+   const last=routeSketch.points.at(-1)||(routeSketch.pathId?layout.paths.find(v=>v.id===routeSketch.pathId)?.points.at(-1):null);
+   if(last&&Math.hypot(p.x-last.x,p.y-last.y)<1){
+    q('details').textContent='Velg et punkt litt lenger unna det forrige.';return;
+   }
+   if(routeSketch.points.length>997){q('details').textContent='Linjen kan ikke ha flere punkter';return;}
+   routeSketch.points.push({x:p.x,y:p.y});routeSketch.cursor=null;
+   syncSketchControls();showSketchPreview();
+  }
+  function undoSketchPoint(){
+   if(!routeSketch)return;
+   routeSketch.points.pop();routeSketch.cursor=null;syncSketchControls();showSketchPreview();
+  }
+  function finishSketch(){
+   if(!routeSketch)return;
+   const sketch=routeSketch;
+   if(sketch.points.length<(sketch.pathId?1:2)){q('details').textContent='Legg til flere punkter før linjen fullføres.';return;}
+   let id=sketch.pathId;
+   editor.change(next=>{
+    if(id)L.appendPath(next,id,sketch.points);
+    else id=L.drawPath(next,sketch.points);
+   });
+   routeSketch=null;selection={type:'path',id};
+   selectedSegmentIndex=0;syncSketchControls();draw();fields();
+   q('details').textContent='Kartlinjen '+id+' er lagret med '+sketch.points.length+' nye punkt. Du kan redigere og angre endringen.';
+  }
+
   function details(stop){const values=M.signals(stop,context.board,context.hardware,frame,context.all?null:context.line),age=(Date.now()-Date.parse(frame?.generatedAt))/1000;
    q('details').textContent=stop.name+'\n'+(stop.verification!=='confirmed'?'Uavklart navn / ID. Ingen live-kobling.':values.length?values.map(v=>`Linje ${v.line||'?'} · ${v.destination||'Ukjent destinasjon'} · buss ${v.id||'ikke oppgitt'} · ${v.state}\nKilde: ${v.source||'ikke oppgitt'} · observasjonsalder: ${v.ageSeconds??'ukjent'} s`).join('\n'):'OFF · ingen aktiv gyldig observasjon; bekrefter ikke tom holdeplass.')+`\nFrame-alder: ${Number.isFinite(age)?Math.floor(age)+' s':'ingen frame'}`;
   }
@@ -107,6 +180,7 @@
     directions.forEach((id,i)=>{const group=el('g',{class:'map-stop',transform:`translate(${stop.x+(id===null?0:(i?1:-1)*(stop.radius+2))} ${stop.y})`,tabindex:0,role:'button','aria-label':stop.name});if(stop.verification!=='confirmed')group.setAttribute('data-unresolved','true');group.dataset.stop=stop.id;if(id!==null)group.dataset.direction=id;group.append(el('circle',{r:stop.radius}));group.append(el('text',{y:2}));group.onclick=()=>{selection={type:'stop',id:stop.id};fields();details(stop);};group.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();group.onclick();}};svg.append(group);});
     if(stop.label.visible){const label=el('text',{x:stop.label.x,y:stop.label.y,class:'map-label'});label.textContent=stop.name;label.dataset.label=stop.id;svg.append(label);}
    }
+   showSketchPreview();
    q('focus').replaceChildren(new Option('Fokus på punkt …',''),...layout.stops.map(s=>new Option(s.name,s.id)));
    const currentPath=routeReview.value;
    routeReview.replaceChildren(new Option('Gjennomgå kartlinje …',''),...layout.paths.map(p=>new Option(p.id+' · '+edges.filter(e=>e.pathId===p.id).length+'/'+(p.points.length-1)+' nabokoblinger',p.id)));
@@ -173,7 +247,10 @@
      insert.onclick=()=>{try{const idx=Number(segment.value);editor.change(next=>L.insertVertex(next,item.id,idx));selectedSegmentIndex=idx;fields();}catch(e){q('details').textContent=e.message;}};
      const removeEnd=document.createElement('button');removeEnd.type='button';removeEnd.textContent='Fjern siste knekkpunkt';
      removeEnd.onclick=()=>{try{editor.change(next=>L.removeLastVertex(next,item.id));selectedSegmentIndex=Math.max(0,selectedSegmentIndex-1);fields();}catch(e){q('details').textContent=e.message;}};
-     geometry.append(addEnd,insert,removeEnd);
+     const continueDraw=document.createElement('button');continueDraw.type='button';
+     continueDraw.textContent='Fortsett å tegne fra siste punkt';
+     continueDraw.onclick=()=>startSketch(item.id);
+     geometry.append(addEnd,insert,removeEnd,continueDraw);
      if(item.id.startsWith('custom-path-')){
       const del=document.createElement('button');del.type='button';del.textContent='Slett ny linje';
       del.onclick=()=>{try{editor.change(next=>L.deleteNewPath(next,item.id));selection=null;fields();}catch(e){q('details').textContent=e.message;}};
@@ -200,19 +277,28 @@
   host.querySelectorAll('[data-act]').forEach(button=>button.onclick=()=>{try{switch(button.dataset.act){
    case'in':zoom(.75);break;case'out':zoom(1.33);break;case'fit':box=[0,0,913,1280];setBox();break;
    case'edit':editing=!editing;
-    if(!editing){placementMode=null;svg.classList.remove('map-placing');}
+    if(!editing){placementMode=null;cancelSketch();}
     editorPanel.hidden=!editing;button.setAttribute('aria-pressed',editing);draw();fields();break;
-   case'addStop':case'addPath':{
+   case'addStop':{
     if(!editing)break;
-    placementMode=placementMode===(button.dataset.act==='addStop'?'stop':'path')?null:(button.dataset.act==='addStop'?'stop':'path');
-    svg.classList.toggle('map-placing',!!placementMode);
+    cancelSketch();placementMode=placementMode==='stop'?null:'stop';
+    syncSketchControls();
     q('details').textContent=placementMode
-      ?'Trykk på kartet for å plassere '+(placementMode==='stop'?'en ny holdeplass.':'starten på en ny kartlinje.')+' Trykk på knappen igjen for å avbryte.'
-      :'Plasseringen er avbrutt.';
+     ?'Trykk på kartet for å plassere en ny holdeplass. Trykk på knappen igjen for å avbryte.'
+     :'Plasseringen er avbrutt.';
     break;
    }
-   case'undo':editor.undo();break;
-   case'discard':suppressAutoSave=true;
+   case'addPath':{
+    if(!editing)break;
+    if(routeSketch&&!routeSketch.pathId)cancelSketch();
+    else startSketch();
+    break;
+   }
+   case'finishSketch':finishSketch();break;
+   case'sketchUndo':undoSketchPoint();break;
+   case'sketchCancel':cancelSketch();break;
+   case'undo':if(routeSketch)undoSketchPoint();else editor.undo();break;
+   case'discard':cancelSketch();placementMode=null;syncSketchControls();suppressAutoSave=true;
     try{editor.discard();}finally{suppressAutoSave=false;}
     clearAutoDraft();selection=null;fields();break;
    case'export':download('trondheim-layout.json',editor.export());break;
@@ -229,12 +315,15 @@
   svg.onwheel=e=>{e.preventDefault();const p=coords(e);zoom(e.deltaY<0?.85:1.18,p.x,p.y);};
   const pointers=new Map;
   svg.onpointerdown=e=>{svg.setPointerCapture(e.pointerId);const p=coords(e);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-   if(editing&&placementMode){placementGestureMoved=pointers.size>1;return;}
+   if(editing&&(placementMode||routeSketch)){placementGestureMoved=pointers.size>1;return;}
    const target=e.target.closest('[data-stop],[data-label],[data-path],[data-route-path]');if(target?.dataset.routePath){selection={type:'path',id:target.dataset.routePath};fields();const path=layout.paths.find(p=>p.id===selection.id);q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');}if(target&&(target.dataset.stop||target.dataset.label)){const id=target.dataset.stop||target.dataset.label;selection={type:'stop',id};fields();details(layout.stops.find(s=>s.id===id));}drag={id:e.pointerId,start:p,box:[...box],target:editing&&target&&!target.dataset.routePath?target:null,before:editor.get(),next:null};};
   svg.onpointermove=e=>{
-   if(editing&&placementMode){
+   if(editing&&(placementMode||routeSketch)){
     const origin=pointers.get(e.pointerId);
     if(origin&&Math.hypot(origin.x-e.clientX,origin.y-e.clientY)>10)placementGestureMoved=true;
+    if(routeSketch&&e.pointerType!=='touch'&&pointers.size===0){
+     try{routeSketch.cursor=coords(e);showSketchPreview();}catch{}
+    }
     return;
    }
    if(!pointers.has(e.pointerId)||!drag)return;
@@ -245,21 +334,29 @@
    else{const s=next.stops.find(s=>s.id===(t.dataset.stop||t.dataset.label));Object.assign(t.dataset.label?s.label:s,{x,y});}
    drag.next=next;layout=next;draw();
   };
-  function end(e){pointers.delete(e.pointerId);if(editing&&placementMode)return;if(drag?.next)editor.import(drag.next);drag=null;}
+  function end(e){pointers.delete(e.pointerId);if(editing&&(placementMode||routeSketch))return;if(drag?.next)editor.import(drag.next);drag=null;}
   svg.onpointerup=end;svg.onpointercancel=()=>{pointers.clear();drag=null;placementGestureMoved=true;layout=editor.get();draw();};
   // Capture click before the old map line/stop selection handlers, so an
   // insertion works even when the chosen pixel overlaps existing geometry.
   svg.addEventListener('click',e=>{
-   if(!editing||!placementMode||placementGestureMoved||pointers.size)return;
+   if(!editing||(!placementMode&&!routeSketch)||placementGestureMoved||pointers.size)return;
    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-   const p=coords(e),mode=placementMode;let id;
+   const p=coords(e);
    try{
-    editor.change(next=>{id=mode==='stop'?L.addStop(next,p.x,p.y):L.addPath(next,p.x,p.y);});
-    selection={type:mode,id};selectedSegmentIndex=0;
-    placementMode=null;svg.classList.remove('map-placing');fields();draw();
-    q('details').textContent=(mode==='stop'?'Ny holdeplass':'Ny kartlinje')+' lagt til. Dra punktet eller rediger feltene.';
+    if(routeSketch){sketchTap(p);return;}
+    let id;
+    editor.change(next=>{id=L.addStop(next,p.x,p.y);});
+    selection={type:'stop',id};selectedSegmentIndex=0;
+    placementMode=null;syncSketchControls();fields();draw();
+    q('details').textContent='Ny holdeplass lagt til. Dra punktet eller rediger feltene.';
    }catch(error){q('details').textContent=error.message;}
   },true);
+  document.addEventListener('keydown',e=>{
+   if(!editing||!routeSketch||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName||''))return;
+   if(e.key==='Escape'){e.preventDefault();cancelSketch();}
+   else if(e.key==='Backspace'){e.preventDefault();undoSketchPoint();}
+   else if(e.key==='Enter'){e.preventDefault();finishSketch();}
+  });
   setInterval(()=>{if(!host.hidden&&!document.hidden){phase++;paint();}},1200);draw();restoreAutoDraft();
   return {update(next){context=next;frame=next.frame;draw();},clear(){frame=null;paint();}};
  }};
