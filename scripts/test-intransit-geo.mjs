@@ -42,7 +42,7 @@ const ambiguous=model.candidates({stops:[{id:'far',verification:'confirmed',bind
 assert.equal(ambiguous.far,undefined,'Never midpoint distant platform coordinates');
 for(const path of ['web/linear/geo/map.js'])new vm.Script(read(path));
 const page=read('web/linear/geo/index.html');
-assert.match(page,/geo\/model\.js/);
+assert.match(page,/src="model\.js"/);
 assert.match(page,/href="map.css"/);
 assert.match(page,/Trondheim bybuss/);
 assert.match(read('web/linear/geo/map.js'),/OpenStreetMap/);
