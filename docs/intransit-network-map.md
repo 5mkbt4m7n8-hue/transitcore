@@ -152,3 +152,32 @@ versjonert steg. Ingen eksisterende punkter skal da forskyves, og
 originalbildet skal forbli forankret i sine opprinnelige koordinater.
 
 Arbeidskopien påvirker ikke produksjons-Worker, ESP32 eller andre tavler.
+
+
+## Interaktiv tegning: direkte plassering og automatisk arbeidskopi
+
+- I **Rediger kart** velger brukeren nå **+ Ny holdeplass** eller
+  **+ Ny kartlinje**, og trykker på ønsket posisjon i SVG-kartet. Posisjonen
+  lagres i samme faste viewBox som originaltegningen, uten geokoding eller
+  forskyvning av eksisterende elementer. Den nye linjen får et kort
+  startsegment som kan forlenges og få nye knekkpunkter.
+- En bevegelse/drag på kartet oppretter ikke et nytt punkt ved et uhell;
+  trykk på knappen igjen for å avbryte innsettingen. De opprinnelige
+  100 stoppene og 18 tegnede kartlinjene er uendret.
+- Hver gyldig endring og hver angre-handling lagres automatisk i
+  nettleserens **lokale lagring på samme enhet**. En kompatibel arbeidskopi
+  hentes ved neste lasting av kartet. Ingen automatisk innsending til
+  GitHub, server eller andre brukere.
+- Arbeidskopien inkluderer et fingeravtrykk av den utgitte JSON-layouten.
+  Hvis det offisielle kartet endres siden arbeidskopien ble laget, vises
+  et varsel, og en eldre arbeidskopi **lastes ikke automatisk over** den
+  nye layouten.
+- **Forkast endringer** nullstiller kartet til utgitt layout og sletter
+  den automatisk lagrede arbeidskopien. **Lagre arbeidskopi** /
+  **Hent arbeidskopi** beholder separat manuell lokal lagring, og
+  **Eksporter JSON** er fortsatt metoden for varig backup og deling mellom
+  enheter. Privat modus, slettede nettleserdata eller lagringsfeil kan
+  føre til tap av lokale endringer.
+- Dette påvirker bare **web/linear**-kartredigering, ikke sanntidsmotore,
+  Cloudflare Worker eller ESP32.
+
