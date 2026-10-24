@@ -34,3 +34,7 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-geometry-editor strong,.map-geometry-editor small{flex:1 1 100%}
 .map-geometry-editor small{color:#c1d6ee}
 .map-editor>button[data-act=addStop],.map-editor>button[data-act=addPath]{border:1px solid #468fbd;background:#153a51}
+
+/* Editor insertion mode and local-only draft persistence */
+.map-viewport.map-placing,.map-viewport.map-placing *{cursor:crosshair!important}
+.map-draft-status{display:inline-flex;align-items:center;min-height:32px;padding:5px 9px;border:1px solid #35536d;border-radius:8px;background:#13243b;color:#c7e3ed;font-size:12px}

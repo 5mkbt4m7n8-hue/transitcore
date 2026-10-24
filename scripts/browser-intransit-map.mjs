@@ -64,11 +64,15 @@ try{
  // The original white drawing is not modified when adding/removing a new element.
  const initialStops=await page.locator('.map-stop').count(),initialPaths=await page.locator('.map-route').count();
  await page.locator('[data-act=addStop]').click();
+ assert.equal(await page.locator('.map-stop').count(),initialStops,'Placement button should not create a point until a map tap');
+ await page.locator('svg.map-viewport').click({position:{x:120,y:160}});
  assert.equal(await page.locator('.map-stop').count(),initialStops+1);
  assert.equal(await page.locator('.map-stop[data-stop="custom-stop-001"][data-unresolved="true"][data-state="OFF"]').count(),1,'Unmapped new stop is never displayed as live');
  await page.locator('[data-act=undo]').click();
  assert.equal(await page.locator('.map-stop').count(),initialStops,'Undo removes only the newly added stop');
  await page.locator('[data-act=addPath]').click();
+ assert.equal(await page.locator('.map-route').count(),initialPaths,'Await tap before adding map line');
+ await page.locator('svg.map-viewport').click({position:{x:200,y:220}});
  assert.equal(await page.locator('.map-route').count(),initialPaths+1,'New schematic line has two vertices and renders');
  assert.equal(await page.locator('[data-route-path="custom-path-001"]').count(),1);
  await page.getByRole('button',{name:'+ Forleng linjen'}).click();
@@ -104,5 +108,39 @@ try{
  await page.locator('#source').selectOption('staging');await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('503'));
  await page.locator('#networkMode').click();assert.equal(await page.locator('.map-stop:not([data-state="OFF"])').count(),0);
  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Mobile must not overflow');
- assert.deepEqual(errors,[]);console.log('Browser: real map, route overlays, screenshots, same-page switching, zero extra frame calls, Linear DOM, frame expiry, staging failure, mobile PASS');
+ // A second session confirms that local edits survive reload, and that
+ // discarding them restores the shipped version instead of resurrecting a draft.
+ const editPage=await browser.newPage({viewport:{width:1100,height:850}});
+ const editErrors=[];editPage.on('pageerror',error=>editErrors.push(error.message));
+ await editPage.goto(`http://127.0.0.1:${server.address().port}/web/linear/index.html`);
+ await editPage.waitForFunction(()=>document.querySelectorAll('#rows .row').length>0);
+ await editPage.locator('#networkMode').click();
+ await editPage.waitForSelector('.map-stop');
+ const baseStopCount=await editPage.locator('.map-stop').count();
+ await editPage.locator('[data-act=edit]').click();
+ await editPage.locator('[data-act=addStop]').click();
+ await editPage.locator('svg.map-viewport').click({position:{x:185,y:225}});
+ assert.equal(await editPage.locator('.map-stop').count(),baseStopCount+1,'Tap creates exactly one mapped-position draft stop');
+ assert.match(await editPage.locator('[data-role=draftStatus]').innerText(),/lagret automatisk/);
+ const draft=await editPage.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')));
+ assert.equal(draft.layout.stops.length,101,'Auto-draft contains all 100 original stops and exactly one new stop');
+ await editPage.reload();
+ await editPage.waitForFunction(()=>document.querySelectorAll('#rows .row').length>0);
+ await editPage.locator('#networkMode').click();
+ await editPage.waitForSelector('.map-stop[data-stop="custom-stop-001"]');
+ assert.equal(await editPage.locator('.map-stop').count(),baseStopCount+1,'Auto-saved point must survive a reload');
+ assert.match(await editPage.locator('[data-role=draftStatus]').innerText(),/hentet automatisk/);
+ await editPage.locator('[data-act=edit]').click();
+ await editPage.locator('[data-act=discard]').click();
+ assert.equal(await editPage.locator('.map-stop').count(),baseStopCount,'Discard restores original map geometry');
+ assert.equal(await editPage.evaluate(()=>localStorage.getItem('intransit-map-autodraft-v1')),null,'Discard deletes only the autosaved local draft');
+ await editPage.reload();
+ await editPage.waitForFunction(()=>document.querySelectorAll('#rows .row').length>0);
+ await editPage.locator('#networkMode').click();
+ await editPage.waitForSelector('.map-stop');
+ assert.equal(await editPage.locator('.map-stop').count(),baseStopCount,'Discarded draft must not return');
+ assert.deepEqual(editErrors,[]);
+ await editPage.close();
+
+ assert.deepEqual(errors,[]);console.log('Browser: map editor tap-placement, autosave, reload, discard, original geometry, route overlays, mobile and feed regression PASS');
 }finally{await browser.close();await new Promise(r=>server.close(r));}
