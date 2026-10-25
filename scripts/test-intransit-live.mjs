@@ -33,7 +33,7 @@ const live=G.parse(feed,now);
 assert.equal(live.vehicles.length,1);
 assert.equal(live.vehicles[0].ageSeconds,15);
 assert.equal(G.parse(feed,now+100000).vehicles.length,0,'Old bus positions must expire');
-assert.equal(G.parse({...feed,observationType:'estimated'},now).vehicles.length,0,'Only measured GPS');
+assert.throws(()=>G.parse({...feed,observationType:'estimated'},now),/uventet/,'Only measured GPS');
 assert.match(file('web/linear/live/index.html'),/src="\.\.\/geo\/line1-gps.js"/);
 assert.match(file('web/linear/live/index.html'),/id="followBus"/);
 assert.match(file('web/linear/live/index.html'),/id="fullscreen"/);
