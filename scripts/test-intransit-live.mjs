@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const file=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+const profile=JSON.parse(file('config/routes/atb-bus-1-live.json'));
+const M=require('../web/linear/live/model.js');
+const G=require('../web/linear/geo/line1-gps.js');
+const source=structuredClone(profile);
+const result=M.normalize(profile);
+assert.equal(result.line,'1');
+assert.equal(result.route.length,98);
+assert.equal(result.stops.length,32);
+assert.equal(result.stops[0].name,'Ranheim');
+assert.equal(result.stops.at(-1).name,'Østre Lund');
+assert.equal(result.stops[0].id,'NSR:Quay:74983');
+assert(result.route.every(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)));
+assert.equal(result.color,'#ef5350');
+assert.deepEqual(profile,source,'Read-only map model must preserve original route profile');
+assert.equal(M.ageText(12),'12 sek siden');
+assert.equal(M.ageText(70),'1 min 10 sek siden');
+assert.match(M.statusForFetch(404),/Cloudflare/);
+assert.match(M.statusForFetch(503),/GPS-kilden/);
+assert.throws(()=>M.normalize({...profile,line:{...profile.line,publicCode:'2'}}),/Ukjent/);
+assert.throws(()=>M.normalize({...profile,shape:[{lat:0,lon:0},profile.shape[1]]}),/Ugyldige/);
+assert.throws(()=>M.normalize({...profile,stops:[...profile.stops,profile.stops[0]]}),/Dupliserte/);
+const now=Date.parse('2026-10-25T15:30:00Z');
+const feed={schemaVersion:1,lineId:'ATB:Line:2_1',publicCode:'1',
+ codespace:'ATB',observationType:'measured-vehicle-position',
+ vehicles:[{id:'test-bus',line:'1',latitude:63.4301,longitude:10.4,
+ destination:'Ranheim',source:'GPS',lastUpdated:new Date(now-15000).toISOString()}]};
+const live=G.parse(feed,now);
+assert.equal(live.vehicles.length,1);
+assert.equal(live.vehicles[0].ageSeconds,15);
+assert.equal(G.parse(feed,now+100000).vehicles.length,0,'Old bus positions must expire');
+assert.throws(()=>G.parse({...feed,observationType:'estimated'},now),/uventet/,'Only measured GPS');
+assert.match(file('web/linear/live/index.html'),/src="\.\.\/geo\/line1-gps.js"/);
+assert.match(file('web/linear/live/index.html'),/id="followBus"/);
+assert.match(file('web/linear/live/index.html'),/id="fullscreen"/);
+assert.match(file('web/linear/index.html'),/href="\.\/live\/"/);
+assert.match(file('web/linear/geo/index.html'),/href="\.\.\/live\/"/);
+console.log('InTransit Live model: 98 original profile points, 32 stops, strict GPS origin, stale rejection, navigation PASS');

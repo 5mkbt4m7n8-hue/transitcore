@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'web/linear/geo/**'
+      - 'web/linear/live/**'
+      - 'scripts/browser-intransit-live.mjs'
       - 'scripts/test-intransit-geo.mjs'
       - 'scripts/browser-intransit-geo.mjs'
       - '.github/workflows/intransit-geo.yml'
@@ -33,3 +35,5 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Test geography editor in real Chromium (OSM tiles mocked)
         run: node scripts/browser-intransit-geo.mjs
+      - name: Test standalone mobile line 1 live map in same Chromium install
+        run: node scripts/browser-intransit-live.mjs
