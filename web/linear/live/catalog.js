@@ -34,8 +34,8 @@
     typeof s.id==='string'&&s.id.startsWith('NSR:Quay:')&&
     typeof s.name==='string'&&s.name.length>0&&s.name.length<=120))
     throw Error('Ugyldige registrerte stopp eller kartkoordinater: '+code);
-  const uniq=new Set(profile.stops.map(s=>s.id));
-  if(uniq.size!==profile.stops.length)throw Error('Dupliserte stopp-ID-er: '+code);
+  // A stop may legitimately occur more than once in a loop/return profile.
+  // Keep the source list intact; map overlays deduplicate physical Quay markers.
   return {line:code,name:profile.line.longName||'AtB linje '+code,
    color:color(code),route:profile.shape.map(p=>[p.lat,p.lon]),
    stops:profile.stops.map(s=>({id:s.id,name:s.name,lat:s.lat,lon:s.lon}))};
