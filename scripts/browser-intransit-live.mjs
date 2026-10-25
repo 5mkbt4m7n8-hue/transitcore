@@ -65,9 +65,9 @@ try{
  await page.locator('#followBus').selectOption('');
  assert.equal(await page.locator('#followDetail').isVisible(),false);
  await page.locator('#fullscreen').click();
- assert.equal(await page.locator('#fullscreen').getAttribute('aria-pressed'),'true');
+ await page.waitForFunction(()=>document.querySelector('#fullscreen')?.getAttribute('aria-pressed')==='true');
  await page.locator('#fullscreen').click();
- assert.equal(await page.locator('#fullscreen').getAttribute('aria-pressed'),'false');
+ await page.waitForFunction(()=>document.querySelector('#fullscreen')?.getAttribute('aria-pressed')==='false');
  gpsMode='empty';await page.locator('#refresh').click();
  await page.waitForFunction(()=>document.querySelector('#gpsStatus')?.textContent.includes('ingen ferske'),{timeout:15000});
  assert.equal(await page.locator('#busCount').innerText(),'0');
