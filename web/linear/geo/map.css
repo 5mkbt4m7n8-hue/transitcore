@@ -14,3 +14,13 @@ main{max-width:1100px;margin:auto;padding:12px}
 .geo-footnote,#geographicView [data-g=message]{color:#c2d5e7;font-size:13px;line-height:1.55}
 #geographicView [data-g=message]{min-height:30px;color:#ffda95}
 @media(max-width:570px){main{padding:8px}.geo-canvas{height:60vh;min-height:330px}.geo-tools button{flex:1 1 42%}}
+
+/* Editor v2: tap-friendly tools, accessible drag handles and flexible mobile layout. */
+.geo-edit-tools{border:1px solid #36516a;border-radius:10px;padding:10px;margin:10px 0;background:#101f33}
+.geo-tools input[type="text"],.geo-tools input[type="color"]{width:100%;min-width:0;min-height:40px;background:#182e46;color:#eff7ff;border:1px solid #47617b;border-radius:8px;padding:8px}
+.geo-tools label{min-width:0}
+.geo-tools input[type="color"]{padding:3px}
+.geo-tools button:focus-visible,.geo-tools select:focus-visible,.geo-tools input:focus-visible{outline:3px solid #ffe59b;outline-offset:2px}
+.geo-vertex-handle{height:16px;width:16px;background:#fff;border:3px solid #174b79;border-radius:50%;box-shadow:0 0 0 3px #0b1428,0 2px 7px #0008;cursor:grab}
+.geo-vertex-handle:active{cursor:grabbing}
+@media(max-width:570px){.geo-edit-tools label{flex-basis:100%}.geo-edit-tools button{flex:1 1 44%}.geo-vertex-handle{width:19px;height:19px}}
