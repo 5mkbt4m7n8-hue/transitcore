@@ -30,6 +30,38 @@ assert.deepEqual(out.features[0].geometry.coordinates,[10.4062,63.4344]);
 assert.equal(out.features[1].geometry.type,'LineString');
 assert.deepEqual(model.importGeo(out,layout),geo,'GeoJSON round-trip preserves manually placed stops and lines');
 assert.throws(()=>model.importGeo({type:'FeatureCollection',features:[{type:'Feature',properties:{type:'stop',stopId:'not-found'},geometry:{type:'Point',coordinates:[10,63]}}]},layout),/Ugyldig/);
+
+ // Editor v2: names are overlays, not fake positions or canonical layout mutations.
+const unplaced=layout.stops.at(-1).id;
+const count=layout.stops.length;
+model.renameStop(geo,layout,unplaced,'  Test   holdeplass  ');
+assert.equal(geo.names[unplaced],'Test holdeplass');
+assert.equal(layout.stops.length,count,'Never mutate canonical stop catalog');
+assert.equal(geo.stops[unplaced],undefined,'Renaming must not invent geographic coordinates');
+assert.throws(()=>model.renameStop(geo,layout,'missing','Ukjent'),/Ukjent/);
+assert.throws(()=>model.renameStop(geo,layout,unplaced,'x'.repeat(81)),/langt/);
+model.renamePath(geo,routeId,'Eksempeltrasé');
+model.colorPath(geo,routeId,'#abcDEF');
+assert.equal(geo.paths[0].name,'Eksempeltrasé');
+assert.equal(geo.paths[0].color,'#abcdef');
+model.appendPath(geo,routeId,[[10.42,63.45]]);
+assert.equal(geo.paths[0].coordinates.length,4);
+model.insertVertex(geo,routeId,1,[10.405,63.438]);
+assert.equal(geo.paths[0].coordinates.length,5);
+model.moveVertex(geo,routeId,2,[10.407,63.439]);
+assert.deepEqual(geo.paths[0].coordinates[2],[10.407,63.439]);
+assert.throws(()=>model.moveVertex(geo,routeId,2,[10.4,63.43]),/nære|Ugyldig/);
+model.removeVertex(geo,routeId,2);
+assert.equal(geo.paths[0].coordinates.length,4);
+assert.throws(()=>model.insertVertex(geo,routeId,50,[10.4,63.43]),/Ugyldig/);
+const full=model.exportGeo(geo,layout);
+assert(full.features.some(x=>x.properties.type==='stop-name'&&x.properties.stopId===unplaced&&x.geometry===null));
+assert.deepEqual(model.importGeo(full,layout),geo,'Names, color and editing metadata survive GeoJSON round trip');
+const legacy=model.empty();delete legacy.names;
+assert.deepEqual(model.validate(legacy,layout).names,{},'Load previous local v1 draft');
+model.renameStop(geo,layout,unplaced,'');assert.equal(geo.names[unplaced],undefined);
+model.deletePath(geo,routeId);assert.equal(geo.paths.length,0);
+
 const candidateLayout={stops:[{id:'samfundet-a',verification:'confirmed',bindings:[{boardId:'mock',nodeId:'quay-a',stopId:'quay-a'}]},
 {id:'samfundet-b',verification:'confirmed',bindings:[{boardId:'mock',nodeId:'quay-b',stopId:'quay-b'}]},
 {id:'unnamed-true-stop',verification:'unresolved',bindings:[]}]};
