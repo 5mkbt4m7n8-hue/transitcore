@@ -84,11 +84,11 @@ try{
  assert.equal(apiCalls,1);
  assert.match(await page.locator('#sourceBadge').innerText(),/ENTUR/);
  assert.doesNotMatch(await page.locator('#status').innerText(),/10 avganger hentet/);
- assert.equal(await page.locator('#rowsValue').innerText(),'0 / 3');
+ assert.equal(await page.locator('#rowsValue').innerText(),'0 / 4');
  liveStatus=200;await page.locator('#refresh').click();
  await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('2 avganger hentet'),{timeout:12000});
  assert.equal(apiCalls,2);
- assert.equal(await page.locator('#rowsValue').innerText(),'2 / 3');
+ assert.equal(await page.locator('#rowsValue').innerText(),'2 / 4');
  await page.locator('#stop').selectOption('custom');
  assert.equal(await page.locator('#customStopField').isVisible(),true);
  await page.locator('#customStop').fill('NSR:StopPlace:41613');
