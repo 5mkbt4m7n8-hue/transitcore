@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="no">
+<head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>InTransit – holdeplassadministrasjon</title>
+ <link rel="stylesheet" href="style.css">
+</head>
+<body>
+ <main>
+  <nav class="top-nav" aria-label="Kartvisninger">
+   <a href="../index.html">Linear / Hele kartet</a>
+   <a href="../geo/">Geografisk kart</a>
+   <span aria-current="page">Holdeplasser</span>
+  </nav>
+  <header class="intro">
+   <div><p class="eyebrow">INTRANSIT · TRONDHEIM</p><h1>Holdeplassadministrasjon</h1>
+    <p>Oversikt over originale stopp-ID-er, navn, katalogkoblinger og geografiske kandidater. Lokale navn endrer aldri GPS eller den originale skjemategningen.</p></div>
+   <button id="export" type="button">Eksporter oversikt (CSV)</button>
+  </header>
+  <section aria-label="Nøkkeltall" class="stats" id="stats"></section>
+  <p class="notice" id="notice" role="status" aria-live="polite">Laster originalkartet …</p>
+  <div class="workspace">
+   <section class="catalog" aria-labelledby="catalogTitle">
+    <div class="heading"><h2 id="catalogTitle">Alle holdeplasser</h2><span id="resultCount" aria-live="polite"></span></div>
+    <div class="filters">
+     <label>Søk navn, ID eller NSR
+      <input id="search" type="search" placeholder="F.eks. original-003, Pirbadet eller NSR:Quay" autocomplete="off">
+     </label>
+     <label>Vis
+      <select id="filter">
+       <option value="all">Alle stopp</option>
+       <option value="unnamed">Ubekreftede navn</option>
+       <option value="unmapped">Ubekreftet kartkobling</option>
+       <option value="geo-missing">Uten geografiske koordinater</option>
+       <option value="geo-candidate">Katalogforslag til posisjon</option>
+       <option value="geo-manual">Manuelt plassert på geografisk kart</option>
+       <option value="aliased">Med lokalt visningsnavn</option>
+      </select>
+     </label>
+     <label>Sortering
+      <select id="sort"><option value="id">Original rekkefølge</option><option value="name">Visningsnavn A–Å</option></select>
+     </label>
+    </div>
+    <div class="list-wrap">
+     <table>
+      <thead><tr><th>Stopp</th><th>Navn</th><th>Kobling</th><th>Geografi</th></tr></thead>
+      <tbody id="results"></tbody>
+     </table>
+    </div>
+    <p class="footnote">Gule koordinatkandidater fra Quay-katalogen er <strong>ikke bekreftede plasseringer</strong>. «Manuelt plassert» betyr kun at du har markert punktet på geografisk kart.</p>
+   </section>
+   <aside class="detail" aria-labelledby="detailTitle">
+    <h2 id="detailTitle">Velg en holdeplass</h2>
+    <p class="muted" id="detailSubtitle">Klikk på en rad for å vise detaljer og redigere lokalt visningsnavn.</p>
+    <dl id="facts"></dl>
+    <form id="renameForm" hidden>
+     <label for="alias">Lokalt visningsnavn – begge kart</label>
+     <input id="alias" name="alias" type="text" maxlength="80" autocomplete="off" placeholder="Behold tomt for originalnavn">
+     <div class="actions"><button type="submit">Lagre navn</button><button type="button" id="reset">Bruk originalnavn</button></div>
+     <p class="footnote">Navneendringen lagres i samme lokale arbeidskopi som geografisk kart. Uavklarte navn forblir uverifiserte til datakilden er kontrollert.</p>
+    </form>
+    <div class="jump" id="jump" hidden>
+     <a id="schematicLink" href="../index.html?view=network">Se i Hele kartet</a>
+     <a id="geoLink" href="../geo/">Se i geografisk kart</a>
+    </div>
+   </aside>
+  </div>
+ </main>
+ <script src="../geo/model.js"></script>
+ <script src="../geo/stop-links.js"></script>
+ <script src="model.js"></script>
+ <script src="app.js"></script>
+</body>
+</html>
