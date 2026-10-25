@@ -8,6 +8,7 @@ on:
       - 'scripts/browser-intransit-diagnostics.mjs'
       - 'scripts/browser-intransit-live.mjs'
       - 'scripts/browser-intransit-all.mjs'
+      - 'scripts/browser-intransit-demo.mjs'
       - 'scripts/test-intransit-geo.mjs'
       - 'scripts/browser-intransit-geo.mjs'
       - '.github/workflows/intransit-geo.yml'
@@ -44,3 +45,5 @@ jobs:
         run: node scripts/browser-intransit-all.mjs
       - name: Test public diagnostics in Chromium and 390px mobile
         run: node scripts/browser-intransit-diagnostics.mjs
+      - name: Test DEMO, GPS isolation and full fleet on mobile
+        run: node scripts/browser-intransit-demo.mjs
