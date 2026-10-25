@@ -6,9 +6,9 @@ GitHub Pages: https://5mkbt4m7n8-hue.github.io/transitcore/web/linear/geo/
 ## Hva er implementert
 
 En selvstendig kartvisning **ved siden av** eksisterende Linear og
-«Hele kartet», basert på Leaflet 1.9.4 og OpenStreetMap-fliser. Det er
-ikke ennå en tredje knapp inne på hovedsiden; bruker kan navigere
-mellom de to sidene via lenken på geografisiden.
+«Hele kartet», basert på Leaflet 1.9.4 og OpenStreetMap-fliser. Det finnes nå en tredje lenke **Geografisk kart** i
+visningsvelgeren på Linear-hovedsiden. Den åpner den separate
+karteditoren, med en lenke tilbake til Linear/skjemakart.
 
 - Det originale skjemakartet og alle de 100 originale stopp-ID-ene
   forblir uforandret. De 23 navnløse stoppene er reelle stopp,
