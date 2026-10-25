@@ -27,8 +27,21 @@ try{
  });
  const tinyTile=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+bLZkAAAAASUVORK5CYII=','base64');
  await page.route('https://tile.openstreetmap.org/**',route=>route.fulfill({status:200,contentType:'image/png',body:tinyTile}));
+ let gpsCase='valid';
  await page.route('https://transitcore-led-feed.lgb84.workers.dev/**',async route=>{
-  const url=new URL(route.request().url()),boardProfile=url.pathname.split('/').pop();
+  const url=new URL(route.request().url());
+  if(url.pathname==='/api/v1/vehicles/atb-line-1'){
+   if(gpsCase==='error'){await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'gps_source_unavailable'})});return;}
+   const now=new Date().toISOString();
+   const vehicles=gpsCase==='empty'?[]:[{id:'gps-test-1',line:'1',latitude:63.4301,longitude:10.4002,
+    destination:'Ranheim',source:'GPS',provider:'Entur/ATB',lastUpdated:now}];
+   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+    schemaVersion:1,lineId:'ATB:Line:2_1',publicCode:'1',codespace:'ATB',
+    source:'Entur Vehicle Positions v2',observationType:'measured-vehicle-position',
+    requestedAt:now,vehicles,quality:{line1Fresh:vehicles.length}
+   })});return;
+  }
+  const boardProfile=url.pathname.split('/').pop();
   const id=boardProfile==='trondheim-flybuss-live'?46:147;
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
    schemaVersion:1,boardProfile,ledCount:id,sequence:1,generatedAt:new Date().toISOString(),ttlSeconds:30,leds:[]
@@ -39,6 +52,15 @@ try{
  await page.waitForFunction(()=>document.querySelector('.geo-canvas')?._leaflet_id>0,{timeout:25000});
  await page.waitForFunction(()=>document.querySelector('.leaflet-overlay-pane canvas')!==null,{timeout:20000});
  assert.equal(await page.locator('#boardSelect').inputValue(),'trondheim-bus-board');
+ await page.waitForFunction(()=>document.querySelector('[data-g="gpsStatus"]')?.textContent.includes('1 busser'),{timeout:15000});
+ assert.equal(await page.locator('[data-g=gpsEnabled]').isChecked(),true,'GPS overlay enabled on geographic map');
+ assert.equal(await page.locator('[data-g=gpsFit]').isDisabled(),false,'Measured GPS positions can be centered on the map');
+ await page.locator('[data-g=gpsFit]').click();
+ await page.locator('[data-g=gpsEnabled]').uncheck();
+ assert.match(await page.locator('[data-g=gpsStatus]').innerText(),/avslått/);
+ assert.equal(await page.locator('[data-g=gpsFit]').isDisabled(),true);
+ await page.locator('[data-g=gpsEnabled]').check();
+ await page.waitForFunction(()=>document.querySelector('[data-g="gpsStatus"]')?.textContent.includes('1 busser'),{timeout:15000});
  const initial=await page.locator('.leaflet-overlay-pane canvas').count();
  assert(initial>0,'At least one distinct Quay candidate should be rendered');
  await page.locator('[data-g=stop]').selectOption('original-000');
@@ -108,7 +130,16 @@ try{
  assert.deepEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo.names),{},'Discard clears local names');
  await page.locator('[data-g=historyUndo]').click();
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo.paths.length),1,'Discard may be undone during current session');
- await page.setViewportSize({width:390,height:844});
+ gpsCase='empty';
+ await page.locator('[data-g=gpsNow]').click();
+ await page.waitForFunction(()=>document.querySelector('[data-g="gpsStatus"]')?.textContent.includes('Ingen ferske'),{timeout:15000});
+ assert.equal(await page.locator('[data-g=gpsFit]').isDisabled(),true,'No GPS point means no marker');
+ gpsCase='error';
+ await page.locator('[data-g=gpsNow]').click();
+ await page.waitForFunction(()=>document.querySelector('[data-g="gpsStatus"]')?.textContent.includes('utilgjengelig'),{timeout:15000});
+ assert.match(await page.locator('[data-g=gpsStatus]').innerText(),/Ingen ETA-posisjoner/);
+ gpsCase='valid';
+  await page.setViewportSize({width:390,height:844});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Mobile geo controls must not overflow');
  assert.deepEqual(errors,[],'No runtime errors in geographic map');
  console.log('Geographic browser: Leaflet, stop candidates, manual placement, route drawing, local autosave, reload/discard, mobile PASS');
