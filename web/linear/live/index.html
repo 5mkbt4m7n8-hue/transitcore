@@ -18,11 +18,27 @@
   <section class="line-picker" aria-label="Velg busslinje">
    <label for="lineSelect">Busslinje</label>
    <select id="lineSelect" aria-label="Velg busslinje">
+    <option value="all" selected>Alle linjer (47 profiler)</option>
     <option value="1">1 · Ranheim – Kattem</option>
     <option value="2">2 · Strindheim – Lund</option>
     <option value="3">3 · Lohove – Hallset</option>
    </select>
-   <span id="linePickerHint">Velg en rute for å vise trasé, stopp og eventuell målt GPS.</span>
+   <span id="linePickerHint">47 registrerte ruteprofiler. Vis alle, eller velg én av linje 1–3.</span>
+  </section>
+  <section class="all-routes" id="allLinesPanel" aria-label="Administrer synlige busslinjer">
+   <div class="all-routes-head">
+    <strong id="allLinesSummary">47 linjer valgt</strong>
+    <button type="button" id="toggleAllPanel" aria-expanded="false" aria-controls="allLineDetails">Velg linjer</button>
+   </div>
+   <div id="allLineDetails" hidden>
+    <div class="all-route-controls">
+     <input type="search" id="routeSearch" aria-label="Søk etter busslinjenummer eller rutenavn" placeholder="Søk linje eller rutenavn">
+     <button type="button" id="enableAllRoutes">Vis alle</button>
+     <button type="button" id="disableAllRoutes">Skjul alle</button>
+    </div>
+    <div id="allLineList" class="all-line-grid" role="group" aria-label="Busslinjer"></div>
+    <p class="muted">Linjene har ulike farger. Hake betyr at rutetrasé, holdeplasser og eventuelle ferske GPS-markører for linjen vises.</p>
+   </div>
   </section>
   <section class="map-shell" aria-label="Live-kart">
    <div id="map" role="application" aria-label="Kart over valgt AtB busslinje i Trondheim"></div>
@@ -31,12 +47,12 @@
     <button id="fitBuses" type="button" disabled title="Vis faktiske bussposisjoner">Alle busser</button>
     <button id="fullscreen" type="button" aria-pressed="false">Fullskjerm</button>
    </div>
-   <div class="map-legend" aria-label="Symbolforklaring"><span><i class="dot bus"></i> Målt GPS</span><span><i class="dot stop"></i> Holdeplass</span></div>
+   <div class="map-legend" aria-label="Symbolforklaring"><span><i class="dot bus"></i> Målt GPS</span><span><i class="dot stop"></i> Holdeplass</span><span><i class="dot route"></i> Farget rute</span></div>
   </section>
   <section class="drawer" aria-labelledby="title">
    <div class="drawer-handle" aria-hidden="true"></div>
    <div class="drawer-head">
-    <div><p class="eyebrow">GEOGRAFISK RUTEPROFIL</p><h1 id="title">Linje 1 <span id="endpoints">Ranheim ↔ Kattem</span></h1></div>
+    <div><p class="eyebrow">GEOGRAFISK RUTEPROFIL</p><h1 id="title">Alle AtB-linjer <span id="endpoints">Registrerte bussruter i Trondheimsområdet</span></h1></div>
     <div class="count" id="busCount" aria-label="Ferske GPS-posisjoner">–</div>
    </div>
    <p class="state" id="gpsStatus" role="status" aria-live="polite">Laster rutekart og GPS …</p>
@@ -50,11 +66,13 @@
     <button id="refresh" type="button">Oppdater GPS</button>
    </div>
    <div id="followDetail" class="follow-detail" hidden aria-live="polite"></div>
-   <p class="disclaimer">Bussmarkører vises kun ved gyldig, tidsstemplet GPS (maks 90 sek). Rutelinjen er en lagret profiltrasé, ikke bussenes faktiske GPS-spor. Ingen ETA-posisjoner erstatter manglende GPS.</p>
+   <p class="disclaimer">Bussmarkører vises bare ved gyldig, tidsstemplet GPS (maks 90 sek). Alle linjer betyr de 47 registrerte profilene i dette prosjektet – ikke nødvendigvis alle AtB-ruter. Rutetraséer er lagrede profiler, ikke kjøretøyenes målte GPS-spor. Ingen ETA-posisjoner erstatter manglende GPS.</p>
   </section>
  </main>
  <script src="../geo/line1-gps.js"></script>
  <script src="model.js"></script>
+ <script src="catalog.js"></script>
+ <script src="fleet-gps.js"></script>
  <script src="gps.js"></script>
  <script src="app.js"></script>
 </body>
