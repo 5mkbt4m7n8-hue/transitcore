@@ -57,7 +57,7 @@
     <button id="fitBuses" type="button" disabled title="Vis faktiske bussposisjoner">Alle busser</button>
     <button id="fullscreen" type="button" aria-pressed="false">Fullskjerm</button>
    </div>
-   <div class="map-legend" aria-label="Symbolforklaring"><span><i class="dot bus"></i> Målt GPS</span><span><i class="dot stop"></i> Holdeplass</span><span><i class="dot route"></i> Farget rute</span></div>
+   <div class="map-legend" aria-label="Symbolforklaring"><span id="realGpsLegend"><i class="dot bus"></i> Målt GPS</span><span id="demoGpsLegend" hidden><i class="dot demo"></i> DEMO – simulert</span><span><i class="dot stop"></i> Holdeplass</span><span><i class="dot route"></i> Farget rute</span></div>
   </section>
   <section class="drawer" aria-labelledby="title">
    <div class="drawer-handle" aria-hidden="true"></div>
@@ -76,6 +76,13 @@
      <option value="1" selected>1×</option>
      <option value="2">2×</option>
      <option value="4">4×</option>
+    </select>
+    <label for="demoMarkerSize">Markørstørrelse</label>
+    <select id="demoMarkerSize" aria-label="DEMO-markørstørrelse">
+     <option value="auto" selected>Automatisk</option>
+     <option value="compact">Kompakt</option>
+     <option value="normal">Normal</option>
+     <option value="large">Stor</option>
     </select>
    </div>
    <div class="controls">
