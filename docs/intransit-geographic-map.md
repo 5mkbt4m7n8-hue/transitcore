@@ -85,3 +85,33 @@ Den geografiske editoren støtter nå flere lokale operasjoner uten å endre
 Dette er fortsatt manuell geometri, ikke automatisk veisporing,
 GPS-sporing eller ruteverifisering. FB73-kildesporet holdes utenfor.
 Offisielle basiskart, Worker, ESP32 og skjemalagene er urørt.
+
+## Felles stopnavn og navigasjon mellom kartene
+
+Linear/«Hele kartet» og det separate geografiske kartet bruker **samme
+stabile original-stopp-ID**, inkludert de to separate Samfundet-punktene.
+I karteditoren på skjemakartet kan du gi et originalstopp et **lokalt
+visningsnavn** eller gå tilbake til originalnavnet. Navnet vises også i
+geografisk kart og eksporteres som del av eksisterende GeoJSON-arbeidskopi.
+
+- Navn ligger i den **eksisterende** geografiske nettleserarbeidskopien
+  `intransit-geo-draft-v1`; det opprettes ikke en ny, konkurrerende
+  navnedatabase. Oppdateringen leser siste kopi og endrer bare `geo.names`.
+- Eksisterende geografiske stoppkoordinater og manuelt tegnede
+  linjer beholdes uendret ved navneredigering fra skjemakartet.
+- **Åpne stopp i geografisk kart** og **Vis valgt stopp på skjemakartet**
+  bruker URL-parameter `stop=original-NNN`, aldri navn-/koordinatmatching.
+  Skjemakartet åpnes via `?view=network&stop=...`.
+- Ved endringer i en annen fane oppdateres lokal visning via nettleserens
+  `storage`-hendelse; geoeditoren tilbakestiller angrehistorikken når den
+  tar inn en slik ekstern endring for å unngå ugyldige undo-snapshots.
+- En utdatert/ukompatibel geografisk arbeidskopi **overskrives aldri**
+  av skjemakartets navneeditor. Bruk GeoJSON-eksport ved behov.
+- Navn godkjenner **ikke** NSR:Quay, bekrefter ikke fysisk plassering,
+  kobler ikke linjer og gir ikke sanntids-GPS. Alle 100 opprinnelige
+  stopp, 18 originale streker og original referansetegning er urørt.
+- Lagringen er lokal i nettleseren på samme origin/enhet. Den
+  synkroniseres ikke automatisk mellom telefon og PC.
+
+Test: `node scripts/test-intransit-geo.mjs` og
+`node scripts/browser-intransit-geo.mjs` (med Playwright/Leaflet).

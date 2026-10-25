@@ -81,4 +81,39 @@ assert.match(page,/src="model\.js"/);
 assert.match(page,/href="map.css"/);
 assert.match(page,/Trondheim bybuss/);
 assert.match(read('web/linear/geo/map.js'),/OpenStreetMap/);
+
+ // Read and update the same geographic draft from both editors; existing geometry and
+ // hand-reviewed coordinates must never be overwritten by a display-name edit.
+const Links=require('../web/linear/geo/stop-links.js');
+const memory=new Map();
+const store={getItem:key=>memory.get(key)||null,setItem:(key,val)=>memory.set(key,val)};
+assert.deepEqual(Links.names(layout,store),{});
+const draft=Links.load(layout,store);
+model.place(draft.geo,layout,'original-000',[10.401,63.431]);
+model.draw(draft.geo,[[10.4,63.43],[10.401,63.432]]);
+store.setItem(Links.KEY,JSON.stringify(draft));
+const beforeNames=structuredClone(draft.geo);
+Links.rename(layout,'original-000','  Felles   navn  ',store);
+const shared=Links.readGeo(layout,store);
+assert.equal(shared.names['original-000'],'Felles navn');
+assert.deepEqual(shared.stops,beforeNames.stops,'Stop locations cannot change from a rename');
+assert.deepEqual(shared.paths,beforeNames.paths,'Route geometry cannot change from a rename');
+assert.equal(layout.stops[0].id,'original-000','Canonical stop IDs stay unchanged');
+assert.match(Links.geographicUrl('original-000'),/stop=original-000/);
+assert.match(Links.schematicUrl('original-000'),/view=network&stop=original-000/);
+assert.throws(()=>Links.rename(layout,'unknown','Hemmelig',store),/Ukjent/);
+Links.rename(layout,'original-000','',store);
+assert.equal(Links.names(layout,store)['original-000'],undefined);
+const stale=JSON.stringify({fingerprint:'old-source',geo:beforeNames});
+store.setItem(Links.KEY,stale);
+assert.deepEqual(Links.names(layout,store),{});
+assert.throws(()=>Links.rename(layout,'original-000','Trygt',store),/passer ikke/);
+assert.equal(store.getItem(Links.KEY),stale,'Mismatched drafts are never overwritten');
+const schematicHtml=read('web/linear/index.html');
+assert.match(schematicHtml,/src="geo\/stop-links\.js"/);
+const schematicUi=read('web/linear/network/map.js');
+assert.match(schematicUi,/Felles lokalt stopnavn/);
+assert.match(schematicUi,/focusStop\(id\)/);
+assert.match(read('web/linear/geo/map.js'),/data-g="schematic"/);
+
 console.log('Geographic map model: stop identity, quay candidates, manual locations, GeoJSON, path drawing, script syntax PASS');

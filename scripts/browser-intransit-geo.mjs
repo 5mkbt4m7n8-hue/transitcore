@@ -9,7 +9,7 @@ const mime=path=>path.endsWith('.js')?'text/javascript':path.endsWith('.json')?'
 const server=createServer(async(req,res)=>{
  try{
   const p=new URL(req.url,'http://localhost').pathname;
-  const file=new URL('.'+p,root);
+  const file=new URL('.'+p+(p.endsWith('/')?'index.html':''),root);
   if(!file.href.startsWith(root.href)){res.writeHead(403).end();return;}
   res.setHeader('content-type',mime(p));res.end(await readFile(file));
  }catch{res.writeHead(404).end();}
@@ -83,7 +83,26 @@ try{
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo.paths.length),1,'Manual geographic route survived reload');
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo.names['original-000']),'Test holdeplass','Local name survived reload');
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo.paths[0].color),'#4488cc','Color survived reload');
- page.once('dialog',dialog=>dialog.accept());
+ // Cross-mode round trip: preserve coordinates and path edits while editing one stop's
+ // local display name in the schematic map and returning to the same stop.
+ const beforeBridge=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo);
+ await page.locator('[data-g=schematic]').click();
+ await page.waitForSelector('#networkMode[aria-pressed="true"]',{timeout:25000});
+ await page.waitForSelector('.map-stop[data-stop="original-000"]');
+ assert.match(await page.locator('[data-role=focus] option[value="original-000"]').textContent(),/Test holdeplass/);
+ assert.match(await page.locator('[data-role=geoLink]').getAttribute('href'),/stop=original-000/);
+ await page.locator('[data-act=edit]').click();
+ await page.locator('input[aria-label="Felles lokalt stopnavn"]').fill('Navn fra skjemakart');
+ await page.getByRole('button',{name:'Lagre visningsnavn'}).click();
+ const afterBridge=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo);
+ assert.equal(afterBridge.names['original-000'],'Navn fra skjemakart');
+ assert.deepEqual(afterBridge.paths,beforeBridge.paths,'Schematic name edit must preserve geographic line geometry');
+ assert.deepEqual(afterBridge.stops,beforeBridge.stops,'Schematic name edit must preserve geographic stop coordinates');
+ await page.locator('[data-role=geoLink]').click();
+ await page.waitForFunction(()=>document.querySelector('.geo-canvas')?._leaflet_id>0,{timeout:25000});
+ assert.equal(await page.locator('[data-g=stop]').inputValue(),'original-000','Deep link selects same original stop');
+ assert.equal(await page.locator('[data-g=stopName]').inputValue(),'Navn fra skjemakart','Geo editor uses latest shared local name');
+  page.once('dialog',dialog=>dialog.accept());
  await page.locator('[data-g=discard]').click();
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo.paths.length),0,'Discard clears saved paths');
  assert.deepEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo.names),{},'Discard clears local names');
