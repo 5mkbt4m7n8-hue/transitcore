@@ -6,6 +6,7 @@ on:
       - 'web/linear/geo/line1-gps.js'
       - 'config/routes/atb-bus-1-live.json'
       - 'scripts/test-intransit-live.mjs'
+      - 'scripts/test-intransit-multi-line.mjs'
       - 'scripts/browser-intransit-live.mjs'
       - '.github/workflows/intransit-live.yml'
   push:
@@ -30,3 +31,5 @@ jobs:
           node-version: '22'
       - name: Validate source route and strict GPS model
         run: node scripts/test-intransit-live.mjs
+      - name: Validate route selector contracts and measured GPS isolation
+        run: node scripts/test-intransit-multi-line.mjs
