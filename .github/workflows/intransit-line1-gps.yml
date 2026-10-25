@@ -1,0 +1,35 @@
+name: InTransit AtB line 1 live GPS tests
+on:
+  pull_request:
+    paths:
+      - 'worker/atb-line1-gps.mjs'
+      - 'worker/api/v1.mjs'
+      - 'web/linear/geo/line1-gps.js'
+      - 'scripts/test-atb-line1-gps.mjs'
+      - 'scripts/probe-atb-line1-gps.mjs'
+      - '.github/workflows/intransit-line1-gps.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'worker/atb-line1-gps.mjs'
+      - 'worker/api/v1.mjs'
+      - 'web/linear/geo/line1-gps.js'
+      - 'scripts/test-atb-line1-gps.mjs'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Validate measured GPS policy and isolated API endpoint
+        run: node scripts/test-atb-line1-gps.mjs
+      - name: One-shot actual Entur line 1 source probe (nonblocking, aggregate counts)
+        continue-on-error: true
+        run: node scripts/probe-atb-line1-gps.mjs
