@@ -132,7 +132,7 @@ root.InTransitGeo={async create(host){
    label.textContent=displayName(stop)+(reviewed?' · manuelt plassert':' · katalogforslag');
    marker.bindTooltip(label);
    marker.on('click',e=>{
-    if(mode==='place'||mode==='draw')return;
+    if(mode)return;
     chosen=stop.id;selected.value=chosen;
     const state=active.length?' · '+active.map(v=>(v.line||'?')+' '+v.state).join(', '):'';
     setMessage(displayName(stop)+(reviewed?' · din plassering':' · forslag, ikke kontrollert')+state);
