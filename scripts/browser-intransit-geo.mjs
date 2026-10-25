@@ -9,7 +9,7 @@ const mime=path=>path.endsWith('.js')?'text/javascript':path.endsWith('.json')?'
 const server=createServer(async(req,res)=>{
  try{
   const p=new URL(req.url,'http://localhost').pathname;
-  const file=new URL('.'+p,root);
+  const file=new URL('.'+p+(p.endsWith('/')?'index.html':''),root);
   if(!file.href.startsWith(root.href)){res.writeHead(403).end();return;}
   res.setHeader('content-type',mime(p));res.end(await readFile(file));
  }catch{res.writeHead(404).end();}
