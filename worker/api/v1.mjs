@@ -1,6 +1,6 @@
 import {buildDeviceConfig, validateDeviceConfig, validDeviceId} from "../../core/models/device-config.mjs";
 import {resolveVisual} from "../../core/models/runtime-visual.mjs";
-import {fetchLine1Gps} from "../atb-line1-gps.mjs";
+import {fetchAtbLineGps, validAtbLineCode} from "../atb-line1-gps.mjs";
 const json=(body,status=200)=>Response.json(body,{status,headers:{"cache-control":"no-store","access-control-allow-origin":"*"}});
 const error=(code,status)=>json({error:code},status);
 const idPattern="[a-z0-9_-]{3,120}";
@@ -20,12 +20,15 @@ export async function apiV1(request, env, services) {
   };
   if(path==="/api/v1/devices"||new RegExp("^/api/v1/devices/("+idPattern+")$").test(path))
     return services.fleet(request);
-  // An isolated, public, read-only source for the geographic line 1 overlay.
-  // It deliberately does NOT fall through to legacy LED/GPS/ETA handlers.
-  if(path==="/api/v1/vehicles/atb-line-1") {
+  // Allowlisted, isolated, read-only measured AtB GPS. No ETA fallback or frame mutations.
+  const atbVehicleRoute=path.match(/^\/api\/v1\/vehicles\/atb-line-(\d+)$/);
+  if(atbVehicleRoute) {
+    if(!validAtbLineCode(atbVehicleRoute[1]))return error("not_found",404);
     if(request.method!=="GET")return error("method_not_allowed",405);
     try {
-      const data=await fetchLine1Gps();
+      const code=atbVehicleRoute[1];
+      // Keep original line 1 provider client identity for backward compatibility.
+      const data=await fetchAtbLineGps(code,{clientName:code==="1"?"transitcore-line1-geo":"transitcore-live-atb"});
       return json(data);
     } catch(e) {
       return error(e?.message==="source_unavailable"?"gps_source_unavailable":"gps_source_invalid",503);
