@@ -33,7 +33,7 @@ try{
   if(gpsMode==='404'){await route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({error:'not_found'})});return;}
   if(gpsMode==='503'){await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'gps_source_unavailable'})});return;}
   const url=new URL(route.request().url());
-  const code=url.pathname.match(/atb-line-(\\d+)$/)?.[1]||'1';
+  const code=url.pathname.match(/atb-line-(\d+)$/)?.[1]||'1';
   if(code==='2'&&gpsMode==='slow2')await new Promise(resolve=>setTimeout(resolve,700));
   const time=new Date().toISOString(),valid=code==='1'?[{
    id:'bus-a',latitude:63.4301,longitude:10.405,destination:'Ranheim',line:'1',source:'GPS',lastUpdated:time
@@ -92,13 +92,6 @@ try{
  // Switch the immutable shape, stops and GPS source as one line-specific view.
  gpsMode='valid';
  await page.locator('#lineSelect').selectOption('2');
- await page.waitForTimeout(1100);
- console.log('LINE 2 DIAGNOSTICS',JSON.stringify({
-  lineSelect:await page.locator('#lineSelect').inputValue(),
-  routeStatus:await page.locator('#routeStatus').innerText(),
-  gpsStatus:await page.locator('#gpsStatus').innerText(),
-  errors
- }));
  await page.waitForFunction(()=>document.querySelector('#routeStatus')?.textContent.includes('30 holdeplasser · 70 trasépunkter'),{timeout:15000});
  await page.waitForFunction(()=>document.querySelector('#gpsStatus')?.textContent.includes('1 ferske, målte GPS-posisjoner for linje 2'),{timeout:15000});
  assert.equal(await page.locator('#followBus option').count(),2);
