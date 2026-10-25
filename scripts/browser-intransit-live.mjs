@@ -32,14 +32,19 @@ try{
   gpsCalls++;
   if(gpsMode==='404'){await route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({error:'not_found'})});return;}
   if(gpsMode==='503'){await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'gps_source_unavailable'})});return;}
-  const time=new Date().toISOString(),valid=[{
+  const code=url.pathname.match(/atb-line-(\\d+)$/)?.[1]||'1';
+  if(code==='2'&&gpsMode==='slow2')await new Promise(resolve=>setTimeout(resolve,700));
+  const time=new Date().toISOString(),valid=code==='1'?[{
    id:'bus-a',latitude:63.4301,longitude:10.405,destination:'Ranheim',line:'1',source:'GPS',lastUpdated:time
   },{
    id:'bus-b',latitude:63.365,longitude:10.382,destination:'Kattem',line:'1',source:'GPS',lastUpdated:time
-  }];
-  const vehicles=gpsMode==='empty'?[]:gpsMode==='stale'?valid.map(v=>({...v,lastUpdated:new Date(Date.now()-300000).toISOString()})):valid;
+  }]:[{id:'bus-'+code,latitude:63.42,longitude:10.39,destination:'Linje '+code,
+     line:code,source:'GPS',lastUpdated:time}];
+  const vehicles=gpsMode==='empty'?[]:gpsMode==='stale'?valid.map(v=>({...v,lastUpdated:new Date(Date.now()-300000).toISOString()})):
+   gpsMode==='mismatch'?valid.map(v=>({...v,line:'1'})):valid;
+  const responseCode=gpsMode==='mismatch'?'1':code;
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
-   schemaVersion:1,lineId:'ATB:Line:2_1',publicCode:'1',codespace:'ATB',
+   schemaVersion:1,lineId:'ATB:Line:2_'+responseCode,publicCode:responseCode,codespace:'ATB',
    observationType:'measured-vehicle-position',source:'Entur Vehicle Positions v2',vehicles
   })});
  });
@@ -83,6 +88,39 @@ try{
  await page.waitForFunction(()=>document.querySelector('#gpsStatus')?.textContent.includes('HTTP 503'),{timeout:15000});
  assert.equal(await page.locator('#busCount').innerText(),'0');
  assert(gpsCalls>=5);
+ // Switch the immutable shape, stops and GPS source as one line-specific view.
+ gpsMode='valid';
+ await page.locator('#lineSelect').selectOption('2');
+ await page.waitForFunction(()=>document.querySelector('#routeStatus')?.textContent.includes('30 holdeplasser · 70 trasépunkter'),{timeout:15000});
+ await page.waitForFunction(()=>document.querySelector('#gpsStatus')?.textContent.includes('1 ferske, målte GPS-posisjoner for linje 2'),{timeout:15000});
+ assert.equal(await page.locator('#followBus option').count(),2);
+ assert.equal(await page.locator('#busCount').innerText(),'1');
+ assert.match(await page.locator('#title').innerText(),/Linje 2/);
+ assert.match(page.url(),/line=2/);
+ await page.locator('#followBus').selectOption('bus-2');
+ assert.match(await page.locator('#followDetail').innerText(),/Følger buss 2/);
+ // Switching must clear all old observations and the selected bus.
+ await page.locator('#lineSelect').selectOption('3');
+ await page.waitForFunction(()=>document.querySelector('#routeStatus')?.textContent.includes('24 holdeplasser · 71 trasépunkter'),{timeout:15000});
+ await page.waitForFunction(()=>document.querySelector('#gpsStatus')?.textContent.includes('GPS-posisjoner for linje 3'),{timeout:15000});
+ assert.equal(await page.locator('#followBus').inputValue(),'');
+ assert.equal(await page.locator('#busCount').innerText(),'1');
+ assert.equal(await page.locator('#followBus option[value="bus-2"]').count(),0);
+ assert.equal(await page.locator('#followBus option[value="bus-3"]').count(),1);
+ assert.match(page.url(),/line=3/);
+ // Reject wrong-line observations rather than displaying another line's buses.
+ gpsMode='mismatch';
+ await page.locator('#refresh').click();
+ await page.waitForFunction(()=>document.querySelector('#gpsStatus')?.textContent.includes('GPS-kilden kan ikke nås'),{timeout:15000});
+ assert.equal(await page.locator('#busCount').innerText(),'0');
+ gpsMode='valid';
+ await page.locator('#refresh').click();
+ await page.waitForFunction(()=>document.querySelector('#gpsStatus')?.textContent.includes('linje 3'),{timeout:15000});
+ // Route deep link survives reload.
+ await page.reload();
+ await page.waitForFunction(()=>document.querySelector('#gpsStatus')?.textContent.includes('GPS-posisjoner for linje 3'),{timeout:25000});
+ assert.equal(await page.locator('#lineSelect').inputValue(),'3');
+ assert.match(await page.locator('#routeStatus').innerText(),/24 holdeplasser · 71 trasépunkter/);
  await page.setViewportSize({width:390,height:844});
  const viewportAudit=await page.evaluate(()=>({
   innerWidth,scrollWidth:document.documentElement.scrollWidth,
