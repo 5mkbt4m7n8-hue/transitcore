@@ -27,7 +27,7 @@ button:disabled{opacity:.45;cursor:default}.full{width:100%}
 .chip.live{border-color:#63d4a1;color:#b7f6d2;background:#1b4037}
 .screen-wrap{width:100%;min-height:250px;display:flex;justify-content:center;align-items:center;background:#090f1b;border:1px solid #263c55;border-radius:13px;padding:20px;overflow:hidden}
 .screen{display:flex;align-items:center;justify-content:center;width:min(100%,670px);max-height:590px;padding:12px;background:#0b111a;border:7px solid #293544;border-radius:12px;box-shadow:0 10px 30px #0008,inset 0 0 0 2px #405069}
-.screen canvas{display:block;width:100%;height:auto;max-height:555px;object-fit:contain;image-rendering:pixelated;aspect-ratio:1/1;background:#000;filter:brightness(.8)}
+.screen canvas{display:block;width:100%;height:auto;max-height:555px;object-fit:contain;image-rendering:pixelated;aspect-ratio:auto;background:#000;filter:brightness(.8)}
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .stats>div{min-width:0;border:1px solid #2f485f;background:#172a40;border-radius:9px;padding:12px}
 .stats small{color:var(--muted);display:block;font-size:11px}.stats strong{display:block;font-size:17px;margin-top:4px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
