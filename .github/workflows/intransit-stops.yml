@@ -1,0 +1,42 @@
+name: InTransit stop administration tests
+on:
+  pull_request:
+    paths:
+      - 'web/linear/stops/**'
+      - 'web/linear/index.html'
+      - 'web/linear/geo/model.js'
+      - 'web/linear/geo/stop-links.js'
+      - 'web/linear/network/trondheim-layout.json'
+      - 'scripts/test-intransit-stops.mjs'
+      - 'scripts/browser-intransit-stops.mjs'
+      - '.github/workflows/intransit-stops.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'web/linear/stops/**'
+      - 'web/linear/index.html'
+      - 'web/linear/geo/model.js'
+      - 'web/linear/geo/stop-links.js'
+      - 'scripts/test-intransit-stops.mjs'
+      - 'scripts/browser-intransit-stops.mjs'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Verify statuses, local-name safety, filters and CSV
+        run: node scripts/test-intransit-stops.mjs
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Exercise administration UI with Chromium
+        run: node scripts/browser-intransit-stops.mjs
