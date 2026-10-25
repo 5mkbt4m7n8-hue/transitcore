@@ -1,6 +1,6 @@
 (function(root){
 'use strict';
-const M=root.InTransitGeoModel;
+const M=root.InTransitGeoModel,N=root.InTransitStopLinks;
 const LIB='https://unpkg.com/leaflet@1.9.4/dist/';
 let pendingLibrary;
 function loadLeaflet(){
@@ -27,7 +27,7 @@ root.InTransitGeo={async create(host){
  if(!response.ok)throw Error('Kunne ikke hente kartpunktene');
  const layout=await response.json();
  host.innerHTML='<div class="geo-shell"><div class="geo-head"><strong>Geografisk Trondheim-kart</strong><small>Foreslåtte stoppunkter fra katalogen må kontrolleres. Dette er ikke GPS-sporing av bussene.</small></div>'+
- '<div class="geo-tools"><label>Holdeplass <select data-g="stop"></select></label><button data-g="place">Plasser valgt stopp</button><button data-g="reset">Tilbakestill dette stoppet</button><button data-g="draw">Tegn ny trasé</button>'+
+ '<div class="geo-tools"><a data-g="schematic" href="../index.html?view=network" class="geo-back-stop">Vis valgt stopp på skjemakartet</a><label>Holdeplass <select data-g="stop"></select></label><button data-g="place">Plasser valgt stopp</button><button data-g="reset">Tilbakestill dette stoppet</button><button data-g="draw">Tegn ny trasé</button>'+
  '<button data-g="undo" hidden>Fjern siste punkt</button><button data-g="finish" hidden>Fullfør trasé</button><button data-g="cancel" hidden>Avbryt</button><button data-g="export">Eksporter GeoJSON</button><label>Importer GeoJSON <input type="file" data-g="import" accept=".geojson,.json,application/geo+json"></label><button data-g="discard">Forkast geografiske endringer</button></div>'+
  '<div class="geo-tools geo-edit-tools"><label>Visningsnavn for valgt stopp <input type="text" maxlength="80" data-g="stopName" placeholder="Lokalt navn"></label><button data-g="saveName">Lagre stopnavn</button><button data-g="clearName">Bruk originalnavn</button><label>Velg geografisk linje <select data-g="geoPath"></select></label><label>Linjenavn <input type="text" maxlength="80" data-g="pathName" placeholder="Valgfritt"></label><button data-g="savePathName">Lagre linjenavn</button><label>Farge <input type="color" data-g="pathColor" value="#e4ae63"></label><button data-g="saveColor">Bruk farge</button><button data-g="extend">Forleng valgt linje</button><button data-g="insert">+ Knekkpunkt på valgt linje</button><button data-g="deleteVertex">Slett siste linjepunkt</button><button data-g="deletePath">Slett valgt linje</button><button data-g="historyUndo">Angre endring</button><button data-g="historyRedo">Gjenta endring</button></div>'+ 
  '<p data-g="message" aria-live="polite">Laster kart…</p><div class="geo-canvas" data-g="map" role="application" aria-label="Geografisk kart over Trondheim"></div>'+
@@ -38,7 +38,8 @@ root.InTransitGeo={async create(host){
  let hash=2166136261;for(const ch of initialIds){hash^=ch.charCodeAt(0);hash=Math.imul(hash,16777619);}
  const fingerprint=(hash>>>0).toString(16)+'-'+layout.stops.length;
  const key='intransit-geo-draft-v1';
- let geo=M.empty(),context={},catalog={},mode='',sketch=[],chosen=layout.stops[0]?.id||'',selectedPath='',selectedVertex=-1,markers=new Map(),shapes=[],handles=[],preview=null;
+ const requestedStop=new URLSearchParams(location.search).get('stop');
+ let geo=M.empty(),context={},catalog={},mode='',sketch=[],chosen=layout.stops.some(s=>s.id===requestedStop)?requestedStop:(layout.stops[0]?.id||''),selectedPath='',selectedVertex=-1,markers=new Map(),shapes=[],handles=[],preview=null;
  const history=[],future=[],MAX_HISTORY=60;
  const snapshot=()=>JSON.stringify(geo);
  try{
@@ -113,6 +114,7 @@ root.InTransitGeo={async create(host){
    return new Option(prefix+displayName(stop),stop.id);
   }));
   selected.value=chosen;q('stopName').value=geo.names?.[chosen]||'';
+  q('schematic').href=N.schematicUrl(chosen);
  }
  function drawMarkers(){
   for(const marker of markers.values())map.removeLayer(marker);markers=new Map();
@@ -133,7 +135,7 @@ root.InTransitGeo={async create(host){
    marker.bindTooltip(label);
    marker.on('click',e=>{
     if(mode)return;
-    chosen=stop.id;selected.value=chosen;
+    chosen=stop.id;selected.value=chosen;q('schematic').href=N.schematicUrl(chosen);q('stopName').value=geo.names?.[chosen]||'';
     const state=active.length?' · '+active.map(v=>(v.line||'?')+' '+v.state).join(', '):'';
     setMessage(displayName(stop)+(reviewed?' · din plassering':' · forslag, ikke kontrollert')+state);
     L.DomEvent.stopPropagation(e);
@@ -305,7 +307,16 @@ root.InTransitGeo={async create(host){
  function refresh(next){
   context=next||context;catalog=M.candidates(layout,context.boards||[]);
   updateAll();
+  if(requestedStop){const found=positions()[requestedStop];if(found)map.panTo([found.coordinates[1],found.coordinates[0]]);}
  }
+ root.addEventListener('storage',e=>{
+  if(e.key!==N.KEY)return;
+  try{
+   const incoming=N.readGeo(layout);
+   geo=incoming;history.length=0;future.length=0;mode='';sketch=[];sketchPreview();updateAll();
+   setMessage('Endring fra skjemakartet er oppdatert. Ny angrehistorikk starter her.');
+  }catch(error){setMessage(error.message);}
+ });
  showMode();showHistory();refresh();if(!message.textContent||message.textContent==='Laster kart…')setMessage('Trykk på et punkt for informasjon, eller velg et stopp for å plassere det.');
  return {update(next){refresh(next);},visible(){map.invalidateSize();},clear(){context.frame=null;drawMarkers();}};
  }};
