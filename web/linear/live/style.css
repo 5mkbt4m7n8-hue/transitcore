@@ -43,3 +43,12 @@ h1{margin:0;font-size:24px;line-height:1.15;letter-spacing:-.03em}h1 span{font-s
  .controls #refresh{width:100%}
  .disclaimer{font-size:11px}
 }
+
+/* No horizontal document overflow from map tiles, long select options or flex min-content on iPhone. */
+html{width:100%;max-width:100%;overflow-x:clip}
+body{width:100%;max-width:100%;overflow-x:clip}
+.live-shell,.topbar,.map-shell,.drawer,.controls,.follow,.brand,.topbar nav{min-width:0}
+.drawer,.map-shell{width:100%;max-width:100%}
+.follow select{max-width:100%;min-width:0}
+.drawer-head>div:first-child{min-width:0}
+@media(max-width:400px){.topbar nav{flex-shrink:1}.topbar a{white-space:nowrap}}
