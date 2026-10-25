@@ -31,7 +31,7 @@
    profile=displayProfile();
    const frame=$('frame');
    frame.width=profile.width;frame.height=profile.height;
-   if(!board)board=M.demo(Date.now(),currentStop());
+   if(!board){const s=currentStop();board={schemaVersion:1,stopId:s.id,stopName:s.name,source:'pending',departures:[]};}
    const demo=$('source').value==='demo';
    const drawn=R.draw(frame,profile,board,{demo,now:Date.now(),palette:$('palette').value});
    R.preview(frame,$('preview'),profile);
