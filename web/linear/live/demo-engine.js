@@ -40,6 +40,16 @@
   const n=((value%(2*length))+(2*length))%(2*length);
   return n<=length?n:2*length-n;
  }
+ // Bearing follows the polyline's actual local direction, including when
+ // pingpong reverses at a terminus. Used ONLY for the visible DEMO arrow.
+ function bearingAt(t,phaseMetres){
+  const before=positionAt(t,pingpong(phaseMetres-3,t.length));
+  const after=positionAt(t,pingpong(phaseMetres+3,t.length));
+  const north=after[0]-before[0];
+  const east=(after[1]-before[1])*Math.cos((after[0]+before[0])*Math.PI/360);
+  if(Math.abs(north)+Math.abs(east)<1e-12)return 0;
+  return (Math.atan2(east,north)*180/Math.PI+360)%360;
+ }
  function positionsOnTrack(code,t,elapsedSeconds,speedFactor=1){
   if(typeof code!=='string'||!t?.length||!Number.isFinite(elapsedSeconds)||elapsedSeconds<0||
      ![0.5,1,2,4].includes(speedFactor))throw Error('Ugyldig simulasjonstid eller hastighet');
@@ -48,7 +58,8 @@
    const phase=(index===0?0.12:1.17)*t.length+metres;
    const pos=positionAt(t,pingpong(phase,t.length));
    return {id:'demo:'+code+':'+index,line:code,latitude:pos[0],
-    longitude:pos[1],source:'DEMO',label:'DEMO – SIMULERT',
+    longitude:pos[1],heading:bearingAt(t,phase),
+    source:'DEMO',label:'DEMO – SIMULERT',
     direction:index===0?'A':'B'};
   });
  }
@@ -56,5 +67,5 @@
   if(!route||typeof route.line!=='string'||!Array.isArray(route.route))throw Error('Mangler DEMO-rute');
   return positionsOnTrack(route.line,track(route.route),elapsedSeconds,speedFactor);
  }
- return {track,positionAt,pingpong,positions,positionsOnTrack,SPEED_MPS};
+ return {track,positionAt,pingpong,bearingAt,positions,positionsOnTrack,SPEED_MPS};
 });
