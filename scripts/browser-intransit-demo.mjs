@@ -75,9 +75,11 @@ try{
  assert.equal(await page.locator('.demo-follow-selected').count(),1,
   'Chosen demo bus must stand out above the other 93');
  await page.locator('#demoMarkerSize').selectOption('large');
+ await page.waitForTimeout(180);
  assert.equal(await page.locator('#app').getAttribute('data-demo-marker-size'),'large');
  assert.equal(await page.locator('.demo-pin').first().evaluate(el=>Math.round(el.getBoundingClientRect().width)),50);
  await page.locator('#demoMarkerSize').selectOption('compact');
+ await page.waitForTimeout(180);
  assert.equal(await page.locator('.demo-pin').first().evaluate(el=>Math.round(el.getBoundingClientRect().width)),30);
  await page.locator('#demoMarkerSize').selectOption('auto');
  assert.equal(await page.locator('#app').getAttribute('data-demo-marker-size'),'compact');
