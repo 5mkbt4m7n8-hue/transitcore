@@ -18,6 +18,79 @@
    <button id="export" type="button">Eksporter oversikt (CSV)</button>
   </header>
   <section aria-label="Nøkkeltall" class="stats" id="stats"></section>
+  <section class="review-launch" aria-labelledby="reviewLaunchTitle">
+   <div>
+    <p class="eyebrow">GJENNOMGANG AV ORIGINALTEGNINGEN</p>
+    <h2 id="reviewLaunchTitle">Finn navnene på de 23 uavklarte stoppene</h2>
+    <p>Se originalbildet i detalj og sammenlign med skjemakartet. Notater og framdrift lagres på denne enheten. Et foreslått navn bekrefter ikke navnet i originalkilden.</p>
+   </div>
+   <button id="reviewStart" type="button" aria-expanded="false" aria-controls="reviewPanel">Start gjennomgang</button>
+  </section>
+  <section id="reviewPanel" class="review-panel" aria-labelledby="reviewTitle" hidden>
+   <div class="review-top">
+    <div>
+     <p class="eyebrow">ORIGINALBILDE · LOKAL GJENNOMGANG</p>
+     <h2 id="reviewTitle">Gjennomgå uavklart stopp</h2>
+     <p id="reviewProgress" role="status" aria-live="polite">Ingen oppføringer ennå</p>
+    </div>
+    <button type="button" id="reviewClose">Lukk gjennomgang</button>
+   </div>
+   <div class="review-nav">
+    <button type="button" id="reviewPrev">Forrige</button>
+    <label>Velg stopp
+     <select id="reviewPicker" aria-label="Velg uavklart stopp"></select>
+    </label>
+    <button type="button" id="reviewNext">Neste</button>
+    <button type="button" id="reviewNextPending">Neste ikke gjennomgåtte</button>
+   </div>
+   <div class="review-compare">
+    <figure class="source-figure">
+     <div class="review-figure-header"><strong>Originaltegning – forstørret utsnitt</strong>
+      <label>Utsnitt <select id="reviewZoom"><option value="1">Stort område</option><option value="2" selected>Normalt</option><option value="4">Nærbilde</option></select></label>
+     </div>
+     <canvas id="reviewOriginal" width="620" height="390" aria-label="Utsnitt av det originale opplastede Trondheim-busskartet rundt valgt stopp"></canvas>
+     <figcaption id="reviewImageStatus">Laster originaltegningen …</figcaption>
+    </figure>
+    <figure class="source-figure">
+     <div class="review-figure-header"><strong>Skjemakart – samme stopp-ID</strong></div>
+     <svg id="reviewSchematic" viewBox="0 0 220 140" role="img" aria-label="Utsnitt av skjemakartet rundt valgt stopp"></svg>
+     <figcaption>Skjematisk plassering er hentet fra originalkartet og er ikke GPS.</figcaption>
+    </figure>
+   </div>
+   <div class="review-bottom">
+    <div class="review-form">
+     <label>Lokalt navneforslag (deles med begge kart)
+      <input id="reviewAlias" type="text" maxlength="80" placeholder="Skriv et mulig stoppnavn">
+     </label>
+     <button type="button" id="reviewSaveName">Lagre navneforslag</button>
+     <label>Gjennomgangsstatus – ikke kildeverifisering
+      <select id="reviewStatus">
+       <option value="pending">Ikke gjennomgått</option>
+       <option value="looked-at">Sett på originaltegningen</option>
+       <option value="needs-research">Må undersøkes nærmere</option>
+      </select>
+     </label>
+     <label>Notater og kildeopplysninger
+      <textarea id="reviewNote" maxlength="800" rows="4" placeholder="For eksempel: mulig navn, hvilke punkter i tegningen som støtter dette, og hva som bør sjekkes."></textarea>
+     </label>
+     <div class="review-actions">
+      <button type="button" id="reviewSave">Lagre status og notat</button>
+      <button type="button" id="reviewReset">Nullstill gjennomgang av dette stoppet</button>
+      <button type="button" id="reviewExport">Eksporter gjennomgang (JSON)</button>
+     </div>
+     <p class="review-feedback" id="reviewMessage" role="status" aria-live="polite"></p>
+    </div>
+    <div class="review-context">
+     <h3 id="reviewStopInfo">Uavklart stopp</h3>
+     <p id="reviewEvidence">Ingen verifisert posisjon.</p>
+     <div class="jump">
+      <a id="reviewSchematicLink" href="../index.html?view=network">Åpne i Hele kartet</a>
+      <a id="reviewGeoLink" href="../geo/">Åpne i geografisk kart</a>
+     </div>
+     <p class="footnote">Gult sentermerke angir hvor det originale stoppunktet er målt i bildet. Det er ikke en GPS-markør. De 23 stoppene forblir uavklarte i originaldatabasen selv om du markerer dem som «sett på».</p>
+    </div>
+   </div>
+  </section>
   <p class="notice" id="notice" role="status" aria-live="polite">Laster originalkartet …</p>
   <div class="workspace">
    <section class="catalog" aria-labelledby="catalogTitle">
@@ -69,6 +142,7 @@
  <script src="../geo/model.js"></script>
  <script src="../geo/stop-links.js"></script>
  <script src="model.js"></script>
+ <script src="review.js"></script>
  <script src="app.js"></script>
 </body>
 </html>
