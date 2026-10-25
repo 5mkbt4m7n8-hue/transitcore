@@ -57,15 +57,39 @@ try{
  assert.equal(await page.locator('#demoBanner').isVisible(),true);
  assert.equal(await page.locator('#demoStamp').isVisible(),true);
  assert.equal(await page.locator('.demo-pin').count(),94,'47 lines x two simulated buses');
+ assert.equal(await page.locator('#app').getAttribute('data-demo-marker-size'),'compact',
+  'Fleet overview defaults to compact bus pins');
+ assert.equal(await page.locator('.demo-heading').count(),94,
+  'Every simulated bus must have a heading indicator');
+ assert.equal(await page.locator('#realGpsLegend').isVisible(),false,'Real GPS key is hidden during DEMO');
+ assert.equal(await page.locator('#demoGpsLegend').isVisible(),true,'DEMO key stays clearly visible');
+ assert.equal(await page.locator('.demo-pin-container').first().evaluate(el=>
+  Number.isFinite(parseFloat(el.style.getPropertyValue('--demo-heading')))),true,
+  'Route heading must be a bounded numeric angle on the marker');
  assert.equal(await page.locator('.live-fleet-pin').count(),0,'No real GPS marker in DEMO');
  assert.equal(await page.locator('#refresh').isDisabled(),true);
  assert.match(await page.locator('#gpsStatus').innerText(),/simulerte busser/);
  assert.equal(await page.locator('#followBus option').count(),95);
  await page.locator('#followBus').selectOption('demo:70:0');
  assert.match(await page.locator('#followDetail').innerText(),/DEMO.*følger simulert buss 70/);
+ assert.equal(await page.locator('.demo-follow-selected').count(),1,
+  'Chosen demo bus must stand out above the other 93');
+ await page.locator('#demoMarkerSize').selectOption('large');
+ await page.waitForTimeout(180);
+ assert.equal(await page.locator('#app').getAttribute('data-demo-marker-size'),'large');
+ assert.equal(await page.locator('.demo-pin').first().evaluate(el=>Math.round(el.getBoundingClientRect().width)),50);
+ await page.locator('#demoMarkerSize').selectOption('compact');
+ await page.waitForTimeout(180);
+ assert.equal(await page.locator('.demo-pin').first().evaluate(el=>Math.round(el.getBoundingClientRect().width)),30);
+ await page.locator('#demoMarkerSize').selectOption('auto');
+ assert.equal(await page.locator('#app').getAttribute('data-demo-marker-size'),'compact');
  await page.locator('#demoPause').click();
  assert.equal(await page.locator('#demoPause').getAttribute('aria-pressed'),'true');
  assert.match(await page.locator('#demoBanner').innerText(),/PAUSE/);
+ const pausedLocation=await page.locator('.demo-follow-selected').evaluate(el=>el.style.transform);
+ await page.waitForTimeout(250);
+ assert.equal(await page.locator('.demo-follow-selected').evaluate(el=>el.style.transform),
+  pausedLocation,'Paused DEMO bus must remain at measured simulated position');
  await page.locator('#demoSpeed').selectOption('4');
  assert.equal(await page.locator('#demoSpeed').inputValue(),'4');
  await page.locator('#demoPause').click();
@@ -79,6 +103,9 @@ try{
  await page.locator('#fitBuses').click();
  await page.locator('#lineSelect').selectOption('1');
  await page.waitForFunction(()=>document.querySelector('#busCount')?.textContent==='2',{timeout:15000});
+ await page.locator('#demoMarkerSize').selectOption('normal');
+ assert.equal(await page.locator('#app').getAttribute('data-demo-marker-size'),'normal');
+ await page.locator('#demoMarkerSize').selectOption('auto');
  assert.equal(await page.locator('.demo-pin').count(),2);
  assert.equal(gpsCalls,0,'Switching DEMO route does not fetch GPS');
  assert.match(page.url(),/mode=demo/);
@@ -88,6 +115,9 @@ try{
  await page.locator('#sourceMode').selectOption('gps');
  await page.waitForFunction(()=>document.querySelector('#gpsStatus')?.textContent.includes('målte GPS-posisjoner'),{timeout:15000});
  assert.equal(await page.locator('#demoBanner').isVisible(),false);
+ assert.equal(await page.locator('#realGpsLegend').isVisible(),true);
+ assert.equal(await page.locator('#demoGpsLegend').isVisible(),false);
+ assert.equal(await page.locator('#app').getAttribute('data-demo-marker-size'),null);
  assert.equal(await page.locator('.demo-pin').count(),0);
  assert.equal(await page.locator('.live-fleet-pin').count(),1);
  assert.equal(await page.locator('#busCount').innerText(),'1');

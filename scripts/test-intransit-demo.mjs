@@ -18,6 +18,8 @@ for(const code of C.CODES){
  assert.equal(frames.length,2);
  assert.equal(frames[0].line,code);
  assert.equal(frames[0].source,'DEMO');
+ assert(frames.every(v=>v.heading>=0&&v.heading<360&&Number.isFinite(v.heading)),
+  'Bearing must always be a bounded DEMO value');
  assert(frames.every(v=>v.id.startsWith('demo:'+code+':')));
  const move=E.positionsOnTrack(code,route,60,2);
  assert(move.every(v=>Number.isFinite(v.latitude)&&Number.isFinite(v.longitude)));
@@ -30,6 +32,14 @@ for(const code of C.CODES){
 assert.equal(seen,94,'47 lines with two visually distinct demonstrators per line');
 const route=E.track([[63.42,10.4],[63.43,10.4],[63.43,10.41]]);
 assert.deepEqual(E.positionAt(route,-1000),[63.42,10.4]);
+assert(Math.min(E.bearingAt(route,10),360-E.bearingAt(route,10))<2,
+ 'Northbound demo route must point approximately 0 degrees');
+assert(Math.abs(E.bearingAt(route,2*route.length-10)-180)<2,
+ 'Reversing at route endpoint must turn a demo bus around');
+assert(Math.abs(E.bearingAt(route,route.cum[1]+10)-90)<2,
+ 'Eastbound demo route arrow should follow drawn route');
+assert(!readFileSync(new URL('../web/linear/live/demo.js',import.meta.url),'utf8').includes('elapsed*speed)'),
+ 'Do not retrospectively scale elapsed path distance on speed change');
 assert.deepEqual(E.positionAt(route,route.length+10000),[63.43,10.41]);
 assert(Math.abs(E.pingpong(route.length*1.5,route.length)-route.length*.5)<.001);
 assert(Math.abs(E.pingpong(route.length*2.5,route.length)-route.length*.5)<.001);

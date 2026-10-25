@@ -20,6 +20,18 @@ med mindre `?mode=demo` er uttrykkelig valgt.
 - Du kan pause/fortsette, velge 0,5× / 1× / 2× / 4× fart,
   følge en demonstrasjonsbuss, sentrere kartet og vise/skjule
   stopp, ruteprofiler og individuelle linjer.
+- **Markørstørrelse** kan velges som Automatisk, Kompakt, Normal
+  eller Stor. Automatisk bruker kompakte bussmarkører når
+  mange linjer vises samtidig, så 94 busser ikke tar over skjermen.
+- DEMO-bussene får en retningspil som følger den tegnede
+  geometrien, også ved vending i enden. En valgt buss
+  fremheves foran de andre. Pilen viser ikke virkelig
+  kompasskurs, kjørefelt eller målt GPS.
+- Animasjonen er visuelt jevnere; overgang mellom 1× og 4×
+  påvirker kun fremtidig bevegelse, slik at bussen ikke
+  hopper fordi tidligere simuleringstid får ny hastighet.
+  Respekt for innstillingen «reduser bevegelse» fjerner
+  CSS-overgangene.
 - De tidligere fokuserte visningene av linje 1, 2 og 3
   støtter også DEMO med **to testbusser per valgt linje**.
 - Delbar lenke: `?line=all&mode=demo`,
