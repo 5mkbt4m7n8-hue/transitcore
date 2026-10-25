@@ -6,6 +6,7 @@ const read=p=>fs.readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const boardId='trondheim-bus-board';
 const frame={schemaVersion:1,boardProfile:boardId,ledCount:147,sequence:1,generatedAt:new Date().toISOString(),ttlSeconds:30,leds:[]};
 const html=read('web/linear/index.html');
+assert.match(html,/<a id="geographicMode" href="\.\/geo\/"/,'Geographic editor must be discoverable from the existing Linear mode selector');
 // Real shared client: server PASSED is retained, never inferred; expiry becomes OFF.
 const Frames=createRequire(import.meta.url)('../web/shared/canonical-frame-client.js');
 for(const [id,count] of [['trondheim-bus-board',147],['trondheim-shared-stops-board',147],['trondheim-city-lines-catalog',1282],['trondheim-flybuss-live',46],['trondheim-bus-1-gps-staging',147]]){
