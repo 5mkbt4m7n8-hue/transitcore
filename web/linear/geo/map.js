@@ -38,7 +38,7 @@ root.InTransitGeo={async create(host){
  let hash=2166136261;for(const ch of initialIds){hash^=ch.charCodeAt(0);hash=Math.imul(hash,16777619);}
  const fingerprint=(hash>>>0).toString(16)+'-'+layout.stops.length;
  const key='intransit-geo-draft-v1';
- let geo=M.empty(),context={},catalog={},mode='',sketch=[],chosen=layout.stops[0]?.id||'',selectedPath='',markers=new Map(),shapes=[],handles=[],preview=null;
+ let geo=M.empty(),context={},catalog={},mode='',sketch=[],chosen=layout.stops[0]?.id||'',selectedPath='',selectedVertex=-1,markers=new Map(),shapes=[],handles=[],preview=null;
  const history=[],future=[],MAX_HISTORY=60;
  const snapshot=()=>JSON.stringify(geo);
  try{
@@ -85,7 +85,7 @@ root.InTransitGeo={async create(host){
  function activePath(){return geo.paths.find(p=>p.id===selectedPath);}
  function updatePathSelect(){
   const menu=q('geoPath'),items=geo.paths;
-  if(!items.some(p=>p.id===selectedPath))selectedPath=items.at(-1)?.id||'';
+  if(!items.some(p=>p.id===selectedPath)){selectedPath=items.at(-1)?.id||'';selectedVertex=-1;}
   menu.replaceChildren(...(items.length?items.map(p=>new Option((p.name||p.id)+' ('+p.coordinates.length+' pkt)',p.id)):[new Option('Ingen linjer','')]));
   menu.value=selectedPath;
   const path=activePath();q('pathName').value=path?.name||'';q('pathColor').value=path?.color||'#e4ae63';
@@ -164,9 +164,9 @@ root.InTransitGeo={async create(host){
     draggable:true,autoPan:true,keyboard:false,
     icon:L.divIcon({className:'geo-vertex-handle',html:'',iconSize:[16,16],iconAnchor:[8,8]})
    }).addTo(map);
-   marker.on('click',e=>L.DomEvent.stopPropagation(e));
+   marker.on('click',e=>{selectedVertex=index;setMessage('Knekkpunkt '+(index+1)+' valgt. Bruk slett-knappen eller dra punktet.');L.DomEvent.stopPropagation(e);});
    marker.on('dragend',e=>change(()=>{
-    const pos=e.target.getLatLng();
+    const pos=e.target.getLatLng();selectedVertex=index;
     commit(()=>M.moveVertex(geo,active.id,index,[pos.lng,pos.lat]));
     setMessage('Knekkpunkt flyttet og lagret.');
    }));
@@ -186,62 +186,127 @@ root.InTransitGeo={async create(host){
  function change(action){try{action();}catch(e){setMessage(e.message);}}
  selected.onchange=()=>{
   chosen=selected.value;
+  q('stopName').value=geo.names?.[chosen]||'';
   const p=positions()[chosen];if(p)map.panTo([p.coordinates[1],p.coordinates[0]]);
   setMessage(p?'Velg «Plasser valgt stopp» for å justere punktet.':'Ikke plassert. Velg «Plasser valgt stopp» og trykk på kartet.');
  };
+ q('saveName').onclick=()=>change(()=>{
+  commit(()=>M.renameStop(geo,layout,chosen,q('stopName').value));
+  setMessage('Lokalt stopnavn lagret. Opprinnelig stopp-ID og GPS-kobling er ikke endret.');
+ });
+ q('clearName').onclick=()=>change(()=>{
+  commit(()=>M.renameStop(geo,layout,chosen,''));
+  setMessage('Originalt stopnavn vises igjen.');
+ });
+ q('geoPath').onchange=()=>{
+  selectedPath=q('geoPath').value;selectedVertex=-1;drawLines();
+  setMessage(selectedPath?'Linje valgt. Dra de hvite punktene for å redigere.':'Ingen linje valgt.');
+ };
+ q('savePathName').onclick=()=>change(()=>{
+  commit(()=>M.renamePath(geo,selectedPath,q('pathName').value));
+  setMessage('Linjenavn lagret lokalt; ikke koblet til virkelig bussrute.');
+ });
+ q('saveColor').onclick=()=>change(()=>{
+  commit(()=>M.colorPath(geo,selectedPath,q('pathColor').value));
+  setMessage('Farge lagret på den manuelle linjen.');
+ });
+ q('historyUndo').onclick=()=>restoreHistory(history,future);
+ q('historyRedo').onclick=()=>restoreHistory(future,history);
  q('place').onclick=()=>change(()=>{
-  mode=mode==='place'?'':'place';sketch=[];sketchPreview();showMode();
-  setMessage(mode==='place'?'Trykk der '+layout.stops.find(s=>s.id===chosen)?.name+' faktisk ligger.':'Plasseringen avbrutt.');
+  mode=mode==='place'?'':'place';sketch=[];sketchPreview();updateAll();
+  setMessage(mode==='place'?'Trykk der '+displayName(layout.stops.find(s=>s.id===chosen))+' faktisk ligger.':'Plasseringen avbrutt.');
  });
  q('reset').onclick=()=>change(()=>{
-  delete geo.stops[chosen];save();drawMarkers();
+  commit(()=>M.removeStop(geo,chosen));
   setMessage('Manuell plassering fjernet; eventuelt katalogforslag vises igjen.');
  });
  q('draw').onclick=()=>change(()=>{
-  mode=mode==='draw'?'':'draw';sketch=[];sketchPreview();showMode();
+  mode=mode==='draw'?'':'draw';sketch=[];sketchPreview();updateAll();
   setMessage(mode==='draw'?'Trykk på kartet for hvert nytt rutepunkt. Fullfør ved minst to punkter.':'Tegning avbrutt.');
  });
- q('undo').onclick=()=>{sketch.pop();sketchPreview();showMode();};
- q('cancel').onclick=()=>{mode='';sketch=[];sketchPreview();showMode();};
- q('finish').onclick=()=>change(()=>{
-  M.draw(geo,sketch);mode='';sketch=[];sketchPreview();save();drawLines();showMode();
-  setMessage('Geografisk trasé lagret. Streken er ikke bekreftet som bussrute.');
+ q('extend').onclick=()=>change(()=>{
+  if(!activePath())throw Error('Velg en linje først');
+  mode=mode==='extend'?'':'extend';sketch=[];sketchPreview();updateAll();
+  setMessage(mode==='extend'?'Trykk på kartet for å forlenge valgt linje. Minst ett nytt punkt.':'Forlengelse avbrutt.');
  });
- q('export').onclick=()=>change(()=>download('trondheim-geografisk.geojson',JSON.stringify(M.exportGeo(geo,layout),null,2)+'\n'));
+ q('insert').onclick=()=>change(()=>{
+  if(!activePath())throw Error('Velg en linje først');
+  mode=mode==='insert'?'':'insert';sketch=[];sketchPreview();updateAll();
+  setMessage(mode==='insert'?'Trykk på kartet nær delstrekningen der du ønsker et nytt knekkpunkt.':'Innsetting avbrutt.');
+ });
+ q('deleteVertex').onclick=()=>change(()=>{
+  const path=activePath();if(!path)throw Error('Velg en linje først');
+  const i=selectedVertex>=0?selectedVertex:path.coordinates.length-1;
+  commit(()=>M.removeVertex(geo,path.id,i));selectedVertex=-1;
+  setMessage('Knekkpunkt slettet. Angre endring for å gjenopprette.');
+ });
+ q('deletePath').onclick=()=>change(()=>{
+  if(!activePath())throw Error('Velg en linje først');
+  if(!root.confirm('Slette valgt geografisk linje? Du kan angre etterpå.'))return;
+  commit(()=>M.deletePath(geo,selectedPath));selectedVertex=-1;
+  setMessage('Geografisk linje slettet lokalt. Angre er tilgjengelig.');
+ });
+ q('undo').onclick=()=>{sketch.pop();sketchPreview();showMode();};
+ q('cancel').onclick=()=>{mode='';sketch=[];sketchPreview();updateAll();};
+ q('finish').onclick=()=>change(()=>{
+  if(mode!=='draw'&&mode!=='extend')throw Error('Ingen pågående tegning');
+  const was=mode;
+  commit(()=>{if(was==='draw')selectedPath=M.draw(geo,sketch);
+   else M.appendPath(geo,selectedPath,sketch);});
+  mode='';sketch=[];selectedVertex=-1;sketchPreview();updateAll();
+  setMessage(was==='draw'?'Geografisk trasé opprettet. Ikke bekreftet bussrute.':'Linjen forlenget. Eksisterende punkt er beholdt.');
+ });
+ q('export').onclick=()=>change(()=>download('trondheim-geografisk.geojson',JSON.stringify(M.exportGeo(geo,layout),null,2)+'\\n'));
  q('import').onchange=async e=>{
   const file=e.target.files?.[0];if(!file)return;
   try{
    if(file.size>2000000)throw Error('GeoJSON-filen er for stor');
    const data=M.importGeo(JSON.parse(await file.text()),layout);
-   geo=data;mode='';sketch=[];sketchPreview();showMode();save();drawMarkers();drawLines();
-   setMessage('GeoJSON importert. Endringer er lagret lokalt og kan angres ved å forkaste geografiske endringer.');
+   if(!root.confirm('Erstatte lokale geografiske endringer med denne GeoJSON-filen? Endringen kan angres i denne økten.'))return;
+   commit(()=>{geo=data;});mode='';sketch=[];selectedVertex=-1;sketchPreview();updateAll();
+   setMessage('GeoJSON importert. Lokal angrefunksjon og eksport er tilgjengelig.');
   }catch(error){setMessage(error.message);}finally{e.target.value='';}
  };
  q('discard').onclick=()=>change(()=>{
-  geo=M.empty();localStorage.removeItem(key);mode='';sketch=[];sketchPreview();showMode();
-  drawMarkers();drawLines();setMessage('Geografisk arbeidskopi forkastet. Skjemakartet er uendret.');
+  if(!root.confirm('Forkaste ALLE lokale geografiske plasseringer, navn og linjer? Eksporter GeoJSON først hvis du vil beholde dem.'))return;
+  commit(()=>{geo=M.empty();});mode='';sketch=[];selectedVertex=-1;sketchPreview();updateAll();
+  setMessage('Lokale geografiske endringer nullstilt. Du kan angre i denne økten. Skjemakartet er uendret.');
  });
  map.on('click',e=>change(()=>{
   const coord=[e.latlng.lng,e.latlng.lat];
   if(mode==='place'){
-   M.place(geo,layout,chosen,coord);mode='';save();drawMarkers();showMode();
-   setMessage('Plassert '+layout.stops.find(s=>s.id===chosen)?.name+' manuelt på kartet.');
-  }else if(mode==='draw'){
-   if(sketch.length&&Math.hypot(coord[0]-sketch.at(-1)[0],coord[1]-sketch.at(-1)[1])<1e-7)return;
-   sketch.push(coord);sketchPreview();showMode();setMessage(sketch.length+' punkter – fortsett å tegne, eller fullfør.');
+   commit(()=>M.place(geo,layout,chosen,coord));mode='';updateAll();
+   setMessage('Plassert '+displayName(layout.stops.find(s=>s.id===chosen))+' manuelt på kartet.');
+  }else if(mode==='draw'||mode==='extend'){
+   const prev=sketch.at(-1)||(mode==='extend'?activePath()?.coordinates.at(-1):null);
+   if(prev&&Math.hypot(coord[0]-prev[0],coord[1]-prev[1])<1e-7)return;
+   sketch.push(coord);sketchPreview();showMode();
+   setMessage(sketch.length+' nye punkter – fortsett eller fullfør.');
+  }else if(mode==='insert'){
+   const path=activePath();if(!path)throw Error('Velg en linje');
+   const segment=nearestSegment(path.coordinates,coord);
+   commit(()=>M.insertVertex(geo,path.id,segment,coord));selectedVertex=segment+1;mode='';updateAll();
+   setMessage('Nytt knekkpunkt lagt til på valgt linje.');
   }
  }));
  document.addEventListener('keydown',e=>{
-  if(host.hidden||mode!=='draw'||/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||''))return;
-  if(e.key==='Escape'){e.preventDefault();q('cancel').click();}
-  if(e.key==='Backspace'){e.preventDefault();q('undo').click();}
-  if(e.key==='Enter'&&sketch.length>=2){e.preventDefault();q('finish').click();}
+  if(host.hidden)return;
+  const isField=/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'');
+  if(!isField&&(e.ctrlKey||e.metaKey)&&['z','y'].includes(e.key.toLowerCase())){
+   e.preventDefault();
+   if(e.key.toLowerCase()==='y'||e.shiftKey)q('historyRedo').click();else q('historyUndo').click();
+   return;
+  }
+  if(isField)return;
+  if(e.key==='Escape'&&mode){e.preventDefault();mode='';sketch=[];sketchPreview();updateAll();}
+  if(e.key==='Backspace'&&(mode==='draw'||mode==='extend')){e.preventDefault();q('undo').click();}
+  if(e.key==='Enter'&&(mode==='draw'||mode==='extend')&&sketch.length>=(mode==='draw'?2:1)){e.preventDefault();q('finish').click();}
  });
  function refresh(next){
   context=next||context;catalog=M.candidates(layout,context.boards||[]);
-  drawMarkers();drawLines();
+  updateAll();
  }
- showMode();refresh();if(!message.textContent||message.textContent==='Laster kart…')setMessage('Trykk på et punkt for informasjon, eller velg et stopp for å plassere det.');
+ showMode();showHistory();refresh();if(!message.textContent||message.textContent==='Laster kart…')setMessage('Trykk på et punkt for informasjon, eller velg et stopp for å plassere det.');
  return {update(next){refresh(next);},visible(){map.invalidateSize();},clear(){context.frame=null;drawMarkers();}};
  }};
 })(globalThis);
