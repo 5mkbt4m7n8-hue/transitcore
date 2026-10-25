@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="no">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+ <meta name="theme-color" content="#091320">
+ <title>InTransit Live – AtB linje 1</title>
+ <link rel="stylesheet" href="style.css">
+</head>
+<body>
+ <main id="app" class="live-shell">
+  <header class="topbar">
+   <div class="brand"><span class="brand-icon" aria-hidden="true">●</span>
+    <div><strong>InTransit <span>LIVE</span></strong><small>Trondheim · AtB linje 1</small></div>
+   </div>
+   <nav aria-label="Kartvisninger"><a href="../index.html">Linear</a><a href="../geo/">Karteditor</a></nav>
+  </header>
+  <section class="map-shell" aria-label="Live-kart">
+   <div id="map" role="application" aria-label="Kart over busslinje 1 mellom Ranheim og Kattem"></div>
+   <div class="floating-controls" aria-label="Kartkontroller">
+    <button id="fitRoute" type="button" title="Vis hele linje 1">Hele linjen</button>
+    <button id="fitBuses" type="button" disabled title="Vis faktiske bussposisjoner">Alle busser</button>
+    <button id="fullscreen" type="button" aria-pressed="false">Fullskjerm</button>
+   </div>
+   <div class="map-legend" aria-label="Symbolforklaring"><span><i class="dot bus"></i> Målt GPS</span><span><i class="dot stop"></i> Holdeplass</span></div>
+  </section>
+  <section class="drawer" aria-labelledby="title">
+   <div class="drawer-handle" aria-hidden="true"></div>
+   <div class="drawer-head">
+    <div><p class="eyebrow">GEOGRAFISK RUTEPROFIL</p><h1 id="title">Linje 1 <span>Ranheim ↔ Kattem</span></h1></div>
+    <div class="count" id="busCount" aria-label="Ferske GPS-posisjoner">–</div>
+   </div>
+   <p class="state" id="gpsStatus" role="status" aria-live="polite">Laster rutekart og GPS …</p>
+   <p class="muted" id="routeStatus"></p>
+   <div class="controls">
+    <label class="toggle"><input id="showStops" type="checkbox" checked> Holdeplasser</label>
+    <label class="toggle"><input id="showRoute" type="checkbox" checked> Ruteprofil</label>
+    <label class="follow">Følg buss
+     <select id="followBus" disabled><option value="">Ingen aktiv GPS</option></select>
+    </label>
+    <button id="refresh" type="button">Oppdater GPS</button>
+   </div>
+   <div id="followDetail" class="follow-detail" hidden aria-live="polite"></div>
+   <p class="disclaimer">Bussmarkører vises kun ved gyldig, tidsstemplet GPS (maks 90 sek). Rutelinjen er en lagret profiltrasé, ikke bussenes faktiske GPS-spor. Ingen ETA-posisjoner erstatter manglende GPS.</p>
+  </section>
+ </main>
+ <script src="../geo/line1-gps.js"></script>
+ <script src="model.js"></script>
+ <script src="app.js"></script>
+</body>
+</html>
