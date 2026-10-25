@@ -193,7 +193,7 @@
    }finally{
     if(token===routeRequestId){
      routeLoading=false;$('lineSelect').disabled=false;
-     $('refresh').disabled=!routeBounds;
+     $('refresh').disabled=!routeBounds||isDemo();
      if(routeBounds&&!isDemo())refreshGPS();
     }
    }
@@ -221,7 +221,7 @@
     }
    }finally{
     if(token===routeRequestId){
-     routeLoading=false;$('lineSelect').disabled=false;$('refresh').disabled=false;
+     routeLoading=false;$('lineSelect').disabled=false;$('refresh').disabled=isDemo();
      if(all.active&&!isDemo())all.refreshGPS();
     }
    }
