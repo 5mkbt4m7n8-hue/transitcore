@@ -63,4 +63,43 @@ const html=read('web/linear/stops/index.html');
 assert.match(html,/id="results"/);
 assert.match(html,/id="renameForm"/);
 assert.match(html,/id="geoLink"/);
+
+// Guided comparison only includes source-unnamed original stops.
+const Review=require('../web/linear/stops/review.js');
+const missing=Review.queue(layout);
+assert.equal(missing.length,23,'Only the 23 source-unnamed original stops enter review queue');
+assert(missing.every(s=>s.nameConfirmed!==true&&s.source?.centerPixels));
+assert.equal(missing[0].id,'original-003');
+const crop=Review.crop(layout,missing[0],2);
+assert(crop.x>=0&&crop.y>=0&&crop.x+crop.width<=layout.reference.width+1e-8);
+assert(crop.y+crop.height<=layout.reference.height+1e-8);
+assert(crop.markerX>=0&&crop.markerX<=1&&crop.markerY>=0&&crop.markerY<=1);
+assert(Review.crop(layout,missing[0],4).width<crop.width,'Closer zoom must show fewer image pixels');
+assert.throws(()=>Review.crop(layout,{source:{centerPixels:{x:-200,y:200}}}),/Ukjent/);
+const reviewStoreMap=new Map();
+const reviewStore={getItem:key=>reviewStoreMap.get(key)||null,setItem:(key,value)=>reviewStoreMap.set(key,value)};
+const pristine=Review.load(layout,reviewStore);
+assert.equal(Review.progress(layout,pristine).pending,23);
+let recorded=Review.save(layout,'original-003','needs-research','Sjekk tydeligere navnet ved originalens markør',reviewStore);
+assert.equal(recorded.entries['original-003'].status,'needs-research');
+assert.equal(Review.progress(layout,recorded).research,1);
+recorded=Review.save(layout,'original-007','looked-at','Gjennomgått, men ikke offisielt bekreftet',reviewStore);
+assert.deepEqual(Review.progress(layout,recorded),{total:23,looked:1,research:1,pending:21,visited:2});
+assert.equal(Review.load(layout,reviewStore).entries['original-007'].status,'looked-at');
+assert.equal(layout.stops.find(s=>s.id==='original-003').nameConfirmed,false,
+ 'A local inspected status must never confirm a source name');
+assert.throws(()=>Review.save(layout,'original-000','looked-at','not allowed',reviewStore),/Ugyldig/);
+assert.throws(()=>Review.save(layout,'original-003','looked-at','x'.repeat(801),reviewStore),/maks 800/);
+assert.throws(()=>Review.save(layout,'unknown','looked-at','',reviewStore),/Ugyldig/);
+recorded=Review.save(layout,'original-007','pending','',reviewStore);
+assert.equal(recorded.entries['original-007'],undefined,'Clearing a review removes only that note');
+const staleReview=JSON.stringify({...recorded,fingerprint:'stale-layout'});
+reviewStoreMap.set(Review.KEY,staleReview);
+assert.throws(()=>Review.save(layout,'original-003','looked-at','',reviewStore),/passer ikke/);
+assert.equal(reviewStore.getItem(Review.KEY),staleReview,'A stale review is never overwritten');
+assert.deepEqual(layout,original,'Source geometry and names are never edited by review');
+assert.match(read('web/linear/stops/index.html'),/reviewOriginal/);
+assert.match(read('web/linear/stops/index.html'),/reviewSchematic/);
+assert.match(read('web/linear/stops/index.html'),/src="review-ui.js"/);
+
 console.log('Stop administration: 100 original IDs, name/mapping/geo evidence, filtering, safe local edits and CSV PASS');
