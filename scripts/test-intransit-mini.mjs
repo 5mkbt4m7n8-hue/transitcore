@@ -27,7 +27,8 @@ assert.equal(M.PRESETS[0].id,'NSR:StopPlace:41613');
 assert.match(QUERY,/estimatedCalls/);
 assert.match(QUERY,/realtime/);
 assert.match(QUERY,/expectedDepartureTime/);
-assert.match(QUERY,/journeyPattern/);
+assert.match(QUERY,/serviceJourney/);
+assert.match(QUERY,/includeCancelledTrips/);
 const now=Date.parse('2026-10-25T20:00:00.000Z');
 const example=M.demo(now);
 assert.equal(example.source,'DEMO');
@@ -39,13 +40,13 @@ assert.equal(M.formatClock(example.departures[0].at).length,5);
 assert.throws(()=>M.normalize({...example,stopId:'NSR:Quay:123'},now),/Ugyldig/);
 const raw={name:'Prinsens gate',estimatedCalls:[
  {realtime:true,cancellation:false,expectedDepartureTime:new Date(now+300000).toISOString(),
-  destinationDisplay:{frontText:'Ranheim'},serviceJourney:{journeyPattern:{line:{publicCode:'1'}}}},
+  destinationDisplay:{frontText:'Ranheim'},serviceJourney:{line:{publicCode:'1'}}},
  {realtime:false,cancellation:true,aimedDepartureTime:new Date(now+600000).toISOString(),
-  destinationDisplay:{frontText:'Lund'},serviceJourney:{journeyPattern:{line:{publicCode:'2'}}}},
+  destinationDisplay:{frontText:'Lund'},serviceJourney:{line:{publicCode:'2'}}},
  {realtime:false,cancellation:false,expectedDepartureTime:new Date(now-300000).toISOString(),
-  destinationDisplay:{frontText:'old'},serviceJourney:{journeyPattern:{line:{publicCode:'3'}}}},
+  destinationDisplay:{frontText:'old'},serviceJourney:{line:{publicCode:'3'}}},
  {realtime:true,expectedDepartureTime:'not-a-date',
-  destinationDisplay:{frontText:'invalid'},serviceJourney:{journeyPattern:{line:{publicCode:'4'}}}}
+  destinationDisplay:{frontText:'invalid'},serviceJourney:{line:{publicCode:'4'}}}
 ]};
 const board=normalizeCalls(raw,'NSR:StopPlace:41613',now);
 assert.equal(board.departures.length,2);
