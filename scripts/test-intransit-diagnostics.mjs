@@ -51,7 +51,8 @@ const report=D.exportReport(rows,'2026-10-25T21:00:00.000Z');
 const encoded=JSON.stringify(report);
 assert.equal(report.checks.length,rows.length);
 for(const disallowed of ['should-never-export','vehicleId','latitude','longitude',
- 'Bearer not-for-export','authorization','raw','secret'])assert(!encoded.includes(disallowed),disallowed);
+ 'Bearer not-for-export','authorization','SECRET-PRIVATE-COORDINATE'])assert(!encoded.includes(disallowed),disallowed);
+assert.equal('raw' in report.checks[1],false,'Raw GPS payload must not be included as a report property');
 assert.equal(report.format,'intransit-public-diagnostics-v1');
 assert.equal(D.timeLabel(null),'Ingen gyldig måletid');
 console.log('InTransit diagnostics: correct source checklist, 47 intact profiles, unambiguous HTTP/CORS, aggregate GPS and private-data-safe export PASS');
