@@ -1,7 +1,7 @@
-// Map-first view of registered AtB lines 1, 2 and 3. No edits or inferred positions.
+// Map-first view of all 47 registered AtB routes plus original one-line views. No edits or inferred positions.
 (function(root){
  'use strict';
- const R=root.InTransitLiveLine1,G=root.InTransitLiveGps;
+ const R=root.InTransitLiveLine1,G=root.InTransitLiveGps,All=root.InTransitAllMode;
  const $=id=>document.getElementById(id);
  const LEAFLET_BASE='https://unpkg.com/leaflet@1.9.4/dist/';
  async function leaflet(){
@@ -28,7 +28,7 @@
    maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
 
-  const vehicles=new Map();
+  const vehicles=new Map(),all=All.setup({L,map});
   let lineCode='1',routeLayer=null,stopsLayer=null,routeBounds=null;
   let lastFeed=null,gpsError='',gpsBusy=false,gpsRequestId=0,routeRequestId=0;
   let routeLoading=false,followId='',fullscreenFallback=false;
@@ -87,6 +87,7 @@
    options();statusCount();if(followId)followView();
   }
   function latestOnly(){
+   if(lineCode==='all'){all.ageGPS();return;}
    if(!lastFeed||gpsError||routeLoading)return;
    try{
     const positions=G.parse(lastFeed,lineCode).vehicles;
@@ -99,6 +100,7 @@
    }
   }
   async function refreshGPS(){
+   if(lineCode==='all')return all.refreshGPS();
    if(gpsBusy||routeLoading||!routeBounds||document.hidden)return;
    const requestCode=lineCode,token=++gpsRequestId;
    gpsBusy=true;$('refresh').disabled=true;
@@ -142,6 +144,7 @@
   }
   async function chooseLine(code,{initial=false}={}){
    if(!R.supports(code))return;
+   if(all.active)all.leave();
    const token=++routeRequestId;
    ++gpsRequestId;gpsBusy=false;lastFeed=null;gpsError='';
    render([]);routeLoading=true;
@@ -186,26 +189,63 @@
     }
    }
   }
-  $('lineSelect').onchange=()=>chooseLine($('lineSelect').value);
+  async function chooseAll({initial=false}={}){
+   const token=++routeRequestId;
+   ++gpsRequestId;gpsBusy=false;lastFeed=null;gpsError='';
+   render([]);
+   routeLoading=true;lineCode='all';
+   $('lineSelect').value='all';$('lineSelect').disabled=true;$('refresh').disabled=true;
+   if(routeLayer)map.removeLayer(routeLayer);
+   if(stopsLayer)map.removeLayer(stopsLayer);
+   try{
+    const enabled=await all.enter();
+    if(!enabled||token!==routeRequestId)return;
+    if(!initial){
+     const url=new URL(location.href);url.searchParams.set('line','all');
+     history.replaceState(null,'',url.pathname+url.search+url.hash);
+    }
+   }catch(error){
+    if(token===routeRequestId){
+     $('gpsStatus').textContent='Kunne ikke laste oversiktskartet: '+error.message;
+    }
+   }finally{
+    if(token===routeRequestId){
+     routeLoading=false;$('lineSelect').disabled=false;$('refresh').disabled=false;
+     if(all.active)all.refreshGPS();
+    }
+   }
+  }
+  $('lineSelect').onchange=()=>{
+   const code=$('lineSelect').value;
+   if(code==='all')chooseAll();else chooseLine(code);
+  };
   $('showStops').onchange=()=>{
+   if(lineCode==='all'){all.repaintRoutes();return;}
    if(!stopsLayer)return;
    if($('showStops').checked)stopsLayer.addTo(map);else map.removeLayer(stopsLayer);
   };
   $('showRoute').onchange=()=>{
+   if(lineCode==='all'){all.repaintRoutes();return;}
    if(!routeLayer)return;
    if($('showRoute').checked)routeLayer.addTo(map);else map.removeLayer(routeLayer);
   };
   $('fitRoute').onclick=()=>{
+   if(lineCode==='all'){all.fitRoutes();return;}
    if(routeBounds)map.fitBounds(routeBounds,{padding:[22,22],maxZoom:14});
   };
   $('fitBuses').onclick=()=>{
+   if(lineCode==='all'){all.fitBuses();return;}
    if(!vehicles.size)return;
    map.fitBounds(L.latLngBounds([...vehicles.values()].map(v=>[v.data.latitude,v.data.longitude])),{
     padding:[45,45],maxZoom:15
    });
   };
-  $('followBus').onchange=()=>{followId=$('followBus').value;followView();};
+  $('followBus').onchange=()=>{
+   if(lineCode==='all'){all.selectFollow($('followBus').value);return;}
+   followId=$('followBus').value;followView();
+  };
   map.on('dragstart',()=>{
+   if(lineCode==='all'){all.stopFollow();return;}
    if(!followId)return;
    followId='';options();$('followDetail').hidden=true;
   });
@@ -239,9 +279,9 @@
   setInterval(()=>{if(!document.hidden)refreshGPS();},30000);
   setInterval(()=>{if(!document.hidden)latestOnly();},10000);
   const requested=new URLSearchParams(location.search).get('line');
-  const initial=R.supports(requested)?requested:'1';
+  const initial=requested==='all'||!R.supports(requested)?'all':requested;
   $('lineSelect').value=initial;
-  await chooseLine(initial,{initial:true});
+  if(initial==='all')await chooseAll({initial:true});else await chooseLine(initial,{initial:true});
  }
  start().catch(error=>{
   $('gpsStatus').textContent='Kunne ikke åpne rutekartet: '+error.message;
