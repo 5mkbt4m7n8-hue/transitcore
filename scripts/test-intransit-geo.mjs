@@ -50,7 +50,7 @@ model.insertVertex(geo,routeId,1,[10.405,63.438]);
 assert.equal(geo.paths[0].coordinates.length,5);
 model.moveVertex(geo,routeId,2,[10.407,63.439]);
 assert.deepEqual(geo.paths[0].coordinates[2],[10.407,63.439]);
-assert.throws(()=>model.moveVertex(geo,routeId,2,[10.4,63.43]),/nære|Ugyldig/);
+assert.throws(()=>model.moveVertex(geo,routeId,2,[10.402,63.435]),/nære|Ugyldig/);
 model.removeVertex(geo,routeId,2);
 assert.equal(geo.paths[0].coordinates.length,4);
 assert.throws(()=>model.insertVertex(geo,routeId,50,[10.4,63.43]),/Ugyldig/);
