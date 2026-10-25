@@ -187,7 +187,7 @@ root.InTransitGeo={async create(host){
  }
  function change(action){try{action();}catch(e){setMessage(e.message);}}
  selected.onchange=()=>{
-  chosen=selected.value;
+  chosen=selected.value;q('schematic').href=N.schematicUrl(chosen);
   q('stopName').value=geo.names?.[chosen]||'';
   const p=positions()[chosen];if(p)map.panTo([p.coordinates[1],p.coordinates[0]]);
   setMessage(p?'Velg «Plasser valgt stopp» for å justere punktet.':'Ikke plassert. Velg «Plasser valgt stopp» og trykk på kartet.');
