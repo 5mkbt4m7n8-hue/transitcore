@@ -1,6 +1,7 @@
 (function(root){
 'use strict';
-const M=root.InTransitGeoModel,N=root.InTransitStopLinks;
+const M=root.InTransitGeoModel,N=root.InTransitStopLinks,G=root.InTransitLine1Gps;
+const GPS_URL='https://transitcore-led-feed.lgb84.workers.dev/api/v1/vehicles/atb-line-1';
 const LIB='https://unpkg.com/leaflet@1.9.4/dist/';
 let pendingLibrary;
 function loadLeaflet(){
@@ -30,6 +31,7 @@ root.InTransitGeo={async create(host){
  '<div class="geo-tools"><a data-g="schematic" href="../index.html?view=network" class="geo-back-stop">Vis valgt stopp på skjemakartet</a><label>Holdeplass <select data-g="stop"></select></label><button data-g="place">Plasser valgt stopp</button><button data-g="reset">Tilbakestill dette stoppet</button><button data-g="draw">Tegn ny trasé</button>'+
  '<button data-g="undo" hidden>Fjern siste punkt</button><button data-g="finish" hidden>Fullfør trasé</button><button data-g="cancel" hidden>Avbryt</button><button data-g="export">Eksporter GeoJSON</button><label>Importer GeoJSON <input type="file" data-g="import" accept=".geojson,.json,application/geo+json"></label><button data-g="discard">Forkast geografiske endringer</button></div>'+
  '<div class="geo-tools geo-edit-tools"><label>Visningsnavn for valgt stopp <input type="text" maxlength="80" data-g="stopName" placeholder="Lokalt navn"></label><button data-g="saveName">Lagre stopnavn</button><button data-g="clearName">Bruk originalnavn</button><label>Velg geografisk linje <select data-g="geoPath"></select></label><label>Linjenavn <input type="text" maxlength="80" data-g="pathName" placeholder="Valgfritt"></label><button data-g="savePathName">Lagre linjenavn</button><label>Farge <input type="color" data-g="pathColor" value="#e4ae63"></label><button data-g="saveColor">Bruk farge</button><button data-g="extend">Forleng valgt linje</button><button data-g="insert">+ Knekkpunkt på valgt linje</button><button data-g="deleteVertex">Slett siste linjepunkt</button><button data-g="deletePath">Slett valgt linje</button><button data-g="historyUndo">Angre endring</button><button data-g="historyRedo">Gjenta endring</button></div>'+ 
+ '<div class="geo-live-panel" aria-label="Live GPS linje 1"><div class="geo-live-top"><strong>AtB linje 1 – faktiske GPS-posisjoner</strong><label><input type="checkbox" data-g="gpsEnabled" checked> Vis busser</label><button data-g="gpsNow" type="button">Oppdater GPS</button><button data-g="gpsFit" type="button" disabled>Vis alle busser</button></div><p data-g="gpsStatus" role="status" aria-live="polite">Henter målt GPS fra Entur …</p><small>Røde bussmarkører = målt posisjon fra Entur, maksimalt 90 sekunder gammel. Ingen bevegelse beregnes mellom målingene. Hule gule stoppmarkører er fortsatt katalogforslag, ikke GPS.</small></div>'+
  '<p data-g="message" aria-live="polite">Laster kart…</p><div class="geo-canvas" data-g="map" role="application" aria-label="Geografisk kart over Trondheim"></div>'+
  '<p class="geo-footnote">Hule gule punkter = ubekreftede forslag fra holdeplasskatalogen. Grønne punkter = manuelt plassert. Lysende punkter kan vise status fra eksisterende tavlefeed, ikke nødvendigvis GPS. Kart © OpenStreetMap contributors.</p></div>';
  const q=id=>host.querySelector('[data-g="'+id+'"]');
@@ -41,6 +43,55 @@ root.InTransitGeo={async create(host){
  const requestedStop=new URLSearchParams(location.search).get('stop');
  let geo=M.empty(),context={},catalog={},mode='',sketch=[],chosen=layout.stops.some(s=>s.id===requestedStop)?requestedStop:(layout.stops[0]?.id||''),selectedPath='',selectedVertex=-1,markers=new Map(),shapes=[],handles=[],preview=null;
  const history=[],future=[],MAX_HISTORY=60;
+ let gpsMarkers=new Map(),gpsEnabled=true,gpsBusy=false,gpsRequestSequence=0;
+ const gpsStatus=text=>q('gpsStatus').textContent=text;
+ function clearGps(){for(const marker of gpsMarkers.values())map.removeLayer(marker);gpsMarkers=new Map();q('gpsFit').disabled=true;}
+ function renderGps(vehicles){
+  clearGps();
+  for(const v of vehicles){
+   const marker=L.circleMarker([v.latitude,v.longitude],{
+    radius:9,weight:3,color:'#fff0dd',fillColor:'#eb414b',fillOpacity:1
+   }).addTo(map);
+   const tooltip=document.createElement('span');
+   tooltip.textContent='Buss 1 · '+(v.destination||'retning ukjent')+' · målt GPS ('+v.ageSeconds+' s)';
+   marker.bindTooltip(tooltip);
+   const popup=document.createElement('div');
+   const title=document.createElement('strong');title.textContent='AtB linje 1';
+   const info=document.createElement('p');info.textContent='Mot '+(v.destination||'ukjent destinasjon');
+   const age=document.createElement('small');age.textContent='Målt GPS: '+v.lastUpdated+' · '+v.ageSeconds+' sek siden · Kilde: Entur';
+   popup.append(title,info,age);marker.bindPopup(popup);
+   gpsMarkers.set(v.id,marker);
+  }
+  q('gpsFit').disabled=!gpsMarkers.size;
+ }
+ async function refreshGps(){
+  if(!gpsEnabled||gpsBusy||document.hidden)return;
+  gpsBusy=true;const sequence=++gpsRequestSequence;
+  try{
+   const response=await fetch(GPS_URL,{cache:'no-store',signal:AbortSignal.timeout(10000)});
+   if(!response.ok)throw Error('HTTP '+response.status);
+   const snapshot=G.parse(await response.json());
+   if(sequence!==gpsRequestSequence||!gpsEnabled)return;
+   renderGps(snapshot.vehicles);
+   const count=snapshot.vehicles.length;
+   gpsStatus(count?count+' busser med fersk målt GPS på linje 1 (maks 90 sek). Kilde: Entur / AtB.':
+    'Ingen ferske linje 1-posisjoner ble levert nå. Det betyr ikke at det ikke kjører busser.');
+  }catch(error){
+   if(sequence!==gpsRequestSequence||!gpsEnabled)return;
+   clearGps();gpsStatus('GPS-kilden er utilgjengelig ('+error.message+'). Ingen ETA-posisjoner vises som GPS.');
+  }finally{gpsBusy=false;}
+ }
+ q('gpsEnabled').onchange=()=>{
+  gpsEnabled=q('gpsEnabled').checked;
+  gpsRequestSequence++;
+  if(!gpsEnabled){clearGps();gpsStatus('GPS-visningen er avslått.');}
+  else{gpsStatus('Henter faktiske GPS-posisjoner …');refreshGps();}
+ };
+ q('gpsNow').onclick=()=>refreshGps();
+ q('gpsFit').onclick=()=>{
+  if(!gpsMarkers.size)return;
+  map.fitBounds(L.latLngBounds([...gpsMarkers.values()].map(marker=>marker.getLatLng())),{padding:[35,35],maxZoom:15});
+ };
  const snapshot=()=>JSON.stringify(geo);
  try{
   const saved=localStorage.getItem(key);
@@ -317,7 +368,10 @@ root.InTransitGeo={async create(host){
    setMessage('Endring fra skjemakartet er oppdatert. Ny angrehistorikk starter her.');
   }catch(error){setMessage(error.message);}
  });
- showMode();showHistory();refresh();if(!message.textContent||message.textContent==='Laster kart…')setMessage('Trykk på et punkt for informasjon, eller velg et stopp for å plassere det.');
+ setInterval(()=>{if(!document.hidden&&gpsEnabled)refreshGps();},30000);
+ root.addEventListener('visibilitychange',()=>{if(!document.hidden&&gpsEnabled)refreshGps();});
+ showMode();showHistory();refresh();refreshGps();
+ if(!message.textContent||message.textContent==='Laster kart…')setMessage('Trykk på et punkt for informasjon, eller velg et stopp for å plassere det.');
  return {update(next){refresh(next);},visible(){map.invalidateSize();},clear(){context.frame=null;drawMarkers();}};
  }};
 })(globalThis);
