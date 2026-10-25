@@ -59,8 +59,9 @@ export async function fetchAtbLineGps(publicCode,{fetcher=fetch,now=Date.now(),c
   requestedAt:new Date(now).toISOString(),freshnessLimitSeconds:MAX_GPS_AGE_MS/1000,
   vehicles,quality:{
    totalProviderVehicles:counters.reported,
-   line1Reported:counters.line1,
-   line1Fresh:vehicles.length,
+   selectedLineReported:counters.line1,
+   selectedLineFresh:vehicles.length,
+   ...(publicCode==='1'?{line1Reported:counters.line1,line1Fresh:vehicles.length}:{}),
    withoutCoordinates:counters.missingPosition,
    stale:counters.stale,
    invalid:counters.invalid
