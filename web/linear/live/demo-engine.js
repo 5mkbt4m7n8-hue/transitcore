@@ -40,18 +40,21 @@
   const n=((value%(2*length))+(2*length))%(2*length);
   return n<=length?n:2*length-n;
  }
- function positions(route,elapsedSeconds,speedFactor=1){
-  if(!route||typeof route.line!=='string'||!Array.isArray(route.route))throw Error('Mangler DEMO-rute');
-  if(!Number.isFinite(elapsedSeconds)||elapsedSeconds<0||
+ function positionsOnTrack(code,t,elapsedSeconds,speedFactor=1){
+  if(typeof code!=='string'||!t?.length||!Number.isFinite(elapsedSeconds)||elapsedSeconds<0||
      ![0.5,1,2,4].includes(speedFactor))throw Error('Ugyldig simulasjonstid eller hastighet');
-  const t=track(route.route),metres=SPEED_MPS*speedFactor*elapsedSeconds;
+  const metres=SPEED_MPS*speedFactor*elapsedSeconds;
   return [0,1].map(index=>{
    const phase=(index===0?0.12:1.17)*t.length+metres;
    const pos=positionAt(t,pingpong(phase,t.length));
-   return {id:'demo:'+route.line+':'+index,line:route.line,latitude:pos[0],
+   return {id:'demo:'+code+':'+index,line:code,latitude:pos[0],
     longitude:pos[1],source:'DEMO',label:'DEMO – SIMULERT',
     direction:index===0?'A':'B'};
   });
  }
- return {track,positionAt,pingpong,positions,SPEED_MPS};
+ function positions(route,elapsedSeconds,speedFactor=1){
+  if(!route||typeof route.line!=='string'||!Array.isArray(route.route))throw Error('Mangler DEMO-rute');
+  return positionsOnTrack(route.line,track(route.route),elapsedSeconds,speedFactor);
+ }
+ return {track,positionAt,pingpong,positions,positionsOnTrack,SPEED_MPS};
 });
