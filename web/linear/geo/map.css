@@ -24,3 +24,15 @@ main{max-width:1100px;margin:auto;padding:12px}
 .geo-vertex-handle{height:16px;width:16px;background:#fff;border:3px solid #174b79;border-radius:50%;box-shadow:0 0 0 3px #0b1428,0 2px 7px #0008;cursor:grab}
 .geo-vertex-handle:active{cursor:grabbing}
 @media(max-width:570px){.geo-edit-tools label{flex-basis:100%}.geo-edit-tools button{flex:1 1 44%}.geo-vertex-handle{width:19px;height:19px}}
+
+/* Independent line 1 measured-vehicle overlay; never confuses ETA stop LEDs with GPS. */
+.geo-live-panel{background:#1b273b;border:1px solid #866b55;border-radius:10px;padding:11px 13px;margin:10px 0}
+.geo-live-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.geo-live-top strong{flex:1 1 240px}
+.geo-live-top label{display:inline-flex;gap:7px;align-items:center}
+.geo-live-top input{accent-color:#eb414b;width:18px;height:18px}
+.geo-live-top button{background:#293d55;border:1px solid #66819c;color:#f7f7ff;border-radius:8px;padding:8px 12px;min-height:38px;cursor:pointer}
+.geo-live-top button:disabled{opacity:.4;cursor:not-allowed}
+.geo-live-panel p{color:#ffe1a4;margin:10px 0 5px;line-height:1.5}
+.geo-live-panel small{color:#b5cadd;line-height:1.5}
+.geo-live-top button:focus-visible,.geo-live-top input:focus-visible{outline:3px solid #fff2b5;outline-offset:3px}
