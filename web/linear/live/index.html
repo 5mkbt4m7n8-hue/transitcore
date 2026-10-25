@@ -4,19 +4,28 @@
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
  <meta name="theme-color" content="#091320">
- <title>InTransit Live – AtB linje 1</title>
+ <title>InTransit Live – Trondheim busslinjer</title>
  <link rel="stylesheet" href="style.css">
 </head>
 <body>
  <main id="app" class="live-shell">
   <header class="topbar">
    <div class="brand"><span class="brand-icon" aria-hidden="true">●</span>
-    <div><strong>InTransit <span>LIVE</span></strong><small>Trondheim · AtB linje 1</small></div>
+    <div><strong>InTransit <span>LIVE</span></strong><small>Trondheim · AtB buss</small></div>
    </div>
    <nav aria-label="Kartvisninger"><a href="../index.html">Linear</a><a href="../geo/">Karteditor</a></nav>
   </header>
+  <section class="line-picker" aria-label="Velg busslinje">
+   <label for="lineSelect">Busslinje</label>
+   <select id="lineSelect" aria-label="Velg busslinje">
+    <option value="1">1 · Ranheim – Kattem</option>
+    <option value="2">2 · Strindheim – Lund</option>
+    <option value="3">3 · Lohove – Hallset</option>
+   </select>
+   <span id="linePickerHint">Velg en rute for å vise trasé, stopp og eventuell målt GPS.</span>
+  </section>
   <section class="map-shell" aria-label="Live-kart">
-   <div id="map" role="application" aria-label="Kart over busslinje 1 mellom Ranheim og Kattem"></div>
+   <div id="map" role="application" aria-label="Kart over valgt AtB busslinje i Trondheim"></div>
    <div class="floating-controls" aria-label="Kartkontroller">
     <button id="fitRoute" type="button" title="Vis hele linje 1">Hele linjen</button>
     <button id="fitBuses" type="button" disabled title="Vis faktiske bussposisjoner">Alle busser</button>
@@ -27,7 +36,7 @@
   <section class="drawer" aria-labelledby="title">
    <div class="drawer-handle" aria-hidden="true"></div>
    <div class="drawer-head">
-    <div><p class="eyebrow">GEOGRAFISK RUTEPROFIL</p><h1 id="title">Linje 1 <span>Ranheim ↔ Kattem</span></h1></div>
+    <div><p class="eyebrow">GEOGRAFISK RUTEPROFIL</p><h1 id="title">Linje 1 <span id="endpoints">Ranheim ↔ Kattem</span></h1></div>
     <div class="count" id="busCount" aria-label="Ferske GPS-posisjoner">–</div>
    </div>
    <p class="state" id="gpsStatus" role="status" aria-live="polite">Laster rutekart og GPS …</p>
@@ -46,6 +55,7 @@
  </main>
  <script src="../geo/line1-gps.js"></script>
  <script src="model.js"></script>
+ <script src="gps.js"></script>
  <script src="app.js"></script>
 </body>
 </html>
