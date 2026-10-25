@@ -148,3 +148,31 @@ body{width:100%;max-width:100%;overflow-x:clip}
  .demo-stamp{top:58px;font-size:10px;padding:5px 8px}
  .demo-controls{gap:6px;margin:9px 0 0}
 }
+
+/* Polished DEMO markers: direction follows the stored path, never actual GPS. */
+.map-legend [hidden]{display:none!important}
+.dot.demo{background:#f6c66b;border:2px solid #fff5ce}
+.demo-pin-container{display:grid!important;place-items:center;
+ transition:transform 80ms linear,opacity 130ms ease;overflow:visible!important}
+.demo-pin{position:relative;transition:width 130ms ease,height 130ms ease,box-shadow 130ms ease;
+ will-change:auto}
+.demo-heading{position:absolute;top:-15px;left:50%;font-size:13px;
+ color:#fff5d8;filter:drop-shadow(0 1px 2px #16170a);
+ transform:translateX(-50%) rotate(var(--demo-heading,0deg));
+ transform-origin:50% 58%;transition:transform 115ms linear;pointer-events:none}
+.is-demo[data-demo-marker-size="compact"] .demo-pin{width:30px;height:30px;border-width:2px}
+.is-demo[data-demo-marker-size="compact"] .demo-pin strong{font-size:11px}
+.is-demo[data-demo-marker-size="compact"] .demo-pin small{font-size:7px;padding:0 1px;margin-top:2px}
+.is-demo[data-demo-marker-size="compact"] .demo-heading{top:-13px;font-size:12px}
+.is-demo[data-demo-marker-size="large"] .demo-pin{width:50px;height:50px;border-width:3px}
+.is-demo[data-demo-marker-size="large"] .demo-pin strong{font-size:18px}
+.is-demo[data-demo-marker-size="large"] .demo-pin small{font-size:10px}
+.is-demo[data-demo-marker-size="large"] .demo-heading{top:-17px;font-size:15px}
+.is-demo.demo-following .demo-pin-container:not(.demo-follow-selected){opacity:.50}
+.is-demo.demo-following .demo-pin-container.demo-follow-selected{opacity:1!important}
+.is-demo.demo-following .demo-follow-selected .demo-pin{
+ border-color:#fff;background:#ffe7a4!important;
+ box-shadow:0 0 0 4px #fff1a76b,0 0 23px 8px #ffdc7994}
+@media(prefers-reduced-motion:reduce){
+ .demo-pin-container,.demo-pin,.demo-heading{transition:none!important}
+}
