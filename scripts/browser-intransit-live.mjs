@@ -32,6 +32,7 @@ try{
   gpsCalls++;
   if(gpsMode==='404'){await route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({error:'not_found'})});return;}
   if(gpsMode==='503'){await route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'gps_source_unavailable'})});return;}
+  const url=new URL(route.request().url());
   const code=url.pathname.match(/atb-line-(\\d+)$/)?.[1]||'1';
   if(code==='2'&&gpsMode==='slow2')await new Promise(resolve=>setTimeout(resolve,700));
   const time=new Date().toISOString(),valid=code==='1'?[{
