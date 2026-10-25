@@ -64,7 +64,7 @@ try{
  await page.locator('#kind').selectOption('mono');
  assert.match(await page.locator('#kindValue').innerText(),/OLED/);
  await page.locator('#palette').selectOption('amber');
- await page.locator('#brightness').fill('65');
+ await page.locator('#brightness').evaluate(el=>{el.value='65';el.dispatchEvent(new Event('change',{bubbles:true}));});
  assert.match(await page.locator('#brightnessValue').innerText(),/65/);
  const configEvent=page.waitForEvent('download');
  await page.locator('#downloadConfig').click();
