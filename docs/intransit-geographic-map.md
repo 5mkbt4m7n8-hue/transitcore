@@ -56,3 +56,32 @@ karteditoren, med en lenke tilbake til Linear/skjemakart.
 
 Referanser: https://leafletjs.com/download.html
 og https://developer.entur.no/docs/open-services/journey-planner
+
+## Editor v2 – redigering i eget geografisk lag
+
+Den geografiske editoren støtter nå flere lokale operasjoner uten å endre
+`web/linear/network/trondheim-layout.json` eller originaltegningen:
+
+- Navngi stopp med et **lokalt visningsnavn** knyttet til stabil `original-NNN`-ID.
+  Navnet oppdaterer **ikke** NSR-identitet, plattform, kartkobling eller
+  originale stoppnavn. Uavklarte stopp blir ikke «verifisert» av å få et navn.
+- Velg en manuell geografisk linje i nedtrekkslisten eller ved å trykke
+  på den. Gi den eget navn og farge.
+- Dra de hvite punkthåndtakene for å flytte eksisterende knekkpunkter.
+  Velg et knekkpunkt og slett det (minst to punkter må beholdes).
+- Forleng linjen ved flere karttrykk, eller sett inn nytt knekkpunkt
+  på delstrekningen nærmest karttrykket. Slett en hel valgt linje.
+- `Angre endring` / `Gjenta endring` lagrer opptil 60 komplette
+  karttilstander i **inneværende nettleserøkt**. Ctrl/Cmd+Z og
+  Ctrl/Cmd+Shift+Z støttes uten at tekstfelt er aktive.
+- Auto-lagring bruker fortsatt lokal nettleserlagring og samme gamle
+  nøkkel; eldre gyldige `schemaVersion:1`-utkast uten `names` leses inn.
+  Eksport/import tar med lokale navn uten koordinater som GeoJSON Features
+  med `geometry:null`, samt eventuelle linjenavn og farger.
+- Import, full sletting av lokale endringer og sletting av linje
+  ber om eksplisitt bekreftelse. Import/nullstilling kan angres mens
+  fanen er åpen. Eksporter GeoJSON for varig sikkerhetskopi.
+
+Dette er fortsatt manuell geometri, ikke automatisk veisporing,
+GPS-sporing eller ruteverifisering. FB73-kildesporet holdes utenfor.
+Offisielle basiskart, Worker, ESP32 og skjemalagene er urørt.
