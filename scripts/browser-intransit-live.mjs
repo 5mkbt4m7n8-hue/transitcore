@@ -92,6 +92,13 @@ try{
  // Switch the immutable shape, stops and GPS source as one line-specific view.
  gpsMode='valid';
  await page.locator('#lineSelect').selectOption('2');
+ await page.waitForTimeout(1100);
+ console.log('LINE 2 DIAGNOSTICS',JSON.stringify({
+  lineSelect:await page.locator('#lineSelect').inputValue(),
+  routeStatus:await page.locator('#routeStatus').innerText(),
+  gpsStatus:await page.locator('#gpsStatus').innerText(),
+  errors
+ }));
  await page.waitForFunction(()=>document.querySelector('#routeStatus')?.textContent.includes('30 holdeplasser · 70 trasépunkter'),{timeout:15000});
  await page.waitForFunction(()=>document.querySelector('#gpsStatus')?.textContent.includes('1 ferske, målte GPS-posisjoner for linje 2'),{timeout:15000});
  assert.equal(await page.locator('#followBus option').count(),2);
