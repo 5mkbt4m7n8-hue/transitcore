@@ -50,7 +50,7 @@ try{
   })});
  });
  const url='http://127.0.0.1:'+server.address().port+'/web/linear/live/';
- await page.goto(url);
+ await page.goto(url+'?line=1');
  await page.waitForFunction(()=>document.querySelector('#map')?._leaflet_id>0,{timeout:25000});
  await page.waitForFunction(()=>document.querySelector('#gpsStatus')?.textContent.includes('2 ferske'),{timeout:15000});
  assert.equal(await page.locator('#followBus option').count(),3,'Two actual GPS readings + no follow');
