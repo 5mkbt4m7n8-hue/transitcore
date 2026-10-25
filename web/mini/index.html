@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="nb">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+ <meta name="theme-color" content="#0a1420">
+ <title>InTransit Mini – LED og LCD avgangstavle</title>
+ <link rel="stylesheet" href="style.css">
+</head>
+<body>
+ <main class="layout">
+  <header class="header">
+   <div><span class="eyebrow">TRANSITCORE · DISPLAY STUDIO</span><h1>InTransit <em>Mini</em></h1><p>Én avgangstavle. Alle skjermstørrelser.</p></div>
+   <nav><a href="../linear/live/">InTransit Live</a><a href="../linear/diagnostics/">Diagnose</a></nav>
+  </header>
+  <div class="workspace">
+   <section class="panel settings" aria-labelledby="settingsTitle">
+    <div class="section-title"><h2 id="settingsTitle">Skjermoppsett</h2><span>01 / KONFIGURASJON</span></div>
+    <label>Skjermprofil <select id="profile" name="profile">
+     <option value="led-64x64" selected>RGB LED · 64 × 64</option>
+     <option value="led-32x16">RGB LED · 32 × 16</option>
+     <option value="led-64x32">RGB LED · 64 × 32</option>
+     <option value="led-128x64">RGB LED · 128 × 64</option>
+     <option value="led-128x128">RGB LED · 128 × 128</option>
+     <option value="lcd-128x64">OLED · 128 × 64</option>
+     <option value="lcd-240x135">TFT · 240 × 135</option>
+     <option value="lcd-320x240">TFT · 320 × 240</option>
+     <option value="custom">Egendefinert oppløsning</option>
+    </select></label>
+    <div class="dimension-row" id="customFields" hidden>
+     <label>Bredde i piksler<input id="width" type="number" min="16" max="512" value="64" inputmode="numeric"></label>
+     <label>Høyde i piksler<input id="height" type="number" min="16" max="320" value="64" inputmode="numeric"></label>
+     <label>Skjermtype<select id="kind"><option value="led">RGB LED-matrise</option><option value="lcd">LCD / TFT</option><option value="mono">Monokrom OLED</option></select></label>
+    </div>
+    <label>Fargeprofil<select id="palette"><option value="rgb" selected>RGB – AtB-inspirert</option><option value="amber">Retro – oransje</option><option value="mono">Monokrom grønn</option></select></label>
+    <label>Lysstyrke for forhåndsvisning <input id="brightness" type="range" min="15" max="100" value="80"><span id="brightnessValue" class="small">80 %</span></label>
+    <div class="section-title minor"><h2>Avganger</h2><span>02 / DATA</span></div>
+    <label>Datakilde <select id="source"><option value="demo" selected>DEMO – eksempelavganger</option><option value="live">Entur – faktiske avganger</option></select></label>
+    <label>Holdeplass<select id="stop">
+     <option value="NSR:StopPlace:41613" selected>Prinsens gate · Trondheim</option>
+     <option value="NSR:StopPlace:41742">Trondheim S</option>
+     <option value="custom">Annet stopp (NSR-ID)</option>
+    </select></label>
+    <label id="customStopField" hidden>Entur StopPlace-ID <input type="text" id="customStop" placeholder="NSR:StopPlace:41613" autocomplete="off" spellcheck="false"></label>
+    <div class="buttons"><button type="button" id="refresh">Oppdater avganger</button><button type="button" class="outline" id="downloadImage">Eksporter PNG</button></div>
+    <button type="button" class="outline full" id="downloadConfig">Eksporter skjermprofil (JSON)</button>
+    <p id="status" role="status" aria-live="polite">DEMO er valgt. Avgangene er eksempler, ikke sanntid.</p>
+   </section>
+   <section class="viewer panel" aria-labelledby="previewTitle">
+    <div class="section-title"><h2 id="previewTitle">Skjermsimulator</h2><span>03 / FORHÅNDSVISNING</span></div>
+    <div class="meta"><span class="chip" id="sourceBadge">DEMO · SIMULERT</span><span id="profileLabel">64 × 64 RGB LED</span></div>
+    <div class="screen-wrap">
+     <div class="screen"><canvas id="preview" width="448" height="448" role="img" aria-label="Forhåndsvisning av digital avgangstavle med valgte dimensjoner"></canvas></div>
+    </div>
+    <canvas id="frame" width="64" height="64" hidden></canvas>
+    <div class="stats">
+     <div><small>Oppløsning</small><strong id="resValue">64 × 64</strong></div>
+     <div><small>Fysiske piksler</small><strong id="pixelValue">4 096</strong></div>
+     <div><small>Synlige avganger</small><strong id="rowsValue">–</strong></div>
+     <div><small>Skjermtype</small><strong id="kindValue">RGB LED</strong></div>
+    </div>
+    <p class="footnote">Simulatoren lager en ramme på nøyaktig valgt oppløsning. LED-forhåndsvisning viser individuelle dioder; LCD/OLED viser pikselgrafikk. Eksportert PNG har faktisk pikselstørrelse og ingen inntegnet LED-prikk-effekt.</p>
+    <div class="footer-note"><span id="lastUpdated">Ikke oppdatert</span><span>Forberedt for ESP32 / HUB75 / TFT – ingen maskinvare er tilkoblet.</span></div>
+   </section>
+  </div>
+ </main>
+ <script src="model.js"></script>
+ <script src="renderer.js"></script>
+ <script src="app.js"></script>
+</body>
+</html>

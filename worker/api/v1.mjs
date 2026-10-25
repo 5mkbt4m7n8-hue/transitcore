@@ -2,6 +2,7 @@ import {buildDeviceConfig, validateDeviceConfig, validDeviceId} from "../../core
 import {resolveVisual} from "../../core/models/runtime-visual.mjs";
 import {fetchAtbLineGps, validAtbLineCode} from "../atb-line1-gps.mjs";
 import {fetchAtbFleetGps} from "../atb-fleet-gps.mjs";
+import {fetchMiniDepartures, validStopId} from "../mini-departures.mjs";
 const json=(body,status=200)=>Response.json(body,{status,headers:{"cache-control":"no-store","access-control-allow-origin":"*"}});
 const error=(code,status)=>json({error:code},status);
 const idPattern="[a-z0-9_-]{3,120}";
@@ -21,6 +22,16 @@ export async function apiV1(request, env, services) {
   };
   if(path==="/api/v1/devices"||new RegExp("^/api/v1/devices/("+idPattern+")$").test(path))
     return services.fleet(request);
+  // Independent read-only departure board. Stop IDs are strict NSR:StopPlace
+  // identifiers and GraphQL is called with variables, never string interpolation.
+  if(path==="/api/v1/mini/departures"){
+    if(request.method!=="GET")return error("method_not_allowed",405);
+    const stopId=url.searchParams.get("stop");
+    if(!validStopId(stopId))return error("invalid_stop_id",400);
+    try{return json(await fetchMiniDepartures(stopId));}
+    catch(e){return error(e?.message==="source_unavailable"?"entur_unavailable":
+      e?.message==="invalid_departures"?"invalid_departures":"entur_error",503);}
+  }
   // A single bounded, catalog-scoped request for all supported bus routes.
   // No fallback to ETA or geographic inference on a provider error.
   if(path==="/api/v1/vehicles/atb-live-all"){
