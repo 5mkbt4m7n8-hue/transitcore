@@ -4,10 +4,10 @@ export const JOURNEY_URL='https://api.entur.io/journey-planner/v3/graphql';
 export const QUERY=`query MiniDepartures($stopId: String!) {
   stopPlace(id: $stopId) {
     id name
-    estimatedCalls(numberOfDepartures: 24, timeRange: 7200) {
+    estimatedCalls(numberOfDepartures: 24, includeCancelledTrips: true) {
       realtime aimedDepartureTime expectedDepartureTime cancellation
       destinationDisplay { frontText }
-      serviceJourney { journeyPattern { line { publicCode } } }
+      serviceJourney { line { publicCode } }
     }
   }
 }`;
@@ -17,7 +17,7 @@ export function normalizeCalls(place,stopId,now=Date.now()){
   throw Error('invalid_departures');
  const result=[];
  for(const call of place.estimatedCalls){
-  const line=call?.serviceJourney?.journeyPattern?.line?.publicCode;
+  const line=call?.serviceJourney?.line?.publicCode;
   const dest=call?.destinationDisplay?.frontText;
   const iso=call?.expectedDepartureTime||call?.aimedDepartureTime;
   if(typeof line!=='string'||!line.trim()||line.length>10||
