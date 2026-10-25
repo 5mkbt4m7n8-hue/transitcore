@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="nb">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+ <meta name="theme-color" content="#0a1421">
+ <title>InTransit Diagnostics – kontroller kart og GPS</title>
+ <link rel="stylesheet" href="style.css">
+</head>
+<body>
+ <main class="shell">
+  <header class="top">
+   <div class="brand"><span class="pulse" aria-hidden="true"></span><div>
+    <strong>InTransit <span>DIAGNOSTICS</span></strong>
+    <small>Trondheim · Lesebasert statuskontroll</small></div>
+   </div>
+   <nav aria-label="Visninger"><a href="../live/">Live busskart</a><a href="../index.html">Linear</a><a href="../geo/">Karteditor</a></nav>
+  </header>
+  <section class="intro">
+   <p class="eyebrow">KONTROLLPANEL</p>
+   <h1>Hva fungerer – og hvor stopper det?</h1>
+   <p>Kontroller de 47 lagrede ruteprofilene og de offentlige GPS-endepunktene. Se faktiske HTTP-svar, svartider, antall ferske målinger og når den siste gyldige GPS-målingen kom.</p>
+   <div class="actions">
+    <button type="button" id="run">Kjør full kontroll</button>
+    <button type="button" id="export" disabled>Eksporter statusrapport (JSON)</button>
+   </div>
+   <p id="progress" aria-live="polite" role="status">Ingen kontroll utført ennå. Trykk «Kjør full kontroll».</p>
+  </section>
+  <section class="metrics" aria-label="Oppsummering">
+   <div><span>Kontrollerte ruteprofiler</span><strong id="metricRoutes">– / 47</strong></div>
+   <div><span>Tilgjengelige GPS-/API-endepunkter</span><strong id="metricWorker">– / 5</strong></div>
+   <div><span>Ferske busser i felles GPS-svar</span><strong id="metricBuses">–</strong></div>
+   <div><span>Sist kontrollert</span><strong id="metricTime">–</strong></div>
+  </section>
+  <section class="layout">
+   <div class="primary">
+    <section class="panel" aria-labelledby="workerTitle">
+     <div class="panelhead"><div><p class="eyebrow">CLOUDFLARE / ENTUR</p><h2 id="workerTitle">API og målte GPS-posisjoner</h2></div></div>
+     <div class="checks" id="apiChecks" aria-live="polite">
+      <p class="placeholder">Endepunktene er ikke kontrollert ennå.</p>
+     </div>
+     <p class="foot">HTTP 404 betyr at nettleseren nådde et endepunkt som ikke finnes der. En nettverks-/CORS-feil betyr at HTTP-status <strong>ikke</strong> kunne leses – det er ikke dokumentert 404. Ingen ETA-posisjoner brukes som GPS.</p>
+    </section>
+    <section class="panel" aria-labelledby="catalogTitle">
+     <div class="panelhead"><div><p class="eyebrow">GITHUB PAGES / KARTGRUNNLAG</p><h2 id="catalogTitle">Registrerte ruteprofiler</h2></div><strong id="catalogCount">47 planlagt</strong></div>
+     <p class="explain">Validerer hver av de 47 geografiske ruteprofilene mot forventet linjenummer, AtB-kilde, kartkoordinater og holdeplasser. Dette tester ikke om en buss kjører.</p>
+     <details id="catalogDetails">
+      <summary>Vis status for hver enkelt linje</summary>
+      <div id="catalogList" class="cataloglist" aria-label="Linjer og filstatus"><p class="placeholder">Ingen filer kontrollert ennå.</p></div>
+     </details>
+    </section>
+   </div>
+   <aside class="side">
+    <section class="panel"><p class="eyebrow">HJELP TIL FEILSØKING</p><h2>Hva betyr resultatet?</h2>
+     <p><strong>Rutekart OK, GPS 404:</strong> Den publiserte nettsiden finner ruteprofilene, men den aktuelle Worker-ruten er ikke tilgjengelig.</p>
+     <p><strong>Worker-helse OK, GPS 404:</strong> Worker-en svarer på helseruten, men GPS-ruten finnes ikke i versjonen som svarer.</p>
+     <p><strong>GPS 200, 0 busser:</strong> API-et svarer, men ingen ferske posisjoner besto valideringen i denne målingen. Det betyr ikke at bussene står stille.</p>
+     <p><strong>CORS/nettverksfeil:</strong> Nettleseren fikk ikke lese HTTP-svaret. Kontroller eventuelt adressen direkte i en ny fane.</p>
+     <p><strong>HTTP 503:</strong> Ruten er tilgjengelig, men svarer at datakilden har et problem.</p>
+     <p class="foot">Dette panelet kan ikke lese Cloudflares aktive deploy-versjon eller endre trafikkfordelingen. Det krever fortsatt kontroll i Cloudflare.</p>
+    </section>
+    <section class="panel"><p class="eyebrow">DIREKTE KONTROLL</p><h2>Åpne endepunktene</h2>
+     <p><a href="https://transitcore-led-feed.lgb84.workers.dev/api/v1/platform/health" target="_blank" rel="noopener noreferrer">API-helse</a></p>
+     <p><a href="https://transitcore-led-feed.lgb84.workers.dev/api/v1/vehicles/atb-live-all" target="_blank" rel="noopener noreferrer">GPS for alle linjer</a></p>
+     <p><a href="https://transitcore-led-feed.lgb84.workers.dev/api/v1/vehicles/atb-line-1" target="_blank" rel="noopener noreferrer">GPS for linje 1</a></p>
+     <p class="foot">Direktelenkene åpner råsvar i nettleseren. Eksporterte statusrapporter inneholder aldri kjøretøy-ID-er, koordinater eller tilgangsnøkler.</p>
+    </section>
+   </aside>
+  </section>
+  <footer>InTransit Diagnostics · Kun offentlige GET-forespørsler · Ingen data lagres på server eller i nettleserens arbeidskopi.</footer>
+ </main>
+ <script src="../live/catalog.js"></script>
+ <script src="../geo/line1-gps.js"></script>
+ <script src="../live/gps.js"></script>
+ <script src="../live/fleet-gps.js"></script>
+ <script src="model.js"></script>
+ <script src="app.js"></script>
+</body>
+</html>
