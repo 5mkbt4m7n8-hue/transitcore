@@ -5,6 +5,7 @@ on:
       - 'web/linear/geo/**'
       - 'web/linear/live/**'
       - 'scripts/browser-intransit-live.mjs'
+      - 'scripts/browser-intransit-all.mjs'
       - 'scripts/test-intransit-geo.mjs'
       - 'scripts/browser-intransit-geo.mjs'
       - '.github/workflows/intransit-geo.yml'
@@ -37,3 +38,5 @@ jobs:
         run: node scripts/browser-intransit-geo.mjs
       - name: Test standalone mobile line 1 live map in same Chromium install
         run: node scripts/browser-intransit-live.mjs
+      - name: Test all catalogued lines together in real Chromium
+        run: node scripts/browser-intransit-all.mjs

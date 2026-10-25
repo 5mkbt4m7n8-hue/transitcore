@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'worker/atb-line1-gps.mjs'
+      - 'worker/atb-fleet-gps.mjs'
+      - 'scripts/test-intransit-all-routes.mjs'
       - 'worker/api/v1.mjs'
       - 'web/linear/geo/line1-gps.js'
       - 'scripts/test-atb-line1-gps.mjs'
@@ -34,6 +36,8 @@ jobs:
         run: node scripts/test-atb-line1-gps.mjs
       - name: Validate line 2/3 provider filters and isolated API routes
         run: node scripts/test-intransit-multi-line.mjs
+      - name: Validate 47-route source whitelist and fleet endpoint
+        run: node scripts/test-intransit-all-routes.mjs
       - name: Check active GPS Worker route and direct-browser Entur CORS (diagnostic only)
         continue-on-error: true
         run: node scripts/check-line1-deployment.mjs

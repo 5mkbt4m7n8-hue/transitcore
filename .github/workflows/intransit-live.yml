@@ -7,6 +7,8 @@ on:
       - 'config/routes/atb-bus-1-live.json'
       - 'scripts/test-intransit-live.mjs'
       - 'scripts/test-intransit-multi-line.mjs'
+      - 'scripts/test-intransit-all-routes.mjs'
+      - 'web/linear/live/catalog.js'
       - 'scripts/browser-intransit-live.mjs'
       - '.github/workflows/intransit-live.yml'
   push:
@@ -33,3 +35,5 @@ jobs:
         run: node scripts/test-intransit-live.mjs
       - name: Validate route selector contracts and measured GPS isolation
         run: node scripts/test-intransit-multi-line.mjs
+      - name: Validate all 47 source routes and single-request fleet GPS
+        run: node scripts/test-intransit-all-routes.mjs
