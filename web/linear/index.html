@@ -25,13 +25,14 @@
     @media(max-width:560px){main{padding:10px}.head,.row{grid-template-columns:minmax(105px,1fr) 72px 72px}.station{font-size:12px;padding-right:9px}.ledno{display:none}.status{width:100%;margin-left:0}}
     .head span{min-width:0;overflow-wrap:anywhere;padding:0 4px}
     .view-switch #liveMode{display:inline-flex;align-items:center;justify-content:center;color:#e3efff;background:#263749;border:1px solid #e46d79;padding:9px 12px;border-radius:9px;text-decoration:none;font:inherit}.view-switch #liveMode:hover{border-color:#ffb5b9}
+    .view-switch #diagnosticsMode{display:inline-flex;align-items:center;justify-content:center;color:#e3efff;background:#253447;border:1px solid #718fa9;padding:9px 12px;border-radius:9px;text-decoration:none;font:inherit}.view-switch #diagnosticsMode:hover{border-color:#9cd8f3}
     .view-switch #stopsMode{display:inline-flex;align-items:center;justify-content:center;color:#e3efff;background:#1b222c;border:1px solid #4a6078;padding:9px 12px;border-radius:9px;text-decoration:none;font:inherit}.view-switch #stopsMode:hover{border-color:#8ec4e8}
     .view-switch #geographicMode{display:inline-flex;align-items:center;justify-content:center;color:#e3efff;background:#1b222c;border:1px solid #4a6078;padding:9px 12px;border-radius:9px;text-decoration:none;font:inherit}.view-switch #geographicMode:hover{border-color:#8ec4e8}
   </style>
 </head>
 <body><main>
   <h1>&#128652; TransitCore Live</h1><p class="sub">Live holdeplasser og busser fra den felles tavlefeeden</p>
-  <div class="tools view-switch" aria-label="Visning"><span>Visning:</span><button id="linearMode" aria-pressed="true">Lineær</button><button id="networkMode" aria-pressed="false">Hele kartet</button><a id="liveMode" href="./live/" title="Åpne mobilvennlig Live-kart med linjevelger">Live busskart</a><a id="geographicMode" href="./geo/" title="Åpne geografisk stoppkart">Geografisk kart</a><a id="stopsMode" href="./stops/" title="Kontroller navn, kartkoblinger og koordinater">Holdeplasser</a></div>
+  <div class="tools view-switch" aria-label="Visning"><span>Visning:</span><button id="linearMode" aria-pressed="true">Lineær</button><button id="networkMode" aria-pressed="false">Hele kartet</button><a id="liveMode" href="./live/" title="Åpne mobilvennlig Live-kart med linjevelger">Live busskart</a><a id="geographicMode" href="./geo/" title="Åpne geografisk stoppkart">Geografisk kart</a><a id="stopsMode" href="./stops/" title="Kontroller navn, kartkoblinger og koordinater">Holdeplasser</a><a id="diagnosticsMode" href="./diagnostics/" title="Se kartkilder, GPS-API, HTTP-status og svartider">Diagnose</a></div>
   <div class="tools"><label>Linje <select id="route"></select></label><button id="refresh">Oppdater</button><button id="test">LED-test</button><span class="status" id="status">Starter ...</span></div>
   <div class="tools"><label>Datakilde <select id="source"><option value="production">Eksisterende tavler</option><option value="staging">STAGING · Unified Engine</option></select></label></div>
   <label><input type="checkbox" id="allRoutes"> Vis alle bylinjer på disse holdeplassene</label>
