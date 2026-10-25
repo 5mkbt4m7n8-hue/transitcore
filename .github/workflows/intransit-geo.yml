@@ -4,6 +4,8 @@ on:
     paths:
       - 'web/linear/geo/**'
       - 'web/linear/live/**'
+      - 'web/linear/diagnostics/**'
+      - 'scripts/browser-intransit-diagnostics.mjs'
       - 'scripts/browser-intransit-live.mjs'
       - 'scripts/browser-intransit-all.mjs'
       - 'scripts/test-intransit-geo.mjs'
@@ -40,3 +42,5 @@ jobs:
         run: node scripts/browser-intransit-live.mjs
       - name: Test all catalogued lines together in real Chromium
         run: node scripts/browser-intransit-all.mjs
+      - name: Test public diagnostics in Chromium and 390px mobile
+        run: node scripts/browser-intransit-diagnostics.mjs
