@@ -6,7 +6,7 @@ const require=createRequire(import.meta.url);
 const {chromium}=require('playwright');
 const root=new URL('../',import.meta.url);
 const mime=file=>file.endsWith('.js')?'text/javascript':file.endsWith('.json')?'application/json':
- file.endsWith('.css')?'text/css':'text/html';
+ file.endsWith('.css')?'text/css':file.endsWith('.jpg')?'image/jpeg':'text/html';
 const server=createServer(async(req,res)=>{
  try{
   const pathname=new URL(req.url,'http://localhost').pathname;
@@ -55,6 +55,46 @@ try{
  await page.locator('#search').fill('original-003');
  assert.equal(await page.locator('#results tr').count(),1);
  await page.locator('#search').fill('');
+ // Review the actual source image, zoom to an original marker, and persist only local status.
+ await page.locator('#reviewStart').click();
+ assert.equal(await page.locator('#reviewPanel').isVisible(),true);
+ assert.match(await page.locator('#reviewTitle').innerText(),/1 av 23/);
+ assert.equal(await page.locator('#reviewPicker option').count(),23);
+ await page.waitForFunction(()=>document.querySelector('#reviewOriginal')?.dataset.loaded==='true',{timeout:30000});
+ assert.match(await page.locator('#reviewImageStatus').innerText(),/Originalens bildepiksler/);
+ assert.equal(await page.locator('#reviewSchematic circle').count()>0,true);
+ await page.locator('#reviewZoom').selectOption('4');
+ assert.equal(await page.locator('#reviewOriginal').getAttribute('data-loaded'),'true');
+ await page.locator('#reviewNext').click();
+ assert.match(await page.locator('#reviewTitle').innerText(),/2 av 23/);
+ await page.locator('#reviewPrev').click();
+ assert.match(await page.locator('#reviewTitle').innerText(),/1 av 23/);
+ await page.locator('#reviewAlias').fill('Mulig stopp ved havnen');
+ await page.locator('#reviewSaveName').click();
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo.names['original-003']),'Mulig stopp ved havnen');
+ await page.locator('#reviewStatus').selectOption('needs-research');
+ await page.locator('#reviewNote').fill('Les teksten i tegningen og sammenlign med holdeplassoversikten.');
+ await page.locator('#reviewSave').click();
+ assert.match(await page.locator('#reviewProgress').innerText(),/1 av 23 gjennomgått lokalt/);
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-stop-name-review-v1')).entries['original-003'].status),'needs-research');
+ const originalBeforeReview=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo);
+ assert.equal(originalBeforeReview.stops['original-003'],undefined,'Name review must not invent geographic positions');
+ const progressDownload=page.waitForEvent('download');
+ await page.locator('#reviewExport').click();
+ assert.equal((await progressDownload).suggestedFilename(),'intransit-navnegjennomgang.json');
+ await page.goto(base+'?review=1&stop=original-003');
+ await page.waitForSelector('#reviewPanel:not([hidden])');
+ assert.equal(await page.locator('#reviewStatus').inputValue(),'needs-research','Review survives reload');
+ assert.match(await page.locator('#reviewNote').inputValue(),/Les teksten/);
+ assert.equal(await page.locator('#reviewAlias').inputValue(),'Mulig stopp ved havnen');
+ await page.locator('#reviewNextPending').click();
+ assert.equal(await page.locator('#reviewPicker').inputValue(),'original-007');
+ await page.locator('#reviewPicker').selectOption('original-003');
+ await page.locator('#reviewReset').click();
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-stop-name-review-v1')).entries['original-003']),undefined);
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo.names['original-003']),'Mulig stopp ved havnen','Reset review must not remove independent local alias');
+ await page.locator('#reviewClose').click();
+ assert.equal(await page.locator('#reviewPanel').isVisible(),false);
  await page.setViewportSize({width:390,height:844});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Mobile admin panel should not overflow');
  assert.deepEqual(errors,[],'No runtime errors');

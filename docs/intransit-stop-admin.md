@@ -53,3 +53,46 @@ kartkoblingen ikke er bekreftet. Disse tellingene bygger på
 `node scripts/test-intransit-stops.mjs`
 
 `node scripts/browser-intransit-stops.mjs` (Playwright + Chromium)
+
+
+## Gjennomgangsmodus for de 23 ubekreftede originalnavnene
+
+Klikk **Start gjennomgang** fra `web/linear/stops/`. Modusen viser
+alle stopp der originalkilden har `nameConfirmed !== true`, i den
+opprinnelige rekkefølgen. Det er **23** ved denne versjonen, men listen
+utledes alltid av originalkartfilen.
+
+- Sammenlign et forstørret, uendret utsnitt av brukerens originale JPEG
+  `web/linear/assets/trondheim-original.jpg` med et eget utsnitt av
+  de 18 opprinnelige skjematiske linjene og stoppmarkørene.
+- Originalbildet vises fra faktisk kilde, ikke en nyskapning eller
+  geokodet gjetning. Utsnittet sentreres på
+  `stop.source.centerPixels`; et gult siktepunkt markerer bildepikselen.
+  Velg mellom tre zoomnivåer. Dersom originalbildefilen mangler eller
+  størrelsen ikke samsvarer, vises en feil i stedet for et misvisende bilde.
+- Bruk **Forrige**, **Neste**, stoppvelgeren eller
+  **Neste ikke gjennomgåtte** for å arbeide systematisk.
+- Lagre et *lokalt navneforslag* gjennom eksisterende navnekobling til
+  Linear og geografisk kart. Det endrer ikke originalnavn,
+  `nameConfirmed`, plattformidentitet, GPS eller offisielt rutenett.
+- Lagre lokale notater og en av følgende inspeksjonsstatuser:
+  **Ikke gjennomgått**, **Sett på originaltegningen** og
+  **Må undersøkes nærmere**. «Sett på» er ikke offisiell
+  bekreftelse av originalnavnet. Brukeren kan nullstille notat/status
+  uten å slette et lagret navneforslag.
+- Vis lokal framdrift og eksporter notatene som JSON sammen med
+  lokale navneforslag. Ingen informasjon sendes til en server.
+- Gjennomgangsnotater lagres i en **separat** nettlesernøkkel
+  `intransit-stop-name-review-v1`, med fingeravtrykk av de originale
+  stopp-ID-ene. En arbeidskopi laget mot en annen kartversjon blir ikke
+  stille overskrevet. Navneforslag er fremdeles lagret i
+  `intransit-geo-draft-v1`, slik at geografiske linjer/koordinater
+  beholdes.
+- Direkte lenker `?review=1&stop=original-003` åpner
+  gjennomgang på riktig stopp. URL-kobling til begge kart bevarer
+  samme originale stopp-ID.
+
+Tester: `node scripts/test-intransit-stops.mjs` og
+`node scripts/browser-intransit-stops.mjs`, sistnevnte kontrollerer
+den opprinnelige JPG-bildelastingen, tekst, zoom, lokal lagring,
+gjeninnlasting, framdrift, nullstilling, eksport og mobil.
