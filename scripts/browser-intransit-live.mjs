@@ -84,7 +84,16 @@ try{
  assert.equal(await page.locator('#busCount').innerText(),'0');
  assert(gpsCalls>=5);
  await page.setViewportSize({width:390,height:844});
- assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Mobile page must not overflow');
+ const viewportAudit=await page.evaluate(()=>({
+  innerWidth,scrollWidth:document.documentElement.scrollWidth,
+  offenders:[...document.querySelectorAll('*')].map(el=>({
+   tag:el.tagName,id:el.id,cls:typeof el.className==='string'?el.className:'',
+   left:Math.round(el.getBoundingClientRect().left),right:Math.round(el.getBoundingClientRect().right),
+   scrollWidth:el.scrollWidth
+  })).filter(x=>x.right>innerWidth+1&&x.left<innerWidth+100).sort((a,b)=>b.right-a.right).slice(0,12)
+ }));
+ if(viewportAudit.scrollWidth>viewportAudit.innerWidth)console.log('MOBILE OVERFLOW DIAGNOSTICS',JSON.stringify(viewportAudit));
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Mobile page must not overflow');
  assert.equal(await page.locator('#map').isVisible(),true);
  assert.equal(await page.evaluate(()=>localStorage.length),0,'Viewing route and GPS must not edit geo or schematic drafts');
  assert.deepEqual(errors,[],'No runtime browser errors');
