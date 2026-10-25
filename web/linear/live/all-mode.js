@@ -9,6 +9,7 @@
   const profiles=new Map(),routeLayers=new Map(),routeStops=L.layerGroup();
   const buses=new Map(),visible=new Set(C.CODES);
   let active=false,loading=null,generation=0,feed=null,fetching=false,request=0,following='';
+  let onSelectionChanged=null;
   function info(message){$('gpsStatus').textContent=message;}
   function count(){ $('busCount').textContent=String(buses.size); }
   function clearBuses(){
@@ -111,6 +112,7 @@
     routeStops.addTo(map);
    }else map.removeLayer(routeStops);
    if(feed)renderFeed();
+   if(active&&onSelectionChanged)onSelectionChanged();
    const ready=[...visible].filter(code=>profiles.has(code));
    const fails=visible.size-ready.length;
    $('allLinesSummary').textContent=visible.size+' av '+C.CODES.length+' linjer valgt';
@@ -206,7 +208,7 @@
    map.removeLayer(routeStops);clearBuses();$('allLinesPanel').hidden=true;
   }
   async function refreshGPS(){
-   if(!active||fetching||document.hidden)return;
+   if(!active||fetching||document.hidden||$('sourceMode').value==='demo')return;
    const token=++request;fetching=true;$('refresh').disabled=true;
    try{
     const response=await fetch(URL,{cache:'no-store',signal:AbortSignal.timeout(12000)});
@@ -227,7 +229,13 @@
     if(token===request){fetching=false;$('refresh').disabled=false;}
    }
   }
-  function ageGPS(){if(active&&feed)renderFeed();}
+  function ageGPS(){if(active&&feed&&$('sourceMode').value!=='demo')renderFeed();}
+  function suspendGPS(){
+   ++request;fetching=false;feed=null;clearBuses();$('refresh').disabled=true;
+  }
+  function demoRoutes(){
+   return [...visible].map(code=>profiles.get(code)).filter(Boolean);
+  }
   $('toggleAllPanel').onclick=()=>{
    const details=$('allLineDetails'),open=details.hidden;
    details.hidden=!open;$('toggleAllPanel').setAttribute('aria-expanded',String(open));
@@ -244,6 +252,7 @@
    get active(){return active;},
    repaintRoutes,selectFollow(id){following=id;followView();},
    stopFollow(){following='';updateOptions();$('followDetail').hidden=true;},
+   suspendGPS,demoRoutes,setSelectionListener(fn){onSelectionChanged=fn;},
    catalogCount:()=>C.CODES.length,loadedCount:()=>profiles.size,visibleCount:()=>visible.size};
  }
  root.InTransitAllMode={setup};

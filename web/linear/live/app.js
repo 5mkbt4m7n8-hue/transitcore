@@ -1,7 +1,7 @@
 // Map-first view of all 47 registered AtB routes plus original one-line views. No edits or inferred positions.
 (function(root){
  'use strict';
- const R=root.InTransitLiveLine1,G=root.InTransitLiveGps,All=root.InTransitAllMode;
+ const R=root.InTransitLiveLine1,G=root.InTransitLiveGps,All=root.InTransitAllMode,Demo=root.InTransitDemoMode;
  const $=id=>document.getElementById(id);
  const LEAFLET_BASE='https://unpkg.com/leaflet@1.9.4/dist/';
  async function leaflet(){
@@ -28,7 +28,10 @@
    maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
 
-  const vehicles=new Map(),all=All.setup({L,map});
+  const vehicles=new Map(),all=All.setup({L,map}),demo=Demo.setup({L,map});
+  const isDemo=()=>$('sourceMode').value==='demo';
+  let currentProfile=null;
+  all.setSelectionListener(()=>{if(demo.active&&lineCode==='all')demo.setRoutes(all.demoRoutes());});
   let lineCode='1',routeLayer=null,stopsLayer=null,routeBounds=null;
   let lastFeed=null,gpsError='',gpsBusy=false,gpsRequestId=0,routeRequestId=0;
   let routeLoading=false,followId='',fullscreenFallback=false;
@@ -87,6 +90,7 @@
    options();statusCount();if(followId)followView();
   }
   function latestOnly(){
+   if(isDemo())return;
    if(lineCode==='all'){all.ageGPS();return;}
    if(!lastFeed||gpsError||routeLoading)return;
    try{
@@ -100,6 +104,7 @@
    }
   }
   async function refreshGPS(){
+   if(isDemo())return;
    if(lineCode==='all')return all.refreshGPS();
    if(gpsBusy||routeLoading||!routeBounds||document.hidden)return;
    const requestCode=lineCode,token=++gpsRequestId;
@@ -144,6 +149,7 @@
   }
   async function chooseLine(code,{initial=false}={}){
    if(!R.supports(code))return;
+   if(demo.active)demo.setRoutes([]);
    if(all.active)all.leave();
    const token=++routeRequestId;
    ++gpsRequestId;gpsBusy=false;lastFeed=null;gpsError='';
@@ -159,6 +165,7 @@
     if(routeLayer)map.removeLayer(routeLayer);
     if(stopsLayer)map.removeLayer(stopsLayer);
     routeLayer=layers.line;stopsLayer=layers.stops;routeBounds=routeLayer.getBounds();
+    currentProfile={...profile};
     lineCode=code;$('lineSelect').value=code;
     if($('showStops').checked)stopsLayer.addTo(map);
     if($('showRoute').checked)routeLayer.addTo(map);
@@ -175,7 +182,9 @@
      const url=new URL(location.href);url.searchParams.set('line',code);
      history.replaceState(null,'',url.pathname+url.search+url.hash);
     }
-    status('Linje '+code+' er klar. Henter faktiske GPS-posisjoner …');
+    status('Linje '+code+' er klar. '+(isDemo()?'Starter DEMO – simulerte busser.':
+     'Henter faktiske GPS-posisjoner …'));
+    if(isDemo())demo.setRoutes([currentProfile]);
    }catch(error){
     if(token!==routeRequestId)return;
     $('lineSelect').value=lineCode;
@@ -184,12 +193,13 @@
    }finally{
     if(token===routeRequestId){
      routeLoading=false;$('lineSelect').disabled=false;
-     $('refresh').disabled=!routeBounds;
-     if(routeBounds)refreshGPS();
+     $('refresh').disabled=!routeBounds||isDemo();
+     if(routeBounds&&!isDemo())refreshGPS();
     }
    }
   }
   async function chooseAll({initial=false}={}){
+   if(demo.active)demo.setRoutes([]);
    const token=++routeRequestId;
    ++gpsRequestId;gpsBusy=false;lastFeed=null;gpsError='';
    render([]);
@@ -200,6 +210,7 @@
    try{
     const enabled=await all.enter();
     if(!enabled||token!==routeRequestId)return;
+    if(isDemo())demo.setRoutes(all.demoRoutes());
     if(!initial){
      const url=new URL(location.href);url.searchParams.set('line','all');
      history.replaceState(null,'',url.pathname+url.search+url.hash);
@@ -210,11 +221,33 @@
     }
    }finally{
     if(token===routeRequestId){
-     routeLoading=false;$('lineSelect').disabled=false;$('refresh').disabled=false;
-     if(all.active)all.refreshGPS();
+     routeLoading=false;$('lineSelect').disabled=false;$('refresh').disabled=isDemo();
+     if(all.active&&!isDemo())all.refreshGPS();
     }
    }
   }
+  function changeSource(value,{initial=false}={}){
+   const code=value==='demo'?'demo':'gps';
+   $('sourceMode').value=code;
+   if(code==='demo'){
+    // Invalidate in-flight GPS requests before any simulated marker appears.
+    ++gpsRequestId;gpsBusy=false;lastFeed=null;gpsError='';
+    render([]);all.suspendGPS();
+    demo.activate(lineCode==='all'?all.demoRoutes():currentProfile?[currentProfile]:[]);
+    $('refresh').disabled=true;
+   }else{
+    demo.deactivate();
+    status('Ekte GPS er valgt. Henter kun målte posisjoner fra Entur …');
+    if(!routeLoading)refreshGPS();
+   }
+   if(!initial){
+    const url=new URL(location.href);
+    if(code==='demo')url.searchParams.set('mode','demo');
+    else url.searchParams.delete('mode');
+    history.replaceState(null,'',url.pathname+url.search+url.hash);
+   }
+  }
+  $('sourceMode').onchange=()=>changeSource($('sourceMode').value);
   $('lineSelect').onchange=()=>{
    const code=$('lineSelect').value;
    if(code==='all')chooseAll();else chooseLine(code);
@@ -234,6 +267,7 @@
    if(routeBounds)map.fitBounds(routeBounds,{padding:[22,22],maxZoom:14});
   };
   $('fitBuses').onclick=()=>{
+   if(isDemo()){demo.fit();return;}
    if(lineCode==='all'){all.fitBuses();return;}
    if(!vehicles.size)return;
    map.fitBounds(L.latLngBounds([...vehicles.values()].map(v=>[v.data.latitude,v.data.longitude])),{
@@ -241,15 +275,17 @@
    });
   };
   $('followBus').onchange=()=>{
+   if(isDemo()){demo.selectFollow($('followBus').value);return;}
    if(lineCode==='all'){all.selectFollow($('followBus').value);return;}
    followId=$('followBus').value;followView();
   };
   map.on('dragstart',()=>{
+   if(isDemo()){demo.stopFollow();return;}
    if(lineCode==='all'){all.stopFollow();return;}
    if(!followId)return;
    followId='';options();$('followDetail').hidden=true;
   });
-  $('refresh').onclick=()=>refreshGPS();
+  $('refresh').onclick=()=>{if(!isDemo())refreshGPS();};
   const shell=$('app'),fullscreenButton=$('fullscreen');
   function reflectFullscreen(){
    const on=document.fullscreenElement===shell||fullscreenFallback;
@@ -278,8 +314,10 @@
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshGPS();});
   setInterval(()=>{if(!document.hidden)refreshGPS();},30000);
   setInterval(()=>{if(!document.hidden)latestOnly();},10000);
-  const requested=new URLSearchParams(location.search).get('line');
+  const params=new URLSearchParams(location.search);
+  const requested=params.get('line');
   const initial=requested==='all'||!R.supports(requested)?'all':requested;
+  if(params.get('mode')==='demo')changeSource('demo',{initial:true});
   $('lineSelect').value=initial;
   if(initial==='all')await chooseAll({initial:true});else await chooseLine(initial,{initial:true});
  }

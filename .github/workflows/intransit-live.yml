@@ -10,6 +10,7 @@ on:
       - 'scripts/test-intransit-live.mjs'
       - 'scripts/test-intransit-multi-line.mjs'
       - 'scripts/test-intransit-all-routes.mjs'
+      - 'scripts/test-intransit-demo.mjs'
       - 'web/linear/live/catalog.js'
       - 'scripts/browser-intransit-live.mjs'
       - '.github/workflows/intransit-live.yml'
@@ -39,5 +40,7 @@ jobs:
         run: node scripts/test-intransit-multi-line.mjs
       - name: Validate all 47 source routes and single-request fleet GPS
         run: node scripts/test-intransit-all-routes.mjs
+      - name: Validate standalone demo motion and GPS isolation
+        run: node scripts/test-intransit-demo.mjs
       - name: Validate public diagnostics model and privacy-safe export
         run: node scripts/test-intransit-diagnostics.mjs

@@ -15,6 +15,15 @@
    </div>
    <nav aria-label="Kartvisninger"><a href="../index.html">Linear</a><a href="../geo/">Karteditor</a><a href="../diagnostics/">Diagnose</a></nav>
   </header>
+  <section class="source-picker" aria-label="Velg GPS eller demonstrasjon">
+   <label for="sourceMode">Datamodus</label>
+   <select id="sourceMode" aria-label="Velg datamodus">
+    <option value="gps" selected>Ekte GPS (Entur)</option>
+    <option value="demo">DEMO – SIMULERT (uten GPS)</option>
+   </select>
+   <span class="source-help">DEMO viser oppdiktede testbusser langs registrerte ruter. Aldri sanntid.</span>
+  </section>
+  <div id="demoBanner" class="demo-banner" role="status" hidden>DEMO – SIMULERT · ingen faktisk GPS / ingen sanntid</div>
   <section class="line-picker" aria-label="Velg busslinje">
    <label for="lineSelect">Busslinje</label>
    <select id="lineSelect" aria-label="Velg busslinje">
@@ -42,6 +51,7 @@
   </section>
   <section class="map-shell" aria-label="Live-kart">
    <div id="map" role="application" aria-label="Kart over valgt AtB busslinje i Trondheim"></div>
+   <div id="demoStamp" class="demo-stamp" aria-hidden="true" hidden>DEMO · SIMULERT</div>
    <div class="floating-controls" aria-label="Kartkontroller">
     <button id="fitRoute" type="button" title="Vis hele linje 1">Hele linjen</button>
     <button id="fitBuses" type="button" disabled title="Vis faktiske bussposisjoner">Alle busser</button>
@@ -57,6 +67,17 @@
    </div>
    <p class="state" id="gpsStatus" role="status" aria-live="polite">Laster rutekart og GPS …</p>
    <p class="muted" id="routeStatus"></p>
+   <div id="demoControls" class="demo-controls" hidden>
+    <span><strong>DEMO:</strong> busser er kun grafiske testobjekter.</span>
+    <button type="button" id="demoPause" aria-pressed="false">Pause</button>
+    <label for="demoSpeed">Simuleringsfart</label>
+    <select id="demoSpeed" aria-label="Simuleringsfart">
+     <option value="0.5">0,5×</option>
+     <option value="1" selected>1×</option>
+     <option value="2">2×</option>
+     <option value="4">4×</option>
+    </select>
+   </div>
    <div class="controls">
     <label class="toggle"><input id="showStops" type="checkbox" checked> Holdeplasser</label>
     <label class="toggle"><input id="showRoute" type="checkbox" checked> Ruteprofil</label>
@@ -74,6 +95,8 @@
  <script src="catalog.js"></script>
  <script src="fleet-gps.js"></script>
  <script src="all-mode.js"></script>
+ <script src="demo-engine.js"></script>
+ <script src="demo.js"></script>
  <script src="gps.js"></script>
  <script src="app.js"></script>
 </body>
