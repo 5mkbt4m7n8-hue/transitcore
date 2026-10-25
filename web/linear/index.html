@@ -79,7 +79,7 @@
 </main>
 <aside class="info" id="info"><button class="close" id="close">Lukk</button><h2 id="infoTitle"></h2><div id="infoBody"></div></aside>
 <script src="../shared/board-client-model.js"></script><script src="../shared/canonical-frame-client.js"></script><script src="../shared/signal-policy.js"></script><script src="../shared/route-occupancy.js"></script><script src="network/model.js"></script><script src="network/editor.js"></script>
-<script src="network/layout-ops.js"></script><script src="network/map.js"></script><script>
+<script src="network/layout-ops.js"></script><script src="geo/model.js"></script><script src="geo/stop-links.js"></script><script src="network/map.js"></script><script>
 "use strict";
 const SIGNALS=TransitCoreSignals;SIGNALS.applyCssVariables(document);
 const $=id=>document.getElementById(id),BASE="../../config/",FLYBUSS="flybuss-trondheim-fb73-live";
@@ -374,7 +374,7 @@ async function setMapMode(network){
  }
 }
 $("linearMode").onclick=()=>setMapMode(false);$("networkMode").onclick=()=>setMapMode(true);
-Promise.all([json(`${BASE}boards/trondheim-bus-board.json`),json(`${BASE}hardware/trondheim-bus-board-hardware.json`),json(`${BASE}boards/trondheim-flybuss-live.json`),json(`${BASE}hardware/trondheim-flybuss-live-hardware.json`),json(`${BASE}boards/trondheim-city-lines-catalog.json`)]).then(async values=>{[baseBoard,baseHardware,flyBoard,flyHardware,catalogBoard]=values;catalogHardware={leds:{count:catalogBoard.leds.count},assignments:catalogBoard.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))};board=baseBoard;hardware=baseHardware;profiles=await Promise.all([...new Set([...catalogBoard.routes,FLYBUSS])].map(id=>json(`${BASE}routes/${id}.json`)));$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");const params=new URLSearchParams(location.search),requested=params.get("route");if(profiles.some(p=>p.id===requested))$("route").value=requested;$("source").value=params.get("source")==="staging"?"staging":"production";build();refresh()}).catch(error=>$("status").textContent=error.message);
+Promise.all([json(`${BASE}boards/trondheim-bus-board.json`),json(`${BASE}hardware/trondheim-bus-board-hardware.json`),json(`${BASE}boards/trondheim-flybuss-live.json`),json(`${BASE}hardware/trondheim-flybuss-live-hardware.json`),json(`${BASE}boards/trondheim-city-lines-catalog.json`)]).then(async values=>{[baseBoard,baseHardware,flyBoard,flyHardware,catalogBoard]=values;catalogHardware={leds:{count:catalogBoard.leds.count},assignments:catalogBoard.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))};board=baseBoard;hardware=baseHardware;profiles=await Promise.all([...new Set([...catalogBoard.routes,FLYBUSS])].map(id=>json(`${BASE}routes/${id}.json`)));$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");const params=new URLSearchParams(location.search),requested=params.get("route");if(profiles.some(p=>p.id===requested))$("route").value=requested;$("source").value=params.get("source")==="staging"?"staging":"production";build();refresh();if(params.get("view")==="network"){await setMapMode(true);if(params.get("stop"))networkMap?.focusStop(params.get("stop"));}}).catch(error=>$("status").textContent=error.message);
 </script></body></html>
 
 
