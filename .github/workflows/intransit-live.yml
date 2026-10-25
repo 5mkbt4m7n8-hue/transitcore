@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - 'web/linear/live/**'
+      - 'web/linear/diagnostics/**'
+      - 'scripts/test-intransit-diagnostics.mjs'
       - 'web/linear/geo/line1-gps.js'
       - 'config/routes/atb-bus-1-live.json'
       - 'scripts/test-intransit-live.mjs'
@@ -37,3 +39,5 @@ jobs:
         run: node scripts/test-intransit-multi-line.mjs
       - name: Validate all 47 source routes and single-request fleet GPS
         run: node scripts/test-intransit-all-routes.mjs
+      - name: Validate public diagnostics model and privacy-safe export
+        run: node scripts/test-intransit-diagnostics.mjs
