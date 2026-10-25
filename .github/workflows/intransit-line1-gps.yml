@@ -7,6 +7,7 @@ on:
       - 'web/linear/geo/line1-gps.js'
       - 'scripts/test-atb-line1-gps.mjs'
       - 'scripts/probe-atb-line1-gps.mjs'
+      - 'scripts/check-line1-deployment.mjs'
       - '.github/workflows/intransit-line1-gps.yml'
   push:
     branches: [main]
@@ -30,6 +31,9 @@ jobs:
           node-version: '22'
       - name: Validate measured GPS policy and isolated API endpoint
         run: node scripts/test-atb-line1-gps.mjs
+      - name: Check active GPS Worker route and direct-browser Entur CORS (diagnostic only)
+        continue-on-error: true
+        run: node scripts/check-line1-deployment.mjs
       - name: One-shot actual Entur line 1 source probe (nonblocking, aggregate counts)
         continue-on-error: true
         run: node scripts/probe-atb-line1-gps.mjs
