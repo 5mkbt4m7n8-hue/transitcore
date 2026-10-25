@@ -102,3 +102,49 @@ body{width:100%;max-width:100%;overflow-x:clip}
  .all-line-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:250px}
  .all-routes-head button{white-space:nowrap}
 }
+
+/* DEMO is never styled as real GPS. Deliberately visible on every screen. */
+.source-picker{display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+ padding:10px 14px;margin:0 0 8px;border:1px solid #587188;border-radius:12px;background:#12243a}
+.source-picker label{font-weight:800;color:#cde9f9}
+.source-picker select{min-height:44px;min-width:0;max-width:100%;color:#f5fbff;
+ background:#263b53;border:1px solid #8da7c0;border-radius:9px;padding:8px 11px;font:inherit}
+.source-picker .source-help{color:var(--muted);font-size:11px;flex:1 1 200px}
+.source-picker:has(select[value="demo"]){border-color:#df9f36}
+.is-demo .source-picker{background:#3d2c19;border-color:#f0b34c}
+.is-demo .source-picker select{background:#533820;border-color:#f6c57b;color:#fff0ca}
+.demo-banner{font-weight:900;font-size:12px;text-align:center;letter-spacing:.11em;
+ color:#221605;background:#ffc66b;border:2px solid #fff1b9;padding:9px;
+ border-radius:9px;margin:2px 0 8px}
+.demo-banner[hidden],.demo-controls[hidden],.demo-stamp[hidden]{display:none!important}
+.demo-stamp{position:absolute;z-index:550;top:68px;left:50%;transform:translateX(-50%);
+ font-weight:900;font-size:12px;letter-spacing:.11em;white-space:nowrap;pointer-events:none;
+ color:#2b1905;background:#ffca70eb;border:1px solid #ffeac2;
+ box-shadow:0 2px 12px #0005;border-radius:8px;padding:6px 11px}
+.demo-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:11px 12px;
+ margin:9px 0 0;border:1px solid #df9f36;border-radius:10px;background:#392c1c}
+.demo-controls>span{flex:1 1 200px;font-size:12px;color:#ffe3b4}
+.demo-controls label{font-size:12px;color:#ffe0a2}
+.demo-controls button,.demo-controls select{min-height:40px;padding:7px 12px;
+ border:1px solid #ffcd83;background:#574123;color:#fff3d5;border-radius:8px}
+.demo-controls select{font:inherit}
+.demo-pin-container{background:transparent;border:0}
+.demo-pin{box-sizing:border-box;display:flex;flex-direction:column;align-items:center;
+ justify-content:center;width:42px;height:42px;border-radius:50%;
+ border:3px solid #ffde9d;background:var(--demo-route,#f8c366);
+ color:#102233;font:bold 13px/1 system-ui,sans-serif;
+ box-shadow:0 2px 9px #000a}
+.demo-pin strong{font-size:14px;line-height:1}
+.demo-pin small{color:#45200a;background:#ffe7aa;letter-spacing:.04em;
+ font-weight:900;font-size:8px;line-height:1.3;margin-top:3px;padding:0 2px;border-radius:2px}
+.is-demo .count{background:#60451d;border-color:#f4c47f;color:#ffdd9d}
+.is-demo .state{color:#ffd08c}
+@media(max-width:600px){
+ .source-picker{border-radius:0;margin:0;padding:8px 12px;gap:7px}
+ .source-picker label{font-size:11px}
+ .source-picker select{flex:1 1 185px;max-width:100%;width:0;font-size:12px}
+ .source-picker .source-help{flex-basis:100%}
+ .demo-banner{border-radius:0;margin:0;font-size:11px;padding:7px}
+ .demo-stamp{top:58px;font-size:10px;padding:5px 8px}
+ .demo-controls{gap:6px;margin:9px 0 0}
+}
