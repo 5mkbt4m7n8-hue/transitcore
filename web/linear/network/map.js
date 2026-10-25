@@ -133,7 +133,7 @@
    q('details').textContent='Kartlinjen '+id+' er lagret med '+sketch.points.length+' nye punkt. Du kan redigere og angre endringen.';
   }
 
-  function details(stop){const values=M.signals(stop,context.board,context.hardware,frame,context.all?null:context.line),age=(Date.now()-Date.parse(frame?.generatedAt))/1000;
+  function details(stop){syncGeoLink(stop.id);const values=M.signals(stop,context.board,context.hardware,frame,context.all?null:context.line),age=(Date.now()-Date.parse(frame?.generatedAt))/1000;
    q('details').textContent=displayName(stop)+(localNames[stop.id]?' (lokalt navn; original: '+stop.name+')':'')+'\n'+(stop.verification!=='confirmed'?'Uavklart navn / ID. Ingen live-kobling.':values.length?values.map(v=>`Linje ${v.line||'?'} · ${v.destination||'Ukjent destinasjon'} · buss ${v.id||'ikke oppgitt'} · ${v.state}\nKilde: ${v.source||'ikke oppgitt'} · observasjonsalder: ${v.ageSeconds??'ukjent'} s`).join('\n'):'OFF · ingen aktiv gyldig observasjon; bekrefter ikke tom holdeplass.')+`\nFrame-alder: ${Number.isFinite(age)?Math.floor(age)+' s':'ingen frame'}`;
   }
   function draw(){
@@ -284,7 +284,7 @@
     del.onclick=()=>{try{editor.change(next=>L.deleteNewStop(next,item.id));selection=null;fields();}catch(e){q('details').textContent=e.message;}};
     area.append(del);
    }
-   input('Kartetikett',item.name,'text',(n,v)=>{pick(n).name=v;pick(n).nameConfirmed=true;});input('Punktstørrelse',item.radius,'number',(n,v)=>pick(n).radius=v);input('Vis etikett',item.label.visible,'checkbox',(n,v)=>pick(n).label.visible=v);input('To dioder',item.diodeMode==='split','checkbox',(n,v)=>pick(n).diodeMode=v?'split':'shared');
+   input('Skjemanavn i JSON (ikke delt mellom kart)',item.name,'text',(n,v)=>{pick(n).name=v;pick(n).nameConfirmed=true;});input('Punktstørrelse',item.radius,'number',(n,v)=>pick(n).radius=v);input('Vis etikett',item.label.visible,'checkbox',(n,v)=>pick(n).label.visible=v);input('To dioder',item.diodeMode==='split','checkbox',(n,v)=>pick(n).diodeMode=v?'split':'shared');
    const label=document.createElement('label');label.textContent='Godkjent stasjon fra eksisterende konfigurasjon';const select=document.createElement('select');select.append(new Option('Velg bekreftet kartpunkt …',''));
    for(const board of context.boards||[]){const seen=new Set;for(const node of board.nodes){if(seen.has(node.stationId))continue;seen.add(node.stationId);select.append(new Option(board.id+' · '+node.name,board.id+'|'+node.stationId));}}
    select.onchange=()=>{if(!select.value)return;const [bid,sid]=select.value.split('|'),b=context.boards.find(b=>b.id===bid);editor.change(next=>{const s=pick(next),nodes=b.nodes.filter(n=>n.stationId===sid);if(!s.nameConfirmed){s.name=nodes[0].name;s.nameConfirmed=true;}s.verification='confirmed';s.bindings=s.bindings.filter(b=>b.boardId!==bid).concat(nodes.flatMap(n=>(n.stopIds||[]).map(stopId=>({boardId:bid,nodeId:n.id,stationId:sid,stopId}))));});};label.append(select);area.append(label);
