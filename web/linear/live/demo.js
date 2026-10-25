@@ -46,8 +46,9 @@
     if(p)sample.push(...E.positionsOnTrack(code,p.track,elapsed,speed));
    }
    const ids=new Set(sample.map(x=>x.id));
+   let changed=markers.size!==ids.size;
    for(const [id,item] of markers){
-    if(!ids.has(id)){map.removeLayer(item.marker);markers.delete(id);}
+    if(!ids.has(id)){map.removeLayer(item.marker);markers.delete(id);changed=true;}
    }
    for(const observation of sample){
     let entry=markers.get(observation.id);
@@ -59,16 +60,18 @@
         '<strong>'+code+'</strong><small>DEMO</small></span>'})
      }).addTo(map);
      marker.on('click',()=>{followId=observation.id;updateSelect();follow();});
-     entry={marker,data:observation};markers.set(observation.id,entry);
+     marker.bindTooltip('DEMO · simulert linje '+observation.line);
+     marker.bindPopup(popup(observation));
+     entry={marker,data:observation};markers.set(observation.id,entry);changed=true;
     }
     entry.data=observation;
     entry.marker.setLatLng([observation.latitude,observation.longitude]);
-    entry.marker.bindTooltip('DEMO · simulert linje '+observation.line);
-    entry.marker.bindPopup(popup(observation));
    }
-   $('busCount').textContent=String(sample.length);
-   updateSelect();if(followId)follow();
-   info();
+   if(changed){
+    $('busCount').textContent=String(sample.length);
+    updateSelect();info();
+   }
+   if(followId)follow();
   }
   function tick(){
    if(!active)return;
