@@ -7,6 +7,7 @@
  function setup({L,map}){
   const markers=new Map(),cached=new Map();
   let active=false,paused=false,elapsed=0,speed=1,lastTick=null,timer=null,followId='',profileIds=[];
+  let highlightId=null;
   const info=()=>{$('gpsStatus').textContent='DEMO – '+markers.size+
    ' simulerte busser langs lagrede ruteprofiler. Ikke faktiske GPS-posisjoner.';};
   function popup(v){
@@ -26,7 +27,21 @@
    select.disabled=!markers.size;select.value=followId;
    $('fitBuses').disabled=!markers.size;$('followDetail').hidden=!followId;
   }
+  function highlight(){
+   if(highlightId===followId)return;
+   highlightId=followId;
+   $('app').classList.toggle('demo-following',Boolean(followId));
+   for(const [id,entry] of markers){
+    entry.marker.getElement()?.classList.toggle('demo-follow-selected',id===followId);
+   }
+  }
+  function markerSize(){
+   const choice=$('demoMarkerSize').value;
+   const computed=choice==='auto'?(profileIds.length>8||map.getZoom()<=12?'compact':'normal'):choice;
+   $('app').dataset.demoMarkerSize=computed;
+  }
   function follow(){
+   highlight();
    const entry=markers.get(followId);
    $('followDetail').hidden=!entry;
    if(!entry)return;
@@ -36,7 +51,8 @@
   }
   function clear(){
    for(const entry of markers.values())map.removeLayer(entry.marker);
-   markers.clear();followId='';updateSelect();$('busCount').textContent='0';
+   markers.clear();followId='';highlightId=null;$('app').classList.remove('demo-following');
+   updateSelect();$('busCount').textContent='0';
   }
   function render(){
    if(!active)return;
@@ -57,6 +73,7 @@
      const marker=L.marker([observation.latitude,observation.longitude],{
       icon:L.divIcon({className:'demo-pin-container',iconSize:[43,44],iconAnchor:[21,22],
        html:'<span class="demo-pin" style="--demo-route:'+color+'">'+
+        '<span class="demo-heading" aria-hidden="true">▲</span>'+
         '<strong>'+code+'</strong><small>DEMO</small></span>'})
      }).addTo(map);
      marker.on('click',()=>{followId=observation.id;updateSelect();follow();});
@@ -66,8 +83,10 @@
     }
     entry.data=observation;
     entry.marker.setLatLng([observation.latitude,observation.longitude]);
+    entry.marker.getElement()?.style.setProperty('--demo-heading',observation.heading.toFixed(1)+'deg');
    }
    if(changed){
+    highlightId=null;highlight();
     $('busCount').textContent=String(sample.length);
     updateSelect();info();
    }
@@ -79,7 +98,9 @@
    if(lastTick===null){lastTick=now;return;}
    const delta=Math.min(0.3,Math.max(0,(now-lastTick)/1000));
    lastTick=now;
-   if(!paused&&!document.hidden){elapsed+=delta;render();}
+   // Scale only the *new* elapsed interval. Changing speed must not teleport
+   // the bus by retrospectively multiplying all prior elapsed time.
+   if(!paused&&!document.hidden){elapsed+=delta*speed;render();}
   }
   function setRoutes(routes){
    if(!active)return;
@@ -96,7 +117,7 @@
      next.push(code);
     }catch{/* Missing/invalid original route is never synthesized. */}
    }
-   profileIds=next;
+   profileIds=next;markerSize();
    render();
   }
   function activate(routes=[]){
@@ -105,15 +126,18 @@
    $('demoControls').hidden=false;$('demoStamp').hidden=false;
    $('demoBanner').hidden=false;$('app').classList.add('is-demo');
    $('demoPause').textContent='Pause';$('demoPause').setAttribute('aria-pressed','false');
-   $('demoSpeed').value='1';$('refresh').disabled=true;
+   $('demoSpeed').value='1';$('demoMarkerSize').value='auto';$('refresh').disabled=true;
+   $('realGpsLegend').hidden=true;$('demoGpsLegend').hidden=false;
    setRoutes(routes);
-   timer=setInterval(tick,100);
+   timer=setInterval(tick,85);
   }
   function deactivate(){
    if(timer!==null)clearInterval(timer);timer=null;
    active=false;paused=false;profileIds=[];lastTick=null;
    clear();$('demoControls').hidden=true;$('demoStamp').hidden=true;
    $('demoBanner').hidden=true;$('app').classList.remove('is-demo');
+   delete $('app').dataset.demoMarkerSize;
+   $('realGpsLegend').hidden=false;$('demoGpsLegend').hidden=true;
    $('refresh').disabled=false;
   }
   function pauseToggle(){
@@ -137,10 +161,12 @@
   }
   $('demoPause').onclick=pauseToggle;
   $('demoSpeed').onchange=()=>setSpeed($('demoSpeed').value);
+  $('demoMarkerSize').onchange=markerSize;
+  map.on('zoomend',()=>{if(active&&$('demoMarkerSize').value==='auto')markerSize();});
   document.addEventListener('visibilitychange',()=>{lastTick=null;});
   return {activate,deactivate,setRoutes,fit,follow,
    selectFollow(id){followId=id;follow();},
-   stopFollow(){followId='';updateSelect();$('followDetail').hidden=true;},
+   stopFollow(){followId='';updateSelect();highlight();$('followDetail').hidden=true;},
    get active(){return active;},get count(){return markers.size;}};
  }
  root.InTransitDemoMode={setup};
