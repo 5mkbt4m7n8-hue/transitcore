@@ -33,6 +33,7 @@
    $('app').classList.toggle('demo-following',Boolean(followId));
    for(const [id,entry] of markers){
     entry.marker.getElement()?.classList.toggle('demo-follow-selected',id===followId);
+    entry.marker.setZIndexOffset(id===followId?1200:0);
    }
   }
   function markerSize(){
