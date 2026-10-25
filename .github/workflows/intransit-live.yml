@@ -1,0 +1,38 @@
+name: InTransit Live Line 1 map tests
+on:
+  pull_request:
+    paths:
+      - 'web/linear/live/**'
+      - 'web/linear/geo/line1-gps.js'
+      - 'config/routes/atb-bus-1-live.json'
+      - 'scripts/test-intransit-live.mjs'
+      - 'scripts/browser-intransit-live.mjs'
+      - '.github/workflows/intransit-live.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'web/linear/live/**'
+      - 'web/linear/geo/line1-gps.js'
+      - 'scripts/test-intransit-live.mjs'
+      - 'scripts/browser-intransit-live.mjs'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Validate source route and strict GPS model
+        run: node scripts/test-intransit-live.mjs
+      - name: Install pinned Playwright, Chromium and Leaflet
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1 leaflet@1.9.4
+          npx playwright install --with-deps chromium
+      - name: Verify route, stops, bus following, 404 and mobile in Chromium
+        run: node scripts/browser-intransit-live.mjs
