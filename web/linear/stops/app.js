@@ -22,7 +22,7 @@
   const boards=[catalog,bus,shared,fly],initialIds=new Set(layout.stops.map(stop=>stop.id));
   if(initialIds.size!==layout.stops.length)throw Error('Originalkartet har dupliserte stopp-ID-er.');
   const key=N.KEY;
-  let geo,rows=[],selected='',lastFilter=[];
+  let geo,rows=[],selected='',lastFilter=[],reviewUI=null;
   const announce=message=>{$('notice').textContent=message;};
   function refreshData(){
    // Never overwrite an incompatible draft. Browsing remains possible but
@@ -45,6 +45,7 @@
   function showDetails(){
    const row=rows.find(x=>x.id===selected),dl=$('facts');
    $('renameForm').hidden=!row;$('jump').hidden=!row;
+   $('reviewFocus').hidden=!row||row.nameConfirmed;
    if(!row){$('detailTitle').textContent='Velg en holdeplass';$('detailSubtitle').textContent='Velg en rad for å kontrollere data og redigere lokalt navn.';dl.replaceChildren();return;}
    $('detailTitle').textContent=row.displayName;
    $('detailSubtitle').textContent=row.id+' · '+(row.nameConfirmed?'Originalnavn bekreftet':'Originalnavn ikke bekreftet');
@@ -95,6 +96,7 @@
   }
   $('renameForm').addEventListener('submit',e=>{e.preventDefault();applyRename($('alias').value);});
   $('reset').addEventListener('click',()=>applyRename(''));
+  $('reviewFocus').addEventListener('click',()=>{if(reviewUI)reviewUI.focus(selected);});
   for(const id of ['search','filter','sort'])$(id).addEventListener(id==='search'?'input':'change',draw);
   $('export').addEventListener('click',()=>{
    const csv=M.csv(lastFilter),blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
@@ -111,6 +113,9 @@
   const requested=new URLSearchParams(location.search).get('stop');
   selected=initialIds.has(requested)?requested:'';
   draw();showDetails();
+  reviewUI=root.InTransitReviewUI.mount({layout,getRows:()=>rows,onAliasSaved:()=>{
+   const preserved=selected;refreshData();selected=preserved;draw();showDetails();
+  }});
  }
  init().catch(error=>{
   $('notice').textContent='Kunne ikke laste holdeplassadministrasjonen: '+error.message;
