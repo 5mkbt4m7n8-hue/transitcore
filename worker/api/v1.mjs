@@ -3,6 +3,7 @@ import {resolveVisual} from "../../core/models/runtime-visual.mjs";
 import {fetchAtbLineGps, validAtbLineCode} from "../atb-line1-gps.mjs";
 import {fetchAtbFleetGps} from "../atb-fleet-gps.mjs";
 import {fetchMiniDepartures, validStopId} from "../mini-departures.mjs";
+import {searchMiniStops, validQuery} from "../mini-stop-search.mjs";
 const json=(body,status=200)=>Response.json(body,{status,headers:{"cache-control":"no-store","access-control-allow-origin":"*"}});
 const error=(code,status)=>json({error:code},status);
 const idPattern="[a-z0-9_-]{3,120}";
@@ -22,6 +23,15 @@ export async function apiV1(request, env, services) {
   };
   if(path==="/api/v1/devices"||new RegExp("^/api/v1/devices/("+idPattern+")$").test(path))
     return services.fleet(request);
+  // Current Entur Geocoder v3 NSR StopPlace autocomplete; never search non-stops.
+  if(path==="/api/v1/mini/stop-search"){
+    if(request.method!=="GET")return error("method_not_allowed",405);
+    const query=url.searchParams.get("q");
+    if(!validQuery(query))return error("invalid_query",400);
+    try{return json(await searchMiniStops(query));}
+    catch(e){return error(e?.message==="geocoder_unavailable"?"geocoder_unavailable":
+      e?.message==="invalid_geocoder_response"?"invalid_geocoder_response":"geocoder_error",503);}
+  }
   // Independent read-only departure board. Stop IDs are strict NSR:StopPlace
   // identifiers and GraphQL is called with variables, never string interpolation.
   if(path==="/api/v1/mini/departures"){
