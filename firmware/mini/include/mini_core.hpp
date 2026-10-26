@@ -12,12 +12,20 @@ namespace mini {
 enum class PanelKind { Led, Mono, Lcd };
 enum class Palette { Rgb, Amber, Mono };
 enum class Mode { Demo, Live };
-struct Profile { uint16_t width=64,height=64; PanelKind kind=PanelKind::Led; };
+struct Profile {
+  uint16_t width,height;
+  PanelKind kind;
+  Profile(uint16_t w=64,uint16_t h=64,PanelKind k=PanelKind::Led):
+    width(w),height(h),kind(k){}
+};
 struct Layout { uint16_t header=0,footer=0,rowHeight=9,rows=1,fontSize=6; bool compact=false; };
 struct Departure {
   std::string line,destination;
-  int64_t epoch=0; // absolute Unix seconds in UTC
-  bool realtime=false,cancelled=false;
+  int64_t epoch; // absolute Unix seconds in UTC
+  bool realtime,cancelled;
+  Departure(const std::string &l="",const std::string &d="",int64_t e=0,
+            bool rt=false,bool can=false):
+    line(l),destination(d),epoch(e),realtime(rt),cancelled(can){}
 };
 struct Board {
   std::string stopId="NSR:StopPlace:41613",stopName="Prinsens gate";
@@ -107,7 +115,7 @@ inline Board demoBoard(int64_t now,const std::string &stopId="NSR:StopPlace:4161
     "Romolslia","Dragvoll","Spongdal","Lund","Vestlia"};
   constexpr int mins[]={2,5,7,12,16,21,27,33,39,45};
   for(size_t i=0;i<10;i++){
-    out.departures[i]={lines[i],names[i],now+mins[i]*60,(i%2)==0,false};
+    out.departures[i]=Departure(lines[i],names[i],now+mins[i]*60,(i%2)==0,false);
   }
   out.count=10;
   return out;
@@ -122,7 +130,10 @@ struct Display {
   virtual void text(int x,int y,const std::string& text,uint16_t color,uint8_t scale)=0;
   virtual void present()=0;
 };
-struct Stats { uint8_t rows=0,visible=0; };
+struct Stats {
+  uint8_t rows,visible;
+  Stats(uint8_t r=0,uint8_t v=0):rows(r),visible(v){}
+};
 inline Stats draw(Display &display,Profile p,Palette palette,const Board &board,int64_t now){
   if(!validProfile(p)||display.width()!=p.width||display.height()!=p.height)
     return {};
@@ -151,7 +162,7 @@ inline Stats draw(Display &display,Profile p,Palette palette,const Board &board,
   }
   if(!board.valid){
     text(pad,g.header+2,"DATA FEIL",col.alert,w-2*pad,1);
-    return {static_cast<uint8_t>(g.rows),0};
+    return Stats(static_cast<uint8_t>(g.rows),0);
   }
   int visible=0;
   for(size_t i=0;i<board.count&&visible<g.rows;i++){
@@ -180,6 +191,6 @@ inline Stats draw(Display &display,Profile p,Palette palette,const Board &board,
     display.rect(0,h-g.footer,w,1,col.accent);
     text(pad,h-g.footer+2,demo?"SIMULERT":"AVGANGER",col.dim,w-2*pad,1);
   }
-  return {static_cast<uint8_t>(g.rows),static_cast<uint8_t>(visible)};
+  return Stats(static_cast<uint8_t>(g.rows),static_cast<uint8_t>(visible));
 }
 } // namespace mini
