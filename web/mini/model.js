@@ -70,6 +70,22 @@
     realtime,cancelled:false
    }))};
  }
+ // Available selectors are derived only from the currently loaded departure board.
+ function filterChoices(board){
+  const entries=Array.isArray(board?.departures)?board.departures:[];
+  const lines=[...new Set(entries.filter(v=>!v.cancelled).map(v=>v.line))]
+   .sort((a,b)=>a.localeCompare(b,'nb',{numeric:true}));
+  return {lines, destinations:[...new Set(entries.filter(v=>!v.cancelled).map(v=>v.destination))]
+    .sort((a,b)=>a.localeCompare(b,'nb'))};
+ }
+ function filterBoard(board,{lines=null,destination=''}={}){
+  if(!board||!Array.isArray(board.departures))throw Error('Mangler avganger');
+  if(lines!==null&&!(lines instanceof Set)&&!Array.isArray(lines))
+    throw Error('Ugyldig linjefilter');
+  const selected=lines===null?null:new Set(lines);
+  return {...board,departures:board.departures.filter(v=>
+   (selected===null||selected.has(v.line))&&(!destination||v.destination===destination))};
+ }
  function mins(at,now=Date.now()){
   const delta=Date.parse(at)-now;
   return Number.isFinite(delta)?Math.max(0,Math.ceil(delta/60000)):null;
@@ -98,5 +114,5 @@
   return {header,footer,rowHeight,rows,fontSize,compact:small,isTall};
  }
  return {PROFILES,PRESETS,palettes,validStopId,profile,validDeparture,normalize,demo,
-  mins,formatClock,labelTime,geometry};
+  mins,formatClock,labelTime,geometry,filterChoices,filterBoard};
 });

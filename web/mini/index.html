@@ -41,13 +41,35 @@
      <option value="NSR:StopPlace:41742">Trondheim S</option>
      <option value="custom">Annet stopp (NSR-ID)</option>
     </select></label>
+    <section class="search-panel" aria-labelledby="searchTitle">
+     <h3 id="searchTitle">Finn holdeplass etter navn</h3>
+     <label for="stopSearch">Søk holdeplass
+      <input id="stopSearch" type="search" autocomplete="off" spellcheck="false"
+       placeholder="F.eks. Prinsens gate eller Trondheim S"
+       aria-controls="stopResults" aria-describedby="searchStatus">
+     </label>
+     <div id="searchStatus" class="small" aria-live="polite">DEMO: søk blant eksempelholdeplasser. Velg Entur for søk i alle registrerte stopp.</div>
+     <div id="stopResults" class="stop-results" role="group" aria-label="Holdeplasser fra søk" hidden></div>
+    </section>
     <label id="customStopField" hidden>Entur StopPlace-ID <input type="text" id="customStop" placeholder="NSR:StopPlace:41613" autocomplete="off" spellcheck="false"></label>
+    <section class="filter-panel" aria-labelledby="filterTitle">
+     <div class="section-title minor"><h2 id="filterTitle">Vis bare disse avgangene</h2><span>03 / FILTER</span></div>
+     <div class="filter-header"><strong id="filterSummary">Alle linjer og retninger</strong><button type="button" class="outline" id="resetFilters">Nullstill</button></div>
+     <div class="filter-actions"><button type="button" class="outline" id="selectAllLines">Alle linjer</button><button type="button" class="outline" id="clearAllLines">Ingen linjer</button></div>
+     <div id="lineFilters" class="line-filters" role="group" aria-label="Filtrer linjenummer">
+      <p class="small">Henter linjer fra valgte holdeplass.</p>
+     </div>
+     <label>Retning / destinasjon
+      <select id="direction"><option value="">Alle retninger</option></select>
+     </label>
+     <p class="small">Filtrene påvirker bare hvilke avganger som tegnes, ikke selve Entur-dataene. DEMO er alltid simulert.</p>
+    </section>
     <div class="buttons"><button type="button" id="refresh">Oppdater avganger</button><button type="button" class="outline" id="downloadImage">Eksporter PNG</button></div>
     <button type="button" class="outline full" id="downloadConfig">Eksporter skjermprofil (JSON)</button>
     <p id="status" role="status" aria-live="polite">DEMO er valgt. Avgangene er eksempler, ikke sanntid.</p>
    </section>
    <section class="viewer panel" aria-labelledby="previewTitle">
-    <div class="section-title"><h2 id="previewTitle">Skjermsimulator</h2><span>03 / FORHÅNDSVISNING</span></div>
+    <div class="section-title"><h2 id="previewTitle">Skjermsimulator</h2><span>04 / FORHÅNDSVISNING</span></div>
     <div class="meta"><span class="chip" id="sourceBadge">DEMO · SIMULERT</span><span id="profileLabel">64 × 64 RGB LED</span></div>
     <div class="screen-wrap">
      <div class="screen"><canvas id="preview" width="448" height="448" role="img" aria-label="Forhåndsvisning av digital avgangstavle med valgte dimensjoner"></canvas></div>

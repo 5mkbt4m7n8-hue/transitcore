@@ -1,5 +1,40 @@
 # InTransit Mini – universell avgangstavle for LED, OLED og TFT
 
+## Mini 2.0 – søk, linjer og destinasjon
+
+Du kan nå søke etter holdeplasser med navn som «Prinsens gate»
+og «Trondheim S» i websimulatoren, i stedet for å kjenne
+`NSR:StopPlace`-nummer. **DEMO** søker kun blant de to
+eksempelholdeplassene lokalt, uten nettverkskall. I **Entur**
+bruker søkeboksen den isolerte Worker-ruten
+`GET /api/v1/mini/stop-search?q=Trondheim`, som henter
+offisielle **Entur Geocoder v3**-data via `/v3/autocomplete`
+med `layers=stopPlace` og `sources=nsr`.
+Geocoder v1/v2 ble avviklet i juni 2026.
+Vi viser bare gyldige NSR StopPlace-ID-er, aldri tilfeldige adresser,
+POI-er eller Quay-resultater. Et feilende søk påvirker ikke
+avganger som allerede er lastet.
+
+**Filtrer avganger** bygger tilgjengelige linjenummer og retninger
+fra den valgte holdeplassens faktisk innhentede avganger.
+Du kan huke av flere linjer, velge én konkret destinasjon,
+eller bruke «Alle linjer»/«Ingen linjer»/«Nullstill».
+Ved nytt stopp tilbakestilles filtrene.
+Ingen avganger endres eller flyttes: filtrene velger bare hvilke
+observasjoner som tegnes på den valgte skjermoppløsningen,
+fra 32×16 LED til større TFT.
+
+Eksportert skjermprofil (JSON) inneholder nå valgte
+linjenummer og destinasjon. ESP32-firmwaren tar ennå
+ikke automatisk inn denne profilen; fysisk konfigurasjon
+tas senere. Ingen lokale redigeringsutkast eller
+eksisterende LED-tavler berøres.
+
+Entur-søket krever riktig aktiv Cloudflare Worker-versjon.
+DEMO, forhåndsvalgte holdeplasser og manuell NSR-ID
+fungerer uavhengig av søke-endepunktet.
+
+
 Nettside: `/web/mini/` (på GitHub Pages: `https://5mkbt4m7n8-hue.github.io/transitcore/web/mini/`).
 
 ## Arkitektur: én visningsmotor, ulike paneltyper
