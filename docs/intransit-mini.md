@@ -1,5 +1,40 @@
 # InTransit Mini – universell avgangstavle for LED, OLED og TFT
 
+## Mini 3.0 – lagrede skjermer og fire design
+
+Under **Mine skjermoppsett** kan du navngi opptil 12 konfigurasjoner,
+for eksempel *Hjem*, *Jobb* og *Trondheim S*. Velg et lagret oppsett
+for å gjenopprette skjermformat, LED/OLED/TFT-type, farger, lysstyrke,
+holdeplass, valgt linje/retning og design. Bruk «Lagre som nytt»,
+«Oppdater valgt» eller «Slett» etter behov.
+
+**Viktig om lagring:** Profilene lagres **lokalt i denne
+nettleseren** på samme enhet under den dedikerte nøkkelen
+`intransit-mini:v3:presets`; de synkroniseres ikke automatisk
+mellom mobil og PC. Eksporter et valgt oppsett som JSON for å
+importere på en annen enhet. Import får alltid en ny lokal ID,
+slik at den ikke overskriver eksisterende profiler.
+Ingen GPS-data, kjøretøy-ID-er, tokens eller rå Entur-avganger
+lagres i oppsettene. Maks 12. Andre TransitCore-utkast røres ikke.
+
+Under **Visningsdesign** kan du velge:
+
+- **Klassisk avgangstavle:** eksisterende Mini-utforming.
+- **Kompakt liste:** flere små rader der pikselstørrelsen tillater det.
+- **Stor neste avgang:** ett tydelig linjenummer og nedtelling.
+- **Klokke og neste avgang:** stor lokal klokke samt neste buss.
+
+Designene tegnes inn i den ekte pikselbufferen, ikke som
+nettleser-HTML over skjermen. De er derfor også synlige i PNG-eksport
+i for eksempel 32×16, 64×64 og 240×135.
+
+Profil-JSON er foreløpig beregnet på **websimulatoren**; ESP32
+kan ikke ennå importere eller automatisk bytte mellom disse
+designene. Mini-firmwaren og de eksisterende LED-kartene endres
+ikke av Mini 3.0. DEMO forblir helt frakoblet Worker og Entur;
+velges Live i en lagret profil, forsøker den å hente ferske
+avgangsdata i stedet for å bruke sist lagrede tidspunkt.
+
 ## Mini 2.0 – søk, linjer og destinasjon
 
 Du kan nå søke etter holdeplasser med navn som «Prinsens gate»
