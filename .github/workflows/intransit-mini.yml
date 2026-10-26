@@ -4,6 +4,8 @@ on:
     paths:
       - 'web/mini/**'
       - 'worker/mini-departures.mjs'
+      - 'worker/mini-stop-search.mjs'
+      - 'scripts/test-mini-stop-search.mjs'
       - 'worker/api/v1.mjs'
       - 'scripts/test-intransit-mini.mjs'
       - 'scripts/browser-intransit-mini.mjs'
@@ -32,6 +34,8 @@ jobs:
           node-version: '22'
       - name: Check display profiles, Entur contract and independent API
         run: node scripts/test-intransit-mini.mjs
+      - name: Validate Entur v3 stop search and departure filter model
+        run: node scripts/test-mini-stop-search.mjs
       - name: Live Entur stopPlace schema probe (nonblocking)
         continue-on-error: true
         run: node scripts/probe-mini-entur.mjs
