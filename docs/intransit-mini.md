@@ -66,12 +66,18 @@ Brukerens egen Cloudflare-produksjon må eksponere den nye ruten
 før nettversjonen kan vise ekte avganger. Merget GitHub-kode betyr
 ikke nødvendigvis aktiv Worker-deploy.
 
-## Plan for fysisk prototype
+## ESP32 – eget firmwaregrunnlag
 
-Denne leveransen er **websimulator + kildekobling**, ikke
-flashet ESP32-firmware. Neste steg kan være en liten
-`MiniDisplay`-abstraksjon med `setPixel`, `fillRect`, `drawText`,
-`flush`, og drivere for:
+Første port av Mini til ESP32-S3 er nå lagt i `firmware/mini/`
+med et felles C++-grensesnitt for LED/OLED/TFT, utskiftbare drivere,
+DEMO-start og sertifikatvalidert Live-opt-in.
+
+**[Komplett bygg-, pinne- og sikkerhetsguide](intransit-mini-firmware.md)**
+
+Dette er firmwaregrunnlaget; fysisk HUB75- og TFT-kobling og testing
+gjenstår til eksakt skjerm og kontroller er kjent.
+
+Maskinvare som kan støttes:
 
 - HUB75 RGB-panel (f.eks. 64 × 64), vanligvis med ESP32-S3,
   PSRAM og riktig HUB75/DMA-driver.
