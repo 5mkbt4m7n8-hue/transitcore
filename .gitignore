@@ -3,3 +3,7 @@
 .cache/
 .build/
 
+
+# InTransit Mini local PlatformIO build and private TLS/Wi-Fi configuration
+firmware/mini/.pio/
+firmware/mini/include/mini_secrets.h
