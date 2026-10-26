@@ -257,7 +257,7 @@
    const visibleBoard=M.filterBoard(board,{lines:selectedLines,destination:selectedDestination});
    const drawn=R.draw(frame,profile,visibleBoard,{demo,now:Date.now(),
     palette:$('palette').value,design:$('design').value});
-   R.preview(frame,$('preview'),profile);
+   R.preview(frame,$('preview'),profile,{view:$('previewView').value});
    $('preview').style.aspectRatio=profile.width+'/'+profile.height;
    $('preview').style.filter='brightness('+Number($('brightness').value)/100+')';
    $('profileLabel').textContent=profile.width+' × '+profile.height+' · '+typeName(profile.kind);
@@ -356,7 +356,7 @@
  $('profile').onchange=()=>{
   $('customFields').hidden=$('profile').value!=='custom';render();
  };
- for(const id of ['width','height','kind','palette','brightness','design']){
+ for(const id of ['width','height','kind','palette','brightness','design','previewView']){
   $(id).addEventListener(id==='width'||id==='height'?'input':'change',render);
  }
  $('stop').onchange=()=>{

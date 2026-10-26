@@ -123,3 +123,5 @@ button:disabled{opacity:.45;cursor:default}.full{width:100%}
  .rotation-profiles{grid-template-columns:1fr}
  .rotation-controls button{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.rotation-progress span{transition:none}}
+
+.viewer select{font:inherit;padding:8px;background:#1b3249;color:var(--text);border:1px solid #64809a;border-radius:8px}

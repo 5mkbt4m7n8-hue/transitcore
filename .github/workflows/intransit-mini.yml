@@ -2,6 +2,8 @@ name: InTransit Mini display simulator
 on:
   pull_request:
     paths:
+      - 'scripts/*mini-font.mjs'
+      - 'firmware/mini/include/mini_font.hpp'
       - 'web/mini/**'
       - 'worker/mini-departures.mjs'
       - 'worker/mini-stop-search.mjs'
@@ -34,6 +36,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+      - name: Check shared bitmap font and compiled firmware pixel parity
+        run: node scripts/test-mini-font.mjs
       - name: Check display profiles, Entur contract and independent API
         run: node scripts/test-intransit-mini.mjs
       - name: Validate Entur v3 stop search and departure filter model

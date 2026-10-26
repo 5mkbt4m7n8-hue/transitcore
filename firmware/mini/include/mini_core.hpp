@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <ctime>
 #include <string>
+#include "mini_font.hpp"
 
 namespace mini {
 enum class PanelKind { Led, Mono, Lcd };
@@ -126,7 +127,7 @@ struct Display {
   virtual uint16_t height()const=0;
   virtual void clear(uint16_t color)=0;
   virtual void rect(int x,int y,int width,int height,uint16_t color)=0;
-  // Text draws with a native 5x7 GFX font and integer scaling. 1 => 6x8 cell.
+  // HUB75 uses shared 3x5 bitmap glyphs; other adapters retain native text.
   virtual void text(int x,int y,const std::string& text,uint16_t color,uint8_t scale)=0;
   virtual void present()=0;
 };
@@ -144,6 +145,9 @@ inline Stats draw(Display &display,Profile p,Palette palette,const Board &board,
   const int gap=std::max(1,static_cast<int>(w*.025));
   const bool demo=board.mode==Mode::Demo;
   auto text=[&](int x,int y,const std::string &input,uint16_t color,int width,uint8_t scale){
+    if(p.kind==PanelKind::Led){
+      display.text(x,y,font::fit(input,width,scale),color,scale);return;
+    }
     if(width<6*scale)return;
     const std::string clean=ascii(input);
     const size_t max=static_cast<size_t>(std::max(0,width/(6*scale)));
@@ -181,7 +185,8 @@ inline Stats draw(Display &display,Profile p,Palette palette,const Board &board,
     else if(destW>g.fontSize*1.4)text(destX,baseline,d.destination,col.fg,destW,scale);
     const std::string timer=g.compact?std::to_string(minutesUntil(d.epoch,now)):
       timeLabel(d,now);
-    const int tw=std::min<int>(timer.size(),timeW/(6*scale))*6*scale;
+    const int tw=p.kind==PanelKind::Led?font::width(font::fit(timer,timeW,scale),scale):
+      std::min<int>(timer.size(),timeW/(6*scale))*6*scale;
     text(w-pad-tw,baseline,timer,d.realtime?col.ok:col.accent,timeW,scale);
     visible++;
   }
