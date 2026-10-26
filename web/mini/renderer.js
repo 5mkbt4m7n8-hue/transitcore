@@ -102,6 +102,9 @@
   ctx.textBaseline='top';ctx.textAlign='left';ctx.font='bold '+g.fontSize+'px monospace';
   const pad=w<=48?1:Math.max(2,Math.floor(w*.04));
   const gap=Math.max(1,Math.floor(w*.025)),statusWidth=Math.min(w*.35,Math.max(15,w*.28));
+  const design=['compact','bold','clock'].includes(opts.design)?opts.design:'classic';
+  const all=(board.departures||[]).filter(x=>x&&!x.cancelled);
+  if(design!=='classic')return alternative(ctx,design,profile,g,board,all,now,color,demo,pad);
   if(g.header){
    ctx.fillStyle=color.accent;ctx.fillRect(0,g.header-1,w,1);
    const topFont=Math.max(6,Math.min(g.fontSize+1,g.header-2));
@@ -114,9 +117,6 @@
     ctx.textAlign='left';
    }
   }
-  const design=['compact','bold','clock'].includes(opts.design)?opts.design:'classic';
-  const all=(board.departures||[]).filter(x=>x&&!x.cancelled);
-  if(design!=='classic')return alternative(ctx,design,profile,g,board,all,now,color,demo,pad);
   const departures=all.slice(0,g.rows);
   const start=g.header;
   for(let i=0;i<g.rows;i++){
