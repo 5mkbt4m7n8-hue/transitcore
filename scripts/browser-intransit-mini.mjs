@@ -160,11 +160,80 @@ try{
  assert.match(await page.locator('#sourceBadge').innerText(),/DEMO/);
  const callsBefore=apiCalls;
  await page.locator('#refresh').click();assert.equal(apiCalls,callsBefore);
+ // Mini 3.0: designs are independent, pixel-accurate framebuffer renderers.
+ await page.locator('#profile').selectOption('led-64x64');
+ const images=[];
+ for(const design of ['classic','compact','bold','clock']){
+  await page.locator('#design').selectOption(design);
+  images.push(await page.locator('#frame').evaluate(el=>el.toDataURL('image/png')));
+ }
+ assert.equal(new Set(images).size,4,'Every display design must render different real pixels');
+ await page.locator('#design').selectOption('bold');
+ await page.locator('#clearAllLines').click();
+ await page.locator('#lineFilters input[value="1"]').check();
+ await page.locator('#direction').selectOption('Ranheim');
+ await page.locator('#presetName').fill('Hjem');
+ await page.locator('#savePreset').click();
+ await page.waitForFunction(()=>document.querySelector('#presetStatus')?.textContent.includes('Lagret'));
+ assert.equal(await page.locator('#savedPreset option').count(),2);
+ assert.equal(await page.locator('#updatePreset').isDisabled(),false);
+ assert.equal(await page.locator('#rowsValue').innerText(),'1 / 1');
+ const home=await page.locator('#savedPreset').inputValue();
+ assert(home.startsWith('mini-'));
+ const localKeys=await page.evaluate(()=>Object.keys(localStorage));
+ assert.deepEqual(localKeys,['intransit-mini:v3:presets'],
+  'Mini storage must not touch transit drawing drafts or other products');
+ await page.locator('#profile').selectOption('lcd-240x135');
+ await page.locator('#design').selectOption('clock');
+ await page.locator('#stop').selectOption('NSR:StopPlace:41742');
+ await page.locator('#presetName').fill('Jobb');
+ await page.locator('#savePreset').click();
+ assert.equal(await page.locator('#savedPreset option').count(),3);
+ assert.equal(await page.locator('#profile').inputValue(),'lcd-240x135');
+ await page.locator('#savedPreset').selectOption(home);
+ assert.equal(await page.locator('#profile').inputValue(),'led-64x64');
+ assert.equal(await page.locator('#design').inputValue(),'bold');
+ assert.equal(await page.locator('#direction').inputValue(),'Ranheim');
+ assert.equal(await page.locator('#rowsValue').innerText(),'1 / 1');
+ assert.equal(await page.locator('#presetName').inputValue(),'Hjem');
+ const profileExport=page.waitForEvent('download');
+ await page.locator('#exportPreset').click();
+ const exported=await profileExport;
+ const data=JSON.parse(await readFile(await exported.path(),'utf8'));
+ assert.equal(data.version,3);
+ assert.equal(data.value.display.design,'bold');
+ assert.deepEqual(data.value.datasource.filters.lines,['1']);
+ assert.equal(data.value.datasource.filters.destination,'Ranheim');
+ await page.locator('#design').selectOption('compact');
+ await page.locator('#presetName').fill('Hjem oppdatert');
+ await page.locator('#updatePreset').click();
+ assert.equal(await page.locator('#savedPreset option').count(),3,
+  'Updating saved setup must not create extra slot');
+ assert.equal(await page.locator('#presetName').inputValue(),'Hjem oppdatert');
+ await page.reload();
+ assert.equal(await page.locator('#savedPreset option').count(),3,
+  'Named Mini settings must survive a full page reload');
+ await page.locator('#savedPreset').selectOption(home);
+ assert.equal(await page.locator('#design').inputValue(),'compact');
+ assert.equal(await page.locator('#direction').inputValue(),'Ranheim');
+ // Import saves as NEW identity rather than overwriting Hjem oppdatert.
+ await page.locator('#importPreset').setInputFiles({name:'mini-import.json',
+  mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))});
+ await page.waitForFunction(()=>document.querySelector('#presetStatus')?.textContent.includes('Importerte'));
+ assert.equal(await page.locator('#savedPreset option').count(),4);
+ assert.equal(await page.locator('#design').inputValue(),'bold');
+ page.once('dialog',dialog=>dialog.accept());
+ await page.locator('#deletePreset').click();
+ assert.equal(await page.locator('#savedPreset option').count(),3);
+ assert.equal(await page.locator('#profile').inputValue(),'led-64x64');
+ assert.equal(await page.evaluate(()=>Object.keys(localStorage).join(',')),
+  'intransit-mini:v3:presets');
  await page.setViewportSize({width:390,height:844});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,
   'Mini simulator must fit narrow iPhone viewport');
  assert.equal(await page.locator('#preview').isVisible(),true);
- assert.equal(await page.evaluate(()=>localStorage.length),0,'Mini must not change existing editor drafts');
+ assert.deepEqual(await page.evaluate(()=>Object.keys(localStorage)),['intransit-mini:v3:presets'],
+  'Only Mini storage key may be used; original TransitCore drafts must remain untouched');
  assert.deepEqual(errors,[],'No JS errors');
  console.log('InTransit Mini Chromium: 64/32/128 LED, TFT 240×135, custom 96×48 OLED, PNG/JSON, live 404/200, mobile PASS');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

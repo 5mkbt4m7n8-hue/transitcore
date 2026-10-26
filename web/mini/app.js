@@ -1,11 +1,118 @@
 // Browser-only Mini control surface; DEMO works without Worker or Internet.
 (function(root){
  'use strict';
- const M=root.InTransitMiniModel,R=root.InTransitMiniRenderer,$=id=>document.getElementById(id);
+ const M=root.InTransitMiniModel,R=root.InTransitMiniRenderer,P=root.InTransitMiniPresets,$=id=>document.getElementById(id);
  const API='https://transitcore-led-feed.lgb84.workers.dev/api/v1/mini/departures';
  let board=null,profile=null,liveRequest=0,working=false,lastStopId='',errorState=false;
  let selectedLines=null,selectedDestination='',selectedStopName='';
  let searchToken=0,searchTimer=null,searchAbort=null;
+ const storage=(()=>{try{return root.localStorage;}catch{return null;}})();
+ const initial=storage?P.load(storage):{items:[],error:'Nettleseren tillater ikke lokal lagring.'};
+ let saved=initial.items,activePreset='';
+ function presetStatus(message){$('presetStatus').textContent=message;}
+ function refreshPresetSelect(){
+  const el=$('savedPreset');
+  el.replaceChildren(new Option('Nytt / ulagret oppsett',''),
+   ...saved.map(p=>new Option(p.name,p.id)));
+  if(!saved.some(x=>x.id===activePreset))activePreset='';
+  el.value=activePreset;
+  $('updatePreset').disabled=!activePreset;
+  $('deletePreset').disabled=!activePreset;
+  $('exportPreset').disabled=!activePreset;
+ }
+ function capturePreset(){
+  const p=displayProfile(),stop=currentStop();
+  return P.config({hardware:{profileId:p.id,width:p.width,height:p.height,type:p.kind},
+   display:{palette:$('palette').value,brightnessPercent:Number($('brightness').value),
+    design:$('design').value},
+   datasource:{mode:$('source').value,stopId:stop.id,stopName:stop.name,
+    filters:{lines:selectedLines===null?null:[...selectedLines],
+     destination:selectedDestination||null}}});
+ }
+ function generatePresetId(){
+  return 'mini-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9);
+ }
+ function commitPreset(item){
+  if(!storage)throw Error('Lokal lagring er ikke tilgjengelig. Prøv eksport i stedet.');
+  saved=P.upsert(storage,saved,item);
+  activePreset=item.id;
+  refreshPresetSelect();
+ }
+ function selectedPreset(){
+  return saved.find(x=>x.id===activePreset)||null;
+ }
+ function applyPreset(item){
+  const v=P.config(item.value);
+  searchReset();invalidateLive();
+  activePreset=item.id;
+  $('presetName').value=item.name;
+  $('profile').value=v.hardware.profileId;
+  $('customFields').hidden=v.hardware.profileId!=='custom';
+  $('width').value=String(v.hardware.width);$('height').value=String(v.hardware.height);
+  $('kind').value=v.hardware.type;
+  $('palette').value=v.display.palette;
+  $('design').value=v.display.design;
+  $('brightness').value=String(v.display.brightnessPercent);
+  $('source').value=v.datasource.mode;
+  const preset=M.PRESETS.find(x=>x.id===v.datasource.stopId);
+  const sameLabel=preset&&preset.name===v.datasource.stopName;
+  if(sameLabel){
+   $('stop').value=preset.id;selectedStopName='';$('customStop').value='';
+   $('customStopField').hidden=true;
+  }else{
+   $('stop').value='custom';$('customStopField').hidden=false;
+   $('customStop').value=v.datasource.stopId;selectedStopName=v.datasource.stopName;
+  }
+  $('stopSearch').value='';
+  selectedLines=v.datasource.filters.lines===null?null:new Set(v.datasource.filters.lines);
+  selectedDestination=v.datasource.filters.destination||'';
+  refreshPresetSelect();
+  reloadData();
+  presetStatus('Aktivt oppsett: '+item.name+'. Data hentes på nytt; avgangstider er ikke lagret.');
+ }
+ function createPreset(){
+  try{
+   const name=$('presetName').value.trim();
+   const item=P.savedItem({id:generatePresetId(),name,value:capturePreset()});
+   commitPreset(item);presetStatus('Lagret «'+item.name+'» i denne nettleseren.');
+  }catch(e){presetStatus('Kunne ikke lagre: '+e.message);}
+ }
+ function updatePreset(){
+  const current=selectedPreset();if(!current)return;
+  try{
+   const item=P.savedItem({id:current.id,name:$('presetName').value.trim(),
+    value:capturePreset()});
+   commitPreset(item);presetStatus('Oppdatert «'+item.name+'».');
+  }catch(e){presetStatus('Kunne ikke oppdatere: '+e.message);}
+ }
+ function deletePreset(){
+  const item=selectedPreset();if(!item||!storage)return;
+  if(!root.confirm('Slett oppsettet «'+item.name+'» fra denne nettleseren?'))return;
+  try{
+   saved=P.remove(storage,saved,item.id);activePreset='';
+   refreshPresetSelect();presetStatus('Slettet «'+item.name+'» fra denne nettleseren.');
+  }catch(e){presetStatus('Kunne ikke slette: '+e.message);}
+ }
+ function exportPreset(){
+  const item=selectedPreset();if(!item)return;
+  try{
+   const text=P.exportOne(item);
+   createFile('intransit-mini-'+item.id+'.json',text,'application/json');
+   presetStatus('Eksporterte «'+item.name+'». JSON kan importeres på en annen enhet.');
+  }catch(e){presetStatus('Eksport feilet: '+e.message);}
+ }
+ async function importPreset(file){
+  if(!file)return;
+  try{
+   if(file.size>20000)throw Error('Profilfilen er for stor.');
+   const imported=P.importOne(await file.text());
+   // Always create new identity so import cannot silently overwrite an existing setup.
+   const item={...imported,id:generatePresetId()};
+   commitPreset(item);
+   applyPreset(item);
+   presetStatus('Importerte «'+item.name+'» som nytt skjermoppsett.');
+  }catch(e){presetStatus('Import feilet: '+e.message);}
+ }
  const numFmt=new Intl.NumberFormat('nb-NO');
  const typeName=kind=>kind==='led'?'RGB LED':kind==='mono'?'OLED (mono)':'LCD / TFT';
  function currentStop(){
@@ -147,7 +254,8 @@
    if(!board){const s=currentStop();board={schemaVersion:1,stopId:s.id,stopName:s.name,source:'pending',departures:[]};}
    const demo=$('source').value==='demo';
    const visibleBoard=M.filterBoard(board,{lines:selectedLines,destination:selectedDestination});
-   const drawn=R.draw(frame,profile,visibleBoard,{demo,now:Date.now(),palette:$('palette').value});
+   const drawn=R.draw(frame,profile,visibleBoard,{demo,now:Date.now(),
+    palette:$('palette').value,design:$('design').value});
    R.preview(frame,$('preview'),profile);
    $('preview').style.aspectRatio=profile.width+'/'+profile.height;
    $('preview').style.filter='brightness('+Number($('brightness').value)/100+')';
@@ -227,7 +335,8 @@
    const p=displayProfile(),stop=currentStop();
    const config={schemaVersion:1,product:'intransit-mini',
     hardware:{type:p.kind,width:p.width,height:p.height,pixelCount:p.width*p.height},
-    display:{palette:$('palette').value,brightnessPercent:Number($('brightness').value)},
+    display:{palette:$('palette').value,brightnessPercent:Number($('brightness').value),
+     design:$('design').value},
     datasource:{mode:$('source').value,stopId:stop.id,stopName:stop.name,
      filters:{lines:selectedLines===null?null:[...selectedLines].sort(),
       destination:selectedDestination||null}},
@@ -246,7 +355,7 @@
  $('profile').onchange=()=>{
   $('customFields').hidden=$('profile').value!=='custom';render();
  };
- for(const id of ['width','height','kind','palette','brightness']){
+ for(const id of ['width','height','kind','palette','brightness','design']){
   $(id).addEventListener(id==='width'||id==='height'?'input':'change',render);
  }
  $('stop').onchange=()=>{
@@ -275,6 +384,19 @@
  $('selectAllLines').onclick=()=>{selectedLines=null;lineOptions();render();};
  $('clearAllLines').onclick=()=>{selectedLines=new Set();lineOptions();render();};
  $('refresh').onclick=reloadData;
+ $('savedPreset').onchange=()=>{
+  const item=saved.find(x=>x.id===$('savedPreset').value);
+  if(item)applyPreset(item);
+  else{activePreset='';$('presetName').value='';refreshPresetSelect();}
+ };
+ $('savePreset').onclick=createPreset;
+ $('updatePreset').onclick=updatePreset;
+ $('deletePreset').onclick=deletePreset;
+ $('exportPreset').onclick=exportPreset;
+ $('importPreset').onchange=async()=>{
+  const file=$('importPreset').files?.[0];
+  await importPreset(file);$('importPreset').value='';
+ };
  $('downloadConfig').onclick=exportConfig;
  $('downloadImage').onclick=exportPng;
  // Active departures should update without repeated manual reloads.
@@ -288,5 +410,7 @@
   }
  },30000);
  setInterval(()=>{if(!document.hidden&&board)render();},15000);
+ refreshPresetSelect();
+ if(initial.error)presetStatus(initial.error);
  demoBoard();
 })(globalThis);
