@@ -44,6 +44,16 @@ bool validStopId(const String &value){
   for(size_t i=0;i<tail.length();i++)if(tail[i]<'0'||tail[i]>'9')return false;
   return true;
 }
+// Civil date to UTC epoch days, independent of platform timegm availability.
+int64_t daysFromCivil(int year,unsigned month,unsigned day){
+  year-=month<=2;
+  const int era=(year>=0?year:year-399)/400;
+  const unsigned yearOfEra=static_cast<unsigned>(year-era*400);
+  const int shifted=static_cast<int>(month)+(month>2?-3:9);
+  const unsigned dayOfYear=(153*static_cast<unsigned>(shifted)+2)/5+day-1;
+  const unsigned eraDay=yearOfEra*365+yearOfEra/4-yearOfEra/100+dayOfYear;
+  return static_cast<int64_t>(era)*146097+static_cast<int64_t>(eraDay)-719468;
+}
 bool parseIso(const char* input,int64_t &epoch){
   if(!input||strlen(input)<20||strlen(input)>40)return false;
   int year=0,month=0,day=0,hour=0,min=0,sec=0;
@@ -51,9 +61,8 @@ bool parseIso(const char* input,int64_t &epoch){
      &year,&month,&day,&hour,&min,&sec)!=6)return false;
   if(year<2020||year>2100||month<1||month>12||day<1||day>31||
     hour>23||min>59||sec>59)return false;
-  tm dt{};dt.tm_year=year-1900;dt.tm_mon=month-1;
-  dt.tm_mday=day;dt.tm_hour=hour;dt.tm_min=min;dt.tm_sec=sec;
-  const time_t utc=timegm(&dt);
+  const int64_t utc=daysFromCivil(year,static_cast<unsigned>(month),
+    static_cast<unsigned>(day))*86400+hour*3600+min*60+sec;
   if(utc<=0)return false;
   int offset=0;
   const char suffix=input[19];
@@ -144,9 +153,9 @@ bool updateLive(){
        !row["realtime"].is<bool>()||!row["cancelled"].is<bool>())continue;
     int64_t epoch=0;
     if(!parseIso(at.c_str(),epoch)||epoch<now-120||epoch>now+86400)continue;
-    received.departures[received.count++]={
+    received.departures[received.count++]=mini::Departure(
       std::string(line.c_str()),std::string(destination.c_str()),epoch,
-      row["realtime"].as<bool>(),row["cancelled"].as<bool>()};
+      row["realtime"].as<bool>(),row["cancelled"].as<bool>());
   }
   std::sort(received.departures.begin(),
     received.departures.begin()+received.count,
