@@ -15,6 +15,27 @@
   </header>
   <div class="workspace">
    <section class="panel settings" aria-labelledby="settingsTitle">
+    <div class="saved-presets" aria-labelledby="savedTitle">
+     <div class="section-title"><h2 id="savedTitle">Mine skjermoppsett</h2><span>LOKALT LAGRET</span></div>
+     <label>Velg lagret oppsett
+      <select id="savedPreset"><option value="">Nytt / ulagret oppsett</option></select>
+     </label>
+     <label>Navn på oppsett
+      <input type="text" id="presetName" maxlength="45" placeholder="F.eks. Hjem, Jobb, Trondheim S">
+     </label>
+     <div class="preset-actions">
+      <button type="button" id="savePreset">Lagre som nytt</button>
+      <button type="button" class="outline" id="updatePreset" disabled>Oppdater valgt</button>
+      <button type="button" class="outline" id="deletePreset" disabled>Slett</button>
+     </div>
+     <div class="preset-actions">
+      <button type="button" class="outline" id="exportPreset" disabled>Eksporter oppsett</button>
+      <label class="file-upload">Importer oppsett
+       <input type="file" id="importPreset" accept=".json,application/json" aria-label="Importer Mini-skjermoppsett">
+      </label>
+     </div>
+     <p id="presetStatus" class="small" role="status" aria-live="polite">Lagres bare i denne nettleseren. Eksporter JSON for å ta med oppsettet til en annen enhet.</p>
+    </div>
     <div class="section-title"><h2 id="settingsTitle">Skjermoppsett</h2><span>01 / KONFIGURASJON</span></div>
     <label>Skjermprofil <select id="profile" name="profile">
      <option value="led-64x64" selected>RGB LED · 64 × 64</option>
@@ -32,6 +53,12 @@
      <label>Høyde i piksler<input id="height" type="number" min="16" max="320" value="64" inputmode="numeric"></label>
      <label>Skjermtype<select id="kind"><option value="led">RGB LED-matrise</option><option value="lcd">LCD / TFT</option><option value="mono">Monokrom OLED</option></select></label>
     </div>
+    <label>Visningsdesign<select id="design">
+     <option value="classic" selected>Klassisk avgangstavle</option>
+     <option value="compact">Kompakt liste</option>
+     <option value="bold">Stor neste avgang</option>
+     <option value="clock">Klokke og neste avgang</option>
+    </select></label>
     <label>Fargeprofil<select id="palette"><option value="rgb" selected>RGB – AtB-inspirert</option><option value="amber">Retro – oransje</option><option value="mono">Monokrom grønn</option></select></label>
     <label>Lysstyrke for forhåndsvisning <input id="brightness" type="range" min="15" max="100" value="80"><span id="brightnessValue" class="small">80 %</span></label>
     <div class="section-title minor"><h2>Avganger</h2><span>02 / DATA</span></div>
@@ -88,6 +115,7 @@
  </main>
  <script src="model.js"></script>
  <script src="renderer.js"></script>
+ <script src="presets.js"></script>
  <script src="app.js"></script>
 </body>
 </html>
