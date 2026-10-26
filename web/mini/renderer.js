@@ -19,10 +19,32 @@
   const text=shorten(ctx,value,maxWidth);
   ctx.fillStyle=color;ctx.fillText(text,Math.round(x),Math.round(y));
  }
- function alternative(ctx,design,p,g,board,departures,now,color,demo,pad){
+ // Draw inside an exact destination-only clip. Line number and countdown
+ // stay outside this area. Both LED bitmap and normal LCD text are supported.
+ function drawDestination(ctx,value,x,y,maxWidth,color,opts={}){
+  if(maxWidth<=1)return false;
+  const bitmap=ctx.pixelFont===true,scale=bitmap?F.scale(ctx.font):1;
+  const full=bitmap?F.normalize(value):String(value??'');
+  const width=bitmap?F.width(full,scale):ctx.measureText(full).width;
+  const scrolling=opts.destinationMode==='scroll'&&!opts.reducedMotion&&width>maxWidth;
+  if(scrolling){
+   const offset=C.scrollOffset(width,maxWidth,opts.scrollMs||0);
+   const height=bitmap?5*scale:Math.max(6,parseInt(ctx.font.match(/(\d+)px/)?.[1]||'12',10));
+   ctx.save();ctx.beginPath();ctx.rect(Math.round(x),Math.round(y),
+    Math.floor(maxWidth),height);ctx.clip();
+   ctx.textAlign='left';ctx.fillStyle=color;
+   ctx.fillText(full,Math.round(x-offset),Math.round(y));
+   ctx.restore();
+   return true;
+  }
+  fillText(ctx,bitmap?C.destination(value,maxWidth,scale):value,x,y,maxWidth,color);
+  return false;
+ }
+ function alternative(ctx,design,p,g,board,departures,now,color,demo,pad,opts){
   const w=p.width,h=p.height;
   ctx.textAlign='left';ctx.textBaseline='top';
   const compact=design==='compact';
+  let scrolling=false;
   if(compact){
    const header=h>=32?Math.max(7,Math.floor(h*.13)):0;
    const footer=h>=65?Math.max(7,Math.floor(h*.09)):0;
@@ -47,7 +69,8 @@
      ctx.fillStyle=color.accent;ctx.fillText(cols.lineText,cols.lineX,y+1);
      if(cols.destWidth>0){
       ctx.fillStyle=color.fg;
-      ctx.fillText(C.destination(d.destination,cols.destWidth,cols.scale),cols.destX,y+1);
+      if(drawDestination(ctx,d.destination,cols.destX,y+1,cols.destWidth,color.fg,opts))
+       scrolling=true;
      }
      ctx.fillStyle=d.realtime?color.ok:color.accent;
      ctx.fillText(cols.timeText,cols.timeX,y+1);
@@ -55,8 +78,8 @@
      const lineW=Math.max(8,Math.floor(w*.15));
      const timeW=Math.max(12,Math.floor(w*.21));
      fillText(ctx,d.line,pad,y+1,lineW,color.accent);
-     if(w>=60)fillText(ctx,d.destination,pad+lineW+1,y+1,
-      w-timeW-lineW-pad*2-2,color.fg);
+     if(w>=60&&drawDestination(ctx,d.destination,pad+lineW+1,y+1,
+      w-timeW-lineW-pad*2-2,color.fg,opts))scrolling=true;
      ctx.textAlign='right';ctx.fillStyle=d.realtime?color.ok:color.accent;
      ctx.fillText(shorten(ctx,M.labelTime(d,now),timeW),w-pad,y+1);
      ctx.textAlign='left';
@@ -68,7 +91,7 @@
     ctx.font='bold 6px monospace';
     fillText(ctx,demo?'SIMULERT':'AVGANGER',pad,h-footer+1,w-2*pad,color.dim);}
    if(demo&&!header){ctx.font='bold 6px monospace';fillText(ctx,'D',w-6,0,6,color.alert);}
-   return {width:w,height:h,rows,visible:shown.length,mode:p.kind,design};
+   return {width:w,height:h,rows,visible:shown.length,mode:p.kind,design,scrolling};
   }
   const next=departures[0];
   if(design==='clock'){
@@ -79,11 +102,22 @@
    fillText(ctx,time,pad,y,w-2*pad,color.accent);
    const secondY=Math.min(h-7,y+timeFont+Math.max(1,Math.floor(h*.08)));
    ctx.font='bold '+Math.max(6,Math.min(11,Math.floor(h*.12)))+'px monospace';
-   fillText(ctx,next?(next.line+' '+next.destination+' '+M.labelTime(next,now)):
-    'INGEN AVGANGER',pad,secondY,w-2*pad,color.fg);
+   if(next){
+    const left=String(next.line)+' ',right=' '+M.labelTime(next,now);
+    const measure=text=>ctx.pixelFont?F.width(text,F.scale(ctx.font)):
+     ctx.measureText(text).width;
+    const leftW=measure(left),rightW=measure(right),innerX=pad+leftW;
+    const innerW=Math.max(0,w-2*pad-leftW-rightW-1);
+    fillText(ctx,left,pad,secondY,Math.max(0,w-2*pad),color.accent);
+    if(innerW>1&&drawDestination(ctx,next.destination,innerX,secondY,innerW,color.fg,opts))
+     scrolling=true;
+    ctx.textAlign='right';
+    fillText(ctx,right,w-pad,secondY,rightW,color.ok);
+    ctx.textAlign='left';
+   }else fillText(ctx,'INGEN AVGANGER',pad,secondY,w-2*pad,color.fg);
    if(demo){ctx.font='bold 6px monospace';fillText(ctx,w<45?'D':'DEMO',
     pad,h-7,w-2*pad,color.alert);}
-   return {width:w,height:h,rows:1,visible:next?1:0,mode:p.kind,design};
+   return {width:w,height:h,rows:1,visible:next?1:0,mode:p.kind,design,scrolling};
   }
   // Bold next departure: line and countdown dominate the available physical pixels.
   const top=Math.max(1,Math.floor(h*.1));
@@ -96,14 +130,15 @@
    ctx.textAlign='left';
    const footY=Math.min(h-7,top+huge+Math.max(1,Math.floor(h*.055)));
    ctx.font='bold '+Math.max(6,Math.min(13,Math.floor(h*.15)))+'px monospace';
-   fillText(ctx,next.destination,pad,footY,w-2*pad,color.fg);
+   if(drawDestination(ctx,next.destination,pad,footY,w-2*pad,color.fg,opts))
+    scrolling=true;
   }else{
    ctx.font='bold 7px monospace';
    fillText(ctx,'INGEN AVGANGER',pad,top,w-2*pad,color.dim);
   }
   if(demo){ctx.font='bold 6px monospace';
    fillText(ctx,w<45?'D':'DEMO',pad,h-7,w-2*pad,color.alert);}
-  return {width:w,height:h,rows:1,visible:next?1:0,mode:p.kind,design};
+  return {width:w,height:h,rows:1,visible:next?1:0,mode:p.kind,design,scrolling};
  }
  function draw(frame,profile,board,opts={}){
   if(!frame||frame.width!==profile.width||frame.height!==profile.height)
@@ -122,7 +157,8 @@
   const gap=Math.max(1,Math.floor(w*.025)),statusWidth=Math.min(w*.35,Math.max(15,w*.28));
   const design=['compact','bold','clock'].includes(opts.design)?opts.design:'classic';
   const all=(board.departures||[]).filter(x=>x&&!x.cancelled);
-  if(design!=='classic')return alternative(ctx,design,profile,g,board,all,now,color,demo,pad);
+  if(design!=='classic')return alternative(ctx,design,profile,g,board,all,now,color,demo,pad,opts);
+  let scrolling=false;
   if(g.header){
    ctx.fillStyle=color.accent;ctx.fillRect(0,g.header-1,w,1);
    const topFont=Math.max(6,Math.min(g.fontSize+1,g.header-2));
@@ -160,7 +196,8 @@
     ctx.fillText(cols.lineText,cols.lineX,baseline);
     if(cols.destWidth>0){
      ctx.fillStyle=color.fg;
-     ctx.fillText(C.destination(d.destination,cols.destWidth,cols.scale),cols.destX,baseline);
+     if(drawDestination(ctx,d.destination,cols.destX,baseline,cols.destWidth,color.fg,opts))
+      scrolling=true;
     }
     ctx.fillStyle=d.realtime?color.ok:color.accent;
     ctx.fillText(cols.timeText,cols.timeX,baseline);
@@ -170,7 +207,8 @@
     const destX=pad+lineWidth+gap,destW=w-pad-timeW-gap-destX;
     fillText(ctx,d.line,pad,baseline,lineWidth,color.accent);
     if(destW>g.fontSize*1.4)
-     fillText(ctx,d.destination,destX,baseline,destW,color.fg);
+     if(drawDestination(ctx,d.destination,destX,baseline,destW,color.fg,opts))
+      scrolling=true;
     ctx.textAlign='right';
     const rightText=g.compact?String(M.mins(d.at,now)??'--'):time;
     ctx.fillStyle=d.realtime?color.ok:color.accent;
@@ -193,7 +231,7 @@
     ctx.fillText(M.formatClock(now),w-pad,h-g.footer+2);ctx.textAlign='left';
    }
   }
-  return {width:w,height:h,rows:g.rows,visible:departures.length,mode:profile.kind};
+  return {width:w,height:h,rows:g.rows,visible:departures.length,mode:profile.kind,scrolling};
  }
  function preview(frame,canvas,profile,opts={}){
   const ctx=canvas.getContext('2d',{willReadFrequently:true});
