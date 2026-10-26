@@ -68,7 +68,13 @@ try{
   data.departures[0].at=new Date(now+180000).toISOString();
   const board=document.createElement('canvas');board.width=64;board.height=64;
   const snapshots=[];
-  for(const ms of [0,4800]){
+  const C=window.InTransitMiniColumns,F=window.InTransitMiniFont;
+  const cols=C.columns(64,2,'12','3m',1);
+  const distance=Math.ceil(F.width(data.departures[0].destination)-cols.destWidth);
+  const end=1200+distance*120,cycle=end+1200;
+  const times=[0,4800,1199,1200,1319,1320,end-1,end,cycle-1,
+   cycle,cycle+1199,cycle+1320,3*cycle+4800];
+  for(const ms of times){
    const r=R.draw(board,M.profile('led-64x64'),data,
     {demo:false,now,design:'classic',destinationMode:'scroll',scrollMs:ms});
    const ctx=board.getContext('2d');
@@ -78,7 +84,7 @@ try{
    snapshots.push({png:board.toDataURL(),moving:r.scrolling,visible:r.visible,
     route:pixels(0,cols.destX),
     dest:pixels(cols.destX,cols.destWidth),
-    time:pixels(cols.timeX,64-cols.timeX)});
+    time:pixels(cols.timeX,64-cols.timeX),rowHeight:g.rowHeight,destWidth:cols.destWidth});
   }
   return snapshots;
  });
@@ -91,6 +97,28 @@ try{
   'Time pixels must remain stationary and destination must be clipped');
  assert.notDeepEqual(frames[0].dest,frames[1].dest,
   'Only destination column should contain moving pixels');
+ // Exercise start/end pauses, the final forward step, direct reset and
+ // repeated cycles using real clipped pixels rather than only offset values.
+ for(const frame of frames){
+  assert.deepEqual(frame.route,frames[0].route,'Route remains fixed throughout the cycle');
+  assert.deepEqual(frame.time,frames[0].time,'Countdown remains fixed throughout the cycle');
+ }
+ for(const i of [2,3,4,9,10]){
+  assert.deepEqual(frames[i].dest,frames[0].dest,'Start pause/reset must show the first characters');
+ }
+ assert.notDeepEqual(frames[5].dest,frames[0].dest,'First physical pixel advances after 120 ms');
+ assert.notDeepEqual(frames[6].dest,frames[7].dest,'Final physical pixel must become visible');
+ assert.deepEqual(frames[7].dest,frames[8].dest,'End pause must hold the final characters');
+ assert.deepEqual(frames[5].dest,frames[11].dest,'Next cycle advances forward again');
+ assert.deepEqual(frames[1].dest,frames[12].dest,'Later cycles repeat without reverse travel');
+ // Verify each moving frame is a physical one-pixel shift to the left.
+ for(const [a,b] of [[0,5],[6,7]]){
+  // Compare RGBA pixels inside the overlap, excluding the newly exposed edge.
+  const rowBytes=frames[a].destWidth*4;
+  for(let y=0;y<frames[a].rowHeight;y++)
+   assert.deepEqual(frames[b].dest.slice(y*rowBytes,(y+1)*rowBytes-4),
+    frames[a].dest.slice(y*rowBytes+4,(y+1)*rowBytes),'Only forward pixel movement');
+ }
  await page.locator('#destinationMode').selectOption('shorten');
 
  // The production browser must use the new physical glyph-width allocation:

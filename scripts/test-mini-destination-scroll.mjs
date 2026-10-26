@@ -14,8 +14,30 @@ assert.equal(C.scrollOffset(40,20,pause-1),0);
 assert.equal(C.scrollOffset(40,20,pause+step*7),7);
 assert.equal(C.scrollOffset(40,20,pause+step*distance),distance);
 assert.equal(C.scrollOffset(40,20,2*pause+step*distance-1),distance);
-assert.equal(C.scrollOffset(40,20,2*pause+step*distance+step*5),15);
-assert.equal(C.scrollOffset(40,20,2*pause+2*step*distance),0);
+const cycle=2*pause+step*distance;
+assert.equal(C.scrollOffset(40,20,pause),0);
+assert.equal(C.scrollOffset(40,20,pause+step-1),0);
+assert.equal(C.scrollOffset(40,20,pause+step),1);
+assert.equal(C.scrollOffset(40,20,pause+step*distance-1),distance-1);
+assert.equal(C.scrollOffset(40,20,cycle),0,'End pause jumps directly to the start');
+assert.equal(C.scrollOffset(40,20,cycle+pause-1),0);
+assert.equal(C.scrollOffset(40,20,cycle+pause+step*5),5);
+for(const overflow of [1,2,20,41,Math.ceil(20.5)]){
+ const period=2*pause+overflow*step;
+ for(const repetition of [0,1,3]){
+  const start=repetition*period;
+  // Check every millisecond, including both pauses and every one-pixel step.
+  for(let ms=0;ms<period;ms++){
+   const expected=Math.min(overflow,Math.max(0,Math.floor((ms-pause)/step)));
+   assert.equal(C.scrollOffset(20+overflow,20,start+ms),expected);
+  }
+  assert.equal(C.scrollOffset(20+overflow,20,start+period),0);
+ }
+}
+assert.equal(C.scrollOffset(40.5,20,1200+21*120),21,
+ 'Fractional native font widths must expose the complete final pixel');
+assert.equal(C.scrollOffset(40,20,300+20*50,50,300),20);
+assert.equal(C.scrollOffset(40,20,600+20*50,50,300),0);
 assert.equal(C.scrollOffset(40,20,-30),0);
 assert.equal(C.scrollOffset(40,20,Number.NaN),0);
 const preset={hardware:{profileId:'led-64x64',width:64,height:64,type:'led'},

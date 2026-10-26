@@ -43,16 +43,15 @@
    lineWidth,timeWidth,gap,scale,left,right};
  }
  // Scroll one physical pixel per 120ms, pausing 1.2s at each end.
- // A ping-pong sweep avoids sudden text jumps and never exceeds the overflow.
+ // Restart directly at the first character after the end pause; never scroll back.
  function scrollOffset(contentWidth,windowWidth,elapsedMs,stepMs=120,pauseMs=1200){
   const distance=Math.max(0,Math.ceil(contentWidth-windowWidth));
   if(!distance||!Number.isFinite(elapsedMs))return 0;
   const time=Math.max(0,elapsedMs);
-  const travel=distance*stepMs,period=2*(pauseMs+travel),phase=time%period;
+  const travel=distance*stepMs,period=2*pauseMs+travel,phase=time%period;
   if(phase<pauseMs)return 0;
   if(phase<pauseMs+travel)return Math.min(distance,Math.floor((phase-pauseMs)/stepMs));
-  if(phase<2*pauseMs+travel)return distance;
-  return distance-Math.min(distance,Math.floor((phase-2*pauseMs-travel)/stepMs));
+  return distance;
  }
  return {destination,columns,scrollOffset};
 });
