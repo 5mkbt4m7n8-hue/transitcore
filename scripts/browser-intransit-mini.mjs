@@ -71,13 +71,26 @@ try{
   for(const ms of [0,4800]){
    const r=R.draw(board,M.profile('led-64x64'),data,
     {demo:false,now,design:'classic',destinationMode:'scroll',scrollMs:ms});
-   snapshots.push({png:board.toDataURL(),moving:r.scrolling,visible:r.visible});
+   const ctx=board.getContext('2d');
+   const g=M.geometry(M.profile('led-64x64'));
+   const cols=window.InTransitMiniColumns.columns(64,2,'12','3m',1);
+   const pixels=(x,width)=>Array.from(ctx.getImageData(x,g.header,width,g.rowHeight).data);
+   snapshots.push({png:board.toDataURL(),moving:r.scrolling,visible:r.visible,
+    route:pixels(0,cols.destX),
+    dest:pixels(cols.destX,cols.destWidth),
+    time:pixels(cols.timeX,64-cols.timeX)});
   }
   return snapshots;
  });
  assert.equal(frames[0].moving,true);
  assert.equal(frames[1].visible,5);
  assert.notEqual(frames[0].png,frames[1].png,'Clipped destination should move in real bitmap canvas');
+ assert.deepEqual(frames[0].route,frames[1].route,
+  'Line number pixels must remain stationary and destination must be clipped');
+ assert.deepEqual(frames[0].time,frames[1].time,
+  'Time pixels must remain stationary and destination must be clipped');
+ assert.notDeepEqual(frames[0].dest,frames[1].dest,
+  'Only destination column should contain moving pixels');
  await page.locator('#destinationMode').selectOption('shorten');
 
  // The production browser must use the new physical glyph-width allocation:
