@@ -1,10 +1,11 @@
 // Pixel-accurate frame renderer. Canvas bitmap dimensions match chosen hardware.
 (function(root,factory){
  const api=factory(typeof module==='object'?require('./model.js'):root.InTransitMiniModel,
-  typeof module==='object'?require('./pixel-font.js'):root.InTransitMiniFont);
+  typeof module==='object'?require('./pixel-font.js'):root.InTransitMiniFont,
+  typeof module==='object'?require('./display-columns.js'):root.InTransitMiniColumns);
  if(typeof module==='object'&&module.exports)module.exports=api;
  root.InTransitMiniRenderer=api;
-})(globalThis,function(M,F){
+})(globalThis,function(M,F,C){
  'use strict';
  function shorten(ctx,text,maxWidth){
   let value=String(text??'');
@@ -33,19 +34,33 @@
     fillText(ctx,board.stopName||'HOLDEPLASS',pad,1,w-2*pad-(demo?23:0),color.fg);
     ctx.fillStyle=color.accent;ctx.fillRect(0,header-1,w,1);
     if(demo){ctx.textAlign='right';ctx.fillStyle=color.alert;ctx.fillText('DEMO',w-pad,1);}
+    // The header's right-aligned DEMO must not right-align the route
+    // and destination of all subsequent compact rows.
+    ctx.textAlign='left';
    }
    const shown=departures.slice(0,rows);
    shown.forEach((d,i)=>{
     const y=header+i*height;
     ctx.font='bold '+font+'px monospace';
-    const lineW=Math.max(8,Math.floor(w*.15));
-    const timeW=Math.max(12,Math.floor(w*.21));
-    fillText(ctx,d.line,pad,y+1,lineW,color.accent);
-    if(w>=60)fillText(ctx,d.destination,pad+lineW+1,y+1,
-     w-timeW-lineW-pad*2-2,color.fg);
-    ctx.textAlign='right';ctx.fillStyle=d.realtime?color.ok:color.accent;
-    ctx.fillText(shorten(ctx,M.labelTime(d,now),timeW),w-pad,y+1);
-    ctx.textAlign='left';
+    if(ctx.pixelFont){
+     const time=M.labelTime(d,now),cols=C.columns(w,pad,d.line,time,F.scale(ctx.font));
+     ctx.fillStyle=color.accent;ctx.fillText(cols.lineText,cols.lineX,y+1);
+     if(cols.destWidth>0){
+      ctx.fillStyle=color.fg;
+      ctx.fillText(C.destination(d.destination,cols.destWidth,cols.scale),cols.destX,y+1);
+     }
+     ctx.fillStyle=d.realtime?color.ok:color.accent;
+     ctx.fillText(cols.timeText,cols.timeX,y+1);
+    }else{
+     const lineW=Math.max(8,Math.floor(w*.15));
+     const timeW=Math.max(12,Math.floor(w*.21));
+     fillText(ctx,d.line,pad,y+1,lineW,color.accent);
+     if(w>=60)fillText(ctx,d.destination,pad+lineW+1,y+1,
+      w-timeW-lineW-pad*2-2,color.fg);
+     ctx.textAlign='right';ctx.fillStyle=d.realtime?color.ok:color.accent;
+     ctx.fillText(shorten(ctx,M.labelTime(d,now),timeW),w-pad,y+1);
+     ctx.textAlign='left';
+    }
    });
    if(!shown.length){ctx.font='bold '+Math.max(6,font)+'px monospace';
     fillText(ctx,'INGEN AVGANGER',pad,header+1,w-2*pad,color.dim);}
@@ -112,9 +127,16 @@
    ctx.fillStyle=color.accent;ctx.fillRect(0,g.header-1,w,1);
    const topFont=Math.max(6,Math.min(g.fontSize+1,g.header-2));
    ctx.font='bold '+topFont+'px monospace';
-   fillText(ctx,board.stopName||'HOLDEPLASS',pad,Math.max(0,Math.floor((g.header-topFont)/2)),
-    w-pad*2-(demo?Math.max(15,Math.floor(w*.23)):0),color.fg);
-   if(demo){
+   // At 64x64 the footer already spells SIMULERT, so give the
+   // stop name the whole header instead of repeating DEMO above it.
+   const demoInHeader=demo&&!(ctx.pixelFont&&w<=64&&g.footer>0);
+   const headerWidth=w-pad*2-(demoInHeader?Math.max(15,Math.floor(w*.23)):0);
+   const headerName=ctx.pixelFont?
+    C.destination(board.stopName||'HOLDEPLASS',headerWidth,F.scale(ctx.font)):
+    board.stopName||'HOLDEPLASS';
+   fillText(ctx,headerName,pad,Math.max(0,Math.floor((g.header-topFont)/2)),
+    headerWidth,color.fg);
+   if(demoInHeader){
     ctx.textAlign='right';ctx.fillStyle=color.alert;
     ctx.fillText('DEMO',w-pad,Math.max(0,Math.floor((g.header-topFont)/2)));
     ctx.textAlign='left';
@@ -130,18 +152,31 @@
    }
    if(!d)continue;
    const time=M.labelTime(d,now);
-   const lineWidth=Math.max(g.compact?7:12,Math.round(w*(w<=64?.21:.14)));
-   const timeW=Math.max(g.compact?10:15,Math.round(w*(w<=64?.22:.18)));
-   const destX=pad+lineWidth+gap,destW=w-pad-timeW-gap-destX;
    ctx.font='bold '+g.fontSize+'px monospace';
-   fillText(ctx,d.line,pad,baseline,lineWidth,color.accent);
-   if(destW>g.fontSize*1.4)
-    fillText(ctx,d.destination,destX,baseline,destW,color.fg);
-   ctx.textAlign='right';
-   const rightText=g.compact?String(M.mins(d.at,now)??'--'):time;
-   ctx.fillStyle=d.realtime?color.ok:color.accent;
-   ctx.fillText(shorten(ctx,rightText,timeW),w-pad,baseline);
-   ctx.textAlign='left';
+   if(ctx.pixelFont){
+    const rightText=g.compact?String(M.mins(d.at,now)??'--'):time;
+    const cols=C.columns(w,pad,d.line,rightText,F.scale(ctx.font));
+    ctx.fillStyle=color.accent;
+    ctx.fillText(cols.lineText,cols.lineX,baseline);
+    if(cols.destWidth>0){
+     ctx.fillStyle=color.fg;
+     ctx.fillText(C.destination(d.destination,cols.destWidth,cols.scale),cols.destX,baseline);
+    }
+    ctx.fillStyle=d.realtime?color.ok:color.accent;
+    ctx.fillText(cols.timeText,cols.timeX,baseline);
+   }else{
+    const lineWidth=Math.max(g.compact?7:12,Math.round(w*(w<=64?.21:.14)));
+    const timeW=Math.max(g.compact?10:15,Math.round(w*(w<=64?.22:.18)));
+    const destX=pad+lineWidth+gap,destW=w-pad-timeW-gap-destX;
+    fillText(ctx,d.line,pad,baseline,lineWidth,color.accent);
+    if(destW>g.fontSize*1.4)
+     fillText(ctx,d.destination,destX,baseline,destW,color.fg);
+    ctx.textAlign='right';
+    const rightText=g.compact?String(M.mins(d.at,now)??'--'):time;
+    ctx.fillStyle=d.realtime?color.ok:color.accent;
+    ctx.fillText(shorten(ctx,rightText,timeW),w-pad,baseline);
+    ctx.textAlign='left';
+   }
   }
   if(!departures.length){
    ctx.font='bold '+Math.max(6,g.fontSize)+'px monospace';

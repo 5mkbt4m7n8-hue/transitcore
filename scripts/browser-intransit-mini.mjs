@@ -55,6 +55,16 @@ try{
  assert.equal(await page.locator('#resValue').innerText(),'64 × 64');
  assert.match(await page.locator('#sourceBadge').innerText(),/DEMO/);
  assert.equal(await page.locator('#rowsValue').innerText(),'5 / 5');
+ // The production browser must use the new physical glyph-width allocation:
+ // full STRINDHEIM fits in a 64x64 row beside two-digit line and countdown.
+ const measured=await page.evaluate(()=>{
+  const C=window.InTransitMiniColumns,F=window.InTransitMiniFont;
+  const cols=C.columns(64,2,'12','3m',1);
+  return {dest:C.destination('Strindheim',cols.destWidth,1),
+   width:cols.destWidth,pixelWidth:F.width('STRINDHEIM',1)};
+ });
+ assert.deepEqual(measured,{dest:'STRINDHEIM',width:42,pixelWidth:39});
+
  // LED framebuffer must contain only palette colors, never antialiased edges.
  const raster=await page.evaluate(()=>{
   const R=window.InTransitMiniRenderer,M=window.InTransitMiniModel;
