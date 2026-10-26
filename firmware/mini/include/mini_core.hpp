@@ -151,7 +151,7 @@ inline Stats draw(Display &display,Profile p,Palette palette,const Board &board,
   }
   if(!board.valid){
     text(pad,g.header+2,"DATA FEIL",col.alert,w-2*pad,1);
-    return {g.rows,0};
+    return {static_cast<uint8_t>(g.rows),0};
   }
   int visible=0;
   for(size_t i=0;i<board.count&&visible<g.rows;i++){
@@ -180,6 +180,6 @@ inline Stats draw(Display &display,Profile p,Palette palette,const Board &board,
     display.rect(0,h-g.footer,w,1,col.accent);
     text(pad,h-g.footer+2,demo?"SIMULERT":"AVGANGER",col.dim,w-2*pad,1);
   }
-  return {g.rows,static_cast<uint8_t>(visible)};
+  return {static_cast<uint8_t>(g.rows),static_cast<uint8_t>(visible)};
 }
 } // namespace mini
