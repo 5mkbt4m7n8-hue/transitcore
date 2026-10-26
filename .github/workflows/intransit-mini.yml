@@ -7,6 +7,7 @@ on:
       - 'worker/mini-stop-search.mjs'
       - 'scripts/test-mini-stop-search.mjs'
       - 'scripts/test-mini-presets.mjs'
+      - 'scripts/test-mini-rotation.mjs'
       - 'worker/api/v1.mjs'
       - 'scripts/test-intransit-mini.mjs'
       - 'scripts/browser-intransit-mini.mjs'
@@ -39,6 +40,8 @@ jobs:
         run: node scripts/test-mini-stop-search.mjs
       - name: Check Mini 3.0 local profiles and four pixel designs
         run: node scripts/test-mini-presets.mjs
+      - name: Check Mini 4.0 playlist, timer logic and isolated saved preferences
+        run: node scripts/test-mini-rotation.mjs
       - name: Live Entur stopPlace schema probe (nonblocking)
         continue-on-error: true
         run: node scripts/probe-mini-entur.mjs

@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const Q=require('../web/mini/rotation.js');
+assert.equal(Q.KEY,'intransit-mini:v4:rotation');
+assert.deepEqual(Q.INTERVALS,[5,10,15,30,60]);
+const ids=['home','work','station'];
+assert.deepEqual(Q.defaults(ids),{seconds:10,ids});
+const memory=new Map(),storage={getItem:k=>memory.get(k)||null,setItem:(k,v)=>memory.set(k,v)};
+assert.deepEqual(Q.read(storage,ids).value,Q.defaults(ids));
+let config=Q.save(storage,{seconds:15,ids:['station','home','home']},ids);
+assert.deepEqual(config,{seconds:15,ids:['home','station']});
+assert.deepEqual(Q.read(storage,ids).value,config);
+assert.deepEqual(Q.read(storage,['work','station']).value,{seconds:15,ids:['station']},
+ 'Removed Mini 3 profiles are not resurrected by slideshow');
+assert.deepEqual(Q.read(storage,['work','station','new']).value,{seconds:15,ids:['station']},
+ 'Newly saved profiles are opt-in if playlist was configured');
+assert.deepEqual(Q.advance(['home','work','station'],'home',1),'work');
+assert.deepEqual(Q.advance(['home','work','station'],'station',1),'home');
+assert.deepEqual(Q.advance(['home','work','station'],'home',-1),'station');
+assert.equal(Q.advance(['home','work'],'missing',1),'home');
+assert.equal(Q.advance(['home','work'],'missing',-1),'work');
+assert.equal(Q.advance([],null,1),null);
+assert.equal(Q.remaining(5000,0),5);
+assert.equal(Q.remaining(5000,1200),4);
+assert.equal(Q.remaining(5000,6000),0);
+assert.throws(()=>Q.save(storage,{seconds:0,ids:[]},ids),/Ugyldige/);
+assert.throws(()=>Q.save(storage,{seconds:3600,ids:[]},ids),/Ugyldige/);
+assert.throws(()=>Q.save(storage,{seconds:15,ids:['missing']},ids),/Ugyldige/);
+assert.throws(()=>Q.save(storage,{seconds:15,ids:'work'},ids),/Ugyldige/);
+assert.throws(()=>Q.save(storage,{seconds:15,ids:Array(13).fill('home')},ids),/Ugyldige/);
+memory.set(Q.KEY,'invalid');
+assert.match(Q.read(storage,ids).error,/kan ikke leses/);
+assert.deepEqual(Q.read(storage,ids).value,Q.defaults(ids));
+assert(!Q.KEY.includes('transitcore-linear'), 'Rotation must use own storage namespace');
+console.log('InTransit Mini 4.0: ordered playlist, 5–60s timers, next/previous, deleted profiles, safe local settings PASS');

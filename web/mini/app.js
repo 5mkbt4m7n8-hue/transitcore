@@ -19,6 +19,7 @@
   $('updatePreset').disabled=!activePreset;
   $('deletePreset').disabled=!activePreset;
   $('exportPreset').disabled=!activePreset;
+  document.dispatchEvent(new Event('mini-presets-changed'));
  }
  function capturePreset(){
   const p=displayProfile(),stop=currentStop();
@@ -410,6 +411,14 @@
   }
  },30000);
  setInterval(()=>{if(!document.hidden&&board)render();},15000);
+ root.InTransitMiniBridge={
+  getPresets(){return saved.map(item=>({id:item.id,name:item.name}));},
+  getActive(){return activePreset;},
+  showPreset(id){
+   const item=saved.find(p=>p.id===id);if(!item)return false;
+   applyPreset(item);return true;
+  }
+ };
  refreshPresetSelect();
  if(initial.error)presetStatus(initial.error);
  demoBoard();

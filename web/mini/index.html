@@ -36,6 +36,30 @@
      </div>
      <p id="presetStatus" class="small" role="status" aria-live="polite">Lagres bare i denne nettleseren. Eksporter JSON for å ta med oppsettet til en annen enhet.</p>
     </div>
+    <section class="rotation-config" aria-labelledby="rotationTitle">
+     <div class="section-title"><h2 id="rotationTitle">Automatisk informasjonstavle</h2><span>MINI 4.0</span></div>
+     <p class="small">Bytt automatisk mellom de lagrede skjermoppsettene. Opprett minst to under «Mine skjermoppsett».</p>
+     <div id="rotationProfiles" class="rotation-profiles" role="group" aria-label="Skjermer som skal roteres">
+      <p class="small">Ingen lagrede skjermoppsett ennå.</p>
+     </div>
+     <label>Bytt skjerm hvert
+      <select id="rotationInterval">
+       <option value="5">5 sekunder</option>
+       <option value="10" selected>10 sekunder</option>
+       <option value="15">15 sekunder</option>
+       <option value="30">30 sekunder</option>
+       <option value="60">60 sekunder</option>
+      </select>
+     </label>
+     <div class="rotation-controls">
+      <button type="button" id="rotationPrevious" disabled aria-label="Forrige skjerm"><span aria-hidden="true">◀</span> Forrige</button>
+      <button type="button" id="rotationToggle" disabled aria-pressed="false">Start visning</button>
+      <button type="button" id="rotationNext" disabled aria-label="Neste skjerm">Neste <span aria-hidden="true">▶</span></button>
+     </div>
+     <div class="rotation-progress" aria-hidden="true"><span id="rotationProgress"></span></div>
+     <p id="rotationStatus" role="status" aria-live="polite" class="small">Velg minst to skjermoppsett for å starte.</p>
+     <button type="button" class="outline full" id="rotationFullscreen">Vis skjerm i fullskjerm</button>
+    </section>
     <div class="section-title"><h2 id="settingsTitle">Skjermoppsett</h2><span>01 / KONFIGURASJON</span></div>
     <label>Skjermprofil <select id="profile" name="profile">
      <option value="led-64x64" selected>RGB LED · 64 × 64</option>
@@ -116,6 +140,8 @@
  <script src="model.js"></script>
  <script src="renderer.js"></script>
  <script src="presets.js"></script>
+ <script src="rotation.js"></script>
  <script src="app.js"></script>
+ <script src="rotation-ui.js"></script>
 </body>
 </html>
