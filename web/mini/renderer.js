@@ -124,9 +124,16 @@
    ctx.fillStyle=color.accent;ctx.fillRect(0,g.header-1,w,1);
    const topFont=Math.max(6,Math.min(g.fontSize+1,g.header-2));
    ctx.font='bold '+topFont+'px monospace';
-   fillText(ctx,board.stopName||'HOLDEPLASS',pad,Math.max(0,Math.floor((g.header-topFont)/2)),
-    w-pad*2-(demo?Math.max(15,Math.floor(w*.23)):0),color.fg);
-   if(demo){
+   // At 64x64 the footer already spells SIMULERT, so give the
+   // stop name the whole header instead of repeating DEMO above it.
+   const demoInHeader=demo&&!(ctx.pixelFont&&w<=64&&g.footer>0);
+   const headerWidth=w-pad*2-(demoInHeader?Math.max(15,Math.floor(w*.23)):0);
+   const headerName=ctx.pixelFont?
+    C.destination(board.stopName||'HOLDEPLASS',headerWidth,F.scale(ctx.font)):
+    board.stopName||'HOLDEPLASS';
+   fillText(ctx,headerName,pad,Math.max(0,Math.floor((g.header-topFont)/2)),
+    headerWidth,color.fg);
+   if(demoInHeader){
     ctx.textAlign='right';ctx.fillStyle=color.alert;
     ctx.fillText('DEMO',w-pad,Math.max(0,Math.floor((g.header-topFont)/2)));
     ctx.textAlign='left';
