@@ -122,6 +122,10 @@
    <section class="viewer panel" aria-labelledby="previewTitle">
     <div class="section-title"><h2 id="previewTitle">Skjermsimulator</h2><span>04 / FORHÅNDSVISNING</span></div>
     <div class="meta"><span class="chip" id="sourceBadge">DEMO · SIMULERT</span><span id="profileLabel">64 × 64 RGB LED</span></div>
+    <label>Forhåndsvisning <select id="previewView">
+     <option value="pixels" selected>Skarpe piksler</option>
+     <option value="led">Realistiske LED-prikker</option>
+    </select></label>
     <div class="screen-wrap">
      <div class="screen"><canvas id="preview" width="448" height="448" role="img" aria-label="Forhåndsvisning av digital avgangstavle med valgte dimensjoner"></canvas></div>
     </div>
@@ -132,12 +136,13 @@
      <div><small>Synlige avganger</small><strong id="rowsValue">–</strong></div>
      <div><small>Skjermtype</small><strong id="kindValue">RGB LED</strong></div>
     </div>
-    <p class="footnote">Simulatoren lager en ramme på nøyaktig valgt oppløsning. LED-forhåndsvisning viser individuelle dioder; LCD/OLED viser pikselgrafikk. Eksportert PNG har faktisk pikselstørrelse og ingen inntegnet LED-prikk-effekt.</p>
+    <p class="footnote">Simulatoren lager en ramme på nøyaktig valgt oppløsning. Velg skarpe piksler eller LED-prikker. LED-tekst bruker en ekte 3×5-pikselfont med hele pikselsteg; små felt forkortes med punktum. Eksportert PNG har faktisk pikselstørrelse og ingen inntegnet LED-prikk-effekt.</p>
     <div class="footer-note"><span id="lastUpdated">Ikke oppdatert</span><span>Forberedt for ESP32 / HUB75 / TFT – ingen maskinvare er tilkoblet.</span></div>
    </section>
   </div>
  </main>
  <script src="model.js"></script>
+ <script src="pixel-font.js"></script>
  <script src="renderer.js"></script>
  <script src="presets.js"></script>
  <script src="rotation.js"></script>

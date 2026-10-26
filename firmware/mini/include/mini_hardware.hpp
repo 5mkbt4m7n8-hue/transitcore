@@ -2,6 +2,7 @@
 // Hardware selection is made by PlatformIO environment. Never guess HUB75 pins.
 #include <Arduino.h>
 #include "mini_core.hpp"
+#include "mini_font.hpp"
 
 #if defined(MINI_PANEL_HUB75)
   #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
@@ -88,9 +89,9 @@ public:
   }
   void text(int x,int y,const std::string &word,uint16_t color,uint8_t scale)override{
 #if defined(MINI_PANEL_HUB75)
-    matrix_.setTextColor(color);
-    matrix_.setTextSize(scale);
-    matrix_.setCursor(x,y);matrix_.print(word.c_str());
+    font::draw(word,x,y,scale,[&](int px,int py,int w,int h){
+      matrix_.fillRect(px,py,w,h,color);
+    });
 #elif defined(MINI_PANEL_OLED)
     oled_.setTextColor(mono(color));
     oled_.setTextSize(scale);

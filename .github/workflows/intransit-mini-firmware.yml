@@ -4,6 +4,8 @@ on:
     paths:
       - 'firmware/mini/**'
       - 'web/mini/model.js'
+      - 'web/mini/pixel-font.js'
+      - 'scripts/*mini-font.mjs'
       - 'scripts/test-mini-firmware-parity.mjs'
       - '.github/workflows/intransit-mini-firmware.yml'
   push:
@@ -11,6 +13,8 @@ on:
     paths:
       - 'firmware/mini/**'
       - 'web/mini/model.js'
+      - 'web/mini/pixel-font.js'
+      - 'scripts/*mini-font.mjs'
       - 'scripts/test-mini-firmware-parity.mjs'
       - '.github/workflows/intransit-mini-firmware.yml'
 permissions:
@@ -26,6 +30,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+      - name: Check bitmap font source and compiled pixel parity
+        run: node scripts/test-mini-font.mjs
       - name: Build C++17 hardware-independent display motor
         run: |
           g++ -std=c++17 -Wall -Wextra -Werror -pedantic \

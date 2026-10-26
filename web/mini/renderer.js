@@ -1,12 +1,14 @@
 // Pixel-accurate frame renderer. Canvas bitmap dimensions match chosen hardware.
 (function(root,factory){
- const api=factory(typeof module==='object'?require('./model.js'):root.InTransitMiniModel);
+ const api=factory(typeof module==='object'?require('./model.js'):root.InTransitMiniModel,
+  typeof module==='object'?require('./pixel-font.js'):root.InTransitMiniFont);
  if(typeof module==='object'&&module.exports)module.exports=api;
  root.InTransitMiniRenderer=api;
-})(globalThis,function(M){
+})(globalThis,function(M,F){
  'use strict';
  function shorten(ctx,text,maxWidth){
   let value=String(text??'');
+  if(ctx.pixelFont)return F.fit(value,maxWidth,F.scale(ctx.font));
   if(ctx.measureText(value).width<=maxWidth)return value;
   while(value.length&&ctx.measureText(value+'…').width>maxWidth)value=value.slice(0,-1);
   return value?value+'…':'';
@@ -91,7 +93,8 @@
  function draw(frame,profile,board,opts={}){
   if(!frame||frame.width!==profile.width||frame.height!==profile.height)
    throw Error('Canvas-oppløsning avviker fra skjermprofil');
-  const ctx=frame.getContext('2d',{willReadFrequently:true});
+  const native=frame.getContext('2d',{willReadFrequently:true});
+  const ctx=profile.kind==='led'&&native?F.context(native):native;
   if(!ctx)throw Error('Canvas 2D er utilgjengelig');
   const now=opts.now??Date.now(),demo=opts.demo===true;
   const palette=M.palettes[opts.palette]||M.palettes.rgb;
@@ -160,7 +163,7 @@
  function preview(frame,canvas,profile,opts={}){
   const ctx=canvas.getContext('2d',{willReadFrequently:true});
   if(!ctx)throw Error('Forhåndsvisning mangler 2D-context');
-  const led=profile.kind==='led',dots=led&&profile.width*profile.height<=20000;
+  const led=profile.kind==='led',dots=led&&opts.view==='led'&&profile.width*profile.height<=20000;
   const scale=dots?7:Math.min(3,Math.max(1,Math.floor(820/profile.width)));
   canvas.width=profile.width*scale;canvas.height=profile.height*scale;
   ctx.fillStyle='#03070a';ctx.fillRect(0,0,canvas.width,canvas.height);

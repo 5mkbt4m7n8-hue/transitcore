@@ -68,7 +68,7 @@ int main(int argc,char**argv){
     assert(out.visible>=1&&out.visible<=10);
     assert(rec.has("1")&&rec.commands.size()>=3);
     assert(rec.commands[0].type=="clear");
-    if(p.width>=64&&p.height>=32)assert(rec.has("Prinsens")||rec.has("Prinsen"));
+    if(p.width>=64&&p.height>=32)assert(p.kind==mini::PanelKind::Led?rec.has("PRINSENS"):(rec.has("Prinsens")||rec.has("Prinsen")));
     Recorder error{p.width,p.height};
     board.valid=false;board.mode=mini::Mode::Live;
     const auto fail=mini::draw(error,p,mini::Palette::Rgb,board,now);

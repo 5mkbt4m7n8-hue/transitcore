@@ -55,6 +55,38 @@ try{
  assert.equal(await page.locator('#resValue').innerText(),'64 × 64');
  assert.match(await page.locator('#sourceBadge').innerText(),/DEMO/);
  assert.equal(await page.locator('#rowsValue').innerText(),'5 / 5');
+ // LED framebuffer must contain only palette colors, never antialiased edges.
+ const raster=await page.evaluate(()=>{
+  const R=window.InTransitMiniRenderer,M=window.InTransitMiniModel;
+  const old=CanvasRenderingContext2D.prototype.fillText;
+  CanvasRenderingContext2D.prototype.fillText=function(){throw Error('Native LED text rasterization');};
+  try{
+   const colors=new Set(Object.values(M.palettes.rgb).map(c=>c.toLowerCase()));
+   const counts=[];
+   for(const size of [[32,16],[64,32],[64,64],[128,64]])for(const design of ['classic','compact','bold','clock']){
+    const frame=document.createElement('canvas');frame.width=size[0];frame.height=size[1];
+    R.draw(frame,{width:size[0],height:size[1],kind:'led'},M.demo(Date.now()),
+     {demo:true,design,now:Date.now(),palette:'rgb'});
+    const pixels=frame.getContext('2d').getImageData(0,0,...size).data,seen=new Set();
+    for(let i=0;i<pixels.length;i+=4){
+     if(pixels[i+3]!==255)throw Error('Nonopaque LED pixel');
+     const color='#'+[pixels[i],pixels[i+1],pixels[i+2]].map(v=>v.toString(16).padStart(2,'0')).join('');
+     if(!colors.has(color))throw Error('Antialiased LED color '+color);
+     seen.add(color);
+    }
+    counts.push(seen.size);
+   }
+   return counts;
+  }finally{CanvasRenderingContext2D.prototype.fillText=old;}
+ });
+ assert(raster.every(n=>n>1),'Every LED design must paint visible bitmap content');
+ const sharpFrame=await page.locator('#frame').evaluate(el=>el.toDataURL());
+ const sharpPreview=await page.locator('#preview').evaluate(el=>el.toDataURL());
+ await page.locator('#previewView').selectOption('led');
+ assert.notEqual(await page.locator('#preview').evaluate(el=>el.toDataURL()),sharpPreview);
+ assert.equal(await page.locator('#frame').evaluate(el=>el.toDataURL()),sharpFrame,
+  'LED dots are presentation only; exported physical pixels remain identical');
+ await page.locator('#previewView').selectOption('pixels');
  // DEMO stop search is offline and cannot pretend to be full Entur search.
  await page.locator('#stopSearch').fill('Prinsens');
  await page.waitForFunction(()=>document.querySelectorAll('#stopResults .stop-choice').length===1);
@@ -89,6 +121,8 @@ try{
  assert.equal(await page.locator('#resValue').innerText(),'128 × 128');
  await page.locator('#profile').selectOption('lcd-240x135');
  assert.equal(await page.locator('#kindValue').innerText(),'LCD / TFT');
+ assert.equal(await page.locator('#frame').evaluate(el=>el.getContext('2d').pixelFont),undefined,
+  'LED font adapter must not leak state into LCD text');
  assert.equal(await page.locator('#frame').getAttribute('width'),'240');
  assert.equal(await page.locator('#frame').getAttribute('height'),'135');
  const aspect=await page.locator('#preview').evaluate(el=>{
