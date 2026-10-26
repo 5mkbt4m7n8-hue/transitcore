@@ -63,9 +63,14 @@ assert.equal(scrollB.result.scrolling,true,'Only clipped long destination is mov
 const g=M.geometry(p),rowStart=g.header,rowEnd=g.header+g.rowHeight;
 const cols=C.columns(64,2,'12','3m',1);
 const byArea=(x,from,to)=>x.calls.filter(v=>v.y>=rowStart&&v.y<rowEnd&&v.x>=from&&v.x<to);
-assert.deepEqual(byArea(scrollA,0,cols.destX),byArea(scrollB,0,cols.destX),
+// The lightweight mock does not implement Canvas clipping, so distinguish
+// route/time glyphs by their respective palette colors. Chromium below tests
+// real destination-only clip pixels.
+assert.deepEqual(byArea(scrollA,0,cols.destX).filter(v=>v.color===M.palettes.rgb.accent),
+ byArea(scrollB,0,cols.destX).filter(v=>v.color===M.palettes.rgb.accent),
  'Line number remains fixed while destination scrolls');
-assert.deepEqual(byArea(scrollA,cols.timeX,64),byArea(scrollB,cols.timeX,64),
+assert.deepEqual(byArea(scrollA,cols.timeX,64).filter(v=>v.color===M.palettes.rgb.ok),
+ byArea(scrollB,cols.timeX,64).filter(v=>v.color===M.palettes.rgb.ok),
  'Countdown remains fixed while destination scrolls');
 assert.notDeepEqual(byArea(scrollA,cols.destX,cols.timeX),
  byArea(scrollB,cols.destX,cols.timeX),'Destination must visibly move');
