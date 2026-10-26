@@ -6,6 +6,7 @@ on:
       - 'worker/mini-departures.mjs'
       - 'worker/mini-stop-search.mjs'
       - 'scripts/test-mini-stop-search.mjs'
+      - 'scripts/test-mini-presets.mjs'
       - 'worker/api/v1.mjs'
       - 'scripts/test-intransit-mini.mjs'
       - 'scripts/browser-intransit-mini.mjs'
@@ -36,6 +37,8 @@ jobs:
         run: node scripts/test-intransit-mini.mjs
       - name: Validate Entur v3 stop search and departure filter model
         run: node scripts/test-mini-stop-search.mjs
+      - name: Check Mini 3.0 local profiles and four pixel designs
+        run: node scripts/test-mini-presets.mjs
       - name: Live Entur stopPlace schema probe (nonblocking)
         continue-on-error: true
         run: node scripts/probe-mini-entur.mjs
