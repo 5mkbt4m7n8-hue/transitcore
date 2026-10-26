@@ -144,7 +144,10 @@ inline Stats draw(Display &display,Profile p,Palette palette,const Board &board,
     const uint8_t scale=std::max(1,topFont/8);
     const int room=w-2*pad-(demo?std::max(15,static_cast<int>(w*.23)):0);
     text(pad,std::max(0,(g.header-8*scale)/2),board.stopName,col.fg,room,scale);
-    if(demo&&w>=80)text(w-30,0,"DEMO",col.alert,28,1);
+    if(demo){
+      if(w>=80)text(w-30,0,"DEMO",col.alert,28,1);
+      else text(w-6,0,"D",col.alert,6,1);
+    }
   }
   if(!board.valid){
     text(pad,g.header+2,"DATA FEIL",col.alert,w-2*pad,1);
@@ -163,7 +166,8 @@ inline Stats draw(Display &display,Profile p,Palette palette,const Board &board,
     const int timeW=std::max(g.compact?10:15,static_cast<int>(std::round(w*(w<=64?.22:.18))));
     const int destX=pad+lineW+gap,destW=w-pad-timeW-gap-destX;
     text(pad,baseline,d.line,col.accent,lineW,scale);
-    if(destW>g.fontSize*1.4)text(destX,baseline,d.destination,col.fg,destW,scale);
+    if(demo&&!g.header&&g.compact)text(destX,baseline,"D",col.alert,6,1);
+    else if(destW>g.fontSize*1.4)text(destX,baseline,d.destination,col.fg,destW,scale);
     const std::string timer=g.compact?std::to_string(minutesUntil(d.epoch,now)):
       timeLabel(d,now);
     const int tw=std::min<int>(timer.size(),timeW/(6*scale))*6*scale;
