@@ -70,8 +70,8 @@ for(const design of ['compact','bold','clock']){
  rendered.length=0;
  const out=R.draw(frame,p,M.demo(now),{demo:true,now,design});
  assert(out.visible>0);
- assert(rendered.every(r=>r.x>=0&&r.y>=0&&r.x+r.w<=p.width&&r.y+r.h<=p.height),
-  design+' must not draw outside panel');
+ const bad=rendered.filter(r=>r.x<0||r.y<0||r.x+r.w>p.width||r.y+r.h>p.height);
+ assert(bad.length===0,design+' must not draw outside panel; first invalid '+JSON.stringify(bad.slice(0,5)));
 }
 const lcd=M.profile('lcd-240x135');
 let smoothed=0;
