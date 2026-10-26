@@ -48,8 +48,10 @@ In scrolling mode, only a destination that does not fit its allocated column
 moves. Route number, countdown and stop header remain stationary.
 The renderer clips glyphs to the destination column itself; no text can
 overlap route or time. Scrolling uses **whole physical pixels**:
-one pixel per **120 ms**, a **1.2 second pause at both ends**, then reverses
-direction without jumping. The effect is supported in the classic, compact,
+a **1.2 second pause at the beginning**, one pixel forward per **120 ms**
+until the complete end of the destination has been shown, then a **1.2 second
+pause at the end**. It jumps directly back to the first character and repeats;
+there is no backwards animation. The effect is supported in the classic, compact,
 large-next-departure and clock web designs, including different panel widths.
 
 The animation runs only when the selected panel has overflowing text and the
