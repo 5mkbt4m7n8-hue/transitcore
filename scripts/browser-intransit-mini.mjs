@@ -55,6 +55,31 @@ try{
  assert.equal(await page.locator('#resValue').innerText(),'64 × 64');
  assert.match(await page.locator('#sourceBadge').innerText(),/DEMO/);
  assert.equal(await page.locator('#rowsValue').innerText(),'5 / 5');
+ assert.equal(await page.locator('#destinationMode').inputValue(),'shorten');
+ await page.locator('#destinationMode').selectOption('scroll');
+ assert.equal(await page.locator('#destinationMode').inputValue(),'scroll');
+ // Check REAL Canvas pixels: the complete label scrolls within its assigned
+ // destination field while route/time remain unchanged.
+ const frames=await page.evaluate(()=>{
+  const M=window.InTransitMiniModel,R=window.InTransitMiniRenderer;
+  const now=Date.parse('2026-10-26T11:00:00.000Z');
+  const data=M.demo(now);data.departures[0].line='12';
+  data.departures[0].destination='Dragvoll via Strindheim';
+  data.departures[0].at=new Date(now+180000).toISOString();
+  const board=document.createElement('canvas');board.width=64;board.height=64;
+  const snapshots=[];
+  for(const ms of [0,4800]){
+   const r=R.draw(board,M.profile('led-64x64'),data,
+    {demo:false,now,design:'classic',destinationMode:'scroll',scrollMs:ms});
+   snapshots.push({png:board.toDataURL(),moving:r.scrolling,visible:r.visible});
+  }
+  return snapshots;
+ });
+ assert.equal(frames[0].moving,true);
+ assert.equal(frames[1].visible,5);
+ assert.notEqual(frames[0].png,frames[1].png,'Clipped destination should move in real bitmap canvas');
+ await page.locator('#destinationMode').selectOption('shorten');
+
  // The production browser must use the new physical glyph-width allocation:
  // full STRINDHEIM fits in a 64x64 row beside two-digit line and countdown.
  const measured=await page.evaluate(()=>{
@@ -216,6 +241,7 @@ try{
  await page.locator('#clearAllLines').click();
  await page.locator('#lineFilters input[value="1"]').check();
  await page.locator('#direction').selectOption('Ranheim');
+ await page.locator('#destinationMode').selectOption('scroll');
  await page.locator('#presetName').fill('Hjem');
  await page.locator('#savePreset').click();
  await page.waitForFunction(()=>document.querySelector('#presetStatus')?.textContent.includes('Lagret'));
@@ -229,6 +255,7 @@ try{
   'Mini storage must not touch transit drawing drafts or other products');
  await page.locator('#profile').selectOption('lcd-240x135');
  await page.locator('#design').selectOption('clock');
+ await page.locator('#destinationMode').selectOption('shorten');
  await page.locator('#stop').selectOption('NSR:StopPlace:41742');
  await page.locator('#presetName').fill('Jobb');
  await page.locator('#savePreset').click();
@@ -237,6 +264,7 @@ try{
  await page.locator('#savedPreset').selectOption(home);
  assert.equal(await page.locator('#profile').inputValue(),'led-64x64');
  assert.equal(await page.locator('#design').inputValue(),'bold');
+ assert.equal(await page.locator('#destinationMode').inputValue(),'scroll');
  assert.equal(await page.locator('#direction').inputValue(),'Ranheim');
  assert.equal(await page.locator('#rowsValue').innerText(),'1 / 1');
  assert.equal(await page.locator('#presetName').inputValue(),'Hjem');
@@ -246,6 +274,7 @@ try{
  const data=JSON.parse(await readFile(await exported.path(),'utf8'));
  assert.equal(data.version,3);
  assert.equal(data.value.display.design,'bold');
+ assert.equal(data.value.display.destinationMode,'scroll');
  assert.deepEqual(data.value.datasource.filters.lines,['1']);
  assert.equal(data.value.datasource.filters.destination,'Ranheim');
  await page.locator('#design').selectOption('compact');
@@ -259,6 +288,7 @@ try{
   'Named Mini settings must survive a full page reload');
  await page.locator('#savedPreset').selectOption(home);
  assert.equal(await page.locator('#design').inputValue(),'compact');
+ assert.equal(await page.locator('#destinationMode').inputValue(),'scroll');
  assert.equal(await page.locator('#direction').inputValue(),'Ranheim');
  // Import saves as NEW identity rather than overwriting Hjem oppdatert.
  await page.locator('#importPreset').setInputFiles({name:'mini-import.json',
