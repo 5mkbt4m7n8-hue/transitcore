@@ -6,8 +6,17 @@
  let board=null,profile=null,liveRequest=0,working=false,lastStopId='',errorState=false;
  let selectedLines=null,selectedDestination='',selectedStopName='';
  let searchToken=0,searchTimer=null,searchAbort=null;
- let scrollAnchor=performance.now(),scrollingText=false;
+ let scrollAnchor=performance.now(),scrollingText=false,scrollHiddenMs=0,scrollHiddenAt=null;
  const reduceMotion=root.matchMedia?.('(prefers-reduced-motion: reduce)');
+ function restartScroll(){
+  scrollAnchor=performance.now();scrollHiddenMs=0;
+  scrollHiddenAt=document.hidden?scrollAnchor:null;
+ }
+ function scrollElapsed(){
+  const now=performance.now();
+  return Math.max(0,now-scrollAnchor-scrollHiddenMs-
+   (scrollHiddenAt===null?0:now-scrollHiddenAt));
+ }
  const storage=(()=>{try{return root.localStorage;}catch{return null;}})();
  const initial=storage?P.load(storage):{items:[],error:'Nettleseren tillater ikke lokal lagring.'};
  let saved=initial.items,activePreset='';
@@ -263,7 +272,7 @@
     palette:$('palette').value,design:$('design').value,
     destinationMode:$('destinationMode').value,
     reducedMotion:reduceMotion?.matches===true,
-    scrollMs:performance.now()-scrollAnchor});
+    scrollMs:scrollElapsed()});
    scrollingText=drawn.scrolling===true;
    R.preview(frame,$('preview'),profile,{view:$('previewView').value});
    $('preview').style.aspectRatio=profile.width+'/'+profile.height;
@@ -392,7 +401,7 @@
  $('resetFilters').onclick=resetFilters;
  $('selectAllLines').onclick=()=>{selectedLines=null;lineOptions();render();};
  $('clearAllLines').onclick=()=>{selectedLines=new Set();lineOptions();render();};
- $('destinationMode').addEventListener('change',()=>{scrollAnchor=performance.now();});
+ $('destinationMode').addEventListener('change',restartScroll);
  $('refresh').onclick=reloadData;
  $('savedPreset').onchange=()=>{
   const item=saved.find(x=>x.id===$('savedPreset').value);
@@ -409,6 +418,14 @@
  };
  $('downloadConfig').onclick=exportConfig;
  $('downloadImage').onclick=exportPng;
+ document.addEventListener('visibilitychange',()=>{
+  const now=performance.now();
+  if(document.hidden&&scrollHiddenAt===null)scrollHiddenAt=now;
+  else if(!document.hidden&&scrollHiddenAt!==null){
+   scrollHiddenMs+=now-scrollHiddenAt;
+   scrollHiddenAt=null;
+  }
+ });
  // Active departures should update without repeated manual reloads.
  setInterval(()=>{
   if(document.hidden)return;
