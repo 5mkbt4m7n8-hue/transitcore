@@ -4,6 +4,7 @@ on:
     paths:
       - 'scripts/*mini-font.mjs'
       - 'scripts/test-mini-display-columns.mjs'
+      - 'scripts/test-mini-destination-scroll.mjs'
       - 'firmware/mini/include/mini_font.hpp'
       - 'web/mini/**'
       - 'worker/mini-departures.mjs'
@@ -41,6 +42,8 @@ jobs:
         run: node scripts/test-mini-font.mjs
       - name: Check adaptive LED pixel columns and meaningful long destinations
         run: node scripts/test-mini-display-columns.mjs
+      - name: Check optional destination ticker, clipping, reduced motion and saved profiles
+        run: node scripts/test-mini-destination-scroll.mjs
       - name: Check display profiles, Entur contract and independent API
         run: node scripts/test-intransit-mini.mjs
       - name: Validate Entur v3 stop search and departure filter model

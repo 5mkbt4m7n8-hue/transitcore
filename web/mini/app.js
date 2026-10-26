@@ -6,6 +6,17 @@
  let board=null,profile=null,liveRequest=0,working=false,lastStopId='',errorState=false;
  let selectedLines=null,selectedDestination='',selectedStopName='';
  let searchToken=0,searchTimer=null,searchAbort=null;
+ let scrollAnchor=performance.now(),scrollingText=false,scrollHiddenMs=0,scrollHiddenAt=null;
+ const reduceMotion=root.matchMedia?.('(prefers-reduced-motion: reduce)');
+ function restartScroll(){
+  scrollAnchor=performance.now();scrollHiddenMs=0;
+  scrollHiddenAt=document.hidden?scrollAnchor:null;
+ }
+ function scrollElapsed(){
+  const now=performance.now();
+  return Math.max(0,now-scrollAnchor-scrollHiddenMs-
+   (scrollHiddenAt===null?0:now-scrollHiddenAt));
+ }
  const storage=(()=>{try{return root.localStorage;}catch{return null;}})();
  const initial=storage?P.load(storage):{items:[],error:'Nettleseren tillater ikke lokal lagring.'};
  let saved=initial.items,activePreset='';
@@ -25,7 +36,7 @@
   const p=displayProfile(),stop=currentStop();
   return P.config({hardware:{profileId:p.id,width:p.width,height:p.height,type:p.kind},
    display:{palette:$('palette').value,brightnessPercent:Number($('brightness').value),
-    design:$('design').value},
+    design:$('design').value,destinationMode:$('destinationMode').value},
    datasource:{mode:$('source').value,stopId:stop.id,stopName:stop.name,
     filters:{lines:selectedLines===null?null:[...selectedLines],
      destination:selectedDestination||null}}});
@@ -53,6 +64,8 @@
   $('kind').value=v.hardware.type;
   $('palette').value=v.display.palette;
   $('design').value=v.display.design;
+  $('destinationMode').value=v.display.destinationMode;
+  scrollAnchor=performance.now();
   $('brightness').value=String(v.display.brightnessPercent);
   $('source').value=v.datasource.mode;
   const preset=M.PRESETS.find(x=>x.id===v.datasource.stopId);
@@ -256,7 +269,11 @@
    const demo=$('source').value==='demo';
    const visibleBoard=M.filterBoard(board,{lines:selectedLines,destination:selectedDestination});
    const drawn=R.draw(frame,profile,visibleBoard,{demo,now:Date.now(),
-    palette:$('palette').value,design:$('design').value});
+    palette:$('palette').value,design:$('design').value,
+    destinationMode:$('destinationMode').value,
+    reducedMotion:reduceMotion?.matches===true,
+    scrollMs:scrollElapsed()});
+   scrollingText=drawn.scrolling===true;
    R.preview(frame,$('preview'),profile,{view:$('previewView').value});
    $('preview').style.aspectRatio=profile.width+'/'+profile.height;
    $('preview').style.filter='brightness('+Number($('brightness').value)/100+')';
@@ -337,7 +354,7 @@
    const config={schemaVersion:1,product:'intransit-mini',
     hardware:{type:p.kind,width:p.width,height:p.height,pixelCount:p.width*p.height},
     display:{palette:$('palette').value,brightnessPercent:Number($('brightness').value),
-     design:$('design').value},
+     design:$('design').value,destinationMode:$('destinationMode').value},
     datasource:{mode:$('source').value,stopId:stop.id,stopName:stop.name,
      filters:{lines:selectedLines===null?null:[...selectedLines].sort(),
       destination:selectedDestination||null}},
@@ -356,7 +373,7 @@
  $('profile').onchange=()=>{
   $('customFields').hidden=$('profile').value!=='custom';render();
  };
- for(const id of ['width','height','kind','palette','brightness','design','previewView']){
+ for(const id of ['width','height','kind','palette','brightness','design','destinationMode','previewView']){
   $(id).addEventListener(id==='width'||id==='height'?'input':'change',render);
  }
  $('stop').onchange=()=>{
@@ -384,6 +401,7 @@
  $('resetFilters').onclick=resetFilters;
  $('selectAllLines').onclick=()=>{selectedLines=null;lineOptions();render();};
  $('clearAllLines').onclick=()=>{selectedLines=new Set();lineOptions();render();};
+ $('destinationMode').addEventListener('change',restartScroll);
  $('refresh').onclick=reloadData;
  $('savedPreset').onchange=()=>{
   const item=saved.find(x=>x.id===$('savedPreset').value);
@@ -400,6 +418,14 @@
  };
  $('downloadConfig').onclick=exportConfig;
  $('downloadImage').onclick=exportPng;
+ document.addEventListener('visibilitychange',()=>{
+  const now=performance.now();
+  if(document.hidden&&scrollHiddenAt===null)scrollHiddenAt=now;
+  else if(!document.hidden&&scrollHiddenAt!==null){
+   scrollHiddenMs+=now-scrollHiddenAt;
+   scrollHiddenAt=null;
+  }
+ });
  // Active departures should update without repeated manual reloads.
  setInterval(()=>{
   if(document.hidden)return;
@@ -411,6 +437,13 @@
   }
  },30000);
  setInterval(()=>{if(!document.hidden&&board)render();},15000);
+ // Render extra frames only when an opted-in label really overflows its field.
+ // Pauses in hidden tabs; never triggers another Entur/Worker request.
+ setInterval(()=>{
+  if(document.hidden||!board||!scrollingText||
+     $('destinationMode').value!=='scroll'||reduceMotion?.matches)return;
+  render();
+ },120);
  root.InTransitMiniBridge={
   getPresets(){return saved.map(item=>({id:item.id,name:item.name}));},
   getActive(){return activePreset;},

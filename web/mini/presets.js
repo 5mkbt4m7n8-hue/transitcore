@@ -45,9 +45,13 @@
   if(!Number.isInteger(brightness)||brightness<15||brightness>100||
     !Object.hasOwn(M.palettes,display.palette)||!designOk(display.design))
     throw Error('Ugyldige visningsvalg');
+  const destinationMode=display.destinationMode??'shorten';
+  if(!['shorten','scroll'].includes(destinationMode))
+   throw Error('Ugyldig visning av lange destinasjoner');
   return {schemaVersion:3,product:'intransit-mini',
    hardware:{profileId:p.id,width:p.width,height:p.height,type:p.kind,pixelCount:p.width*p.height},
-   display:{palette:display.palette,brightnessPercent:brightness,design:display.design},
+   display:{palette:display.palette,brightnessPercent:brightness,design:display.design,
+    destinationMode},
    datasource:{mode:datasource.mode,stopId:datasource.stopId,stopName:stopName.trim(),
     filters:{lines:lines===null?null:[...new Set(lines)].sort(),destination:direction||null}}};
  }

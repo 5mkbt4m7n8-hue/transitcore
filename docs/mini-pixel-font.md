@@ -34,3 +34,31 @@ without a footer retain the header DEMO label. Larger OLED/TFT text
 layout, font pixels, four display designs and ESP32 hardware behavior
 are otherwise unchanged. The physical ESP32 currently retains its
 own classic layout and has not been flashed or compared end to end.
+
+## Optional destination abbreviation or scrolling
+
+Mini web simulator's **«Hvis destinasjonsnavnet er for langt»** option offers
+**Forkort teksten** (the existing/default behavior) and **Rull teksten rolig**.
+The user can store the chosen option inside each named Mini 3.0 screen profile,
+as well as the exported JSON display configuration. Existing saved version 3
+profiles without this new field still load as `shorten`; other source data,
+saved route filters and the ESP32 hardware configuration are unchanged.
+
+In scrolling mode, only a destination that does not fit its allocated column
+moves. Route number, countdown and stop header remain stationary.
+The renderer clips glyphs to the destination column itself; no text can
+overlap route or time. Scrolling uses **whole physical pixels**:
+one pixel per **120 ms**, a **1.2 second pause at both ends**, then reverses
+direction without jumping. The effect is supported in the classic, compact,
+large-next-departure and clock web designs, including different panel widths.
+
+The animation runs only when the selected panel has overflowing text and the
+webpage is visible; it does not request extra Entur data. It respects the
+user's operating-system **reduced-motion** preference by falling back to
+static abbreviation. Default mode continues to show the five departures
+on the 64×64 LED display. The physical ESP32 firmware **does not yet
+implement scrolling**; this is a web-simulator-only control until a hardware
+test and driver integration can be done.
+
+The PNG export captures the currently visible animation frame; it cannot
+encode a moving animation.

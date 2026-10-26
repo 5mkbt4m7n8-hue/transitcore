@@ -83,6 +83,13 @@
      <option value="bold">Stor neste avgang</option>
      <option value="clock">Klokke og neste avgang</option>
     </select></label>
+    <label>Hvis destinasjonsnavnet er for langt
+     <select id="destinationMode">
+      <option value="shorten" selected>Forkort teksten</option>
+      <option value="scroll">Rull teksten rolig</option>
+     </select>
+     <span class="small">Ved rulling står linjenummer og minutter stille. Kun destinasjonen beveger seg.</span>
+    </label>
     <label>Fargeprofil<select id="palette"><option value="rgb" selected>RGB – AtB-inspirert</option><option value="amber">Retro – oransje</option><option value="mono">Monokrom grønn</option></select></label>
     <label>Lysstyrke for forhåndsvisning <input id="brightness" type="range" min="15" max="100" value="80"><span id="brightnessValue" class="small">80 %</span></label>
     <div class="section-title minor"><h2>Avganger</h2><span>02 / DATA</span></div>
