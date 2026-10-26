@@ -28,7 +28,8 @@
       !Array.isArray(parsed.ids)||parsed.ids.length>12||
       parsed.ids.some(x=>typeof x!=='string'))throw Error('Ugyldig oppsett');
    // Deleted profiles are dropped; newly added profiles are opt-in.
-   return {value:normalize(parsed,ids),error:null};
+   const current=new Set(ids);
+   return {value:normalize({...parsed,ids:parsed.ids.filter(id=>current.has(id))},ids),error:null};
   }catch{return {value:defaults(ids),error:'Lagret rotasjon kan ikke leses. Standardinnstilling brukes.'};}
  }
  function save(storage,value,ids){
