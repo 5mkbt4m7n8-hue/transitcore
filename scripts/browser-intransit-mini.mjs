@@ -228,12 +228,70 @@ try{
  assert.equal(await page.locator('#profile').inputValue(),'led-64x64');
  assert.equal(await page.evaluate(()=>Object.keys(localStorage).join(',')),
   'intransit-mini:v3:presets');
+ // Mini 4.0: no rotation until the user explicitly presses Start.
+ assert.equal(await page.locator('#rotationProfiles input[type=checkbox]').count(),2);
+ assert.equal(await page.locator('#rotationProfiles input:checked').count(),2);
+ assert.equal(await page.evaluate(()=>window.InTransitMiniRotationControl.state().playing),false);
+ assert.equal(await page.locator('#rotationToggle').isDisabled(),false);
+ await page.locator('#rotationInterval').selectOption('5');
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-mini:v4:rotation')).seconds),5);
+ await page.locator('#rotationToggle').click();
+ assert.equal(await page.evaluate(()=>window.InTransitMiniRotationControl.state().playing),true);
+ assert.match(await page.locator('#rotationStatus').innerText(),/Viser/);
+ assert.equal(await page.locator('#rotationToggle').getAttribute('aria-pressed'),'true');
+ const started=await page.evaluate(()=>window.InTransitMiniRotationControl.state());
+ const expectedNext=started.active===home?
+  (await page.locator('#savedPreset option').evaluateAll(options=>options.find(x=>
+    x.textContent==='Jobb')?.value)):home;
+ await page.locator('#rotationNext').click();
+ assert.equal(await page.evaluate(()=>window.InTransitMiniRotationControl.state().active),expectedNext);
+ await page.locator('#rotationPrevious').click();
+ assert.equal(await page.evaluate(()=>window.InTransitMiniRotationControl.state().active),started.active);
+ // Real timer advances with the selected 5-second interval.
+ await page.waitForFunction(previous=>window.InTransitMiniRotationControl.state().active!==previous,
+  started.active,{timeout:8500});
+ await page.locator('#rotationToggle').click();
+ assert.equal(await page.evaluate(()=>window.InTransitMiniRotationControl.state().paused),true);
+ const atPause=await page.evaluate(()=>window.InTransitMiniRotationControl.state());
+ await page.waitForTimeout(450);
+ const afterPause=await page.evaluate(()=>window.InTransitMiniRotationControl.state());
+ assert.equal(afterPause.active,atPause.active);
+ assert.equal(afterPause.elapsedMs,atPause.elapsedMs,'Paused slideshow must not advance elapsed time');
+ await page.locator('#rotationToggle').click();
+ assert.equal(await page.evaluate(()=>window.InTransitMiniRotationControl.state().paused),false);
+ // While page is hidden, background throttling must not trigger missed-screen catchup.
+ await page.evaluate(()=>{
+  Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});
+  document.dispatchEvent(new Event('visibilitychange'));
+ });
+ const hiddenState=await page.evaluate(()=>window.InTransitMiniRotationControl.state());
+ await page.waitForTimeout(500);
+ assert.equal(await page.evaluate(()=>window.InTransitMiniRotationControl.state().elapsedMs),
+  hiddenState.elapsedMs);
+ await page.evaluate(()=>{
+  Object.defineProperty(document,'hidden',{configurable:true,get:()=>false});
+  document.dispatchEvent(new Event('visibilitychange'));
+ });
+ await page.locator('#palette').selectOption('mono');
+ assert.equal(await page.evaluate(()=>window.InTransitMiniRotationControl.state().playing),false,
+  'Manual editing must stop auto-rotation');
+ // Selecting only one profile disables automatic playback.
+ await page.locator('#rotationProfiles input[type=checkbox]').first().uncheck();
+ assert.equal(await page.locator('#rotationToggle').isDisabled(),true);
+ await page.locator('#rotationProfiles input[type=checkbox]').first().check();
+ assert.equal(await page.locator('#rotationToggle').isDisabled(),false);
+ await page.reload();
+ assert.equal(await page.locator('#rotationInterval').inputValue(),'5');
+ assert.equal(await page.locator('#rotationProfiles input:checked').count(),2);
+ assert.equal(await page.evaluate(()=>window.InTransitMiniRotationControl.state().playing),false,
+  'Auto-play must not unexpectedly start after page reload');
  await page.setViewportSize({width:390,height:844});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,
   'Mini simulator must fit narrow iPhone viewport');
  assert.equal(await page.locator('#preview').isVisible(),true);
- assert.deepEqual(await page.evaluate(()=>Object.keys(localStorage)),['intransit-mini:v3:presets'],
-  'Only Mini storage key may be used; original TransitCore drafts must remain untouched');
+ assert.deepEqual((await page.evaluate(()=>Object.keys(localStorage))).sort(),
+  ['intransit-mini:v3:presets','intransit-mini:v4:rotation'],
+  'Rotation writes only to its isolated Mini key, not original TransitCore drafts');
  assert.deepEqual(errors,[],'No JS errors');
  console.log('InTransit Mini Chromium: 64/32/128 LED, TFT 240×135, custom 96×48 OLED, PNG/JSON, live 404/200, mobile PASS');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
