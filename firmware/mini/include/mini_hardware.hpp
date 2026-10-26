@@ -33,6 +33,10 @@
   #endif
 #endif
 
+#if defined(MINI_PANEL_TFT) && !defined(MINI_TFT_CONFIGURED)
+  #error "Configure TFT_eSPI controller and pins and define MINI_TFT_CONFIGURED=1 before building"
+#endif
+
 namespace mini {
 class HardwareDisplay final: public Display {
 public:
