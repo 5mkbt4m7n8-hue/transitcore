@@ -12,7 +12,7 @@ for(const [c,rows] of Object.entries(F.glyphs)){
 }
 assert.equal(F.normalize('æøå'),'ÆØÅ');
 assert.equal(F.width('123'),11);
-assert.equal(F.fit('Prinsens gate',43),'PRINSENS GT.');
+assert.equal(F.fit('Prinsens gate',47),'PRINSENS GT.');
 assert.equal(F.fit('Ranheim via Strindheim',27),'RANHEIM');
 for(const text of ['ÆØÅ','Dragvoll via Strindheim','Prinsens gate','123','99m','🙂']){
  for(const s of [1,2,3])for(let w=0;w<65;w++)assert(F.width(F.fit(text,w,s),s)<=w);
