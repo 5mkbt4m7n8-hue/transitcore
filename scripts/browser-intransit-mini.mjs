@@ -232,7 +232,8 @@ try{
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,
   'Mini simulator must fit narrow iPhone viewport');
  assert.equal(await page.locator('#preview').isVisible(),true);
- assert.equal(await page.evaluate(()=>localStorage.length),0,'Mini must not change existing editor drafts');
+ assert.deepEqual(await page.evaluate(()=>Object.keys(localStorage)),['intransit-mini:v3:presets'],
+  'Only Mini storage key may be used; original TransitCore drafts must remain untouched');
  assert.deepEqual(errors,[],'No JS errors');
  console.log('InTransit Mini Chromium: 64/32/128 LED, TFT 240×135, custom 96×48 OLED, PNG/JSON, live 404/200, mobile PASS');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
