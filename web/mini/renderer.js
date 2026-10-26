@@ -34,6 +34,9 @@
     fillText(ctx,board.stopName||'HOLDEPLASS',pad,1,w-2*pad-(demo?23:0),color.fg);
     ctx.fillStyle=color.accent;ctx.fillRect(0,header-1,w,1);
     if(demo){ctx.textAlign='right';ctx.fillStyle=color.alert;ctx.fillText('DEMO',w-pad,1);}
+    // The header's right-aligned DEMO must not right-align the route
+    // and destination of all subsequent compact rows.
+    ctx.textAlign='left';
    }
    const shown=departures.slice(0,rows);
    shown.forEach((d,i)=>{
