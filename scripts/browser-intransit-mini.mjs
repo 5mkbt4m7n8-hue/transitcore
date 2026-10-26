@@ -19,10 +19,22 @@ const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
 try{
  const page=await browser.newPage({viewport:{width:1120,height:850},acceptDownloads:true});
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
- let liveStatus=404,apiCalls=0;
+ let liveStatus=404,apiCalls=0,searchCalls=0,searchStatus=200;
  await page.route('https://transitcore-led-feed.lgb84.workers.dev/**',async route=>{
-  apiCalls++;
   const url=new URL(route.request().url());
+  if(url.pathname==='/api/v1/mini/stop-search'){
+   searchCalls++;
+   if(searchStatus===404){
+    await route.fulfill({status:404,contentType:'application/json',body:'{"error":"not_found"}'});return;
+   }
+   const query=url.searchParams.get('q');
+   const stops=query.toLocaleLowerCase('nb').includes('trondheim')?
+    [{id:'NSR:StopPlace:41742',name:'Trondheim S',label:'Trondheim S, Trondheim'}]:
+    [{id:'NSR:StopPlace:41613',name:'Prinsens gate',label:'Prinsens gate, Trondheim'}];
+   await route.fulfill({status:200,contentType:'application/json',
+    body:JSON.stringify({schemaVersion:1,source:'Entur Geocoder v3',query,stops})});return;
+  }
+  apiCalls++;
   assert.equal(url.pathname,'/api/v1/mini/departures');
   assert.match(url.searchParams.get('stop'),/^NSR:StopPlace:/);
   if(liveStatus===404){await route.fulfill({status:404,contentType:'application/json',body:'{"error":"not_found"}'});return;}
@@ -43,6 +55,32 @@ try{
  assert.equal(await page.locator('#resValue').innerText(),'64 × 64');
  assert.match(await page.locator('#sourceBadge').innerText(),/DEMO/);
  assert.equal(await page.locator('#rowsValue').innerText(),'5 / 5');
+ // DEMO stop search is offline and cannot pretend to be full Entur search.
+ await page.locator('#stopSearch').fill('Prinsens');
+ await page.waitForFunction(()=>document.querySelectorAll('#stopResults .stop-choice').length===1);
+ assert.equal(searchCalls,0,'Demo name search remains fully offline');
+ await page.locator('#stopResults .stop-choice').click();
+ assert.equal(await page.locator('#stop').inputValue(),'custom');
+ assert.equal(await page.locator('#customStop').inputValue(),'NSR:StopPlace:41613');
+ // Multiple route checkboxes and exact destination selection.
+ assert.equal(await page.locator('#lineFilters input[type=checkbox]').count(),8);
+ await page.locator('#clearAllLines').click();
+ assert.equal(await page.locator('#rowsValue').innerText(),'0 / 5');
+ await page.locator('#selectAllLines').click();
+ assert.equal(await page.locator('#rowsValue').innerText(),'5 / 5');
+ await page.locator('#lineFilters input[value="1"]').uncheck();
+ await page.locator('#lineFilters input[value="2"]').uncheck();
+ assert.equal(await page.locator('#rowsValue').innerText(),'5 / 5');
+ await page.locator('#clearAllLines').click();
+ await page.locator('#lineFilters input[value="1"]').check();
+ assert.equal(await page.locator('#rowsValue').innerText(),'2 / 5');
+ await page.locator('#direction').selectOption('Ranheim');
+ assert.equal(await page.locator('#rowsValue').innerText(),'1 / 5');
+ assert.match(await page.locator('#filterSummary').innerText(),/Ranheim/);
+ const callsBeforeDemo=apiCalls;
+ await page.locator('#resetFilters').click();
+ assert.equal(await page.locator('#rowsValue').innerText(),'5 / 5');
+ assert.equal(apiCalls,callsBeforeDemo);
  assert.equal(await page.locator('#preview').isVisible(),true);
  await page.locator('#profile').selectOption('led-32x16');
  assert.equal(await page.locator('#resValue').innerText(),'32 × 16');
@@ -73,6 +111,8 @@ try{
  const config=JSON.parse(await readFile(await configDownload.path(),'utf8'));
  assert.deepEqual([config.hardware.width,config.hardware.height,config.hardware.type],[96,48,'mono']);
  assert.equal(config.datasource.mode,'demo');
+ assert.equal(config.datasource.filters.destination,null);
+ assert.equal(config.datasource.filters.lines,null);
  const pngEvent=page.waitForEvent('download');
  await page.locator('#downloadImage').click();
  const pngDownload=await pngEvent;
@@ -89,6 +129,28 @@ try{
  await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('2 avganger hentet'),{timeout:12000});
  assert.equal(apiCalls,2);
  assert.equal(await page.locator('#rowsValue').innerText(),'2 / 4');
+ // Live search queries Entur v3 via the dedicated Worker route.
+ await page.locator('#stopSearch').fill('Trondheim');
+ await page.waitForFunction(()=>document.querySelector('#stopResults .stop-choice')?.textContent.includes('Trondheim S'),{timeout:12000});
+ assert.equal(searchCalls,1);
+ await page.locator('#stopResults .stop-choice').click();
+ assert.equal(await page.locator('#customStop').inputValue(),'NSR:StopPlace:41742');
+ await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('2 avganger hentet'),{timeout:12000});
+ // Filter only line 1 towards Ranheim: one of two actual departures.
+ await page.locator('#clearAllLines').click();
+ await page.locator('#lineFilters input[value="1"]').check();
+ await page.locator('#direction').selectOption('Ranheim');
+ assert.equal(await page.locator('#rowsValue').innerText(),'1 / 4');
+ // Re-selecting a stop resets stale line/destination filters.
+ await page.locator('#stop').selectOption('NSR:StopPlace:41613');
+ await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('2 avganger hentet'),{timeout:12000});
+ assert.equal(await page.locator('#direction').inputValue(),'');
+ assert.equal(await page.locator('#rowsValue').innerText(),'2 / 4');
+ searchStatus=404;
+ await page.locator('#stopSearch').fill('Prinsens');
+ await page.waitForFunction(()=>document.querySelector('#searchStatus')?.textContent.includes('HTTP 404'),{timeout:12000});
+ assert.equal(await page.locator('#rowsValue').innerText(),'2 / 4',
+  'Search service failure must not erase previously fetched departures');
  await page.locator('#stop').selectOption('custom');
  assert.equal(await page.locator('#customStopField').isVisible(),true);
  await page.locator('#customStop').fill('NSR:StopPlace:41613');
