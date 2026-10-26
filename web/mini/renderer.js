@@ -95,7 +95,6 @@
    throw Error('Canvas-oppløsning avviker fra skjermprofil');
   const native=frame.getContext('2d',{willReadFrequently:true});
   const ctx=profile.kind==='led'&&native?F.context(native):native;
-  if(profile.kind==='led'&&ctx)ctx.pixelFont=true;
   if(!ctx)throw Error('Canvas 2D er utilgjengelig');
   const now=opts.now??Date.now(),demo=opts.demo===true;
   const palette=M.palettes[opts.palette]||M.palettes.rgb;

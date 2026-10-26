@@ -32,6 +32,7 @@
   let font='6px monospace',align='left';
   return new Proxy(ctx,{
    get(target,key){
+    if(key==='pixelFont')return true;
     if(key==='font')return font;
     if(key==='textAlign')return align;
     if(key==='measureText')return text=>({width:width(text,scale(font))});

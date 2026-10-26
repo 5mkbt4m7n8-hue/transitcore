@@ -121,6 +121,8 @@ try{
  assert.equal(await page.locator('#resValue').innerText(),'128 × 128');
  await page.locator('#profile').selectOption('lcd-240x135');
  assert.equal(await page.locator('#kindValue').innerText(),'LCD / TFT');
+ assert.equal(await page.locator('#frame').evaluate(el=>el.getContext('2d').pixelFont),undefined,
+  'LED font adapter must not leak state into LCD text');
  assert.equal(await page.locator('#frame').getAttribute('width'),'240');
  assert.equal(await page.locator('#frame').getAttribute('height'),'135');
  const aspect=await page.locator('#preview').evaluate(el=>{
