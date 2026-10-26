@@ -1,5 +1,38 @@
 # InTransit Mini – universell avgangstavle for LED, OLED og TFT
 
+## Mini 4.0 – automatisk informasjonstavle
+
+Under **Automatisk informasjonstavle** kan du velge en spilleliste
+med minst to allerede lagrede Mini 3.0-oppsett. Bestem selv hvilke
+som skal vises, og om det skal byttes hvert **5, 10, 15, 30
+eller 60 sekund**. «Start visning» starter den første skjermen,
+«Pause/Fortsett» stopper og gjenopptar tiden, og «Forrige»/«Neste»
+lar deg overstyre rekkefølgen. En fremdriftslinje viser tid til neste
+skjerm. **Vis skjerm i fullskjerm** fungerer der nettleseren
+tillater fullskjerm-API (begrensninger kan gjelde på iPhone).
+
+Rotasjonsvalgene (avkryssede profiler og intervall) lagres i
+`intransit-mini:v4:rotation` **bare lokalt i nettleseren**,
+adskilt fra `intransit-mini:v3:presets`. Nylig lagrede profiler
+må legges til i den valgte listen. Hvis et oppsett slettes,
+blir det automatisk fjernet fra spillelisten.
+Selve avspillingstilstanden lagres **ikke**; ved omlasting må
+du trykke «Start visning» på nytt.
+
+**Viktig:** Dette er en vanlig nettside, ikke en bakgrunnsprosess.
+Når nettleserfanen skjules, teller vekslingen ikke videre,
+og den hopper ikke over skjermer når du kommer tilbake.
+Manuell redigering av skjermoppsettet stopper rotasjonen,
+slik at innstillingene ikke blir overskrevet av neste profil.
+Hver profil aktiverer sin datakilde på nytt:
+DEMO er helt offline, LIVE forsøker å hente friske avganger via
+Worker og viser feil hvis kilden er utilgjengelig. Den kan aldri
+bruke forrige skjerms avganger som data for den neste.
+
+Rotasjonen er kun implementert i websimulatoren.
+ESP32-firmwaren, eksisterende LED-tavler og Cloudflare Worker
+ble ikke endret i Mini 4.0.
+
 ## Mini 3.0 – lagrede skjermer og fire design
 
 Under **Mine skjermoppsett** kan du navngi opptil 12 konfigurasjoner,
