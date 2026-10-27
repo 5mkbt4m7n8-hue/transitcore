@@ -53,3 +53,9 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-geo-link{display:inline-flex;align-items:center;min-height:34px;padding:6px 10px;border-radius:8px;border:1px solid #4b718b;color:#bde9ff;text-decoration:none;background:#14273b;max-width:100%}
 .map-geo-link:focus-visible{outline:3px solid #ffdf91;outline-offset:2px}
 .map-stop-name-note{display:block;color:#a9c4db;line-height:1.5;margin-top:5px}
+
+/* Selected stops remain clear while editing names and positions. */
+.map-viewport .map-stop[data-selected="true"] circle{stroke:#ffe08a;stroke-width:2.6}
+.map-viewport .map-label[data-selected="true"]{fill:#ffe4a1}
+.map-viewport .map-stop:active{cursor:grabbing}
+.map-editor button{cursor:pointer}
