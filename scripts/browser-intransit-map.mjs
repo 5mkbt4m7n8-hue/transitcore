@@ -61,6 +61,51 @@ try{
  assert.equal(calls,auditRequests,'Map review controls must not fetch live frames');
  const box=await page.locator('svg.map-viewport').getAttribute('viewBox');await page.locator('[data-act=in]').click();assert.notEqual(await page.locator('svg.map-viewport').getAttribute('viewBox'),box);await page.locator('[data-act=fit]').click();
  await page.locator('[data-act=edit]').click();
+ // Rename a stop that already has a confirmed name, then reposition the stop
+ // and its label in the schematic editor. Original Quay identity stays intact.
+ await page.locator('[data-role=focus]').selectOption('original-014');
+ const labelInput=page.getByRole('textbox',{name:'Felles lokalt stopnavn'});
+ assert((await labelInput.inputValue()).length>1,'Already named stop should prefill editor');
+ const originalLabel=await labelInput.inputValue();
+ await labelInput.fill('Kontrollnavn for stopp 14');
+ await page.getByRole('button',{name:'Lagre visningsnavn'}).click();
+ assert.equal(await page.locator('svg .map-label[data-label="original-014"]').innerText(),'Kontrollnavn for stopp 14');
+ const initialPosition=await page.locator('svg .map-stop[data-stop="original-014"]').first().getAttribute('transform');
+ const initialLabel=await page.locator('svg .map-label[data-label="original-014"]').evaluate(el=>({x:Number(el.getAttribute('x')),y:Number(el.getAttribute('y'))}));
+ const oldX=Number(await page.getByRole('spinbutton',{name:'Stopp X'}).inputValue());
+ const oldY=Number(await page.getByRole('spinbutton',{name:'Stopp Y'}).inputValue());
+ await page.getByRole('spinbutton',{name:'Stopp X'}).fill(String(oldX+5));
+ await page.getByRole('spinbutton',{name:'Stopp Y'}).fill(String(oldY+7));
+ await page.getByRole('button',{name:'Lagre stopp-plassering'}).click();
+ assert.notEqual(await page.locator('svg .map-stop[data-stop="original-014"]').first().getAttribute('transform'),initialPosition);
+ const shifted=await page.locator('svg .map-label[data-label="original-014"]').evaluate(el=>({x:Number(el.getAttribute('x')),y:Number(el.getAttribute('y'))}));
+ assert.equal(shifted.x,Math.min(913,initialLabel.x+5));
+ assert.equal(shifted.y,Math.min(1280,initialLabel.y+7));
+ const movedDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')));
+ const movedStop=movedDraft.layout.stops.find(s=>s.id==='original-014');
+ assert.equal(movedStop.x,oldX+5);assert.equal(movedStop.y,oldY+7);
+ assert.equal(movedStop.name,originalLabel,'Display alias does not mutate canonical name');
+ assert.equal(movedDraft.layout.stops.length,100,'Repositioning must not create an extra stop');
+ const beforeTap=movedStop.x, beforeTapY=movedStop.y;
+ await page.getByRole('button',{name:'Flytt valgt stopp på kartet'}).click();
+ const svgMove=page.locator('svg.map-viewport');
+ const tapPosition=await svgMove.evaluate((svg,point)=>{
+  const p=svg.createSVGPoint();p.x=point.x;p.y=point.y;
+  const screen=p.matrixTransform(svg.getScreenCTM()),rect=svg.getBoundingClientRect();
+  return {x:screen.x-rect.left,y:screen.y-rect.top};
+ },{x:beforeTap+8,y:beforeTapY+9});
+ await svgMove.click({position:tapPosition});
+ const tapped=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.stops.find(s=>s.id==='original-014'));
+ assert(Math.abs(tapped.x-(beforeTap+8))<1);
+ assert(Math.abs(tapped.y-(beforeTapY+9))<1);
+ assert.equal(await page.getByRole('button',{name:'Flytt valgt stopp på kartet'}).count(),1,'Tap ends relocation mode');
+ await page.locator('[data-act=undo]').click();
+ const undone=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.stops.find(s=>s.id==='original-014'));
+ assert.equal(undone.x,beforeTap);
+ assert.equal(undone.y,beforeTapY);
+ await page.locator('[data-act=undo]').click(); // revert numeric relocation
+ await page.getByRole('button',{name:'Bruk originalnavn'}).click();
+ assert.equal(await page.locator('svg .map-label[data-label="original-014"]').innerText(),originalLabel);
  // The original white drawing is not modified when adding/removing a new element.
  const initialStops=await page.locator('.map-stop').count(),initialPaths=await page.locator('.map-route').count();
  await page.locator('[data-act=addStop]').click();
