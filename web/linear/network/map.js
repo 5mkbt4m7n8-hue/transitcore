@@ -65,6 +65,11 @@
    controls.hidden=!active;
    svg.classList.toggle('map-drawing',active);
    svg.classList.toggle('map-placing',!!placementMode);
+   const relocation=q('moveStop');
+   if(relocation){
+    relocation.setAttribute('aria-pressed',String(placementMode==='move-stop'));
+    relocation.textContent=placementMode==='move-stop'?'Avbryt flytting':'Flytt valgt stopp på kartet';
+   }
    if(!active)return;
    const n=routeSketch.points.length,continued=!!routeSketch.pathId;
    q('sketchHelp').textContent=continued
@@ -266,9 +271,9 @@
     if(initial.stops.some(s=>s.id===item.id)){
      const nameLabel=document.createElement('label');nameLabel.textContent='Felles lokalt visningsnavn (begge kart)';
      const nameInput=document.createElement('input');nameInput.type='text';nameInput.maxLength=80;
-     nameInput.value=localNames[item.id]||'';nameInput.setAttribute('aria-label','Felles lokalt stopnavn');nameLabel.append(nameInput);
+     nameInput.value=localNames[item.id]||item.name;nameInput.setAttribute('aria-label','Felles lokalt stopnavn');nameLabel.append(nameInput);
      const saveName=document.createElement('button');saveName.type='button';saveName.textContent='Lagre visningsnavn';
-     saveName.onclick=()=>{try{localNames=N.rename(initial,item.id,nameInput.value);draw();fields();details(item);
+     saveName.onclick=()=>{try{localNames=N.rename(initial,item.id,nameInput.value.trim()===item.name?'':nameInput.value);draw();fields();details(item);
       q('details').textContent+='\\nNavnet er lagret lokalt i begge kart. Stoppstatus er uendret.';
      }catch(e){q('details').textContent=e.message;}};
      const resetName=document.createElement('button');resetName.type='button';resetName.textContent='Bruk originalnavn';
@@ -279,6 +284,27 @@
      link.textContent='Åpne samme stopp i geografisk kart';
      area.append(nameLabel,saveName,resetName,info,link);
     }
+    // Explicit controls prevent confusing a moved text label with a moved LED stop.
+    const relocation=document.createElement('section');relocation.className='map-stop-position-editor';
+    const heading=document.createElement('strong');heading.textContent='Plassering av valgt holdeplass';
+    const tip=document.createElement('small');tip.textContent='Flytter selve stoppunktet og navnet sammen. Du kan fortsatt dra bare navnet i kartet. Rutenes punkter, stop-ID og offisielle koblinger endres ikke.';
+    const posX=document.createElement('input');posX.type='number';posX.min='0';posX.max='913';posX.step='any';posX.value=String(item.x);posX.setAttribute('aria-label','Stopp X');
+    const posY=document.createElement('input');posY.type='number';posY.min='0';posY.max='1280';posY.step='any';posY.value=String(item.y);posY.setAttribute('aria-label','Stopp Y');
+    const xLabel=document.createElement('label');xLabel.textContent='X i skjemakart';xLabel.append(posX);
+    const yLabel=document.createElement('label');yLabel.textContent='Y i skjemakart';yLabel.append(posY);
+    const applyPosition=document.createElement('button');applyPosition.type='button';applyPosition.textContent='Lagre stopp-plassering';
+    applyPosition.onclick=()=>{try{
+     if(!posX.value.trim()||!posY.value.trim())throw Error('Fyll inn både X og Y');
+     editor.change(next=>L.moveStop(next,item.id,Number(posX.value),Number(posY.value)));
+     q('details').textContent='Holdeplass og etikett flyttet. Endringen er automatisk lagret lokalt og kan angres.';
+    }catch(e){q('details').textContent=e.message;}};
+    const move=document.createElement('button');move.type='button';move.dataset.role='moveStop';
+    move.onclick=()=>{
+     if(placementMode==='move-stop'){placementMode=null;syncSketchControls();return;}
+     cancelSketch();placementMode='move-stop';placementGestureMoved=false;syncSketchControls();
+     q('details').textContent='Trykk på ny plassering i kartet for '+displayName(item)+'. Navnet følger stoppet. ESC eller knappen avbryter.';
+    };
+    relocation.append(heading,tip,xLabel,yLabel,applyPosition,move);area.append(relocation);
     if(item.id.startsWith('custom-stop-')){
     const del=document.createElement('button');del.type='button';del.textContent='Slett ny holdeplass';
     del.onclick=()=>{try{editor.change(next=>L.deleteNewStop(next,item.id));selection=null;fields();}catch(e){q('details').textContent=e.message;}};
@@ -352,7 +378,10 @@
    const p=coords(e),t=drag.target;if(!t){box=[box[0]+drag.start.x-p.x,box[1]+drag.start.y-p.y,box[2],box[3]];setBox();return;}
    const next=structuredClone(drag.before),x=Math.max(0,Math.min(913,p.x)),y=Math.max(0,Math.min(1280,p.y));
    if(t.dataset.path){const path=next.paths.find(v=>v.id===t.dataset.path),i=Number(t.dataset.index);path.points[i]={x,y};if(path.reviewedSegments){delete path.reviewedSegments[i];delete path.reviewedSegments[i-1];}}
-   else{const s=next.stops.find(s=>s.id===(t.dataset.stop||t.dataset.label));Object.assign(t.dataset.label?s.label:s,{x,y});}
+   else{const id=t.dataset.stop||t.dataset.label;
+    if(t.dataset.label)L.moveLabel(next,id,x,y);
+    else L.moveStop(next,id,x,y);
+   }
    drag.next=next;layout=next;draw();
   };
   function end(e){pointers.delete(e.pointerId);if(editing&&(placementMode||routeSketch))return;if(drag?.next)editor.import(drag.next);drag=null;}
@@ -365,6 +394,14 @@
    const p=coords(e);
    try{
     if(routeSketch){sketchTap(p);return;}
+    if(placementMode==='move-stop'){
+     if(selection?.type!=='stop')throw Error('Velg først holdeplassen som skal flyttes');
+     const id=selection.id;
+     editor.change(next=>L.moveStop(next,id,p.x,p.y));
+     placementMode=null;syncSketchControls();
+     q('details').textContent='Flyttet '+displayName(layout.stops.find(s=>s.id===id))+'. Navnet fulgte stoppet. Du kan angre endringen.';
+     return;
+    }
     let id;
     editor.change(next=>{id=L.addStop(next,p.x,p.y);});
     selection={type:'stop',id};selectedSegmentIndex=0;
@@ -373,8 +410,8 @@
    }catch(error){q('details').textContent=error.message;}
   },true);
   document.addEventListener('keydown',e=>{
-   if(!editing||!routeSketch||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName||''))return;
-   if(e.key==='Escape'){e.preventDefault();cancelSketch();}
+   if(!editing||(!routeSketch&&placementMode!=='move-stop')||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName||''))return;
+   if(e.key==='Escape'){e.preventDefault();cancelSketch();placementMode=null;syncSketchControls();}
    else if(e.key==='Backspace'){e.preventDefault();undoSketchPoint();}
    else if(e.key==='Enter'){e.preventDefault();finishSketch();}
   });
