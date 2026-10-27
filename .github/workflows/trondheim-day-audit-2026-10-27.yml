@@ -41,7 +41,11 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
-      - run: node scripts/test-trondheim-day-audit.mjs
+      - name: Syntax check sampler, reporter and run offline contract tests
+        run: |
+          node --check scripts/trondheim-day-audit-collect.mjs
+          node --check scripts/trondheim-day-audit-report.mjs
+          node scripts/test-trondheim-day-audit.mjs
 
   collect:
     if: >-
