@@ -133,6 +133,35 @@ const Ops=require('../web/linear/network/layout-ops.js');
  assert.equal(drawn.stops.length,100);
  assert.deepEqual(M.validate(drawn),[]);
 }
+
+// Renaming must never rewrite an original ID/NSR binding. Moving an already
+// named stop must preserve all attached schematic connections and route proof.
+{
+ const moved=structuredClone(layout),id='original-014';
+ const stop=moved.stops.find(s=>s.id===id),source=layout.stops.find(s=>s.id===id);
+ const label=structuredClone(stop.label);
+ const oldPaths=moved.paths.flatMap(path=>path.points.map((p,i)=>({id:path.id,i,x:p.x,y:p.y})))
+  .filter(p=>Math.hypot(p.x-source.x,p.y-source.y)<=0.8);
+ assert(oldPaths.length>0,'Named stop must have an attached schematic vertex');
+ const before=M.verifiedSegments(moved,[route1],[catalog]).filter(e=>e.from===id||e.to===id)
+  .map(e=>e.pathId+':'+e.edgeIndex).sort();
+ Ops.moveStop(moved,id,source.x+11,source.y+17);
+ assert.deepEqual([stop.x,stop.y],[source.x+11,source.y+17]);
+ assert.deepEqual([stop.label.x,stop.label.y],[label.x+11,label.y+17]);
+ assert.deepEqual(stop.bindings,source.bindings,'Original Quay bindings remain untouched');
+ assert.equal(stop.name,source.name,'The canonical station name remains untouched');
+ for(const p of oldPaths){
+  const point=moved.paths.find(x=>x.id===p.id).points[p.i];
+  assert.deepEqual(point,{x:stop.x,y:stop.y},'Every joined route vertex follows the moved stop');
+ }
+ const after=M.verifiedSegments(moved,[route1],[catalog]).filter(e=>e.from===id||e.to===id)
+  .map(e=>e.pathId+':'+e.edgeIndex).sort();
+ assert.deepEqual(after,before,'Connected route evidence survives local relocation');
+ assert.deepEqual(M.validate(moved),[]);
+ assert.deepEqual(layout.stops.find(s=>s.id===id),source,'Original source remains unchanged');
+ assert.throws(()=>Ops.moveStop(moved,'missing-id',10,10),/Ukjent holdeplass/);
+ assert.throws(()=>Ops.moveStop(moved,id,NaN,20),/Ugyldig plassering/);
+}
 const context={structuredClone,InTransitMapModel:M};vm.createContext(context);vm.runInContext(read('web/linear/network/editor.js'),context);
 let changed;const editor=context.InTransitMapEditor(layout,v=>changed=v);editor.change(v=>v.stops[0].x=100);assert.equal(changed.stops[0].x,100);editor.undo();assert.equal(changed.stops[0].x,layout.stops[0].x);editor.import(JSON.parse(editor.export()));assert.throws(()=>editor.import({}));editor.change(v=>v.stops[0].diodeMode='split');editor.discard();assert.equal(changed.stops[0].diodeMode,'shared');
 const ui=read('web/linear/network/map.js');
@@ -152,6 +181,10 @@ assert.match(ui,/L\.drawPath/,'New sketch is committed on finish');
 assert.match(ui,/L\.appendPath/,'Existing route can be extended by taps');
 assert.match(ui,/data-act="finishSketch"/,'Explicit finish button');
 assert.match(ui,/data-act="sketchCancel"/,'Explicit cancel button');
+assert.match(ui,/Flytt valgt holdeplass/,'Editor has visible action for existing stop relocation');
+assert.match(ui,/Navn på holdeplassen \\(lokalt visningsnavn\\)/,'Existing named stops have editable name input');
+assert.match(ui,/L\\.moveStop/,'Map gesture uses connected route-safe movement');
+assert.doesNotMatch(ui,/Skjemanavn i JSON \\(ikke delt mellom kart\\)/,'Original station names should not have competing JSON name field');
 
 assert.match(ui,/data-role="reference"/);
 assert.match(ui,/data-role="routeColors"/);
