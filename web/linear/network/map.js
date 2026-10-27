@@ -299,6 +299,8 @@
      q('details').textContent='Holdeplass og etikett flyttet. Endringen er automatisk lagret lokalt og kan angres.';
     }catch(e){q('details').textContent=e.message;}};
     const move=document.createElement('button');move.type='button';move.dataset.role='moveStop';
+    move.textContent=placementMode==='move-stop'?'Avbryt flytting':'Flytt valgt stopp på kartet';
+    move.setAttribute('aria-pressed',String(placementMode==='move-stop'));
     move.onclick=()=>{
      if(placementMode==='move-stop'){placementMode=null;syncSketchControls();return;}
      cancelSketch();placementMode='move-stop';placementGestureMoved=false;syncSketchControls();
