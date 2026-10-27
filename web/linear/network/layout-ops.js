@@ -20,6 +20,27 @@
    bindings:[],reviewNote:'Ny holdeplass: navn og Entur-/Quay-ID avklares senere'});
   return id;
  }
+ // Move the existing physical stop and its label as one visual unit.
+ // Preserve ID, official name, Quay/StopPlace bindings and all route geometry.
+ function moveStop(layout,id,x,y){
+  const stop=layout.stops.find(s=>s.id===id);
+  if(!stop)throw Error('Ukjent holdeplass');
+  if(!Number.isFinite(x)||!Number.isFinite(y)||x<0||y<0||x>W||y>H)
+   throw Error('Plassering må være innenfor kartet');
+  const dx=x-stop.x,dy=y-stop.y;
+  stop.x=x;stop.y=y;
+  stop.label.x=clamp(stop.label.x+dx,0,W);
+  stop.label.y=clamp(stop.label.y+dy,0,H);
+  return stop;
+ }
+ function moveLabel(layout,id,x,y){
+  const stop=layout.stops.find(s=>s.id===id);
+  if(!stop)throw Error('Ukjent holdeplass');
+  if(!Number.isFinite(x)||!Number.isFinite(y)||x<0||y<0||x>W||y>H)
+   throw Error('Etiketten må plasseres innenfor kartet');
+  stop.label.x=x;stop.label.y=y;
+  return stop;
+ }
  function addPath(layout,x,y){
   const a=clampPos(x,y),end=clampPos(a.x+34<=W?a.x+34:a.x-34,a.y);
   const id=availableId(layout.paths,'custom-path-');
@@ -112,5 +133,5 @@
   if(index<0)throw Error('Ukjent kartlinje');
   layout.paths.splice(index,1);
  }
- return {addStop,addPath,extendPath,insertVertex,removeLastVertex,drawPath,appendPath,deleteNewStop,deleteNewPath};
+ return {addStop,moveStop,moveLabel,addPath,extendPath,insertVertex,removeLastVertex,drawPath,appendPath,deleteNewStop,deleteNewPath};
 });
