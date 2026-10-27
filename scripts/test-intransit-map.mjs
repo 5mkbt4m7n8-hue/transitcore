@@ -133,11 +133,41 @@ const Ops=require('../web/linear/network/layout-ops.js');
  assert.equal(drawn.stops.length,100);
  assert.deepEqual(M.validate(drawn),[]);
 }
+// Original named/confirmed stops must remain the same physical identity when
+// repositioned. Move the label along with the stop, not the route geometry.
+{
+ const moved=structuredClone(layout),source=structuredClone(moved.stops[0]);
+ const originals=structuredClone(moved.paths);
+ const other=moved.stops[1],otherBefore=structuredClone(other);
+ const x=Math.min(900,source.x+11),y=Math.min(1260,source.y+12);
+ const result=Ops.moveStop(moved,source.id,x,y);
+ assert.equal(result.id,source.id);
+ assert.equal(result.x,x);assert.equal(result.y,y);
+ assert.equal(result.label.x,Math.min(913,source.label.x+x-source.x));
+ assert.equal(result.label.y,Math.min(1280,source.label.y+y-source.y));
+ assert.deepEqual(result.bindings,source.bindings,'Quay bindings must remain unchanged');
+ assert.equal(result.name,source.name,'Original name must remain unchanged');
+ assert.equal(result.verification,source.verification,'Official verification must remain unchanged');
+ assert.deepEqual(moved.paths,originals,'Moving a stop must not modify 18 route paths');
+ assert.deepEqual(other,otherBefore,'Other stops must remain untouched');
+ const prior=structuredClone(result);
+ Ops.moveLabel(moved,source.id,Math.max(0,prior.label.x-6),Math.max(0,prior.label.y-7));
+ assert.equal(result.x,x,'Moving only the label must not move the stop');
+ assert.equal(result.y,y);
+ assert.throws(()=>Ops.moveStop(moved,source.id,-1,y),/innenfor/);
+ assert.throws(()=>Ops.moveStop(moved,source.id,0,NaN),/innenfor/);
+ assert.throws(()=>Ops.moveStop(moved,'missing',20,30),/Ukjent/);
+ assert.deepEqual(M.validate(moved),[]);
+}
 const context={structuredClone,InTransitMapModel:M};vm.createContext(context);vm.runInContext(read('web/linear/network/editor.js'),context);
 let changed;const editor=context.InTransitMapEditor(layout,v=>changed=v);editor.change(v=>v.stops[0].x=100);assert.equal(changed.stops[0].x,100);editor.undo();assert.equal(changed.stops[0].x,layout.stops[0].x);editor.import(JSON.parse(editor.export()));assert.throws(()=>editor.import({}));editor.change(v=>v.stops[0].diodeMode='split');editor.discard();assert.equal(changed.stops[0].diodeMode,'shared');
 const ui=read('web/linear/network/map.js');
 assert.match(ui,/data-role="reviewPath"/);
 assert.match(ui,/data-act="addStop"/);
+assert.match(ui,/Flytt valgt stopp på kartet/,'Existing stop relocation is discoverable');
+assert.match(ui,/L\\.moveStop/,'Stop and label move together with one transaction');
+assert.match(ui,/L\\.moveLabel/,'Label-only drag remains independent');
+assert.match(ui,/nameInput\\.value=localNames\\[item\\.id\\]\\|\\|item\\.name/,'Original named stops prefill the rename input');
 assert.match(ui,/data-act="addPath"/);
 assert.match(ui,/intransit-map-autodraft-v1/,'The editor must use a separate auto-draft storage key');
 assert.match(ui,/baseFingerprint/,'Restored draft must match the originally loaded layout');
