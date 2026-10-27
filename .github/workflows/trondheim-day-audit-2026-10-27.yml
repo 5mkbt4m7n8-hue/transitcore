@@ -50,6 +50,7 @@ jobs:
   collect:
     if: >-
       (github.event_name == 'schedule' && github.event.schedule == '*/5 * 27 10 *') ||
+      github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && inputs.operation == 'collect')
     runs-on: ubuntu-latest
     timeout-minutes: 9
