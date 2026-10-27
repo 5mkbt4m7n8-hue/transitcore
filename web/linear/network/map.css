@@ -53,3 +53,14 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-geo-link{display:inline-flex;align-items:center;min-height:34px;padding:6px 10px;border-radius:8px;border:1px solid #4b718b;color:#bde9ff;text-decoration:none;background:#14273b;max-width:100%}
 .map-geo-link:focus-visible{outline:3px solid #ffdf91;outline-offset:2px}
 .map-stop-name-note{display:block;color:#a9c4db;line-height:1.5;margin-top:5px}
+
+/* Stop position controls: edit a previously named original stop without
+   confusing label-only dragging with the actual LED/stop position. */
+.map-stop-position-editor{display:flex;align-items:end;flex-wrap:wrap;gap:9px;padding:12px;border:1px solid #57758f;border-radius:10px;background:#13273c;flex:1 1 100%}
+.map-stop-position-editor strong,.map-stop-position-editor small{flex:1 1 100%}
+.map-stop-position-editor small{color:#bfd6e9}
+.map-stop-position-editor label{flex:1 1 115px}
+.map-stop-position-editor input[type=number]{width:100%;min-height:39px}
+.map-stop-position-editor button{min-height:39px}
+.map-stop-position-editor [data-role=moveStop][aria-pressed=true]{border-color:#f9c66f;background:#514021;color:#ffe6af}
+.map-viewport.map-placing .map-label{pointer-events:none}
