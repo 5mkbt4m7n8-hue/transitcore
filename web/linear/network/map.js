@@ -371,7 +371,14 @@
    const p=coords(e),t=drag.target;if(!t){box=[box[0]+drag.start.x-p.x,box[1]+drag.start.y-p.y,box[2],box[3]];setBox();return;}
    const next=structuredClone(drag.before),x=Math.max(0,Math.min(913,p.x)),y=Math.max(0,Math.min(1280,p.y));
    if(t.dataset.path){const path=next.paths.find(v=>v.id===t.dataset.path),i=Number(t.dataset.index);path.points[i]={x,y};if(path.reviewedSegments){delete path.reviewedSegments[i];delete path.reviewedSegments[i-1];}}
-   else{const s=next.stops.find(s=>s.id===(t.dataset.stop||t.dataset.label));Object.assign(t.dataset.label?s.label:s,{x,y});}
+   else if(t.dataset.label){
+    const stop=next.stops.find(s=>s.id===t.dataset.label),old=drag.before.stops.find(s=>s.id===t.dataset.label);
+    stop.label.x=Math.max(0,Math.min(913,old.label.x+p.x-drag.start.x));
+    stop.label.y=Math.max(0,Math.min(1280,old.label.y+p.y-drag.start.y));
+   }else if(t.dataset.stop){
+    const old=drag.before.stops.find(s=>s.id===t.dataset.stop);
+    L.moveStop(next,t.dataset.stop,old.x+p.x-drag.start.x,old.y+p.y-drag.start.y);
+   }
    drag.next=next;layout=next;draw();
   };
   function end(e){pointers.delete(e.pointerId);if(editing&&(placementMode||routeSketch))return;if(drag?.next)editor.import(drag.next);drag=null;}
@@ -384,6 +391,14 @@
    const p=coords(e);
    try{
     if(routeSketch){sketchTap(p);return;}
+    if(placementMode==='move'){
+     const id=moveStopId;
+     editor.change(next=>L.moveStop(next,id,p.x,p.y));
+     placementMode=null;moveStopId=null;selection={type:'stop',id};
+     syncSketchControls();fields();draw();
+     q('details').textContent='Holdeplassen er flyttet. Navneetiketten og tilknyttede linjepunkter ble flyttet sammen med stoppet. Bruk Angre for å gå tilbake.';
+     return;
+    }
     let id;
     editor.change(next=>{id=L.addStop(next,p.x,p.y);});
     selection={type:'stop',id};selectedSegmentIndex=0;
@@ -392,8 +407,8 @@
    }catch(error){q('details').textContent=error.message;}
   },true);
   document.addEventListener('keydown',e=>{
-   if(!editing||!routeSketch||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName||''))return;
-   if(e.key==='Escape'){e.preventDefault();cancelSketch();}
+   if(!editing||(!routeSketch&&placementMode!=='move')||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName||''))return;
+   if(e.key==='Escape'){e.preventDefault();cancelSketch();placementMode=null;moveStopId=null;syncSketchControls();fields();}
    else if(e.key==='Backspace'){e.preventDefault();undoSketchPoint();}
    else if(e.key==='Enter'){e.preventDefault();finishSketch();}
   });
