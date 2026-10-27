@@ -204,3 +204,37 @@ Flerpunkts tegning er foreløpig i det opprinnelige SVG-skjemaets
 koordinater (913 x 1280), **ikke et geografisk kart**. Se
 `docs/intransit-geographic-map-plan.md` for den alternative
 kartmodusen. Ingen GPS eller sanntidsstatus utledes av tegnede streker.
+
+## Korrigere allerede navngitte holdeplasser (2026-10-27)
+
+I **Linear → Hele kartet → Rediger kart** velger du en eksisterende
+holdeplass, enten direkte på kartet eller fra **Fokus på punkt**.
+Dette fungerer også for stopp som allerede er navngitt og bekreftet.
+
+- **Felles lokalt visningsnavn:** Navnefeltet viser dagens navn.
+  Skriv riktig visningsnavn og velg **Lagre visningsnavn**.
+  **Bruk originalnavn** fjerner kun den lokale overstyringen.
+  Navneendringen deles med det geografiske kartet og stoppoversikten
+  via den eksisterende, lokale `intransit-geo-draft-v1`-kopien.
+  Originalens ID, kanoniske navn, Quay-/StopPlace-bindinger og
+  verifiseringsstatus endres ikke.
+- **Flytt valgt stopp på kartet:** Klikk knappen og trykk én gang på
+  den nye plasseringen. Punkt og etikett flyttes sammen. Escape eller
+  knappen avbryter uten endring.
+- **Presis plassering:** Endre X og Y (skjemakoordinater innenfor
+  913×1280) og velg **Lagre stopp-plassering**.
+- **Direkte dragging:** I redigeringsmodus kan punktet dras; navnet
+  følger med. Dra bare tekstetiketten dersom du vil justere
+  skriftplasseringen uavhengig av det faktiske stoppunktet.
+- **Angre / arbeidskopi:** Flytting er én validert, angrebar endring
+  som lagres automatisk lokalt. Bruk **Eksporter JSON** for varig
+  sikkerhetskopi; navneoverstyringer følger den separate
+  geografiske GeoJSON-arbeidskopien og eksporteres derfra.
+
+Dette er redigering av **skjematisk kartlayout**, ikke endring av
+offisielle Entur-data eller geografiske koordinater. En markør som
+var galt plassert kan flyttes uten å endre de 100 opprinnelige
+stopp-ID-ene, de 18 opprinnelige kartlinjene eller bussdata og GPS.
+Den nye posisjonen påvirker hvor LED/stoppet **tegnes**, ikke hvilken
+Quay-stasjon datamotoren leser. For flytting av reelle WGS84-posisjoner
+brukes den separate geografiske karteditorens **Plasser valgt stopp**.
