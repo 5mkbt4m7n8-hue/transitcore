@@ -77,6 +77,8 @@ try{
  await page.locator('[data-act=undo]').click();
  await page.getByRole('button',{name:'Bruk originalnavn'}).click();
  assert.equal(await page.locator('.map-label[data-label="original-014"]').textContent(),'Solsiden');
+ // Restore full-map coordinates before the existing sketch placement tests.
+ await page.locator('[data-act=fit]').click();
  // The original white drawing is not modified when adding/removing a new element.
  const initialStops=await page.locator('.map-stop').count(),initialPaths=await page.locator('.map-route').count();
  await page.locator('[data-act=addStop]').click();
