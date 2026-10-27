@@ -14,6 +14,9 @@ const catalog=await loadCatalog();
 assert.equal(catalog.ledCount,1282);
 assert(catalog.byLine['11'].find(s=>s.id==='NSR:Quay:73415'));
 assert(catalog.byLine['11'].find(s=>s.id==='NSR:Quay:73414'));
+assert.equal(catalog.sharedByLine['11']['NSR:Quay:73421'],76);
+assert.equal(catalog.sharedByLine['11']['NSR:Quay:73415'],undefined,
+ 'Missing Lerkendal gård must remain UNKNOWN in 147 LED profile');
 const at=new Date('2026-10-27T12:00:00.000Z');
 const source={schemaVersion:1,scope:'catalogued-bus-lines',
  source:'Entur Vehicle Positions v2',observationType:'measured-vehicle-position',
@@ -48,6 +51,9 @@ const snapshots=[{takenAt:at.toISOString(),gps:{status:'ok',...result},
  frames:{'trondheim-shared-stops-board':frame}},
  {takenAt:at.toISOString(),gps:{status:'ok',...result},frames:{}},
  {takenAt:at.toISOString(),gps:{status:'http_404'},frames:{}}];
+snapshots[0].frames['trondheim-city-lines-catalog']={
+ status:'ok',generatedAt:at.toISOString(),
+ leds:[{led:617,state:'AT_STOP'},{led:616,state:'OFF'}]};
 const summary=auditStats(snapshots,catalog);
 const line=summary.routes.find(r=>r.line==='11');
 assert.equal(summary.gpsGood,2);
@@ -56,6 +62,39 @@ assert.equal(line.uniqueVehicles,1);
 assert.equal(line.gpsObservations,1,'Duplicate source observation must be deduped');
 assert.equal(line.nearStopCandidates,1);
 assert.equal(line.stopCandidates[0].stopId,'NSR:Quay:73415');
+assert.equal(line.stopCandidates[0].frameCompared,1);
+assert.equal(line.stopCandidates[0].frameActive,1);
+assert.equal(line.stopCandidates[0].frameInactive,0);
+const frameOff=auditStats([{takenAt:at.toISOString(),gps:{status:'ok',...result},
+ frames:{'trondheim-city-lines-catalog':{status:'ok',
+  generatedAt:at.toISOString(),leds:[]}}}],catalog);
+const off=frameOff.routes.find(r=>r.line==='11').stopCandidates[0];
+assert.equal(off.frameCompared,1);
+assert.equal(off.frameInactive,1);
+const lateFrame=auditStats([{takenAt:at.toISOString(),gps:{status:'ok',...result},
+ frames:{'trondheim-city-lines-catalog':{status:'ok',
+  generatedAt:'2026-10-27T11:50:00Z',leds:[]}}}],catalog);
+assert.equal(lateFrame.routes.find(r=>r.line==='11').stopCandidates[0].frameCompared,0,
+ 'A time-incompatible frame must never be used to judge stop registration');
+const onlyShared=auditStats([{takenAt:at.toISOString(),gps:{status:'ok',...result},
+ frames:{'trondheim-city-lines-catalog':{status:'http_503'},
+  'trondheim-shared-stops-board':{status:'ok',generatedAt:at.toISOString(),
+   leds:[{led:76,state:'AT_STOP'}]}}}],catalog);
+assert.equal(onlyShared.routes.find(r=>r.line==='11').stopCandidates[0].frameCompared,0,
+ 'Lerkendal gård cannot be tested by an unmapped 147 LED board');
+const atLerkendal=summarizeGps({...source,vehicles:[{
+ id:'bus-on-line-11',line:'11',latitude:63.412654,longitude:10.399831,
+ lastUpdated:at.toISOString(),source:'GPS',provider:'Entur/ATB'}]},catalog,at);
+assert.equal(atLerkendal.vehicles[0].nearby.stopId,'NSR:Quay:73421');
+const sharedMatch=auditStats([{takenAt:at.toISOString(),gps:{status:'ok',...atLerkendal},
+ frames:{'trondheim-city-lines-catalog':{status:'http_503'},
+  'trondheim-shared-stops-board':{status:'ok',generatedAt:at.toISOString(),
+   leds:[{led:76,state:'AT_STOP'}]}}}],catalog);
+const lerk=sharedMatch.routes.find(r=>r.line==='11').stopCandidates[0];
+assert.equal(lerk.frameCompared,1);
+assert.equal(lerk.frameActive,1);
+assert.equal(lerk.sourceCatalog,0);
+assert.equal(lerk.sourceShared147,1);
 assert.equal(summary.routes.length,47);
 assert.equal(summary.routes.find(r=>r.line==='12').uniqueVehicles,0);
 console.log('PASS: 47 route profiles, Lerkendal gård, source/freshness, pseudonymization, GPS/frame separation, dedup and Oslo day bounds');

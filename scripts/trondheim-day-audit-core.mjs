@@ -27,7 +27,18 @@ export async function loadCatalog(path='config/boards/trondheim-city-lines-catal
   }
  }
  if(ROUTES.some(code=>!byLine[code].length))throw Error('Missing profiled route');
- return {byLine,boardId:board.id,ledCount:board.leds.count};
+ const shared=JSON.parse(await readFile('config/boards/trondheim-shared-stops-board.json','utf8'));
+ if(shared.id!=='trondheim-shared-stops-board'||shared.leds?.count!==147||
+    !Array.isArray(shared.nodes))throw Error('Unexpected Shared Stops board');
+ const sharedByLine=Object.fromEntries(ROUTES.map(n=>[n,{}]));
+ for(const node of shared.nodes){
+  for(const code of ROUTES){
+   if(node.routes?.includes('atb-bus-'+code+'-live')&&
+      Number.isInteger(node.led)&&typeof (node.quayId||node.id)==='string')
+    sharedByLine[code][node.quayId||node.id]=node.led;
+  }
+ }
+ return {byLine,sharedByLine,boardId:board.id,ledCount:board.leds.count};
 }
 function timestamp(s){const value=typeof s==='string'?Date.parse(s):NaN;return Number.isFinite(value)?value:NaN;}
 export function summarizeGps(reply,catalog,at=new Date()){
@@ -102,10 +113,35 @@ export function auditStats(snapshots,catalog){
     const stop=v.nearby.stopId;
     const previous=grouped[v.line].candidates.get(stop)||{
      name:v.nearby.stopName,led:v.nearby.led,observations:0,
-     vehicles:new Set(),ambiguous:0};
+     vehicles:new Set(),ambiguous:0,frameCompared:0,frameActive:0,
+     frameInactive:0,sourceCatalog:0,sourceShared147:0};
     previous.observations++;
     previous.vehicles.add(v.vehicle);
     if(v.nearby.ambiguous)previous.ambiguous++;
+    // A valid frame comparison is only an indicator for further inspection:
+    // it may reflect another vehicle or a slightly different timestamp.
+    const full=s.frames?.['trondheim-city-lines-catalog'];
+    const shared=s.frames?.['trondheim-shared-stops-board'];
+    const sharedLed=catalog.sharedByLine?.[v.line]?.[v.nearby.stopId];
+    // Prefer the complete catalog; fall back to the already active 147 LED
+    // frame only if this exact route+quay actually exists in that board.
+    const canUseFull=full?.status==='ok'&&Array.isArray(full.leds);
+    const canUseShared=Number.isInteger(sharedLed)&&
+      shared?.status==='ok'&&Array.isArray(shared.leds);
+    const frame=canUseFull?full:canUseShared?shared:null;
+    const candidateLed=canUseFull?v.nearby.led:sharedLed;
+    const frameTime=Date.parse(frame?.generatedAt||'');
+    const gpsTime=Date.parse(v.observedAt);
+    if(!v.nearby.ambiguous&&frame&&
+       Number.isFinite(frameTime)&&Number.isFinite(gpsTime)&&
+       Math.abs(frameTime-gpsTime)<=90000){
+      previous.frameCompared++;
+      if(canUseFull)previous.sourceCatalog++;
+      else previous.sourceShared147++;
+      if(frame.leds.some(x=>x.led===candidateLed&&x.state!=='OFF'))
+       previous.frameActive++;
+      else previous.frameInactive++;
+    }
     grouped[v.line].candidates.set(stop,previous);
    }
   }
@@ -120,7 +156,10 @@ export function auditStats(snapshots,catalog){
    nearStopCandidates:item.candidates.size,
    stopCandidates:[...item.candidates.entries()].map(([stopId,s])=>({
     stopId,name:s.name,led:s.led,observations:s.observations,
-    vehicles:s.vehicles.size,ambiguous:s.ambiguous
+    vehicles:s.vehicles.size,ambiguous:s.ambiguous,
+    frameCompared:s.frameCompared||0,frameActive:s.frameActive||0,
+    frameInactive:s.frameInactive||0,
+    sourceCatalog:s.sourceCatalog||0,sourceShared147:s.sourceShared147||0
    })).sort((a,b)=>a.name.localeCompare(b.name,'nb'))};
  });
  return {auditDate:DATE,snapshots:seenSamples,gpsGood,gpsErrors,

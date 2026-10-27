@@ -67,11 +67,14 @@ for(const r of stats.routes){
   const s=r.stopCandidates.find(x=>x.stopId===stop.id);
   cells.push([r.line,stop.id,stop.name,stop.led,
    s?.observations??0,s?.vehicles??0,s?.ambiguous??0,
+   s?.frameCompared??0,s?.frameActive??0,s?.frameInactive??0,
+   s?.sourceCatalog??0,s?.sourceShared147??0,
    s?'GPS_NAERHET_KANDIDAT':'IKKE_OBSERVERT','IKKE_BEVIS_FOR_AT_STOP']);
  }
 }
 const headers=['line','quay','stop_name','led_catalog','gps_near_samples',
- 'distinct_vehicles_near','ambiguous','evidence','stop_registration'];
+ 'distinct_vehicles_near','ambiguous','frame_compared','led_active',
+ 'led_inactive','from_catalog_1282','from_shared_147','evidence','stop_registration'];
 const fullCsv=[headers,...cells].map(a=>a.map(csv).join(',')).join('\n')+'\n';
 const lineCsv=[['line','catalog_stops','vehicles_seen','gps_observations',
  'stops_with_proximity_candidates'],...stats.routes.map(r=>[
@@ -93,12 +96,14 @@ const md=[
  '## Linje 11 ved Lerkendal','',
  '- Lerkendal gård: Quay 73414 (mot Risvollan) og 73415 (mot Stavset)',
  '- Lerkendal: Quay 73420 og 73421',
- '- GPS-nærhet observert: '+(lerkendal.length?lerkendal.map(s=>s.name+' '+s.stopId+' fra '+s.vehicles+' kjøretøy / '+s.observations+' prøver').join('; '):'Ingen, som ikke automatisk betyr systemfeil'), '',
+ '- GPS-nærhet observert: '+(lerkendal.length?lerkendal.map(s=>s.name+' '+s.stopId+' fra '+s.vehicles+' kjøretøy / '+s.observations+' prøver, tidsnær sammenlignbar katalogframe '+(s.frameCompared||0)+' (LED aktiv '+(s.frameActive||0)+', inaktiv '+(s.frameInactive||0)+', fullkatalog '+(s.sourceCatalog||0)+', delt 147 '+(s.sourceShared147||0)+')').join('; '):'Ingen, som ikke automatisk betyr systemfeil'), '',
  '## Datafrekvens og mangler','',
  '- Uttrekk omtrent hvert 20. sekund innenfor tidsavgrensede kjøringer',
  '- GitHub Actions kan forsinkes/hoppes over: ingen garantert kontinuerlig totaldekning',
  '- Ingen rå GPS-koordinater eller kjøretøy-ID-er lagres i audit-artifaktene',
- '- Tavleframe-feil: '+JSON.stringify(stats.frameErrors),'',
+ '- Tavleframe-feil: '+JSON.stringify(stats.frameErrors),
+ '- Ved HTTP 503 fra fullkatalogen sammenlignes eksakt Quay+linje mot 147-LED Shared Stops der det finnes; Lerkendal gård finnes ikke i denne tavlen og forblir ukjent.',
+ '- LED-aktivitet ved en geografisk stoppekandidat er bare en samtidig indikasjon; den bekrefter ikke samme buss-ID, døråpning eller fysisk stopp.','',
  '## Filer og neste steg','',
  '- trondheim-lines.csv: alle profiler, antall observerte kjøretøy og GPS-prøver.',
  '- trondheim-stop-candidates.csv: alle profilerte stoppepunkter og evidensstatus.',
