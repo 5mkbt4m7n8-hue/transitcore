@@ -102,10 +102,23 @@ export function auditStats(snapshots,catalog){
     const stop=v.nearby.stopId;
     const previous=grouped[v.line].candidates.get(stop)||{
      name:v.nearby.stopName,led:v.nearby.led,observations:0,
-     vehicles:new Set(),ambiguous:0};
+     vehicles:new Set(),ambiguous:0,frameCompared:0,frameActive:0,frameInactive:0};
     previous.observations++;
     previous.vehicles.add(v.vehicle);
     if(v.nearby.ambiguous)previous.ambiguous++;
+    // A valid frame comparison is only an indicator for further inspection:
+    // it may reflect another vehicle or a slightly different timestamp.
+    const frame=s.frames?.['trondheim-city-lines-catalog'];
+    const frameTime=Date.parse(frame?.generatedAt||'');
+    const gpsTime=Date.parse(v.observedAt);
+    if(!v.nearby.ambiguous&&frame?.status==='ok'&&
+       Number.isFinite(frameTime)&&Number.isFinite(gpsTime)&&
+       Math.abs(frameTime-gpsTime)<=90000&&Array.isArray(frame.leds)){
+      previous.frameCompared++;
+      if(frame.leds.some(x=>x.led===v.nearby.led&&x.state!=='OFF'))
+       previous.frameActive++;
+      else previous.frameInactive++;
+    }
     grouped[v.line].candidates.set(stop,previous);
    }
   }
@@ -120,7 +133,9 @@ export function auditStats(snapshots,catalog){
    nearStopCandidates:item.candidates.size,
    stopCandidates:[...item.candidates.entries()].map(([stopId,s])=>({
     stopId,name:s.name,led:s.led,observations:s.observations,
-    vehicles:s.vehicles.size,ambiguous:s.ambiguous
+    vehicles:s.vehicles.size,ambiguous:s.ambiguous,
+    frameCompared:s.frameCompared||0,frameActive:s.frameActive||0,
+    frameInactive:s.frameInactive||0
    })).sort((a,b)=>a.name.localeCompare(b.name,'nb'))};
  });
  return {auditDate:DATE,snapshots:seenSamples,gpsGood,gpsErrors,
