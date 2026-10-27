@@ -69,7 +69,7 @@ try{
  const originalLabel=await labelInput.inputValue();
  await labelInput.fill('Kontrollnavn for stopp 14');
  await page.getByRole('button',{name:'Lagre visningsnavn'}).click();
- assert.equal(await page.locator('svg .map-label[data-label="original-014"]').innerText(),'Kontrollnavn for stopp 14');
+ assert.equal(await page.locator('svg .map-label[data-label="original-014"]').textContent(),'Kontrollnavn for stopp 14');
  const initialPosition=await page.locator('svg .map-stop[data-stop="original-014"]').first().getAttribute('transform');
  const initialLabel=await page.locator('svg .map-label[data-label="original-014"]').evaluate(el=>({x:Number(el.getAttribute('x')),y:Number(el.getAttribute('y'))}));
  const oldX=Number(await page.getByRole('spinbutton',{name:'Stopp X'}).inputValue());
@@ -105,7 +105,7 @@ try{
  assert.equal(undone.y,beforeTapY);
  await page.locator('[data-act=undo]').click(); // revert numeric relocation
  await page.getByRole('button',{name:'Bruk originalnavn'}).click();
- assert.equal(await page.locator('svg .map-label[data-label="original-014"]').innerText(),originalLabel);
+ assert.equal(await page.locator('svg .map-label[data-label="original-014"]').textContent(),originalLabel);
  // The original white drawing is not modified when adding/removing a new element.
  const initialStops=await page.locator('.map-stop').count(),initialPaths=await page.locator('.map-route').count();
  await page.locator('[data-act=addStop]').click();
