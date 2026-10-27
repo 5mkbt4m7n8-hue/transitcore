@@ -9,7 +9,7 @@
   host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><a data-role="geoLink" href="./geo/" class="map-geo-link">Åpne stopp i geografisk kart</a><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><div class="map-editor" id="networkEditor" hidden><button data-act="addStop">+ Ny holdeplass</button><button data-act="addPath">+ Ny kartlinje</button><button data-act="undo">Angre</button><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><span class="map-draft-status" data-role="draftStatus" aria-live="polite">Ingen nye endringer</span><div class="map-sketch-controls" data-role="sketchControls" hidden><strong data-role="sketchHelp" aria-live="polite"></strong><button data-act="finishSketch">Fullfør linjen</button><button data-act="sketchUndo">Fjern siste punkt</button><button data-act="sketchCancel">Avbryt tegning</button></div><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
   const q=r=>host.querySelector(`[data-role="${r}"]`),svg=host.querySelector('svg'),editorPanel=host.querySelector('#networkEditor');
   let localNames=N.names(initial);let layout=initial,context={},editing=false,selection=null,selectedSegmentIndex=0,drag=null,box=[0,0,913,1280],phase=0,report={},frame=null;
-  let placementMode=null,routeSketch=null,placementGestureMoved=false,suppressAutoSave=false;
+  let placementMode=null,moveStopId=null,routeSketch=null,placementGestureMoved=false,suppressAutoSave=false;
   const autoDraftKey='intransit-map-autodraft-v1',manualDraftKey='intransit-map-draft-v1';
   // Fingerprint the shipped layout, so an old local draft never silently
   // overrides a changed version of the canonical map.
@@ -94,7 +94,7 @@
   }
   function startSketch(pathId=null){
    if(pathId&&!layout.paths.some(p=>p.id===pathId))throw Error('Fant ikke kartlinjen');
-   placementMode=null;
+   placementMode=null;moveStopId=null;
    routeSketch={pathId,points:[],cursor:null};
    placementGestureMoved=false;
    syncSketchControls();showSketchPreview();
@@ -180,8 +180,8 @@
     const resolved=M.resolve(stop,context.board,context.hardware);
     if(stop.verification==='confirmed'&&!context.all&&!resolved.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
     const directions=stop.diodeMode==='split'?['0','1']:[null];
-    directions.forEach((id,i)=>{const group=el('g',{class:'map-stop',transform:`translate(${stop.x+(id===null?0:(i?1:-1)*(stop.radius+2))} ${stop.y})`,tabindex:0,role:'button','aria-label':displayName(stop)});if(stop.verification!=='confirmed')group.setAttribute('data-unresolved','true');group.dataset.stop=stop.id;if(id!==null)group.dataset.direction=id;group.append(el('circle',{r:stop.radius}));group.append(el('text',{y:2}));group.onclick=()=>{selection={type:'stop',id:stop.id};fields();details(stop);};group.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();group.onclick();}};svg.append(group);});
-    if(stop.label.visible){const label=el('text',{x:stop.label.x,y:stop.label.y,class:'map-label'});label.textContent=displayName(stop);label.dataset.label=stop.id;svg.append(label);}
+    directions.forEach((id,i)=>{const group=el('g',{class:'map-stop',transform:`translate(${stop.x+(id===null?0:(i?1:-1)*(stop.radius+2))} ${stop.y})`,tabindex:0,role:'button','aria-label':displayName(stop)});if(stop.verification!=='confirmed')group.setAttribute('data-unresolved','true');group.dataset.stop=stop.id;if(selection?.type==='stop'&&selection.id===stop.id)group.dataset.selected='true';if(id!==null)group.dataset.direction=id;group.append(el('circle',{r:stop.radius}));group.append(el('text',{y:2}));group.onclick=()=>{selection={type:'stop',id:stop.id};fields();details(stop);};group.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();group.onclick();}};svg.append(group);});
+    if(stop.label.visible){const label=el('text',{x:stop.label.x,y:stop.label.y,class:'map-label'});label.textContent=displayName(stop);label.dataset.label=stop.id;if(selection?.type==='stop'&&selection.id===stop.id)label.dataset.selected='true';svg.append(label);}
    }
    showSketchPreview();
    q('focus').replaceChildren(new Option('Fokus på punkt …',''),...layout.stops.map(s=>new Option(displayName(s),s.id)));
@@ -262,29 +262,48 @@
      }
      review.append(segment,route,approve,clear,note);area.append(review,geometry);refresh();return;
     }
-   // Local display names never rewrite the original layout, NSR IDs or verification.
-    if(initial.stops.some(s=>s.id===item.id)){
-     const nameLabel=document.createElement('label');nameLabel.textContent='Felles lokalt visningsnavn (begge kart)';
-     const nameInput=document.createElement('input');nameInput.type='text';nameInput.maxLength=80;
-     nameInput.value=localNames[item.id]||'';nameInput.setAttribute('aria-label','Felles lokalt stopnavn');nameLabel.append(nameInput);
-     const saveName=document.createElement('button');saveName.type='button';saveName.textContent='Lagre visningsnavn';
-     saveName.onclick=()=>{try{localNames=N.rename(initial,item.id,nameInput.value);draw();fields();details(item);
-      q('details').textContent+='\\nNavnet er lagret lokalt i begge kart. Stoppstatus er uendret.';
-     }catch(e){q('details').textContent=e.message;}};
-     const resetName=document.createElement('button');resetName.type='button';resetName.textContent='Bruk originalnavn';
-     resetName.onclick=()=>{try{localNames=N.rename(initial,item.id,'');draw();fields();details(item);}catch(e){q('details').textContent=e.message;}};
-     const info=document.createElement('small');info.className='map-stop-name-note';
-     info.textContent='Dette endrer bare teksten. Uavklarte stopp får ikke automatisk GPS, rutetilknytning eller godkjent navn.';
-     const link=document.createElement('a');link.className='map-geo-link';link.href=geoHref(item.id);
-     link.textContent='Åpne samme stopp i geografisk kart';
-     area.append(nameLabel,saveName,resetName,info,link);
+   // Every original stop (including already named stops) can be renamed
+   // locally without changing the canonical name, NSR IDs or validation.
+   if(initial.stops.some(s=>s.id===item.id)){
+    const originalName=initial.stops.find(s=>s.id===item.id).name;
+    const nameLabel=document.createElement('label');nameLabel.textContent='Navn på holdeplassen (lokalt visningsnavn)';
+    const nameInput=document.createElement('input');nameInput.type='text';nameInput.maxLength=80;
+    nameInput.value=displayName(item);nameInput.setAttribute('aria-label','Navn på holdeplassen (lokalt visningsnavn)');nameLabel.append(nameInput);
+    const saveName=document.createElement('button');saveName.type='button';saveName.textContent='Lagre visningsnavn';
+    saveName.onclick=()=>{try{
+     localNames=N.rename(initial,item.id,nameInput.value.trim()===originalName?'':nameInput.value);
+     draw();fields();details(item);
+     q('details').textContent+='\nVisningsnavnet er lagret på denne enheten og delt med geografisk kart. Originalnavn og NSR-ID er uendret.';
+    }catch(e){q('details').textContent=e.message;}};
+    const resetName=document.createElement('button');resetName.type='button';resetName.textContent='Bruk originalnavn';
+    resetName.onclick=()=>{try{localNames=N.rename(initial,item.id,'');draw();fields();details(item);}catch(e){q('details').textContent=e.message;}};
+    const info=document.createElement('small');info.className='map-stop-name-note';
+    info.textContent='Originalnavn: '+originalName+'. Endringen vises i begge kart og i holdeplassadministrasjonen på denne enheten. Kildeverifisering og rutekoblinger endres ikke.';
+    const link=document.createElement('a');link.className='map-geo-link';link.href=geoHref(item.id);
+    link.textContent='Åpne samme stopp i geografisk kart';
+    area.append(nameLabel,saveName,resetName,info,link);
+   }
+   const moveHelp=document.createElement('small');moveHelp.className='map-stop-name-note';
+   moveHelp.textContent='Dra stoppunktet for å flytte punkt, navneetikett og tilknyttede linjepunkter. Dra navnet for å flytte bare teksten. Du kan også plassere stoppet på nytt med ett trykk.';
+   const moveButton=document.createElement('button');moveButton.type='button';
+   moveButton.textContent=placementMode==='move'&&moveStopId===item.id?'Avbryt flytting':'Flytt valgt holdeplass';
+   moveButton.onclick=()=>{
+    if(placementMode==='move'&&moveStopId===item.id){
+     placementMode=null;moveStopId=null;q('details').textContent='Flytting avbrutt.';
+    }else{
+     cancelSketch();placementMode='move';moveStopId=item.id;
+     q('details').textContent='Trykk på ønsket ny plassering i kartet for '+displayName(item)+'. Trykk Escape eller Avbryt flytting for å avbryte.';
     }
-    if(item.id.startsWith('custom-stop-')){
+    syncSketchControls();fields();
+   };
+   area.append(moveHelp,moveButton);
+   if(item.id.startsWith('custom-stop-')){
     const del=document.createElement('button');del.type='button';del.textContent='Slett ny holdeplass';
     del.onclick=()=>{try{editor.change(next=>L.deleteNewStop(next,item.id));selection=null;fields();}catch(e){q('details').textContent=e.message;}};
     area.append(del);
    }
-   input('Skjemanavn i JSON (ikke delt mellom kart)',item.name,'text',(n,v)=>{pick(n).name=v;pick(n).nameConfirmed=true;});input('Punktstørrelse',item.radius,'number',(n,v)=>pick(n).radius=v);input('Vis etikett',item.label.visible,'checkbox',(n,v)=>pick(n).label.visible=v);input('To dioder',item.diodeMode==='split','checkbox',(n,v)=>pick(n).diodeMode=v?'split':'shared');
+   if(item.id.startsWith('custom-stop-'))input('Navn på nytt kartpunkt',item.name,'text',(n,v)=>{pick(n).name=v;});
+   input('Punktstørrelse',item.radius,'number',(n,v)=>pick(n).radius=v);input('Vis etikett',item.label.visible,'checkbox',(n,v)=>pick(n).label.visible=v);input('To dioder',item.diodeMode==='split','checkbox',(n,v)=>pick(n).diodeMode=v?'split':'shared');
    const label=document.createElement('label');label.textContent='Godkjent stasjon fra eksisterende konfigurasjon';const select=document.createElement('select');select.append(new Option('Velg bekreftet kartpunkt …',''));
    for(const board of context.boards||[]){const seen=new Set;for(const node of board.nodes){if(seen.has(node.stationId))continue;seen.add(node.stationId);select.append(new Option(board.id+' · '+node.name,board.id+'|'+node.stationId));}}
    select.onchange=()=>{if(!select.value)return;const [bid,sid]=select.value.split('|'),b=context.boards.find(b=>b.id===bid);editor.change(next=>{const s=pick(next),nodes=b.nodes.filter(n=>n.stationId===sid);if(!s.nameConfirmed){s.name=nodes[0].name;s.nameConfirmed=true;}s.verification='confirmed';s.bindings=s.bindings.filter(b=>b.boardId!==bid).concat(nodes.flatMap(n=>(n.stopIds||[]).map(stopId=>({boardId:bid,nodeId:n.id,stationId:sid,stopId}))));});};label.append(select);area.append(label);
@@ -298,11 +317,11 @@
   host.querySelectorAll('[data-act]').forEach(button=>button.onclick=()=>{try{switch(button.dataset.act){
    case'in':zoom(.75);break;case'out':zoom(1.33);break;case'fit':box=[0,0,913,1280];setBox();break;
    case'edit':editing=!editing;
-    if(!editing){placementMode=null;cancelSketch();}
+    if(!editing){placementMode=null;moveStopId=null;cancelSketch();}
     editorPanel.hidden=!editing;button.setAttribute('aria-pressed',editing);draw();fields();break;
    case'addStop':{
     if(!editing)break;
-    cancelSketch();placementMode=placementMode==='stop'?null:'stop';
+    cancelSketch();moveStopId=null;placementMode=placementMode==='stop'?null:'stop';
     syncSketchControls();
     q('details').textContent=placementMode
      ?'Trykk på kartet for å plassere en ny holdeplass. Trykk på knappen igjen for å avbryte.'
@@ -319,7 +338,7 @@
    case'sketchUndo':undoSketchPoint();break;
    case'sketchCancel':cancelSketch();break;
    case'undo':if(routeSketch)undoSketchPoint();else editor.undo();break;
-   case'discard':cancelSketch();placementMode=null;syncSketchControls();suppressAutoSave=true;
+   case'discard':cancelSketch();placementMode=null;moveStopId=null;syncSketchControls();suppressAutoSave=true;
     try{editor.discard();}finally{suppressAutoSave=false;}
     clearAutoDraft();selection=null;fields();break;
    case'export':download('trondheim-layout.json',editor.export());break;
@@ -352,7 +371,14 @@
    const p=coords(e),t=drag.target;if(!t){box=[box[0]+drag.start.x-p.x,box[1]+drag.start.y-p.y,box[2],box[3]];setBox();return;}
    const next=structuredClone(drag.before),x=Math.max(0,Math.min(913,p.x)),y=Math.max(0,Math.min(1280,p.y));
    if(t.dataset.path){const path=next.paths.find(v=>v.id===t.dataset.path),i=Number(t.dataset.index);path.points[i]={x,y};if(path.reviewedSegments){delete path.reviewedSegments[i];delete path.reviewedSegments[i-1];}}
-   else{const s=next.stops.find(s=>s.id===(t.dataset.stop||t.dataset.label));Object.assign(t.dataset.label?s.label:s,{x,y});}
+   else if(t.dataset.label){
+    const stop=next.stops.find(s=>s.id===t.dataset.label),old=drag.before.stops.find(s=>s.id===t.dataset.label);
+    stop.label.x=Math.max(0,Math.min(913,old.label.x+p.x-drag.start.x));
+    stop.label.y=Math.max(0,Math.min(1280,old.label.y+p.y-drag.start.y));
+   }else if(t.dataset.stop){
+    const old=drag.before.stops.find(s=>s.id===t.dataset.stop);
+    L.moveStop(next,t.dataset.stop,old.x+p.x-drag.start.x,old.y+p.y-drag.start.y);
+   }
    drag.next=next;layout=next;draw();
   };
   function end(e){pointers.delete(e.pointerId);if(editing&&(placementMode||routeSketch))return;if(drag?.next)editor.import(drag.next);drag=null;}
@@ -365,6 +391,14 @@
    const p=coords(e);
    try{
     if(routeSketch){sketchTap(p);return;}
+    if(placementMode==='move'){
+     const id=moveStopId;
+     editor.change(next=>L.moveStop(next,id,p.x,p.y));
+     placementMode=null;moveStopId=null;selection={type:'stop',id};
+     syncSketchControls();fields();draw();
+     q('details').textContent='Holdeplassen er flyttet. Navneetiketten og tilknyttede linjepunkter ble flyttet sammen med stoppet. Bruk Angre for å gå tilbake.';
+     return;
+    }
     let id;
     editor.change(next=>{id=L.addStop(next,p.x,p.y);});
     selection={type:'stop',id};selectedSegmentIndex=0;
@@ -373,8 +407,8 @@
    }catch(error){q('details').textContent=error.message;}
   },true);
   document.addEventListener('keydown',e=>{
-   if(!editing||!routeSketch||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName||''))return;
-   if(e.key==='Escape'){e.preventDefault();cancelSketch();}
+   if(!editing||(!routeSketch&&placementMode!=='move')||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName||''))return;
+   if(e.key==='Escape'){e.preventDefault();cancelSketch();placementMode=null;moveStopId=null;syncSketchControls();fields();}
    else if(e.key==='Backspace'){e.preventDefault();undoSketchPoint();}
    else if(e.key==='Enter'){e.preventDefault();finishSketch();}
   });

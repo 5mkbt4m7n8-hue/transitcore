@@ -61,6 +61,24 @@ try{
  assert.equal(calls,auditRequests,'Map review controls must not fetch live frames');
  const box=await page.locator('svg.map-viewport').getAttribute('viewBox');await page.locator('[data-act=in]').click();assert.notEqual(await page.locator('svg.map-viewport').getAttribute('viewBox'),box);await page.locator('[data-act=fit]').click();
  await page.locator('[data-act=edit]').click();
+ // Rename and reposition a pre-existing, already named stop.
+ await page.locator('[data-role=focus]').selectOption('original-014');
+ await page.getByLabel('Navn på holdeplassen (lokalt visningsnavn)').fill('Solsiden korrigert');
+ await page.getByRole('button',{name:'Lagre visningsnavn'}).click();
+ assert.equal(await page.locator('.map-label[data-label="original-014"]').textContent(),'Solsiden korrigert');
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo.names['original-014']),'Solsiden korrigert');
+ const originalPoint=await page.evaluate(async()=>{const layout=await fetch('./network/trondheim-layout.json').then(r=>r.json());return layout.stops.find(s=>s.id==='original-014');});
+ await page.getByRole('button',{name:'Flytt valgt holdeplass'}).click();
+ await page.locator('svg.map-viewport').click({position:{x:210,y:205}});
+ const movedDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')));
+ const movedPoint=movedDraft.layout.stops.find(s=>s.id==='original-014');
+ assert(movedPoint&&Math.hypot(movedPoint.x-originalPoint.x,movedPoint.y-originalPoint.y)>10,'Tap placement updates existing station coordinates');
+ assert.equal(await page.locator('.map-label[data-label="original-014"]').textContent(),'Solsiden korrigert');
+ await page.locator('[data-act=undo]').click();
+ await page.getByRole('button',{name:'Bruk originalnavn'}).click();
+ assert.equal(await page.locator('.map-label[data-label="original-014"]').textContent(),'Solsiden');
+ // Restore full-map coordinates before the existing sketch placement tests.
+ await page.locator('[data-act=fit]').click();
  // The original white drawing is not modified when adding/removing a new element.
  const initialStops=await page.locator('.map-stop').count(),initialPaths=await page.locator('.map-route').count();
  await page.locator('[data-act=addStop]').click();
