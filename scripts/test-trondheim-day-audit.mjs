@@ -1,0 +1,61 @@
+import assert from 'node:assert/strict';
+import {ROUTES,loadCatalog,haversine,shortId,isAuditDay,summarizeGps,summarizeFrame,auditStats} from './trondheim-day-audit-core.mjs';
+assert.equal(ROUTES.length,47);
+assert.equal(new Set(ROUTES).size,47);
+assert(isAuditDay(new Date('2026-10-27T04:50:00Z')));
+assert(isAuditDay(new Date('2026-10-27T22:50:00Z')));
+assert(!isAuditDay(new Date('2026-10-27T23:00:00Z')));
+assert(!isAuditDay(new Date('2026-10-26T21:30:00Z')));
+assert(Math.abs(haversine(63.413006,10.409538,63.413006,10.409538))<0.0001);
+assert.equal(shortId('11','one'),shortId('11','one'));
+assert.notEqual(shortId('11','one'),shortId('11','two'));
+assert.notEqual(shortId('11','one'),shortId('12','one'));
+const catalog=await loadCatalog();
+assert.equal(catalog.ledCount,1282);
+assert(catalog.byLine['11'].find(s=>s.id==='NSR:Quay:73415'));
+assert(catalog.byLine['11'].find(s=>s.id==='NSR:Quay:73414'));
+const at=new Date('2026-10-27T12:00:00.000Z');
+const source={schemaVersion:1,scope:'catalogued-bus-lines',
+ source:'Entur Vehicle Positions v2',observationType:'measured-vehicle-position',
+ includedLines:[...ROUTES],quality:{stale:0},vehicles:[
+  {id:'vehicle-sensitive-123',line:'11',latitude:63.413006,longitude:10.409538,
+   lastUpdated:'2026-10-27T12:00:00.000Z',source:'GPS',provider:'Entur/ATB'},
+  {id:'stale-should-not-appear',line:'11',latitude:63.413006,longitude:10.409538,
+   lastUpdated:'2026-10-27T11:57:00.000Z',source:'GPS',provider:'Entur/ATB'},
+  {id:'no-position',line:'11',latitude:null,longitude:null,
+   lastUpdated:'2026-10-27T12:00:00.000Z',source:'GPS',provider:'Entur/ATB'}
+ ]};
+const result=summarizeGps(source,catalog,at);
+assert.equal(result.fresh,1,'No stale or null positions');
+assert.equal(result.vehicles[0].nearby.stopId,'NSR:Quay:73415');
+assert.equal(result.vehicles[0].nearby.led,617);
+assert.equal(result.vehicles[0].nearby.distanceMeters,0);
+assert(!JSON.stringify(result).includes('vehicle-sensitive-123'));
+assert(!JSON.stringify(result).includes('63.413006'));
+assert.equal(result.vehicles[0].vehicle.length,16);
+assert.throws(()=>summarizeGps({...source,includedLines:['11']},catalog,at),/not_all_47_lines/);
+assert.throws(()=>summarizeGps({...source,observationType:'estimated-station-calls'},catalog,at),/invalid_gps_contract/);
+const frame=summarizeFrame({schemaVersion:1,boardProfile:'trondheim-shared-stops-board',
+ ledCount:147,generatedAt:at.toISOString(),sequence:5,ttlSeconds:30,
+ leds:[{id:77,state:'AT_STOP',vehicle:{id:'raw-id'}},{id:78,state:'OFF'}]},
+ 'trondheim-shared-stops-board');
+assert.equal(frame.active,1);
+assert.equal(frame.leds[0].led,77);
+assert(!JSON.stringify(frame).includes('raw-id'));
+assert.throws(()=>summarizeFrame({schemaVersion:1,boardProfile:'wrong',leds:[]},
+ 'trondheim-shared-stops-board'),/invalid_frame_contract/);
+const snapshots=[{takenAt:at.toISOString(),gps:{status:'ok',...result},
+ frames:{'trondheim-shared-stops-board':frame}},
+ {takenAt:at.toISOString(),gps:{status:'ok',...result},frames:{}},
+ {takenAt:at.toISOString(),gps:{status:'http_404'},frames:{}}];
+const summary=auditStats(snapshots,catalog);
+const line=summary.routes.find(r=>r.line==='11');
+assert.equal(summary.gpsGood,2);
+assert.equal(summary.gpsErrors,1);
+assert.equal(line.uniqueVehicles,1);
+assert.equal(line.gpsObservations,1,'Duplicate source observation must be deduped');
+assert.equal(line.nearStopCandidates,1);
+assert.equal(line.stopCandidates[0].stopId,'NSR:Quay:73415');
+assert.equal(summary.routes.length,47);
+assert.equal(summary.routes.find(r=>r.line==='12').uniqueVehicles,0);
+console.log('PASS: 47 route profiles, Lerkendal gård, source/freshness, pseudonymization, GPS/frame separation, dedup and Oslo day bounds');

@@ -1,0 +1,125 @@
+name: Trondheim bus GPS / LED one-day audit (27 Oct 2026)
+
+# Timeboxed audit: cannot be used as a permanent fleet logging service.
+# GitHub Actions cron can be late/skipped. Samples are ONLY evidence, not
+# a guarantee that every physical stop or bus is captured.
+on:
+  pull_request:
+    paths:
+      - 'scripts/trondheim-day-audit-*.mjs'
+      - 'scripts/test-trondheim-day-audit.mjs'
+      - '.github/workflows/trondheim-day-audit-2026-10-27.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/trondheim-day-audit-*.mjs'
+      - 'scripts/test-trondheim-day-audit.mjs'
+      - '.github/workflows/trondheim-day-audit-2026-10-27.yml'
+  schedule:
+    - cron: '*/5 * 27 10 *'
+    - cron: '15 23 27 10 *'
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Collect during today or build final report from artifacts"
+        type: choice
+        options: [collect, report]
+        default: collect
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  unit-tests:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Syntax check sampler, reporter and run offline contract tests
+        run: |
+          node --check scripts/trondheim-day-audit-collect.mjs
+          node --check scripts/trondheim-day-audit-report.mjs
+          node scripts/test-trondheim-day-audit.mjs
+
+  collect:
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '*/5 * 27 10 *') ||
+      (github.event_name == 'workflow_dispatch' && inputs.operation == 'collect')
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - name: Check exact date before any HTTP calls
+        id: day
+        shell: bash
+        run: |
+          day=$(TZ=Europe/Oslo date +%F)
+          if [ "$day" = "2026-10-27" ]; then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            echo "Audit ended, no provider calls."
+          fi
+      - if: steps.day.outputs.active == 'true'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - if: steps.day.outputs.active == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - if: steps.day.outputs.active == 'true'
+        name: Observe 47 AtB lines and separate LED boards (read-only)
+        run: node scripts/trondheim-day-audit-collect.mjs
+      - if: steps.day.outputs.active == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: trondheim-buss-gps-20261027
+          path: out/trondheim-day-snapshot.json
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 6
+
+  report:
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '15 23 27 10 *') ||
+      (github.event_name == 'workflow_dispatch' && inputs.operation == 'report')
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Check correct next-day report date
+        id: day
+        shell: bash
+        run: |
+          day=$(TZ=Europe/Oslo date +%F)
+          if [ "$day" = "2026-10-28" ]; then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            echo "Not the report date, no reads."
+          fi
+      - if: steps.day.outputs.active == 'true'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - if: steps.day.outputs.active == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - if: steps.day.outputs.active == 'true'
+        name: Combine sampled artifacts into readable line/stop report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/trondheim-day-audit-report.mjs
+      - if: steps.day.outputs.active == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: trondheim-buss-dagsrapport-20261027
+          path: |
+            out/trondheim-day-report.md
+            out/trondheim-lines.csv
+            out/trondheim-stop-candidates.csv
+            out/trondheim-report.json
+          if-no-files-found: error
+          retention-days: 30
