@@ -183,7 +183,7 @@ assert.match(ui,/data-act="finishSketch"/,'Explicit finish button');
 assert.match(ui,/data-act="sketchCancel"/,'Explicit cancel button');
 assert.match(ui,/Flytt valgt holdeplass/,'Editor has visible action for existing stop relocation');
 assert.match(ui,/Navn på holdeplassen \(lokalt visningsnavn\)/,'Existing named stops have editable name input');
-assert.match(ui,/L\\.moveStop/,'Map gesture uses connected route-safe movement');
+assert.match(ui,/L\.moveStop/,'Map gesture uses connected route-safe movement');
 assert.doesNotMatch(ui,/Skjemanavn i JSON \(ikke delt mellom kart\)/,'Original station names should not have competing JSON name field');
 
 assert.match(ui,/data-role="reference"/);
