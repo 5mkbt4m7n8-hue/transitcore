@@ -48,6 +48,9 @@ const snapshots=[{takenAt:at.toISOString(),gps:{status:'ok',...result},
  frames:{'trondheim-shared-stops-board':frame}},
  {takenAt:at.toISOString(),gps:{status:'ok',...result},frames:{}},
  {takenAt:at.toISOString(),gps:{status:'http_404'},frames:{}}];
+snapshots[0].frames['trondheim-city-lines-catalog']={
+ status:'ok',generatedAt:at.toISOString(),
+ leds:[{led:617,state:'AT_STOP'},{led:616,state:'OFF'}]};
 const summary=auditStats(snapshots,catalog);
 const line=summary.routes.find(r=>r.line==='11');
 assert.equal(summary.gpsGood,2);
@@ -56,6 +59,20 @@ assert.equal(line.uniqueVehicles,1);
 assert.equal(line.gpsObservations,1,'Duplicate source observation must be deduped');
 assert.equal(line.nearStopCandidates,1);
 assert.equal(line.stopCandidates[0].stopId,'NSR:Quay:73415');
+assert.equal(line.stopCandidates[0].frameCompared,1);
+assert.equal(line.stopCandidates[0].frameActive,1);
+assert.equal(line.stopCandidates[0].frameInactive,0);
+const frameOff=auditStats([{takenAt:at.toISOString(),gps:{status:'ok',...result},
+ frames:{'trondheim-city-lines-catalog':{status:'ok',
+  generatedAt:at.toISOString(),leds:[]}}}],catalog);
+const off=frameOff.routes.find(r=>r.line==='11').stopCandidates[0];
+assert.equal(off.frameCompared,1);
+assert.equal(off.frameInactive,1);
+const lateFrame=auditStats([{takenAt:at.toISOString(),gps:{status:'ok',...result},
+ frames:{'trondheim-city-lines-catalog':{status:'ok',
+  generatedAt:'2026-10-27T11:50:00Z',leds:[]}}}],catalog);
+assert.equal(lateFrame.routes.find(r=>r.line==='11').stopCandidates[0].frameCompared,0,
+ 'A time-incompatible frame must never be used to judge stop registration');
 assert.equal(summary.routes.length,47);
 assert.equal(summary.routes.find(r=>r.line==='12').uniqueVehicles,0);
 console.log('PASS: 47 route profiles, Lerkendal gård, source/freshness, pseudonymization, GPS/frame separation, dedup and Oslo day bounds');
