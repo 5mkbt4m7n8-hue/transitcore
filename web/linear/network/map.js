@@ -229,14 +229,15 @@
     quaySelect.replaceChildren(new Option('Alle tilknyttede Quays',''),...quays.map(id=>new Option(id,id)));
    if(debugQuayId&&!quays.includes(debugQuayId))debugQuayId='';
    quaySelect.value=debugQuayId;
-   const diag=Live.inspect({stop,board:context.board,hardware:context.hardware,frame,
-    line:context.all?null:context.line,quayId:debugQuayId,
-    now:Date.now(),feedStatus:context.feedStatus,feedError:context.feedError});
+   const diag=Live.inspect({stop:recordedStop(stop),board:activeBoard(),hardware:activeHardware(),frame:playbackFrame(),
+    line:activeLine(),quayId:debugQuayId,
+    now:playbackClock(),feedStatus:playback?(playback.status==='OK'?'VALID':'ERROR'):context.feedStatus,
+    feedError:playback?playback.error:context.feedError});
    lastDiagnostic=diag;
    const age=diag.health.ageSeconds;
    q('debugHealth').textContent=diag.health.label;
    q('debugHealth').dataset.code=diag.health.code;
-   q('debugMeta').textContent='Kilde: '+(context.feedSource||'ukjent')+
+   q('debugMeta').textContent='Kilde: '+(playback?'OPPTAK – IKKE LIVE':context.feedSource||'ukjent')+
     ' · status: '+(context.feedStatus||'ukjent')+
     ' · feed-tavle: '+(context.feedBoardId||diag.frameBoard||'ukjent')+
     ' · frame #'+(diag.frameSequence??'–')+
@@ -259,7 +260,7 @@
      (bus.ageSeconds===null?'':' · posisjonsalder '+bus.ageSeconds+' s')+
      (bus.distanceMeters===null?'':' · avstand '+bus.distanceMeters+' m')
     ).join('\n'):'Ingen matchende buss observert på denne holdeplassen i valgt frame.';
-   const vehicleId=q('debugVehicle').value.trim(),found=Live.findVehicle(frame,vehicleId);
+   const vehicleId=q('debugVehicle').value.trim(),found=Live.findVehicle(playbackFrame(),vehicleId);
    q('debugVehicleResult').textContent=vehicleId?
     (['VALID','LAST_VALID'].includes(diag.health.code)?
      (found.length?found.map(bus=>
@@ -284,8 +285,8 @@
    const quayIds=selectedSide&&stop.diodeMode==='split'
     ?Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===selectedSide&&r.verification==='user-reviewed').map(([id])=>id)
     :null;
-   const values=M.signals(stop,context.board,context.hardware,frame,context.all?null:context.line,Date.now(),null,quayIds);
-   const age=(Date.now()-Date.parse(frame?.generatedAt))/1000;
+   const values=M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
+   const age=(playbackClock()-Date.parse(playbackFrame()?.generatedAt))/1000;
    q('details').textContent=displayName(stop)+(localNames[stop.id]?' (lokalt navn; original: '+stop.name+')':'')+(selectedSide?' · '+(selectedSide==='left'?'VENSTRE':'HØYRE')+' på tegningen (Quay '+(quayIds?.join(', ')||'ikke kartlagt')+')':'')+'\n'+(stop.verification!=='confirmed'?'Uavklart navn / ID. Ingen live-kobling.':values.length?values.map(v=>`Linje ${v.line||'?'} · ${v.destination||'Ukjent destinasjon'} · buss ${v.id||'ikke oppgitt'} · ${v.state}\nKilde: ${v.source||'ikke oppgitt'} · observasjonsalder: ${v.ageSeconds??'ukjent'} s`).join('\n'):'OFF · ingen aktiv gyldig observasjon; bekrefter ikke tom holdeplass.')+`\nFrame-alder: ${Number.isFinite(age)?Math.floor(age)+' s':'ingen frame'}`;
    syncDebugSelection(stop);
   }
@@ -293,7 +294,7 @@
    svg.replaceChildren();setBox();svg.classList.toggle('map-big-labels',largeLabels.checked);
    // Only a repository-relative, supplied reference image can be displayed.
    if(layout.reference?.available&&/^\.\/assets\/[\w.-]+\.(png|jpg|svg|webp)$/.test(layout.reference.path||''))svg.append(el('image',{href:layout.reference.path,x:0,y:0,width:913,height:1280,opacity:reference.checked?.55:editing?.28:.08}));
-   for(const path of layout.paths){if(path.routes.length&&!context.all&&!path.routes.includes(context.route))continue;
+   for(const path of layout.paths){if(path.routes.length&&!context.all&&!playback&&!path.routes.includes(context.route))continue;
     const p=el('polyline',{points:path.points.map(p=>p.x+','+p.y).join(' '),stroke:path.color,'stroke-width':path.width,class:'map-route',tabindex:0,'aria-label':path.id});
     p.onclick=()=>{selection={type:'path',id:path.id};selectedSegmentIndex=0;fields();q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');};p.dataset.routePath=path.id;svg.append(p);
     if(editing)path.points.forEach((v,i)=>{const h=el('circle',{cx:v.x,cy:v.y,r:4,class:'map-handle'});h.dataset.path=path.id;h.dataset.index=i;svg.append(h);});
@@ -330,8 +331,8 @@
     });
    }
    for(const stop of layout.stops){
-    const resolved=M.resolve(stop,context.board,context.hardware);
-    if(stop.verification==='confirmed'&&!context.all&&!resolved.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
+    const resolved=M.resolve(recordedStop(stop),activeBoard(),activeHardware());
+    if(stop.verification==='confirmed'&&!context.all&&!playback&&!resolved.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
     const sides=stop.diodeMode==='split'?['left','right']:[null];
     sides.forEach((side,i)=>{
      const mapped=side===null?[]:Object.entries(stop.platformSides||{}).filter(([,r])=>r.verification==='user-reviewed'&&r.side===side).map(([id])=>id);
@@ -372,13 +373,13 @@
     // Missing reviews show OFF, never a guessed direction or a merged LED.
     const side=group.dataset.side||null;
     const quayIds=side?Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===side&&r.verification==='user-reviewed').map(([id])=>id):null;
-    const values=M.signals(stop,context.board,context.hardware,frame,context.all?null:context.line,Date.now(),null,quayIds);
+    const values=M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
     all.push(...values);
     const max=Math.max(0,...values.map(v=>S.priority(v.state))),choices=values.filter(v=>S.priority(v.state)===max),v=choices.length?choices[phase%choices.length]:null;
     group.dataset.state=v?.state||'OFF';const rgb=v?.rgb;group.style.color=Array.isArray(rgb)&&rgb.length===3&&rgb.every(n=>Number.isInteger(n)&&n>=0&&n<=255)?`rgb(${rgb.join(',')})`:'#70839a';group.querySelector('text').textContent=context.numbers&&v?String(v.line||'?'):side?(side==='left'?'V':'H'):'';
    }
    const active=all.filter(v=>v.state!=='PASSED'),known=active.every(v=>v.id),count=new Set(active.map(v=>v.id)).size;
-   q('summary').textContent=`${layout.stops.length} kartpunkter · ${report.unmapped?.length||0} uten kobling · `+(known&&active.length?`${count} identifiserte aktive busser i kartets tilgjengelige feed`:'Aktivt bussantall ikke bekreftet')+' · Viser bare tegnede strekninger og data fra eksisterende Linear-feed; ikke nødvendigvis komplette bussruter.';
+   q('summary').textContent=(playback?'HISTORIKK – IKKE LIVE · ':'' )+`${layout.stops.length} kartpunkter · ${report.unmapped?.length||0} uten kobling · `+(known&&active.length?`${count} identifiserte aktive busser i kartets tilgjengelige feed`:'Aktivt bussantall ikke bekreftet')+' · Viser bare tegnede strekninger og data fra eksisterende Linear-feed; ikke nødvendigvis komplette bussruter.';
    if(selection?.type==='stop'){const selected=layout.stops.find(s=>s.id===selection.id);if(selected)details(selected);else selection=null;}
    if(q('liveDebug').open)renderLiveDebug();
   }
@@ -687,7 +688,7 @@
   setInterval(()=>{if(!host.hidden&&!document.hidden){phase++;paint();}},1200);draw();restoreAutoDraft();
   if(new URLSearchParams(location.search).get('debug')==='1'){q('liveDebug').open=true;renderLiveDebug();}
   if(publishedWarning)q('cloudStatus').textContent=publishedWarning;
-  return {update(next){context=next;frame=next.frame;draw();},clear(){frame=null;paint();},
+  return {update(next){context=next;frame=next.frame;if(!playback)draw();},clear(){frame=null;if(!playback)paint();},
    focusStop(id){const stop=layout.stops.find(s=>s.id===id);if(!stop)return false;
     selection={type:'stop',id:stop.id};box=[stop.x-80,stop.y-112,160,224];setBox();draw();fields();details(stop);return true;}};
  }};
