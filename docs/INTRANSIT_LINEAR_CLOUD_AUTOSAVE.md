@@ -146,3 +146,38 @@ Test: `node scripts/test-intransit-map.mjs`,
 `node scripts/test-linear-cloud-draft.mjs`,
 `node scripts/test-linear-publish.mjs` og
 `node scripts/browser-intransit-map.mjs`.
+
+
+## Sanntidsmonitor for Trondheim-kartet
+
+Under **Hele kartet → Sanntidsmonitor** finnes et skrivebeskyttet
+diagnosepanel. Det kan åpnes direkte med
+\`web/linear/?view=network&debug=1\`.
+
+- Velg holdeplass og eventuelt spesifikk \`NSR:Quay\` for å se
+  dokumenterte tavlekoblinger, fysisk LED-ID og observerte busser.
+- Se aktiv kilde (produksjon/staging), feedstatus, tavle, framesevens,
+  oppdateringsalder og TTL.
+- Se årsaken til at LED ikke lyser: ugyldig/utdatert/manglende frame,
+  uavklart holdeplass eller Quay, Quay uten tilknytning til aktiv tavle,
+  delt/ambivalent fysisk LED, annet linjefilter, eller ingen observasjon
+  på tilknyttet LED i den aktuelle framen.
+- Søk etter en *kjent buss-ID* i hele den allerede mottatte framen,
+  for å finne fysisk LED-ID der bussen faktisk er observert i den framen.
+  Søket henter ikke GPS eller andre eksterne busser.
+- Eksporter **trondheim-live-diagnose.json** med tidsstempel, identiteter,
+  diagnoser, valgt linjefilter, alle kjente Quays og matchende observasjoner.
+  Det eksporteres ingen administratornøkler.
+- Monitoren leser bare feeden som allerede benyttes av Linear. Den
+  sender ikke ekstra forespørsler og endrer aldri PixelFrame, ruteoppsett,
+  LED-tilstander eller skylagring.
+
+**Begrensning:** En buss som ikke finnes i siste gyldige frame, kan
+fortsatt kjøre i området. Et kartpunkt uten vist LED beviser **ikke**
+at ingen buss er i trafikk. \`source=GPS\` er bare dokumentert der
+en faktisk observasjon inneholder denne kildeverdien; ellers vises
+ukjent eller ETA. Det samles ikke historikk på serveren i denne fasen.
+
+Monitorens diagnosemodell testes med
+\`node scripts/test-linear-live-monitor.mjs\` og nettlesertesten
+\`node scripts/browser-intransit-map.mjs\`.
