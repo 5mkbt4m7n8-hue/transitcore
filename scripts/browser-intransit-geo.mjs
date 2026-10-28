@@ -114,7 +114,7 @@ try{
  assert.match(await page.locator('[data-role=focus] option[value="original-000"]').textContent(),/Test holdeplass/);
  assert.match(await page.locator('[data-role=geoLink]').getAttribute('href'),/stop=original-000/);
  await page.locator('[data-act=edit]').click();
- await page.locator('input[aria-label="Felles lokalt stopnavn"]').fill('Navn fra skjemakart');
+ await page.locator('input[aria-label="Navn på holdeplassen (lokalt visningsnavn)"]').fill('Navn fra skjemakart');
  await page.getByRole('button',{name:'Lagre visningsnavn'}).click();
  const afterBridge=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo);
  assert.equal(afterBridge.names['original-000'],'Navn fra skjemakart');
