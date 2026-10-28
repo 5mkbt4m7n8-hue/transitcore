@@ -182,9 +182,9 @@
   function activeBoard(){return playback?replayBoard:context.board;}
   function activeHardware(){return playback?replayHardware:context.hardware;}
   function activeLine(){return playback||context.all?null:context.line;}
-  // The recorded 40-line board has the same canonical 147 Quay nodes as the
-  // 1-3-line board, but another board ID and hardware mapping. Add only an
-  // in-memory binding by Quay; never rewrite any official layout/NSR IDs.
+  // Legacy 147-point recordings remain readable, but all new live frames and
+  // scheduled recordings use the one 1282-point Trondheim catalog.
+  // Match Quays by explicit ID only; never infer a platform from a nearby stop.
   function recordedStop(stop){
    if(!playback||!replayBoard)return stop;
    const ids=new Set(stop.bindings.map(b=>b.stopId).filter(id=>id?.startsWith('NSR:Quay:')));
@@ -194,23 +194,29 @@
     })));
    return {...stop,bindings:[...stop.bindings,...derived]};
   }
-  async function loadReplayBoard(){
-   if(replayBoard&&replayHardware)return {board:replayBoard,hardware:replayHardware};
+  async function loadReplayBoard(id='trondheim-city-lines-catalog'){
+   if(id==='trondheim-city-lines-catalog'){
+    const board=(context.boards||[]).find(board=>board.id===id);
+    if(!board)throw Error('Katalogen for historikk er ikke lastet');
+    return {board,hardware:{leds:{count:board.leds.count},
+     assignments:board.nodes.map(node=>({logicalLed:node.led,physicalLed:node.led}))}};
+   }
+   if(id!=='trondheim-shared-stops-board')throw Error('Ukjent historikkprofil');
    if(!replayLoad)replayLoad=Promise.all([
     fetch('../../config/boards/trondheim-shared-stops-board.json'),
     fetch('../../config/hardware/trondheim-shared-stops-board-hardware.json')
    ]).then(async responses=>{
-    if(responses.some(r=>!r.ok))throw Error('Kunne ikke laste opptakets tavle-/LED-profil');
+    if(responses.some(r=>!r.ok))throw Error('Kunne ikke laste historisk tavleprofil');
     const [board,hardware]=await Promise.all(responses.map(r=>r.json()));
-    if(board.id!=='trondheim-shared-stops-board'||hardware.boardProfile!==board.id||
+    if(board.id!==id||hardware.boardProfile!==id||
      !Array.isArray(board.nodes)||!Array.isArray(hardware.assignments))
-     throw Error('Opptakets tavlekonfigurasjon er ugyldig');
-    replayBoard=board;replayHardware=hardware;return {board,hardware};
+     throw Error('Historisk tavleprofil er ugyldig');
+    return {board,hardware};
    }).catch(error=>{replayLoad=null;throw error;});
    return replayLoad;
   }
   const historyUI=History.create(q('dayHistoryHost'),{
-   onFrame:record=>{playback=record;draw();},
+   onFrame:(record,config)=>{playback=record;if(config){replayBoard=config.board;replayHardware=config.hardware;}draw();},
    onLive:()=>{playback=null;draw();},
    loadReplayBoard
   });
