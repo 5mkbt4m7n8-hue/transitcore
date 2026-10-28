@@ -34,8 +34,8 @@ try{
  const historyFrames=times.map((ms,i)=>({
   version:1,day:historyDay,slot:Math.floor(ms/300000)*300000,
   capturedAt:new Date(ms).toISOString(),status:i===1?'ERROR':'OK',error:i===1?'fixture HTTP 503':null,
-  frame:i===1?null:{schemaVersion:1,boardProfile:i===0?'trondheim-city-lines-catalog':'trondheim-shared-stops-board',
-   ledCount:i===0?1282:147,sequence:11+i,ttlSeconds:30,generatedAt:new Date(ms).toISOString(),
+  frame:i===1?null:{schemaVersion:1,boardProfile:i===0?'trondheim-shared-stops-board':'trondheim-city-lines-catalog',
+   ledCount:i===0?147:1282,sequence:11+i,ttlSeconds:30,generatedAt:new Date(ms).toISOString(),
    leds:[{id:0,state:'AT_STOP',rgb:[255,0,0],brightness:32,
     vehicle:{id:'history-bus',line:'1',source:'GPS'},
     occupants:[{id:'history-bus',line:'1',state:'AT_STOP',rgb:[255,0,0],source:'GPS'}]}]}
@@ -74,7 +74,7 @@ try{
  assert.match(await page.locator('[data-h=time]').innerText(),/MÅLEFEIL/);
  assert.equal(await page.locator('.map-stop[data-state="AT_STOP"]').count(),0,'A failed sample must never copy prior LED state');
  await page.locator('[data-h=timeline]').evaluate(el=>{el.value='2';el.dispatchEvent(new Event('input',{bubbles:true}));});
- assert.equal(await page.locator('.map-stop[data-stop="original-004"][data-state="AT_STOP"]').count(),1);
+ assert.equal(await page.locator('.map-stop[data-stop="original-004"][data-state="AT_STOP"]').count(),0,'New catalog frame must not reuse the old 147-point LED zero');
  const historyDownload=page.waitForEvent('download');
  await page.locator('[data-h=export]').click();
  assert.equal((await historyDownload).suggestedFilename(),'trondheim-historikk-'+historyDay+'.json');
