@@ -59,25 +59,6 @@
     <div class="diagitem"><span>Ikke vist i linjekart</span><b id="diagUnmapped">0</b></div>
   </div><p class="diagnote" id="diagNote">Venter p&aring; f&oslash;rste frame.</p></div></details>
 
-  <details class="diagnostics" id="gpsDebug" hidden>
-    <summary>GPS Debug – Entur-observasjon mot LED (kun staging)</summary>
-    <div class="diagbody">
-      <div class="tools"><label>Følg buss <select id="gpsVehicle"><option value="">Venter på kjøretøy</option></select></label><span id="gpsDebugStatus" class="status">Åpne for å hente diagnostikk</span></div>
-      <div class="diaggrid">
-        <div class="diagitem"><span>Entur-observasjon</span><b id="gpsSourceTime">–</b></div>
-        <div class="diagitem"><span>GPS-alder nå (ca.)</span><b id="gpsSourceAge">–</b></div>
-        <div class="diagitem"><span>Avstand til holdeplass</span><b id="gpsDistance">–</b></div>
-        <div class="diagitem"><span>GPS-beregnet status</span><b id="gpsEvidenceState">–</b></div>
-        <div class="diagitem"><span>Fysisk LED-indeks</span><b id="gpsPhysicalLed">–</b></div>
-        <div class="diagitem"><span>LED-status i frame</span><b id="gpsLedState">–</b></div>
-        <div class="diagitem"><span>Frame generert</span><b id="gpsFrameTime">–</b></div>
-        <div class="diagitem"><span>GPS til frame (ca.)</span><b id="gpsSourceToFrame">–</b></div>
-        <div class="diagitem"><span>Frame-alder i nettleser</span><b id="gpsFrameAge">–</b></div>
-        <div class="diagitem"><span>Status endret</span><b id="gpsStateChanged">–</b></div>
-      </div>
-      <p class="diagnote">Entur-tidsstempel og avstand beregnet av TransitCore; ingen rå koordinater. Tidsforskjeller er anslag, ikke målt forsinkelse fra AtB til Entur.</p>
-    </div>
-  </details>
   <section id="networkView" hidden></section>
   <section class="board" id="linearView"><div class="head"><b>Holdeplass</b><span id="dirA">Retning A</span><span id="dirB">Retning B</span></div><div id="rows"></div></section>
 </main>
@@ -87,16 +68,13 @@
 "use strict";
 const SIGNALS=TransitCoreSignals;SIGNALS.applyCssVariables(document);
 const $=id=>document.getElementById(id),BASE="../../config/",FLYBUSS="flybuss-trondheim-fb73-live";
-let frameClient,frameClientId,board,hardware,baseBoard,baseHardware,flyBoard,flyHardware,catalogBoard,catalogHardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,diagnosticTakeovers=0,diagnosticVehicles=new Map,diagnosticOneSided=new Map,colorCycleTimer=null;
-let refreshGeneration=0,selectedGpsVehicle="",lastGpsDiagnostics=null,lastGpsFrame=null;
+let frameClient,frameClientId,board,hardware,flyBoard,flyHardware,catalogBoard,catalogHardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,diagnosticTakeovers=0,diagnosticVehicles=new Map,diagnosticOneSided=new Map,colorCycleTimer=null;
+let refreshGeneration=0;
 let lastFeedStatus="WAITING",lastFeedError="",lastFeedBoardId="";
-const gpsDebugFields=["gpsSourceTime","gpsSourceAge","gpsDistance","gpsEvidenceState","gpsPhysicalLed","gpsLedState","gpsFrameTime","gpsSourceToFrame","gpsFrameAge","gpsStateChanged"];
 const stagingSelected=()=>$("source").value==="staging";
 const STAGING_ORIGIN="https://transitcore-linear-staging.lgb84.workers.dev";
-const BUS1_GPS_BOARD="trondheim-bus-1-gps-staging",BUS1_ROUTE="atb-bus-1-live";
 const allRoutes=()=>$("allRoutes").checked&&profile?.id!==FLYBUSS;
 const routeBadgeMode=()=>["colors","numbers"].includes($("routeBadgeMode").value)?$("routeBadgeMode").value:"details";
-const bus1GpsSelected=()=>stagingSelected()&&profile?.id===BUS1_ROUTE&&!allRoutes();
 
 async function json(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error(`HTTP ${response.status}`);return response.json()}
 function esc(value){return String(value??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
@@ -114,7 +92,7 @@ function stationRows(){
   }
   return ordered;
 }
-function useProfileLayout(active){board=active.id===FLYBUSS?flyBoard:baseBoard.routes.includes(active.id)?baseBoard:catalogBoard;hardware=active.id===FLYBUSS?flyHardware:baseBoard.routes.includes(active.id)?baseHardware:catalogHardware;}
+function useProfileLayout(active){board=active.id===FLYBUSS?flyBoard:catalogBoard;hardware=active.id===FLYBUSS?flyHardware:catalogHardware;}
 function ledMarkup(id,name,direction,color,suffix=""){
   return `<span class="ledunit"><i class="led" data-id="${id}" data-name="${esc(name)}" data-direction="${esc(direction)}" style="color:${esc(color)}"></i><small class="ledno">${id}${suffix}</small></span>`;
 }
@@ -125,8 +103,6 @@ function build(){
   $("routeViewOptions").hidden=!allRoutes();
   $("scopeNote").textContent=allRoutes()?"Viser katalogførte bylinjer på nøyaktig de samme plattformene. Hver buss vises nedenfor med linjenummer, farge og status. GPS-data kan være forsinket.":profile.id===FLYBUSS?"FB73: Kun anslåtte ankomster (ETA), ikke GPS. Én stabil LED per avgang vises når ankomst er anslått innen omtrent 2 minutter. Ingen LED utenfor dette vinduet betyr ikke at bussen står stille eller at det ikke går busser.":"Viser valgt linje. Klikk på en diode for detaljer.";
   if(stagingSelected())$("scopeNote").textContent="STAGING · "+board.id+" · "+hardware.leds.count+" LED · samme PixelFrame-motor, ikke målt fysisk ESP. Ingen automatisk overgang til produksjonsfeed ved feil.";
-  if(bus1GpsSelected())$("scopeNote").textContent="STAGING · Bus1 GPS Proximity · 147 LED · ved holdeplassen innenfor 70 m, slukker etter 90 m. GPS-data kan være forsinket.";
-  $("gpsDebug").hidden=!bus1GpsSelected();if(!bus1GpsSelected())$("gpsDebug").open=false;
   $("dirA").textContent=directions[0]?.label||"Retning A";$("dirB").textContent=directions[1]?.label||"Retning B";
   $("legend").innerHTML=directions.map(direction=>`<span><i class="dot" style="background:${esc(direction.color)}"></i>${esc(direction.label)}</span>`).join("");
   $("rows").innerHTML=ordered.map((station,index)=>{
@@ -283,69 +259,11 @@ function showInfo(led){
    '<p>Ingen aktiv avgang på denne dioden nå.</p>');
  $("info").classList.add("show");
 }
-// Public read-only diagnostics only. Never call Entur directly or expose tokens.
-const gpsClock=ms=>Number.isFinite(ms)&&ms>=0?new Date(ms).toLocaleTimeString("no-NO",{hour:"2-digit",minute:"2-digit",second:"2-digit"}):"–";
-const gpsSeconds=ms=>Number.isFinite(ms)&&ms>=0?(ms/1000).toFixed(1)+" s":"–";
-function clearGpsDebug(message){
- lastGpsDiagnostics=null;lastGpsFrame=null;
- for(const id of gpsDebugFields)$(id).textContent="–";
- $("gpsDebugStatus").textContent=message;
-}
-function renderGpsDebug(){
- const diag=lastGpsDiagnostics,frame=lastGpsFrame;
- if(!diag||!frame)return;
- const current=$("gpsVehicle"),rows=diag.observations.filter(item=>item.source==="GPS"&&item.vehicleId);
- const vehicles=[...new Set(rows.map(item=>String(item.vehicleId)))].sort();
- if(!selectedGpsVehicle&&vehicles.length)selectedGpsVehicle=vehicles.find(id=>rows.some(item=>String(item.vehicleId)===id&&item.state==="AT_STOP"))||vehicles[0];
- current.innerHTML='<option value="">Velg buss</option>'+vehicles.map(id=>'<option value="'+esc(id)+'">'+esc(id)+'</option>').join("");
- current.value=vehicles.includes(selectedGpsVehicle)?selectedGpsVehicle:"";
- for(const id of gpsDebugFields)$(id).textContent="–";
- const synchronized=diag.sequence===frame.sequence&&diag.generatedAt===frame.generatedAt&&diag.status==="CURRENT";
- if(!synchronized){
-  $("gpsDebugStatus").textContent=diag.status==="NOT_OBSERVED"?"Ingen GPS-data i staging":"Ulike / utdaterte frames – sammenligning stoppet";
-  return;
- }
- if(!current.value){
-  $("gpsDebugStatus").textContent=selectedGpsVehicle?"Valgt buss mangler i siste observasjon":"Ingen GPS-observasjoner nå";
-  return;
- }
- const observations=rows.filter(item=>String(item.vehicleId)===current.value).sort((a,b)=>
-  (Number(b.observationTime)||0)-(Number(a.observationTime)||0)||
-  ({AT_STOP:4,APPROACHING:3,PASSED:2,OFF:1}[b.state]||0)-({AT_STOP:4,APPROACHING:3,PASSED:2,OFF:1}[a.state]||0));
- const item=observations[0],sourceTime=item.observationTime,frameTime=Date.parse(frame.generatedAt);
- $("gpsSourceTime").textContent=gpsClock(sourceTime);
- $("gpsSourceAge").textContent=gpsSeconds(Number.isFinite(sourceTime)?Math.max(0,Date.now()-sourceTime):null);
- $("gpsDistance").textContent=Number.isFinite(item.distanceMeters)?item.distanceMeters.toFixed(1)+" m":"–";
- $("gpsEvidenceState").textContent=item.state+(item.uncertain?" (usikker)":"");
- $("gpsPhysicalLed").textContent=Number.isInteger(item.physicalLed)?String(item.physicalLed):"–";
- $("gpsFrameTime").textContent=gpsClock(frameTime);
- $("gpsSourceToFrame").textContent=Number.isFinite(sourceTime)&&Number.isFinite(frameTime)?((frameTime-sourceTime)/1000).toFixed(1)+" s":"–";
- $("gpsFrameAge").textContent=gpsSeconds(Number.isFinite(frameTime)?Math.max(0,Date.now()-frameTime):null);
- $("gpsStateChanged").textContent=gpsClock(item.stateChangedAt);
- const led=(frame.leds||[]).find(value=>value.id===item.physicalLed);
- const owns=led&&(String(led.vehicle?.id||"")===current.value||(led.occupants||[]).some(v=>String(v.id||"")===current.value));
- $("gpsLedState").textContent=!led?"OFF":owns?(led.lifecycle||led.state):"ANNEN BUSS / IKKE VIST";
- $("gpsDebugStatus").textContent="Samme frame #"+diag.sequence+" · "+current.value+" · "+diag.status;
-}
-async function refreshGpsDebug(frame,generation){
- try{
-  const response=await fetch(STAGING_ORIGIN+"/api/v1/frame/"+BUS1_GPS_BOARD+"/diagnostics",{cache:"no-store"});
-  if(!response.ok)throw Error("HTTP "+response.status);
-  const diag=await response.json();
-  if(generation!==refreshGeneration||document.hidden||!bus1GpsSelected()||!$("gpsDebug").open)return;
-  if(diag.boardId!==BUS1_GPS_BOARD||!Array.isArray(diag.observations)||
-    (diag.status!=="NOT_OBSERVED"&&diag.mode!=="gps-proximity-v1"))throw Error("Ugyldig GPS-diagnostikk");
-  lastGpsDiagnostics=diag;lastGpsFrame=frame;renderGpsDebug();
- }catch(error){
-  if(generation===refreshGeneration&&bus1GpsSelected()&&$("gpsDebug").open)
-   clearGpsDebug("Diagnostikk utilgjengelig: "+error.message);
- }
-}
 function hexRgb(value){const hex=String(value||"#60a5fa").replace("#","");return[0,2,4].map(index=>parseInt(hex.slice(index,index+2),16))}
 async function refresh(){
  clearTimeout(timer);const generation=++refreshGeneration;if(document.hidden||testing)return;
  try{
-  const boardId=bus1GpsSelected()?BUS1_GPS_BOARD:allRoutes()&&board.id===baseBoard.id?"trondheim-shared-stops-board":board.id;
+  const boardId=board.id;
   const clientId=$("source").value+":"+boardId;
   if(!frameClient||frameClientId!==clientId){frameClientId=clientId;frameClient=TransitCoreFrames.create({boardId,ledCount:hardware.leds.count,visual:board.render?.visual,...(stagingSelected()?{origin:STAGING_ORIGIN}:{})});}
   const result=await frameClient.refresh();if(generation!==refreshGeneration||document.hidden)return;
@@ -354,25 +272,21 @@ async function refresh(){
   lastFeedBoardId=boardId;
   if(result.frame)paint(result.frame);
   else updateNetworkMap();
-  if(bus1GpsSelected()&&$("gpsDebug").open&&result.frame&&result.sample.status==="VALID")void refreshGpsDebug(result.frame,generation);
-  else if(bus1GpsSelected()&&$("gpsDebug").open)clearGpsDebug("Ingen fersk frame – sammenligning stoppet");
   $("status").textContent=boardId+" · "+result.algorithm+" · frame "+result.sample.sequence+" · alder "+result.sample.ageSeconds+" s · "+result.sample.status+(result.sample.error?" · FEIL: "+result.sample.error:"");
  }catch(error){if(generation!==refreshGeneration)return;lastFrame=null;lastFeedStatus="ERROR";lastFeedError=error.message;networkMap?.clear();updateNetworkMap();document.querySelectorAll(".led").forEach(l=>l.classList.remove("on","approaching","departed"));$("status").textContent=error.message;$("quality").textContent="IKKE TILGJENGELIG";}
  if(generation===refreshGeneration&&!document.hidden)timer=setTimeout(refresh,10000);
 }
 setInterval(()=>{if(!testing&&!document.hidden&&frameClient){const result=frameClient.snapshot();if(result.sample.status==="EXPIRED"&&result.frame)paint(result.frame);}},1000);
 document.addEventListener("visibilitychange",()=>{++refreshGeneration;clearTimeout(timer);if(!document.hidden)refresh()});
-function resetSourceView(){lastFeedStatus="WAITING";lastFeedError="";lastFeedBoardId="";networkMap?.clear();selectedGpsVehicle="";clearGpsDebug("Venter på GPS-data");++refreshGeneration;clearTimeout(timer);testing=false;$("test").textContent="LED-test";frameClient=null;frameClientId=null;lastFrame=null;diagnosticVehicles.clear();diagnosticOneSided.clear();diagnosticTakeovers=0;$("info").classList.remove("show");$("activeCount").textContent="0";$("quality").textContent="Venter på valgt kilde";}
+function resetSourceView(){lastFeedStatus="WAITING";lastFeedError="";lastFeedBoardId="";networkMap?.clear();++refreshGeneration;clearTimeout(timer);testing=false;$("test").textContent="LED-test";frameClient=null;frameClientId=null;lastFrame=null;diagnosticVehicles.clear();diagnosticOneSided.clear();diagnosticTakeovers=0;$("info").classList.remove("show");$("activeCount").textContent="0";$("quality").textContent="Venter på valgt kilde";}
 $("source").onchange=()=>{resetSourceView();build();return refresh();};
-$("gpsVehicle").onchange=()=>{selectedGpsVehicle=$("gpsVehicle").value;renderGpsDebug();};
-$("gpsDebug").ontoggle=()=>{if($("gpsDebug").open&&bus1GpsSelected())refresh();};
 $("close").onclick=()=>$("info").classList.remove("show");$("refresh").onclick=refresh;$("route").onchange=()=>{resetSourceView();build();refresh()};
 $("allRoutes").onchange=()=>{resetSourceView();build();refresh()};
 $("routeBadgeMode").onchange=()=>{if(lastFrame&&allRoutes())paint(lastFrame);};
 $("test").onclick=()=>{testing=!testing;if(testing)networkMap?.clear();$("test").textContent=testing?"Stopp test":"LED-test";if(!testing)return refresh();const leds=[...document.querySelectorAll(".led:not(.empty)")];let index=0;const step=()=>{if(!testing)return;document.querySelectorAll(".led").forEach(led=>led.classList.remove("on"));leds[index++%leds.length].classList.add("on");$("status").textContent=`LED-test ${index}/${leds.length}`;setTimeout(step,250)};step()};
 let networkMap=null,networkLoading=null;
 function updateNetworkMap(){
- if(networkMap&&profile)networkMap.update({board,hardware,boards:[baseBoard,catalogBoard,flyBoard].filter(Boolean),profiles,route:profile.id,line:profile.line.publicCode,routesByLine:Object.fromEntries(profiles.map(p=>[String(p.line.publicCode),p.id])),all:allRoutes(),numbers:routeBadgeMode()==="numbers",frame:testing?null:lastFrame,feedStatus:testing?"TEST_MODE":lastFeedStatus,feedError:testing?"LED-test aktiv – ikke live":lastFeedError,feedBoardId:lastFeedBoardId,feedSource:stagingSelected()?"STAGING":"Produksjon"});
+ if(networkMap&&profile)networkMap.update({board,hardware,boards:[catalogBoard,flyBoard].filter(Boolean),profiles,route:profile.id,line:profile.line.publicCode,routesByLine:Object.fromEntries(profiles.map(p=>[String(p.line.publicCode),p.id])),all:allRoutes(),numbers:routeBadgeMode()==="numbers",frame:testing?null:lastFrame,feedStatus:testing?"TEST_MODE":lastFeedStatus,feedError:testing?"LED-test aktiv – ikke live":lastFeedError,feedBoardId:lastFeedBoardId,feedSource:stagingSelected()?"STAGING":"Produksjon"});
 }
 async function setMapMode(network){
  $("networkView").hidden=!network;$("linearView").hidden=network;
@@ -383,7 +297,7 @@ async function setMapMode(network){
  }
 }
 $("linearMode").onclick=()=>setMapMode(false);$("networkMode").onclick=()=>setMapMode(true);
-Promise.all([json(`${BASE}boards/trondheim-bus-board.json`),json(`${BASE}hardware/trondheim-bus-board-hardware.json`),json(`${BASE}boards/trondheim-flybuss-live.json`),json(`${BASE}hardware/trondheim-flybuss-live-hardware.json`),json(`${BASE}boards/trondheim-city-lines-catalog.json`)]).then(async values=>{[baseBoard,baseHardware,flyBoard,flyHardware,catalogBoard]=values;catalogHardware={leds:{count:catalogBoard.leds.count},assignments:catalogBoard.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))};board=baseBoard;hardware=baseHardware;profiles=await Promise.all([...new Set([...catalogBoard.routes,FLYBUSS])].map(id=>json(`${BASE}routes/${id}.json`)));$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");const params=new URLSearchParams(location.search),requested=params.get("route");if(profiles.some(p=>p.id===requested))$("route").value=requested;$("source").value=params.get("source")==="staging"?"staging":"production";build();refresh();if(params.get("view")==="network"){await setMapMode(true);if(params.get("stop"))networkMap?.focusStop(params.get("stop"));}}).catch(error=>$("status").textContent=error.message);
+Promise.all([json(`${BASE}boards/trondheim-flybuss-live.json`),json(`${BASE}hardware/trondheim-flybuss-live-hardware.json`),json(`${BASE}boards/trondheim-city-lines-catalog.json`)]).then(async values=>{[flyBoard,flyHardware,catalogBoard]=values;catalogHardware={leds:{count:catalogBoard.leds.count},assignments:catalogBoard.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))};board=catalogBoard;hardware=catalogHardware;profiles=await Promise.all([...new Set([...catalogBoard.routes,FLYBUSS])].map(id=>json(`${BASE}routes/${id}.json`)));$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");const params=new URLSearchParams(location.search),requested=params.get("route");if(profiles.some(p=>p.id===requested))$("route").value=requested;$("source").value=params.get("source")==="staging"?"staging":"production";build();refresh();if(params.get("view")==="network"){await setMapMode(true);if(params.get("stop"))networkMap?.focusStop(params.get("stop"));}}).catch(error=>$("status").textContent=error.message);
 </script></body></html>
 
 
