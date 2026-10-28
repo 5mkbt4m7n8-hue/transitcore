@@ -992,7 +992,7 @@ async function boardFrameResponse(boardId, env, source) {
     const rawFrame = await step("live_data", () => liveFrameForConfiguration(board, profiles, hardware, now, env));
     const frame = usesStopAccuracy(board)?rawFrame:await step("motion", () => stabilizeMotionFrame(env, board, rawFrame, now));
     sample = { ...validFrameSummary(frame, boardId), source };
-    if(source==="history"&&boardId==="trondheim-shared-stops-board")historyFrame=frame;
+    if(source==="history"&&boardId==="trondheim-city-lines-catalog")historyFrame=frame;
     result = response(frame);
     result.headers.set("x-transitcore-stop-algorithm",usesStopAccuracy(board)?"motion-v1":"legacy");
     result.headers.set("access-control-expose-headers","x-transitcore-stop-algorithm");
@@ -1004,7 +1004,7 @@ async function boardFrameResponse(boardId, env, source) {
   }
   // The scheduled 5-minute history is independent of the LED response.
   // Failed fetches become explicit timeline gaps, never fake empty traffic.
-  if(source==="history"&&boardId==="trondheim-shared-stops-board"){
+  if(source==="history"&&boardId==="trondheim-city-lines-catalog"){
    try{await boundedOperation("trondheim_history",()=>recordScheduledTrondheimFrame(
      env,historyFrame,historyFrame?"":sample.detail,new Date(now).toISOString()),1500,{boardId,source});}
    catch(error){console.error("trondheim_history_write_failed",error.message);}
@@ -1239,7 +1239,7 @@ const worker = {
     console.log("Scheduled background checks started", new Date(controller.scheduledTime).toISOString());
     const results=await Promise.allSettled([
      runBackgroundChecks(env),
-     boardFrameResponse("trondheim-shared-stops-board",env,"history")
+     boardFrameResponse("trondheim-city-lines-catalog",env,"history")
     ]);
     for(const outcome of results)if(outcome.status==="rejected")console.error("Scheduled check failed",outcome.reason);
     console.log("Scheduled background checks completed");
