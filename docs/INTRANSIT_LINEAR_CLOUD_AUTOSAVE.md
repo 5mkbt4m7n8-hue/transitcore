@@ -102,3 +102,47 @@ du kan opprette publiseringsforslaget.
 
 Test med `node scripts/test-linear-publish.mjs` og
 `node scripts/browser-intransit-map.mjs`.
+
+## Kontrollmodus: plattformer på venstre og høyre side
+
+Kartet har 100 originale punkt, hvorav 65 i nåværende kilde er koblet til
+to eller flere ulike `NSR:Quay`-ID-er. Disse **er ikke automatisk
+godkjent som fysisk høyre eller venstre side**. Alle 100 punkt fortsetter
+som felles markører inntil brukeren eksplisitt slår på «To dioder» eller
+kontrollerer plattformtilordningen.
+
+Under **Rediger kart** finnes nå:
+- **Neste uavklarte plattform**: går til neste holdeplass med flere
+  ufullstendig gjennomgåtte Quay-ID-er.
+- **Plattformkontroll**: viser navnet, hver Quay-ID, dokumentert linje,
+  retning-ID og oppgitte destinasjoner fra innlastet rutekonfigurasjon.
+- Velg **Venstre på tegningen**, **Høyre på tegningen** eller
+  **Ikke gjennomgått** for hver Quay.
+- Oversikten viser antallet helt gjennomgåtte holdeplasser. Begge sider
+  må være representert, og hver kjent Quay må ha et manuelt valg.
+
+**Venstre/høyre her er de to markørposisjonene på den skjematiske
+tegningen**, ikke en geografisk påstand om veiens sider sett i
+kjøreretning. `routeDirections`-ID 0/1 brukes som informasjonskilde,
+**aldri** til automatisk sideplassering.
+
+Manuelle sidevalg lagres i `stop.platformSides[quayId]` med
+`verification: "user-reviewed"`. De følger vanlig lokal og autentisert
+skylagring, og kan publiseres gjennom eksisterende PR-flyt uten å
+endre originalens NSR-/Quay-bindinger.
+
+Når «To dioder» er aktivert, filtrerer venstre/høyre markør sanntidsdata
+på **de Quay-ID-ene som er godkjent for akkurat den siden**. Ukjente
+sider viser OFF; data fra en annen Quay får ikke aktivere den
+markøren. En fysisk LED som deles av forskjellige Quays, kan ikke
+skilles sikkert og blir derfor ikke brukt som sidebevis.
+
+Dette er **kontroll av representasjonen i kartet**. Den nye funksjonen
+endrer ikke datainnhenting, fysisk LED-kabling, Entur-ruter eller
+GPS-posisjoner. Det forutsetter også at produksjons-Workerens
+skylagring faktisk er satt opp; den ble ikke verifisert i denne endringen.
+
+Test: `node scripts/test-intransit-map.mjs`,
+`node scripts/test-linear-cloud-draft.mjs`,
+`node scripts/test-linear-publish.mjs` og
+`node scripts/browser-intransit-map.mjs`.

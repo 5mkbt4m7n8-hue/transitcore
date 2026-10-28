@@ -10,6 +10,30 @@ assert.deepEqual(layout.coverage,{scope:'selected-corridors',endToEndRequired:fa
 assert.equal(M.report(layout,[]).coverage.endToEndRequired,false,'Report must distinguish deliberate partial scope from invalid stop mapping');
 assert.equal(layout.stops.length,100,'Existing schematic points preserved');
 assert.equal(layout.paths.length,18,'Existing paths preserved');
+const audit=M.platformAudit(layout);
+assert.equal(audit.total,65,'65 schematic stops have at least two unique Quays');
+assert.equal(audit.reviewed,0,'Physical side is not inferred automatically');
+assert.equal(audit.pending.length,65);
+const reviewedPlatform=structuredClone(layout);
+const solsiden=reviewedPlatform.stops.find(stop=>stop.id==='original-014');
+solsiden.platformSides={
+ 'NSR:Quay:73975':{side:'left',verification:'user-reviewed'},
+ 'NSR:Quay:73976':{side:'right',verification:'user-reviewed'}
+};
+solsiden.diodeMode='split';
+assert.deepEqual(M.validate(reviewedPlatform),[]);
+assert.equal(M.platformAudit(reviewedPlatform).reviewed,1);
+assert.equal(M.platformAudit(reviewedPlatform).pending.length,64);
+for(const mutation of [
+ stop=>{stop.platformSides['NSR:Quay:00000']={side:'left',verification:'user-reviewed'};},
+ stop=>{stop.platformSides['NSR:Quay:73975'].side='north';},
+ stop=>{stop.platformSides['NSR:Quay:73975'].verification='auto';},
+ stop=>{stop.diodeMode='shared';}
+]){
+ const bad=structuredClone(reviewedPlatform);mutation(bad.stops.find(s=>s.id==='original-014'));
+ assert(M.validate(bad).length,'Invalid/unverified platform side must not be accepted');
+}
+
 const invalidScope=structuredClone(layout);invalidScope.coverage.endToEndRequired=true;
 assert(M.validate(invalidScope).length,'Do not silently reinterpret selected corridors as complete end-to-end route');
 
@@ -38,6 +62,25 @@ assert.deepEqual(M.signals({...stop,verification:'unresolved'},board,hardware,fr
 assert.deepEqual(M.resolve({...stop,bindings:[{...stop.bindings[0],nodeId:'bad'}]},board,hardware),[]);
 assert.deepEqual(M.resolve(stop,{...board,id:'other-board'},hardware),[]);
 for(const lifecycle of ['PASSED','PARKED'])assert(M.signals(stop,board,hardware,{...frame,leds:frame.leds.map(l=>({...l,lifecycle}))},null,now).every(v=>v.state===lifecycle));
+
+// Actual Solsiden quays have separate physical LEDs and direction metadata.
+// Side is manually selected; filtering MUST NOT derive side from direction 0/1.
+const sideStop=reviewedPlatform.stops.find(s=>s.id==='original-014');
+const sideBindings=M.resolve(sideStop,board,hardware);
+const leftLed=sideBindings.find(b=>b.stopId==='NSR:Quay:73975').physicalLed;
+const rightLed=sideBindings.find(b=>b.stopId==='NSR:Quay:73976').physicalLed;
+assert.notEqual(leftLed,rightLed);
+const sideFrame={generatedAt:new Date(now).toISOString(),ttlSeconds:30,leds:[
+ {id:leftLed,state:'AT_STOP',rgb:[255,0,0],occupants:[{id:'left-bus',line:'1',state:'AT_STOP',rgb:[255,0,0]}]},
+ {id:rightLed,state:'APPROACHING',rgb:[0,200,0],occupants:[{id:'right-bus',line:'1',state:'APPROACHING',rgb:[0,200,0]}]}
+]};
+assert.deepEqual(M.signals(sideStop,board,hardware,sideFrame,null,now,null,['NSR:Quay:73975']).map(v=>v.id),['left-bus']);
+assert.deepEqual(M.signals(sideStop,board,hardware,sideFrame,null,now,null,['NSR:Quay:73976']).map(v=>v.id),['right-bus']);
+assert.deepEqual(M.signals(sideStop,board,hardware,sideFrame,null,now,null,[]),[],'Unreviewed side must remain OFF');
+assert.equal(M.signals(sideStop,board,hardware,sideFrame,null,now).length,2,'Legacy shared mode still aggregates both');
+const ambiguousHardware=structuredClone(hardware);
+ambiguousHardware.assignments.find(a=>a.logicalLed===board.nodes.find(n=>n.id==='solsiden-nsr-quay-73976').led).physicalLed=leftLed;
+assert.equal(M.signals(sideStop,board,ambiguousHardware,sideFrame,null,now,null,['NSR:Quay:73975']).length,0,'Shared physical LED may not activate a specific side');
 
 // Route colors require exact consecutive Quay IDs on both uniquely mapped
 // diagram endpoints. They are not inferred for an entire drawn path.

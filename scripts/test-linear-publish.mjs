@@ -15,6 +15,17 @@ assert.equal(build.publication.baseFingerprint,fingerprint(source));
 assert.equal(build.publication.names["original-014"],"Solsiden rettet");
 assert.equal(build.publication.sourceRevision,4);
 assert.equal(build.changes.movedOrAddedStops,1);
+const sideSnapshot=structuredClone(snapshot);
+sideSnapshot.layout.stops.find(s=>s.id==='original-014').diodeMode='split';
+sideSnapshot.layout.stops.find(s=>s.id==='original-014').platformSides={
+ 'NSR:Quay:73975':{side:'left',verification:'user-reviewed'},
+ 'NSR:Quay:73976':{side:'right',verification:'user-reviewed'}
+};
+const sidePublished=createPublication(sideSnapshot,source,'2026-10-28T04:00:00.000Z');
+assert.deepEqual(sidePublished.publication.layout.stops.find(s=>s.id==='original-014').platformSides,
+ sideSnapshot.layout.stops.find(s=>s.id==='original-014').platformSides,
+ 'Manually confirmed Quay sides are publishable without changing NSR bindings');
+
 for(const mutate of [
  x=>{x.layout.stops[0].bindings[0].stopId="NSR:Quay:fake";},
  x=>{x.layout.stops[0].name="Wrong official name";},

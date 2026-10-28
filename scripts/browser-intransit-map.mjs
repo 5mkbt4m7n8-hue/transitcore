@@ -217,6 +217,27 @@ try{
  await page.locator('.map-stop').first().click();
  await page.getByLabel('To dioder',{exact:true}).check();assert.equal(await page.locator('.map-stop[data-direction]').count(),2);
  await page.locator('[data-act=undo]').click();assert.equal(await page.locator('.map-stop[data-direction]').count(),0);
+ // The platform-audit workflow must enumerate verified Entur Quays without
+ // guessing which side corresponds to route direction 0 or direction 1.
+ assert.match(await page.locator('[data-role=platformProgress]').innerText(),/0\/65/);
+ await page.locator('[data-act=nextPlatformReview]').click();
+ await page.locator('[data-role=focus]').selectOption('original-014');
+ await page.getByLabel('Kartside for NSR:Quay:73975').selectOption('left');
+ assert.equal(await page.locator('.map-stop[data-stop="original-014"][data-side="left"]').getAttribute('data-review'),'user-reviewed');
+ assert.equal(await page.locator('.map-stop[data-stop="original-014"][data-side="right"]').getAttribute('data-review'),'pending');
+ await page.getByLabel('Kartside for NSR:Quay:73976').selectOption('right');
+ assert.match(await page.locator('[data-role=platformProgress]').innerText(),/1\/65/);
+ assert.equal(await page.locator('.map-stop[data-stop="original-014"][data-side="right"]').getAttribute('data-review'),'user-reviewed');
+ const savedSides=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.stops.find(s=>s.id==='original-014').platformSides);
+ assert.deepEqual(savedSides,{'NSR:Quay:73975':{side:'left',verification:'user-reviewed'},'NSR:Quay:73976':{side:'right',verification:'user-reviewed'}});
+ await page.locator('[data-act=undo]').click();
+ assert.match(await page.locator('[data-role=platformProgress]').innerText(),/0\/65/);
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-stop[data-stop="original-014"][data-side]').count(),0);
+ // The audit UI zooms to one stop. Restore the full map before the unrelated
+ // Ranheim real-time click test that follows later in this suite.
+ await page.locator('[data-act=fit]').click();
+
  const download=page.waitForEvent('download');await page.locator('[data-act=export]').click();assert.equal((await download).suggestedFilename(),'trondheim-layout.json');
  await page.locator('#linearMode').click();assert.equal(await page.locator('#rows').innerHTML(),rows);assert.equal(await page.locator('#linearView').isVisible(),true);
  // The supplied source has a confirmed Ranheim binding to physical LED 0.

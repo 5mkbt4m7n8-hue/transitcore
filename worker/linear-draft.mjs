@@ -12,6 +12,15 @@ export function validateLinearSnapshot(body){
  const ids=new Set(),stopIds=new Set();
  for(const stop of l.stops){
   if(!stop||typeof stop.id!=="string"||!(/^(original-\d{3}|custom-stop-\d{3,4})$/.test(stop.id))||ids.has(stop.id)||!validPoint(stop)||!validPoint(stop.label)||typeof stop.label.visible!=="boolean"||typeof stop.name!=="string"||stop.name.length>120||!Array.isArray(stop.bindings)||stop.bindings.length>100||!["shared","split"].includes(stop.diodeMode)||!Number.isFinite(stop.radius)||stop.radius<2||stop.radius>20)throw Error("invalid_stop");
+  if(stop.platformSides!==undefined){
+   if(!stop.platformSides||typeof stop.platformSides!=="object"||Array.isArray(stop.platformSides))throw Error("invalid_platform_sides");
+   const quays=new Set(stop.bindings.map(b=>b.stopId).filter(id=>typeof id==="string"&&/^NSR:Quay:\d+$/.test(id)));
+   const entries=Object.entries(stop.platformSides);
+   if(entries.length>quays.size||entries.some(([id,record])=>
+     !quays.has(id)||!record||!["left","right"].includes(record.side)||record.verification!=="user-reviewed"))
+    throw Error("invalid_platform_sides");
+   if(entries.length&&stop.diodeMode!=="split")throw Error("invalid_platform_mode");
+  }
   ids.add(stop.id);stopIds.add(stop.id);
  }
  // The source image has original-000..original-101, excluding 022 and 023.
