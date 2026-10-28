@@ -176,6 +176,72 @@
    q('details').textContent='Kartlinjen '+id+' er lagret med '+sketch.points.length+' nye punkt. Du kan redigere og angre endringen.';
   }
 
+  function renderLiveDebug(){
+   if(!q('liveDebug').open)return;
+   const stopSelect=q('debugStop'),quaySelect=q('debugQuay'),stops=layout.stops;
+   if(stopSelect.options.length!==stops.length)
+    stopSelect.replaceChildren(...stops.map(stop=>new Option(displayName(stop)+' · '+stop.id,stop.id)));
+   if(!debugStopId||!stops.some(stop=>stop.id===debugStopId))
+    debugStopId=(selection?.type==='stop'?selection.id:null)||
+     stops.find(stop=>/lerkendal/i.test(displayName(stop)))?.id||stops[0]?.id||'';
+   stopSelect.value=debugStopId;
+   const stop=stops.find(item=>item.id===debugStopId);
+   const quays=Live.quayIds(stop),options=['',...quays];
+   if(JSON.stringify([...quaySelect.options].map(option=>option.value))!==JSON.stringify(options))
+    quaySelect.replaceChildren(new Option('Alle tilknyttede Quays',''),...quays.map(id=>new Option(id,id)));
+   if(debugQuayId&&!quays.includes(debugQuayId))debugQuayId='';
+   quaySelect.value=debugQuayId;
+   const diag=Live.inspect({stop,board:context.board,hardware:context.hardware,frame,
+    line:context.all?null:context.line,quayId:debugQuayId,
+    now:Date.now(),feedStatus:context.feedStatus,feedError:context.feedError});
+   lastDiagnostic=diag;
+   const age=diag.health.ageSeconds;
+   q('debugHealth').textContent=diag.health.label;
+   q('debugHealth').dataset.code=diag.health.code;
+   q('debugMeta').textContent='Kilde: '+(context.feedSource||'ukjent')+
+    ' · status: '+(context.feedStatus||'ukjent')+
+    ' · feed-tavle: '+(context.feedBoardId||diag.frameBoard||'ukjent')+
+    ' · frame #'+(diag.frameSequence??'–')+
+    ' · alder '+(Number.isFinite(age)?age.toFixed(1)+' s':'–')+
+    ' · TTL '+(diag.health.ttlSeconds??'–')+' s';
+   q('debugReason').textContent=diag.code;
+   q('debugExplanation').textContent=diag.reason;
+   q('debugQuays').textContent=diag.quays.map(item=>{
+    const bindings=diag.resolved.filter(binding=>binding.quayId===item.id);
+    return item.id+' · '+(item.reviewed?(item.side==='left'?'venstre':'høyre'):'side ikke godkjent')+
+     '\n  LED: '+(item.ledIds.join(', ')||'ingen på valgt tavle')+
+     ' · observert: '+item.observations.length+
+     '\n  Tavlekobling: '+(bindings.map(b=>b.nodeId).join(', ')||'ingen på valgt tavle');
+   }).join('\n')||'Ingen registrerte Quay-ID-er.';
+   q('debugObservations').textContent=diag.observations.length?
+    diag.observations.slice(0,40).map(bus=>
+     'Buss '+(bus.id||'uten ID')+' · linje '+(bus.line||'?')+' · '+bus.state+
+     '\n  '+(bus.destination||'ukjent destinasjon')+
+     ' · kilde '+bus.source+' · LED '+bus.physicalLed+
+     (bus.ageSeconds===null?'':' · posisjonsalder '+bus.ageSeconds+' s')+
+     (bus.distanceMeters===null?'':' · avstand '+bus.distanceMeters+' m')
+    ).join('\n'):'Ingen matchende buss observert på denne holdeplassen i valgt frame.';
+   const vehicleId=q('debugVehicle').value.trim(),found=Live.findVehicle(frame,vehicleId);
+   q('debugVehicleResult').textContent=vehicleId?
+    (diag.health.code==='VALID'?
+     (found.length?found.map(bus=>
+      'Buss '+bus.id+' · linje '+(bus.line||'?')+' · LED '+bus.physicalLed+' · '+bus.state+
+      '\n  '+(bus.destination||'ukjent destinasjon')+' · kilde '+bus.source
+     ).join('\n'):'Bussen er ikke observert i mottatt frame. Dette sier ikke hvor bussen faktisk er.')
+    :'Ingen gyldig frame for buss-ID-søk.'):
+    'Skriv inn en buss-ID for å lete i alle observasjonene i mottatt frame.';
+  }
+  function syncDebugSelection(stop){
+   if(!q('liveDebug').open)return;
+   if(debugStopId!==stop.id){debugStopId=stop.id;debugQuayId='';debugSide=null;}
+   if(debugSide!==selectedSide){
+    debugSide=selectedSide;
+    const assigned=selectedSide?Object.entries(stop.platformSides||{}).filter(([,review])=>
+     review.side===selectedSide&&review.verification==='user-reviewed').map(([id])=>id):[];
+    debugQuayId=assigned.length===1?assigned[0]:'';
+   }
+   renderLiveDebug();
+  }
   function details(stop){syncGeoLink(stop.id);
    const quayIds=selectedSide&&stop.diodeMode==='split'
     ?Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===selectedSide&&r.verification==='user-reviewed').map(([id])=>id)
