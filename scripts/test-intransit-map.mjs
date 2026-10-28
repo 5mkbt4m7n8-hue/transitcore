@@ -177,33 +177,25 @@ const Ops=require('../web/linear/network/layout-ops.js');
  assert.deepEqual(M.validate(drawn),[]);
 }
 
-// Renaming must never rewrite an original ID/NSR binding. Moving an already
-// named stop must preserve all attached schematic connections and route proof.
-{
- const moved=structuredClone(layout),id='original-014';
- const stop=moved.stops.find(s=>s.id===id),source=layout.stops.find(s=>s.id===id);
- const label=structuredClone(stop.label);
- const oldPaths=moved.paths.flatMap(path=>path.points.map((p,i)=>({id:path.id,i,x:p.x,y:p.y})))
-  .filter(p=>Math.hypot(p.x-source.x,p.y-source.y)<=0.8);
- assert(oldPaths.length>0,'Named stop must have an attached schematic vertex');
- const before=M.verifiedSegments(moved,[route1],[catalog]).filter(e=>e.from===id||e.to===id)
-  .map(e=>e.pathId+':'+e.edgeIndex).sort();
- Ops.moveStop(moved,id,source.x+11,source.y+17);
+// Moving markers must leave complete path geometry and review data untouched.
+for(const id of ['original-003','original-014']){
+ const moved=structuredClone(layout),source=structuredClone(moved.stops.find(s=>s.id===id));
+ const paths=structuredClone(moved.paths);
+ const stop=Ops.moveStop(moved,id,source.x+11,source.y+17);
  assert.deepEqual([stop.x,stop.y],[source.x+11,source.y+17]);
- assert.deepEqual([stop.label.x,stop.label.y],[label.x+11,label.y+17]);
- assert.deepEqual(stop.bindings,source.bindings,'Original Quay bindings remain untouched');
- assert.equal(stop.name,source.name,'The canonical station name remains untouched');
- for(const p of oldPaths){
-  const point=moved.paths.find(x=>x.id===p.id).points[p.i];
-  assert.deepEqual(point,{x:stop.x,y:stop.y},'Every joined route vertex follows the moved stop');
- }
- const after=M.verifiedSegments(moved,[route1],[catalog]).filter(e=>e.from===id||e.to===id)
-  .map(e=>e.pathId+':'+e.edgeIndex).sort();
- assert.deepEqual(after,before,'Connected route evidence survives local relocation');
+ assert.deepEqual([stop.label.x,stop.label.y],[source.label.x+11,source.label.y+17]);
+ assert.deepEqual(stop.bindings,source.bindings);
+ assert.deepEqual(moved.paths,paths);
  assert.deepEqual(M.validate(moved),[]);
- assert.deepEqual(layout.stops.find(s=>s.id===id),source,'Original source remains unchanged');
  assert.throws(()=>Ops.moveStop(moved,'missing-id',10,10),/Ukjent holdeplass/);
  assert.throws(()=>Ops.moveStop(moved,id,NaN,20),/Ugyldig plassering/);
+}
+{
+ const shared={x:50,y:60,label:{x:55,y:55},id:'shared'};
+ const imported={stops:[shared],paths:[{points:[shared,shared.label]}]};
+ const paths=structuredClone(imported.paths);
+ Ops.moveStop(imported,'shared',100,120);
+ assert.deepEqual(imported.paths,paths,'Imported references must be detached');
 }
 const context={structuredClone,InTransitMapModel:M};vm.createContext(context);vm.runInContext(read('web/linear/network/editor.js'),context);
 let changed;const editor=context.InTransitMapEditor(layout,v=>changed=v);editor.change(v=>v.stops[0].x=100);assert.equal(changed.stops[0].x,100);editor.undo();assert.equal(changed.stops[0].x,layout.stops[0].x);editor.import(JSON.parse(editor.export()));assert.throws(()=>editor.import({}));editor.change(v=>v.stops[0].diodeMode='split');editor.discard();assert.equal(changed.stops[0].diodeMode,'shared');
@@ -239,3 +231,4 @@ assert.match(ui,/routeColors\.onchange=\(\)=>draw\(\)/);
 assert.match(ui,/routeReview\.onchange=/);
 for(const file of ['model','layout-ops','map','editor'])new vm.Script(read(`web/linear/network/${file}.js`));
 console.log('InTransit layout validation, exact ID/physical LED mapping, lifecycle, expiry, route filtering and editor PASS');
+

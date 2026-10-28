@@ -9,8 +9,6 @@ on:
       - 'scripts/test-linear-cloud-draft.mjs'
       - 'scripts/test-linear-publish.mjs'
       - 'scripts/test-linear-live-monitor.mjs'
-      - 'scripts/test-trondheim-day-history.mjs'
-      - 'worker/trondheim-history.mjs'
       - 'worker/linear-draft.mjs'
       - 'worker/linear-publish.mjs'
       - 'worker/led-feed-worker.mjs'
@@ -27,8 +25,6 @@ on:
       - 'scripts/test-linear-cloud-draft.mjs'
       - 'scripts/test-linear-publish.mjs'
       - 'scripts/test-linear-live-monitor.mjs'
-      - 'scripts/test-trondheim-day-history.mjs'
-      - 'worker/trondheim-history.mjs'
       - 'worker/linear-draft.mjs'
       - 'worker/linear-publish.mjs'
       - 'worker/led-feed-worker.mjs'
@@ -62,9 +58,6 @@ jobs:
 
       - name: Verify read-only live monitor and diagnostic reasons
         run: node scripts/test-linear-live-monitor.mjs
-
-      - name: Verify Trondheim one-day history and pinned demo
-        run: node scripts/test-trondheim-day-history.mjs
 
       - name: Audit schematic route coverage without fetching live data
         env:

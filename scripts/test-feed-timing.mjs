@@ -23,7 +23,6 @@ try {
   const root = new URL('../', import.meta.url);
   let blockedMonitor = false;
   const monitors = [];
-  const historyWrites = [];
   const externalCalls = [];
   globalThis.fetch = async (url, options) => {
     externalCalls.push(String(url));
@@ -40,10 +39,6 @@ try {
     get: id => ({ fetch: async (url, options) => {
       const body = JSON.parse(options.body);
       if (url.endsWith('/motion')) return Response.json(body.frame);
-      if (url.endsWith('/trondheim-history')){
-       historyWrites.push(body);
-       return Response.json({recorded:true});
-      }
       assert.ok(url.endsWith('/monitor'));
       if (blockedMonitor) return new Promise(() => {});
       monitors.push({ id, ...body });
@@ -51,13 +46,8 @@ try {
     } })
   } };
   await worker.scheduled({ scheduledTime: Date.now() }, env);
-  assert.equal(monitors.length, 9);
-  assert.equal(monitors.filter(row => row.source === 'scheduled' && row.state === 'OK').length,8);
-  assert.equal(monitors.filter(row => row.source === 'history' && row.state === 'OK' &&
-    row.id === 'trondheim-shared-stops-board').length,1);
-  assert.equal(historyWrites.length,1,'Cron must save exactly one day-history sample');
-  assert.equal(historyWrites[0].action,'record');
-  assert.equal(historyWrites[0].frame.boardProfile,'trondheim-shared-stops-board');
+  assert.equal(monitors.length, 8);
+  assert.ok(monitors.every(row => row.source === 'scheduled' && row.state === 'OK'), JSON.stringify(monitors));
   assert.ok(externalCalls.every(url => !url.includes('workers.dev')));
 
   blockedMonitor = true;

@@ -296,8 +296,8 @@
    if(layout.reference?.available&&/^\.\/assets\/[\w.-]+\.(png|jpg|svg|webp)$/.test(layout.reference.path||''))svg.append(el('image',{href:layout.reference.path,x:0,y:0,width:913,height:1280,opacity:reference.checked?.55:editing?.28:.08}));
    for(const path of layout.paths){if(path.routes.length&&!context.all&&!playback&&!path.routes.includes(context.route))continue;
     const p=el('polyline',{points:path.points.map(p=>p.x+','+p.y).join(' '),stroke:path.color,'stroke-width':path.width,class:'map-route',tabindex:0,'aria-label':path.id});
-    p.onclick=()=>{selection={type:'path',id:path.id};selectedSegmentIndex=0;fields();q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');};p.dataset.routePath=path.id;svg.append(p);
-    if(editing)path.points.forEach((v,i)=>{const h=el('circle',{cx:v.x,cy:v.y,r:4,class:'map-handle'});h.dataset.path=path.id;h.dataset.index=i;svg.append(h);});
+    p.onclick=()=>{selection={type:'path',id:path.id};selectedSegmentIndex=0;draw();fields();q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');};p.dataset.routePath=path.id;svg.append(p);
+    if(editing&&selection?.type==='path'&&selection.id===path.id)path.points.forEach((v,i)=>{const h=el('circle',{cx:v.x,cy:v.y,r:4,class:'map-handle'});h.dataset.path=path.id;h.dataset.index=i;svg.append(h);});
    }
    // Overlay only edges with direct Quay-to-Quay adjacency in loaded profiles.
    // This does not establish the route of an entire polyline or live coverage.
@@ -343,6 +343,7 @@
      if(side!==null){group.dataset.direction=side;group.dataset.side=side;group.dataset.review=mapped.length?'user-reviewed':'pending';}
      group.dataset.stop=stop.id;
      if(selection?.type==='stop'&&selection.id===stop.id)group.dataset.selected='true';
+     group.append(el('circle',{r:Math.max(stop.radius,10),class:'map-stop-hit'}));
      group.append(el('circle',{r:stop.radius}));
      group.append(el('text',{y:2}));
      group.onclick=()=>{selection={type:'stop',id:stop.id};selectedSide=side;fields();details(stop);};
@@ -452,6 +453,7 @@
      const changedName=nameInput.value.trim()===originalName?'':nameInput.value.trim();
      N.rename(initial,item.id,changedName);
      if(changedName)localNames[item.id]=changedName;else delete localNames[item.id];
+     if(!item.label.visible)editor.change(next=>pick(next).label.visible=true);
      cloud?.changed();draw();fields();details(item);
      q('details').textContent+='\nVisningsnavnet er lagret på denne enheten og delt med geografisk kart. Originalnavn og NSR-ID er uendret.';
     }catch(e){q('details').textContent=e.message;}};
@@ -464,7 +466,7 @@
     area.append(nameLabel,saveName,resetName,info,link);
    }
    const moveHelp=document.createElement('small');moveHelp.className='map-stop-name-note';
-   moveHelp.textContent='Dra stoppunktet for å flytte punkt, navneetikett og tilknyttede linjepunkter. Dra navnet for å flytte bare teksten. Du kan også plassere stoppet på nytt med ett trykk.';
+   moveHelp.textContent='Dra stoppunktet for å flytte holdeplassmarkør og navneetikett. Linjegeometrien endres ikke. Dra navnet for å flytte bare teksten. Du kan også plassere stoppet på nytt med ett trykk.';
    const moveButton=document.createElement('button');moveButton.type='button';
    moveButton.textContent=placementMode==='move'&&moveStopId===item.id?'Avbryt flytting':'Flytt valgt holdeplass';
    moveButton.onclick=()=>{
@@ -662,7 +664,7 @@
      editor.change(next=>L.moveStop(next,id,p.x,p.y));
      placementMode=null;moveStopId=null;selection={type:'stop',id};
      syncSketchControls();fields();draw();
-     q('details').textContent='Holdeplassen er flyttet. Navneetiketten og tilknyttede linjepunkter ble flyttet sammen med stoppet. Bruk Angre for å gå tilbake.';
+     q('details').textContent='Holdeplassen er flyttet. Bare holdeplassmarkøren og navneetiketten ble flyttet. Linjegeometrien er uendret. Bruk Angre for å gå tilbake.';
      return;
     }
     let id;
@@ -694,3 +696,4 @@
     selection={type:'stop',id:stop.id};box=[stop.x-80,stop.y-112,160,224];setBox();draw();fields();details(stop);return true;}};
  }};
 })(globalThis);
+
