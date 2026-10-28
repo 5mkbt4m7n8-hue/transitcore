@@ -1,6 +1,6 @@
 (function(root){
  'use strict';
- const NS='http://www.w3.org/2000/svg',M=root.InTransitMapModel,S=root.TransitCoreSignals,L=root.InTransitMapLayoutOps,N=root.InTransitStopLinks,Live=root.InTransitLiveMonitor;
+ const NS='http://www.w3.org/2000/svg',M=root.InTransitMapModel,S=root.TransitCoreSignals,L=root.InTransitMapLayoutOps,N=root.InTransitStopLinks,Live=root.InTransitLiveMonitor,History=root.InTransitDayHistory;
  const el=(tag,attrs={})=>{const n=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;};
  const fingerprint=value=>{
   const json=JSON.stringify(value);let hash=2166136261;
@@ -26,11 +26,12 @@
    }else if(published.status!==404)throw Error('Kunne ikke hente publisert kart (HTTP '+published.status+').');
   }catch(error){publishedWarning='Publisert kart kunne ikke lastes: '+error.message+'. Originalkartet vises.';}
 
-  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><a data-role="geoLink" href="./geo/" class="map-geo-link">Åpne stopp i geografisk kart</a><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><details class="map-live-debug" data-role="liveDebug"><summary>Sanntidsmonitor · hvorfor vises/vises ikke bussen?</summary><div class="map-live-debug-body"><p>Leser kun den aktive Linear-feeden. Ingen ekstra GPS-posisjon eller rutedekning utledes.</p><div class="map-live-debug-controls"><label>Holdeplass <select data-role="debugStop" aria-label="Diagnoseholdeplass"></select></label><label>Entur-plattform <select data-role="debugQuay" aria-label="Diagnoseplattform"></select></label><label>Buss-ID (valgfritt) <input data-role="debugVehicle" type="search" placeholder="Søk etter buss-ID i mottatt frame" autocomplete="off" aria-label="Søk etter buss-ID"></label></div><div class="map-live-debug-metrics"><div><strong data-role="debugHealth">Venter på data</strong><small data-role="debugMeta"></small></div><div><strong data-role="debugReason">Ingen holdeplass valgt</strong><small data-role="debugExplanation"></small></div></div><div class="map-live-debug-results"><section><strong>Quay / fysisk LED</strong><pre data-role="debugQuays"></pre></section><section><strong>Observerte busser</strong><pre data-role="debugObservations"></pre></section><section><strong>Søk i hele mottatte frame</strong><pre data-role="debugVehicleResult"></pre></section></div><button type="button" data-act="exportLiveDebug">Eksporter diagnose (JSON)</button><small>En buss som ikke finnes i valgt frame, kan fortsatt kjøre. Dette er ikke et historisk opptak eller direkte GPS-sporing.</small></div></details><div class="map-editor" id="networkEditor" hidden><button data-act="addStop">+ Ny holdeplass</button><button data-act="addPath">+ Ny kartlinje</button><button data-act="undo">Angre</button><button data-act="nextPlatformReview" type="button">Neste uavklarte plattform</button><span class="map-platform-progress" data-role="platformProgress">Plattformkontroll lastes …</span><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><span class="map-draft-status" data-role="draftStatus" aria-live="polite">Ingen nye endringer</span><section class="map-cloud"><strong>Permanent skylagring</strong><small>Alle endringer lagres lokalt. Koble til skyen med administratornøkkelen for lagring på tvers av enheter. Nøkkelen beholdes kun mens siden er åpen.</small><label>Administratornøkkel <input type="password" autocomplete="off" data-role="cloudKey" placeholder="Administratornøkkel"></label><button type="button" data-act="cloudConnect">Koble til skylagring</button><button type="button" data-act="cloudDisconnect" hidden>Koble fra</button><button type="button" data-act="cloudUseRemote" hidden>Hent fra skyen</button><button type="button" data-act="cloudUseLocal" hidden>Bruk lokal versjon i skyen</button><span data-role="cloudStatus" role="status" aria-live="polite">Kun lokal lagring – ikke synkronisert til skyen.</span><div class="map-publish-actions"><button type="button" data-act="publishMap" disabled>Publiser kart til GitHub</button><span data-role="publishStatus" aria-live="polite">Før publisering må skyen vise «Lagret permanent i skyen».</span><a data-role="publishLink" hidden target="_blank" rel="noopener noreferrer">Åpne publiseringsforslag på GitHub</a></div></section><div class="map-sketch-controls" data-role="sketchControls" hidden><strong data-role="sketchHelp" aria-live="polite"></strong><button data-act="finishSketch">Fullfør linjen</button><button data-act="sketchUndo">Fjern siste punkt</button><button data-act="sketchCancel">Avbryt tegning</button></div><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
+  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><a data-role="geoLink" href="./geo/" class="map-geo-link">Åpne stopp i geografisk kart</a><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><div data-role="dayHistoryHost"></div><details class="map-live-debug" data-role="liveDebug"><summary>Sanntidsmonitor · hvorfor vises/vises ikke bussen?</summary><div class="map-live-debug-body"><p>Leser kun den aktive Linear-feeden. Ingen ekstra GPS-posisjon eller rutedekning utledes.</p><div class="map-live-debug-controls"><label>Holdeplass <select data-role="debugStop" aria-label="Diagnoseholdeplass"></select></label><label>Entur-plattform <select data-role="debugQuay" aria-label="Diagnoseplattform"></select></label><label>Buss-ID (valgfritt) <input data-role="debugVehicle" type="search" placeholder="Søk etter buss-ID i mottatt frame" autocomplete="off" aria-label="Søk etter buss-ID"></label></div><div class="map-live-debug-metrics"><div><strong data-role="debugHealth">Venter på data</strong><small data-role="debugMeta"></small></div><div><strong data-role="debugReason">Ingen holdeplass valgt</strong><small data-role="debugExplanation"></small></div></div><div class="map-live-debug-results"><section><strong>Quay / fysisk LED</strong><pre data-role="debugQuays"></pre></section><section><strong>Observerte busser</strong><pre data-role="debugObservations"></pre></section><section><strong>Søk i hele mottatte frame</strong><pre data-role="debugVehicleResult"></pre></section></div><button type="button" data-act="exportLiveDebug">Eksporter diagnose (JSON)</button><small>En buss som ikke finnes i valgt frame, kan fortsatt kjøre. Dette er ikke et historisk opptak eller direkte GPS-sporing.</small></div></details><div class="map-editor" id="networkEditor" hidden><button data-act="addStop">+ Ny holdeplass</button><button data-act="addPath">+ Ny kartlinje</button><button data-act="undo">Angre</button><button data-act="nextPlatformReview" type="button">Neste uavklarte plattform</button><span class="map-platform-progress" data-role="platformProgress">Plattformkontroll lastes …</span><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><span class="map-draft-status" data-role="draftStatus" aria-live="polite">Ingen nye endringer</span><section class="map-cloud"><strong>Permanent skylagring</strong><small>Alle endringer lagres lokalt. Koble til skyen med administratornøkkelen for lagring på tvers av enheter. Nøkkelen beholdes kun mens siden er åpen.</small><label>Administratornøkkel <input type="password" autocomplete="off" data-role="cloudKey" placeholder="Administratornøkkel"></label><button type="button" data-act="cloudConnect">Koble til skylagring</button><button type="button" data-act="cloudDisconnect" hidden>Koble fra</button><button type="button" data-act="cloudUseRemote" hidden>Hent fra skyen</button><button type="button" data-act="cloudUseLocal" hidden>Bruk lokal versjon i skyen</button><span data-role="cloudStatus" role="status" aria-live="polite">Kun lokal lagring – ikke synkronisert til skyen.</span><div class="map-publish-actions"><button type="button" data-act="publishMap" disabled>Publiser kart til GitHub</button><span data-role="publishStatus" aria-live="polite">Før publisering må skyen vise «Lagret permanent i skyen».</span><a data-role="publishLink" hidden target="_blank" rel="noopener noreferrer">Åpne publiseringsforslag på GitHub</a></div></section><div class="map-sketch-controls" data-role="sketchControls" hidden><strong data-role="sketchHelp" aria-live="polite"></strong><button data-act="finishSketch">Fullfør linjen</button><button data-act="sketchUndo">Fjern siste punkt</button><button data-act="sketchCancel">Avbryt tegning</button></div><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
   const q=r=>host.querySelector(`[data-role="${r}"]`),svg=host.querySelector('svg'),editorPanel=host.querySelector('#networkEditor');
   let localNames={...publishedNames,...N.names(initial)};let layout=initial,context={},editing=false,selection=null,selectedSegmentIndex=0,drag=null,box=[0,0,913,1280],phase=0,report={},frame=null;
   let placementMode=null,moveStopId=null,routeSketch=null,placementGestureMoved=false,suppressAutoSave=false,cloud=null,selectedSide=null;
   let debugStopId='',debugQuayId='',debugSide=null,lastDiagnostic=null;
+  let playback=null,replayBoard=null,replayHardware=null,replayLoad=null;
   const autoDraftKey='intransit-map-autodraft-v1',manualDraftKey='intransit-map-draft-v1';
   // Stable reference is the traced source file; published edits are overlaid.
   const draftStatus=q('draftStatus');
@@ -176,6 +177,43 @@
    q('details').textContent='Kartlinjen '+id+' er lagret med '+sketch.points.length+' nye punkt. Du kan redigere og angre endringen.';
   }
 
+  function playbackFrame(){return playback?(playback.status==='OK'?playback.frame:null):frame;}
+  function playbackClock(){return playback?Date.parse(playback.capturedAt):Date.now();}
+  function activeBoard(){return playback?replayBoard:context.board;}
+  function activeHardware(){return playback?replayHardware:context.hardware;}
+  function activeLine(){return playback||context.all?null:context.line;}
+  // The recorded 40-line board has the same canonical 147 Quay nodes as the
+  // 1-3-line board, but another board ID and hardware mapping. Add only an
+  // in-memory binding by Quay; never rewrite any official layout/NSR IDs.
+  function recordedStop(stop){
+   if(!playback||!replayBoard)return stop;
+   const ids=new Set(stop.bindings.map(b=>b.stopId).filter(id=>id?.startsWith('NSR:Quay:')));
+   const derived=replayBoard.nodes.filter(node=>node.stopIds?.some(id=>ids.has(id)))
+    .flatMap(node=>node.stopIds.filter(id=>ids.has(id)).map(stopId=>({
+     boardId:replayBoard.id,nodeId:node.id,stationId:node.stationId,stopId
+    })));
+   return {...stop,bindings:[...stop.bindings,...derived]};
+  }
+  async function loadReplayBoard(){
+   if(replayBoard&&replayHardware)return {board:replayBoard,hardware:replayHardware};
+   if(!replayLoad)replayLoad=Promise.all([
+    fetch('../../config/boards/trondheim-shared-stops-board.json'),
+    fetch('../../config/hardware/trondheim-shared-stops-board-hardware.json')
+   ]).then(async responses=>{
+    if(responses.some(r=>!r.ok))throw Error('Kunne ikke laste opptakets tavle-/LED-profil');
+    const [board,hardware]=await Promise.all(responses.map(r=>r.json()));
+    if(board.id!=='trondheim-shared-stops-board'||hardware.boardProfile!==board.id||
+     !Array.isArray(board.nodes)||!Array.isArray(hardware.assignments))
+     throw Error('Opptakets tavlekonfigurasjon er ugyldig');
+    replayBoard=board;replayHardware=hardware;return {board,hardware};
+   }).catch(error=>{replayLoad=null;throw error;});
+   return replayLoad;
+  }
+  const historyUI=History.create(q('dayHistoryHost'),{
+   onFrame:record=>{playback=record;draw();},
+   onLive:()=>{playback=null;draw();},
+   loadReplayBoard
+  });
   function renderLiveDebug(){
    if(!q('liveDebug').open)return;
    const stopSelect=q('debugStop'),quaySelect=q('debugQuay'),stops=layout.stops;
@@ -191,14 +229,15 @@
     quaySelect.replaceChildren(new Option('Alle tilknyttede Quays',''),...quays.map(id=>new Option(id,id)));
    if(debugQuayId&&!quays.includes(debugQuayId))debugQuayId='';
    quaySelect.value=debugQuayId;
-   const diag=Live.inspect({stop,board:context.board,hardware:context.hardware,frame,
-    line:context.all?null:context.line,quayId:debugQuayId,
-    now:Date.now(),feedStatus:context.feedStatus,feedError:context.feedError});
+   const diag=Live.inspect({stop:recordedStop(stop),board:activeBoard(),hardware:activeHardware(),frame:playbackFrame(),
+    line:activeLine(),quayId:debugQuayId,
+    now:playbackClock(),feedStatus:playback?(playback.status==='OK'?'VALID':'ERROR'):context.feedStatus,
+    feedError:playback?playback.error:context.feedError});
    lastDiagnostic=diag;
    const age=diag.health.ageSeconds;
    q('debugHealth').textContent=diag.health.label;
    q('debugHealth').dataset.code=diag.health.code;
-   q('debugMeta').textContent='Kilde: '+(context.feedSource||'ukjent')+
+   q('debugMeta').textContent='Kilde: '+(playback?'OPPTAK – IKKE LIVE':context.feedSource||'ukjent')+
     ' · status: '+(context.feedStatus||'ukjent')+
     ' · feed-tavle: '+(context.feedBoardId||diag.frameBoard||'ukjent')+
     ' · frame #'+(diag.frameSequence??'–')+
@@ -221,7 +260,7 @@
      (bus.ageSeconds===null?'':' · posisjonsalder '+bus.ageSeconds+' s')+
      (bus.distanceMeters===null?'':' · avstand '+bus.distanceMeters+' m')
     ).join('\n'):'Ingen matchende buss observert på denne holdeplassen i valgt frame.';
-   const vehicleId=q('debugVehicle').value.trim(),found=Live.findVehicle(frame,vehicleId);
+   const vehicleId=q('debugVehicle').value.trim(),found=Live.findVehicle(playbackFrame(),vehicleId);
    q('debugVehicleResult').textContent=vehicleId?
     (['VALID','LAST_VALID'].includes(diag.health.code)?
      (found.length?found.map(bus=>
@@ -246,8 +285,8 @@
    const quayIds=selectedSide&&stop.diodeMode==='split'
     ?Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===selectedSide&&r.verification==='user-reviewed').map(([id])=>id)
     :null;
-   const values=M.signals(stop,context.board,context.hardware,frame,context.all?null:context.line,Date.now(),null,quayIds);
-   const age=(Date.now()-Date.parse(frame?.generatedAt))/1000;
+   const values=M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
+   const age=(playbackClock()-Date.parse(playbackFrame()?.generatedAt))/1000;
    q('details').textContent=displayName(stop)+(localNames[stop.id]?' (lokalt navn; original: '+stop.name+')':'')+(selectedSide?' · '+(selectedSide==='left'?'VENSTRE':'HØYRE')+' på tegningen (Quay '+(quayIds?.join(', ')||'ikke kartlagt')+')':'')+'\n'+(stop.verification!=='confirmed'?'Uavklart navn / ID. Ingen live-kobling.':values.length?values.map(v=>`Linje ${v.line||'?'} · ${v.destination||'Ukjent destinasjon'} · buss ${v.id||'ikke oppgitt'} · ${v.state}\nKilde: ${v.source||'ikke oppgitt'} · observasjonsalder: ${v.ageSeconds??'ukjent'} s`).join('\n'):'OFF · ingen aktiv gyldig observasjon; bekrefter ikke tom holdeplass.')+`\nFrame-alder: ${Number.isFinite(age)?Math.floor(age)+' s':'ingen frame'}`;
    syncDebugSelection(stop);
   }
@@ -255,7 +294,7 @@
    svg.replaceChildren();setBox();svg.classList.toggle('map-big-labels',largeLabels.checked);
    // Only a repository-relative, supplied reference image can be displayed.
    if(layout.reference?.available&&/^\.\/assets\/[\w.-]+\.(png|jpg|svg|webp)$/.test(layout.reference.path||''))svg.append(el('image',{href:layout.reference.path,x:0,y:0,width:913,height:1280,opacity:reference.checked?.55:editing?.28:.08}));
-   for(const path of layout.paths){if(path.routes.length&&!context.all&&!path.routes.includes(context.route))continue;
+   for(const path of layout.paths){if(path.routes.length&&!context.all&&!playback&&!path.routes.includes(context.route))continue;
     const p=el('polyline',{points:path.points.map(p=>p.x+','+p.y).join(' '),stroke:path.color,'stroke-width':path.width,class:'map-route',tabindex:0,'aria-label':path.id});
     p.onclick=()=>{selection={type:'path',id:path.id};selectedSegmentIndex=0;fields();q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');};p.dataset.routePath=path.id;svg.append(p);
     if(editing)path.points.forEach((v,i)=>{const h=el('circle',{cx:v.x,cy:v.y,r:4,class:'map-handle'});h.dataset.path=path.id;h.dataset.index=i;svg.append(h);});
@@ -292,8 +331,8 @@
     });
    }
    for(const stop of layout.stops){
-    const resolved=M.resolve(stop,context.board,context.hardware);
-    if(stop.verification==='confirmed'&&!context.all&&!resolved.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
+    const resolved=M.resolve(recordedStop(stop),activeBoard(),activeHardware());
+    if(stop.verification==='confirmed'&&!context.all&&!playback&&!resolved.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
     const sides=stop.diodeMode==='split'?['left','right']:[null];
     sides.forEach((side,i)=>{
      const mapped=side===null?[]:Object.entries(stop.platformSides||{}).filter(([,r])=>r.verification==='user-reviewed'&&r.side===side).map(([id])=>id);
@@ -334,13 +373,13 @@
     // Missing reviews show OFF, never a guessed direction or a merged LED.
     const side=group.dataset.side||null;
     const quayIds=side?Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===side&&r.verification==='user-reviewed').map(([id])=>id):null;
-    const values=M.signals(stop,context.board,context.hardware,frame,context.all?null:context.line,Date.now(),null,quayIds);
+    const values=M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
     all.push(...values);
     const max=Math.max(0,...values.map(v=>S.priority(v.state))),choices=values.filter(v=>S.priority(v.state)===max),v=choices.length?choices[phase%choices.length]:null;
     group.dataset.state=v?.state||'OFF';const rgb=v?.rgb;group.style.color=Array.isArray(rgb)&&rgb.length===3&&rgb.every(n=>Number.isInteger(n)&&n>=0&&n<=255)?`rgb(${rgb.join(',')})`:'#70839a';group.querySelector('text').textContent=context.numbers&&v?String(v.line||'?'):side?(side==='left'?'V':'H'):'';
    }
    const active=all.filter(v=>v.state!=='PASSED'),known=active.every(v=>v.id),count=new Set(active.map(v=>v.id)).size;
-   q('summary').textContent=`${layout.stops.length} kartpunkter · ${report.unmapped?.length||0} uten kobling · `+(known&&active.length?`${count} identifiserte aktive busser i kartets tilgjengelige feed`:'Aktivt bussantall ikke bekreftet')+' · Viser bare tegnede strekninger og data fra eksisterende Linear-feed; ikke nødvendigvis komplette bussruter.';
+   q('summary').textContent=(playback?'HISTORIKK – IKKE LIVE · ':'' )+`${layout.stops.length} kartpunkter · ${report.unmapped?.length||0} uten kobling · `+(known&&active.length?`${count} identifiserte aktive busser i kartets tilgjengelige feed`:'Aktivt bussantall ikke bekreftet')+' · Viser bare tegnede strekninger og data fra eksisterende Linear-feed; ikke nødvendigvis komplette bussruter.';
    if(selection?.type==='stop'){const selected=layout.stops.find(s=>s.id===selection.id);if(selected)details(selected);else selection=null;}
    if(q('liveDebug').open)renderLiveDebug();
   }
@@ -648,8 +687,9 @@
   window.addEventListener('pagehide',()=>cloud.beforeLeaving());
   setInterval(()=>{if(!host.hidden&&!document.hidden){phase++;paint();}},1200);draw();restoreAutoDraft();
   if(new URLSearchParams(location.search).get('debug')==='1'){q('liveDebug').open=true;renderLiveDebug();}
+  if(new URLSearchParams(location.search).get('history')==='1')historyUI.open();
   if(publishedWarning)q('cloudStatus').textContent=publishedWarning;
-  return {update(next){context=next;frame=next.frame;draw();},clear(){frame=null;paint();},
+  return {update(next){context=next;frame=next.frame;if(!playback)draw();},clear(){frame=null;if(!playback)paint();},
    focusStop(id){const stop=layout.stops.find(s=>s.id===id);if(!stop)return false;
     selection={type:'stop',id:stop.id};box=[stop.x-80,stop.y-112,160,224];setBox();draw();fields();details(stop);return true;}};
  }};

@@ -26,6 +26,66 @@ try{
  assert.equal(calls,before,'Mode switch must not request another frame');assert.equal(await page.locator('#route').inputValue(),route);
  assert.equal(await page.locator('#linearView').isVisible(),false);
  assert.equal(await page.locator('.map-stop[data-state="OFF"]').count(),await page.locator('.map-stop').count(),'Unresolved points must stay OFF');
+ // One-day history is recorded by a server cron; browser only reads samples
+ // and switches a replay overlay without altering the live PixelFrame feed.
+ const historyDay=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Oslo',year:'numeric',month:'2-digit',day:'2-digit'})
+   .format(new Date(Date.now()-86400000));
+ const times=[Date.now()-86400000-601000,Date.now()-86400000-301000,Date.now()-86400000-1000];
+ const historyFrames=times.map((ms,i)=>({
+  version:1,day:historyDay,slot:Math.floor(ms/300000)*300000,
+  capturedAt:new Date(ms).toISOString(),status:i===1?'ERROR':'OK',error:i===1?'fixture HTTP 503':null,
+  frame:i===1?null:{schemaVersion:1,boardProfile:'trondheim-shared-stops-board',
+   ledCount:147,sequence:11+i,ttlSeconds:30,generatedAt:new Date(ms).toISOString(),
+   leds:[{id:0,state:'AT_STOP',rgb:[255,0,0],brightness:32,
+    vehicle:{id:'history-bus',line:'1',source:'GPS'},
+    occupants:[{id:'history-bus',line:'1',state:'AT_STOP',rgb:[255,0,0],source:'GPS'}]}]}
+ }));
+ let demoPinned=false,historyReads=0;
+ await page.route(/https:\/\/transitcore-led-feed\.lgb84\.workers\.dev\/v1\/trondheim\/history(?:\?|$)/,async route=>{
+  historyReads++;const url=new URL(route.request().url()),selected=url.searchParams.get('day');
+  const data=selected?{version:1,day:historyDay,archived:false,
+   records:historyFrames,nextCursor:null}:{version:1,boardProfile:'trondheim-shared-stops-board',
+    cadenceMinutes:5,currentDay:'2026-10-28',previousDay:historyDay,
+    archive:demoPinned?{day:historyDay}:null,
+    days:[{day:historyDay,count:3,errors:1,savedAsDemo:demoPinned}]};
+  await route.fulfill({status:200,contentType:'application/json',
+   headers:{'access-control-allow-origin':'*'},body:JSON.stringify(data)});
+ });
+ await page.route('https://transitcore-led-feed.lgb84.workers.dev/v1/admin/trondheim/history/demo',async route=>{
+  if(route.request().method()==='OPTIONS'){
+   await route.fulfill({status:204,headers:{'access-control-allow-origin':'*',
+    'access-control-allow-headers':'authorization, content-type','access-control-allow-methods':'POST, OPTIONS'}});return;
+  }
+  assert.equal(route.request().headers().authorization,'Bearer browser-demo-admin');
+  assert.equal(route.request().postDataJSON().day,historyDay);
+  demoPinned=true;
+  await route.fulfill({status:200,contentType:'application/json',
+   headers:{'access-control-allow-origin':'*'},
+   body:JSON.stringify({ok:true,demo:{day:historyDay,count:3,errors:1}})});
+ });
+ await page.locator('[data-role=dayHistory] summary').click();
+ await page.waitForFunction(()=>document.querySelector('[data-h=day]').options.length>1);
+ await page.locator('[data-h=day]').selectOption(historyDay);
+ await page.locator('[data-h=load]').click();
+ await page.waitForFunction(()=>document.querySelector('[data-h=time]').textContent.includes('1/3'));
+ assert.match(await page.locator('[data-role=summary]').innerText(),/HISTORIKK – IKKE LIVE/);
+ assert.equal(await page.locator('.map-stop[data-stop="original-004"][data-state="AT_STOP"]').count(),1);
+ await page.locator('[data-h=timeline]').evaluate(el=>{el.value='1';el.dispatchEvent(new Event('input',{bubbles:true}));});
+ assert.match(await page.locator('[data-h=time]').innerText(),/MÅLEFEIL/);
+ assert.equal(await page.locator('.map-stop[data-state="AT_STOP"]').count(),0,'A failed sample must never copy prior LED state');
+ await page.locator('[data-h=timeline]').evaluate(el=>{el.value='2';el.dispatchEvent(new Event('input',{bubbles:true}));});
+ assert.equal(await page.locator('.map-stop[data-stop="original-004"][data-state="AT_STOP"]').count(),1);
+ const historyDownload=page.waitForEvent('download');
+ await page.locator('[data-h=export]').click();
+ assert.equal((await historyDownload).suggestedFilename(),'trondheim-historikk-'+historyDay+'.json');
+ await page.locator('[data-h=key]').fill('browser-demo-admin');
+ await page.locator('[data-h=pin]').click();
+ await page.waitForFunction(()=>document.querySelector('[data-h=status]').textContent.includes('Arkivert som demo'));
+ assert.equal(demoPinned,true);
+ await page.locator('[data-h=live]').click();
+ assert.doesNotMatch(await page.locator('[data-role=summary]').innerText(),/HISTORIKK – IKKE LIVE/);
+ assert(historyReads>=3,'Index refresh, day records and archive refresh must be loaded separately');
+ await page.locator('[data-role=dayHistory] summary').click();
  const screenshotDir=process.env.INTRANSIT_SCREENSHOT_DIR;
  const saveScreenshot=async(name)=>{
   if(!screenshotDir)return;

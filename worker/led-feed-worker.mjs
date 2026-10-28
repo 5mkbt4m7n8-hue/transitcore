@@ -16,6 +16,7 @@ import { diagnosticsRequest, selectOtaRelease } from "./device-diagnostics.mjs";
 import { boundedOperation, boundedFetchJson, FRAME_BUDGET_MS, MONITOR_TIMEOUT_MS } from "./feed-timing.mjs";
 import { handleLinearDraft,linearDraftStorage } from "./linear-draft.mjs";
 import {handleLinearPublish} from "./linear-publish.mjs";
+import {dayHistoryStorage,handleTrondheimHistory,recordScheduledTrondheimFrame} from "./trondheim-history.mjs";
 
 export const SIGNAL_POLICY = Object.freeze({
   version: 1,
@@ -460,6 +461,10 @@ export class DeviceStatus {
 
   async fetch(request) {
     const url = new URL(request.url);
+    if (url.pathname === "/trondheim-history" || url.pathname === "/trondheim-history/pin")
+      return this.state.blockConcurrencyWhile
+        ?this.state.blockConcurrencyWhile(()=>dayHistoryStorage(this.state.storage,request))
+        :dayHistoryStorage(this.state.storage,request);
     if (url.pathname === "/linear-draft")return this.state.blockConcurrencyWhile
       ?this.state.blockConcurrencyWhile(()=>linearDraftStorage(this.state.storage,request))
       :linearDraftStorage(this.state.storage,request);
@@ -981,12 +986,13 @@ async function boardFrameResponse(boardId, env, source) {
     stage = name;
     return boundedOperation(name, operation, deadline - Date.now(), { boardId, source });
   };
-  let result, sample;
+  let result, sample, historyFrame=null;
   try {
     const { board, profiles, hardware } = await step("configuration", () => configuration(boardId, now));
     const rawFrame = await step("live_data", () => liveFrameForConfiguration(board, profiles, hardware, now, env));
     const frame = usesStopAccuracy(board)?rawFrame:await step("motion", () => stabilizeMotionFrame(env, board, rawFrame, now));
     sample = { ...validFrameSummary(frame, boardId), source };
+    if(source==="history"&&boardId==="trondheim-shared-stops-board")historyFrame=frame;
     result = response(frame);
     result.headers.set("x-transitcore-stop-algorithm",usesStopAccuracy(board)?"motion-v1":"legacy");
     result.headers.set("access-control-expose-headers","x-transitcore-stop-algorithm");
@@ -995,6 +1001,13 @@ async function boardFrameResponse(boardId, env, source) {
       elapsedMs: Date.now() - now, code: error.code || "FEED_ERROR" }));
     sample = { state: "FEED_ERROR", detail: `${stage}: ${error.message}`, activeLeds: 0, source };
     result = response({ error: "feed_unavailable", stage, generatedAt: new Date().toISOString() }, 503);
+  }
+  // The scheduled 5-minute history is independent of the LED response.
+  // Failed fetches become explicit timeline gaps, never fake empty traffic.
+  if(source==="history"&&boardId==="trondheim-shared-stops-board"){
+   try{await boundedOperation("trondheim_history",()=>recordScheduledTrondheimFrame(
+     env,historyFrame,historyFrame?"":sample.detail,new Date(now).toISOString()),1500,{boardId,source});}
+   catch(error){console.error("trondheim_history_write_failed",error.message);}
   }
   // A monitoring-storage problem must not discard a valid LED frame.
   try {
@@ -1224,7 +1237,11 @@ async function handleOtaManifest(request,env){
 const worker = {
   async scheduled(controller, env) {
     console.log("Scheduled background checks started", new Date(controller.scheduledTime).toISOString());
-    await runBackgroundChecks(env);
+    const results=await Promise.allSettled([
+     runBackgroundChecks(env),
+     boardFrameResponse("trondheim-shared-stops-board",env,"history")
+    ]);
+    for(const outcome of results)if(outcome.status==="rejected")console.error("Scheduled check failed",outcome.reason);
     console.log("Scheduled background checks completed");
   },
   async fetch(request, env) {
@@ -1256,6 +1273,8 @@ const worker = {
     }
     if (url.pathname === "/v1/admin/linear-draft") return handleLinearDraft(request,env,secureTokenEquals);
     if (url.pathname === "/v1/admin/linear-publish") return handleLinearPublish(request,env,secureTokenEquals,(path,options)=>githubApi(env,path,options));
+    if (url.pathname === "/v1/trondheim/history" || url.pathname === "/v1/admin/trondheim/history/demo")
+      return handleTrondheimHistory(request,env,secureTokenEquals);
     if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
     if (url.pathname === "/v1/admin/devices") return handleDevices(request, env);
     if (url.pathname === "/v1/admin/signal-test") return handleSignalTest(request, env);

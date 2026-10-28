@@ -111,3 +111,22 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-live-debug-results pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 ui-monospace,Consolas,monospace;max-height:230px;overflow:auto;color:#dce6f0}
 .map-live-debug-body button[data-act=exportLiveDebug]{justify-self:start}
 @media(max-width:560px){.map-live-debug-controls,.map-live-debug-metrics,.map-live-debug-results{grid-template-columns:1fr}}
+
+/* 5-minute chronological recording; replay is always distinguished from LIVE. */
+.map-day-history{margin:10px 0;border:1px solid #7869a8;border-radius:12px;background:#1b1831;color:#eeeafa}
+.map-day-history summary{padding:13px;font-weight:700;cursor:pointer}
+.map-day-history-body{padding:0 13px 15px;display:grid;gap:11px}
+.map-day-history-body p{margin:0;font-size:12px;color:#c8c0e6;line-height:1.6}
+.map-history-controls{display:flex;flex-wrap:wrap;align-items:end;gap:9px}
+.map-history-controls label{display:grid;gap:5px;min-width:155px;flex:1 1 180px;font-size:12px}
+.map-history-controls select,.map-history-controls input,.map-history-pin input{width:100%;min-width:0;border:1px solid #656082;background:#1a2740;color:#f5f3ff;padding:10px;border-radius:8px}
+.map-history-controls button:disabled,.map-day-history button:disabled{opacity:.45;cursor:not-allowed}
+.map-history-timeline{display:grid;gap:7px;font-weight:600;font-size:13px}
+.map-history-timeline input{accent-color:#bd9aff;width:100%}
+.map-history-time{border:1px solid #7e73a4;border-radius:8px;padding:10px!important;background:#2a2346;color:#fff!important;font-weight:700;font-variant-numeric:tabular-nums}
+.map-history-pin{display:flex;flex-wrap:wrap;align-items:end;gap:10px;border-top:1px solid #564e72;padding-top:12px}
+.map-history-pin strong,.map-history-pin small{flex:1 1 100%}
+.map-history-pin small{color:#c8c0e6;font-size:12px}
+.map-history-pin label{display:grid;gap:5px;flex:1 1 210px;font-size:12px}
+.map-history-pin button{background:#4a356c}
+@media(max-width:560px){.map-history-controls button{flex:1 1 auto}}
