@@ -14,6 +14,18 @@
    if(typeof s.id!=='string'||!s.id||ids.has(s.id))errors.push('Duplisert / ugyldig kart-ID');ids.add(s.id);
    if(!point(s)||!point(s.label)||typeof s.name!=='string'||typeof s.label.visible!=='boolean'||!['shared','split'].includes(s.diodeMode)||!Number.isFinite(s.radius)||s.radius<2||s.radius>20||!Array.isArray(s.bindings))errors.push('Ugyldig stopp '+s.id);
    for(const b of Array.isArray(s.bindings)?s.bindings:[])if(!b||typeof b.boardId!=='string'||typeof b.nodeId!=='string')errors.push('Ugyldig kobling '+s.id);
+   if(s.platformSides!==undefined){
+    if(!s.platformSides||typeof s.platformSides!=='object'||Array.isArray(s.platformSides))errors.push('Ugyldig plattformkontroll '+s.id);
+    else{
+     const quays=new Set((s.bindings||[]).map(b=>b.stopId).filter(id=>typeof id==='string'&&id.startsWith('NSR:Quay:')));
+     for(const [id,review] of Object.entries(s.platformSides)){
+      if(!quays.has(id)||!/^NSR:Quay:\d+$/.test(id)||!review||
+         !['left','right'].includes(review.side)||review.verification!=='user-reviewed')
+       errors.push('Ugyldig kontroll av plattform '+s.id+' / '+id);
+     }
+     if(Object.keys(s.platformSides).length&&s.diodeMode!=='split')errors.push('Kontrollerte plattformer krever to separate dioder '+s.id);
+    }
+   }
   }
   for(const p of layout.paths){
    if(!p||typeof p.id!=='string'||ids.has(p.id)||!/^#[a-f\d]{6}$/i.test(p.color)||!Number.isFinite(p.width)||p.width<.5||p.width>15||!Array.isArray(p.points)||p.points.length<2||!p.points.every(point)||!Array.isArray(p.routes)){errors.push('Ugyldig linje '+p?.id);continue;}
@@ -27,6 +39,21 @@
   }
   return errors;
  }
+ // Side assignments are manual visual reviews, never inferred from direction 0/1.
+ // A stop counts as checked only when every attached Quay is assigned and
+ // both visual sides have evidence.
+ function platformAudit(layout){
+  const candidates=(layout.stops||[]).map(stop=>{
+   const quays=[...new Set((stop.bindings||[]).map(b=>b.stopId).filter(id=>typeof id==='string'&&id.startsWith('NSR:Quay:')))].sort();
+   const sides=stop.platformSides||{};
+   const assigned=quays.filter(id=>['left','right'].includes(sides[id]?.side)&&sides[id]?.verification==='user-reviewed');
+   const done=quays.length>=2&&stop.diodeMode==='split'&&assigned.length===quays.length&&
+    assigned.some(id=>sides[id].side==='left')&&assigned.some(id=>sides[id].side==='right');
+   return {stopId:stop.id,name:stop.name,quays,assigned:assigned.length,done};
+  }).filter(record=>record.quays.length>=2);
+  return {total:candidates.length,reviewed:candidates.filter(s=>s.done).length,
+   pending:candidates.filter(s=>!s.done),stops:candidates};
+ }
  function resolve(stop,board,hardware){
   if(stop.verification!=='confirmed')return [];
   return stop.bindings.filter(b=>b.boardId===board?.id).flatMap(b=>{
@@ -36,11 +63,15 @@
    return a?[{...b,node,physicalLed:a.physicalLed}]:[];
   });
  }
- function signals(stop,board,hardware,frame,line,now=Date.now(),direction=null){
+ function signals(stop,board,hardware,frame,line,now=Date.now(),direction=null,quayIds=null){
   const age=(now-Date.parse(frame?.generatedAt))/1000;
   if(!Number.isFinite(age)||age<0||age>Number(frame.ttlSeconds||30))return [];
-  const bindings=resolve(stop,board,hardware);
-  const ids=new Set(bindings.map(b=>b.physicalLed));
+  const complete=resolve(stop,board,hardware);
+  const chosen=Array.isArray(quayIds)?new Set(quayIds):null;
+  const bindings=chosen?complete.filter(b=>chosen.has(b.stopId)):complete;
+  // A shared hardware LED cannot safely distinguish which side is active.
+  const ids=new Set(bindings.map(b=>b.physicalLed).filter(id=>
+   !chosen||!complete.some(other=>other.physicalLed===id&&!chosen.has(other.stopId))));
   return (frame.leds||[]).filter(l=>ids.has(l.id)).flatMap(l=>{
    const source=l.occupants?.length?l.occupants:l.vehicle?[l.vehicle]:[];
    return source.filter(v=>line===null||String(v.line)===String(line)).filter(v=>{if(direction===null)return true;const route=direction.route||direction.routesByLine?.[String(v.line)];return !!route&&bindings.some(b=>b.physicalLed===l.id&&b.node.routeDirections?.[route]?.directionIds?.includes(direction.id));}).map(v=>({...v,rgb:v.rgb||l.rgb,state:Signals.normalize(l.lifecycle==='PASSED'||l.lifecycle==='PARKED'?l.lifecycle:v.state||l.lifecycle||l.state),physicalLed:l.id}));
@@ -129,5 +160,5 @@
   }
   return edges;
  }
- return {validate,resolve,signals,report,verifiedSegments};
+ return {validate,resolve,signals,report,verifiedSegments,platformAudit};
 });
