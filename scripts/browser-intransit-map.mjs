@@ -91,6 +91,12 @@ try{
  });
  let mapPublished=false;
  await page.route('https://transitcore-led-feed.lgb84.workers.dev/v1/admin/linear-publish',async route=>{
+  if(route.request().method()==='OPTIONS'){
+   await route.fulfill({status:204,headers:{
+    'access-control-allow-origin':'*','access-control-allow-headers':'authorization, content-type',
+    'access-control-allow-methods':'POST, OPTIONS'
+   }});return;
+  }
   const req=route.request(),payload=req.postDataJSON();
   assert.equal(req.headers().authorization,'Bearer browser-test-secret');
   assert.equal(payload.expectedRevision,cloudRevision);
