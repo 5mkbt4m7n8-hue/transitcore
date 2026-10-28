@@ -15,6 +15,7 @@ export { matchesDirection, vehicleAllowedByBoard, validateConfiguration };
 import { diagnosticsRequest, selectOtaRelease } from "./device-diagnostics.mjs";
 import { boundedOperation, boundedFetchJson, FRAME_BUDGET_MS, MONITOR_TIMEOUT_MS } from "./feed-timing.mjs";
 import { handleLinearDraft,linearDraftStorage } from "./linear-draft.mjs";
+import {handleLinearPublish} from "./linear-publish.mjs";
 
 export const SIGNAL_POLICY = Object.freeze({
   version: 1,
@@ -1065,7 +1066,7 @@ export function validatePublishProfiles(board,hardware){
 function base64Utf8(value){const bytes=new TextEncoder().encode(value);let binary="";for(let offset=0;offset<bytes.length;offset+=0x8000)binary+=String.fromCharCode(...bytes.subarray(offset,offset+0x8000));return btoa(binary)}
 async function githubApi(env,path,options={}){
  const result=await fetch("https://api.github.com"+path,{...options,headers:{"accept":"application/vnd.github+json","authorization":`Bearer ${env.GITHUB_PUBLISH_TOKEN}`,"x-github-api-version":"2022-11-28","user-agent":"TransitCore-Publisher",...(options.headers||{})}});
- const body=await result.json().catch(()=>({}));if(!result.ok)throw Error(`GitHub ${result.status}: ${body.message||"request failed"}`);return body;
+ const body=await result.json().catch(()=>({}));if(!result.ok){const error=Error(`GitHub ${result.status}: ${body.message||"request failed"}`);error.status=result.status;throw error;}return body;
 }
 function randomCredential(byteCount=32){
  const bytes=crypto.getRandomValues(new Uint8Array(byteCount));
@@ -1254,6 +1255,7 @@ const worker = {
       }
     }
     if (url.pathname === "/v1/admin/linear-draft") return handleLinearDraft(request,env,secureTokenEquals);
+    if (url.pathname === "/v1/admin/linear-publish") return handleLinearPublish(request,env,secureTokenEquals,(path,options)=>githubApi(env,path,options));
     if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
     if (url.pathname === "/v1/admin/devices") return handleDevices(request, env);
     if (url.pathname === "/v1/admin/signal-test") return handleSignalTest(request, env);

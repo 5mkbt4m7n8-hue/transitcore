@@ -89,6 +89,24 @@ try{
    'access-control-allow-methods':'GET, PUT, OPTIONS'
   },body:JSON.stringify(result)});
  });
+ let mapPublished=false;
+ await page.route('https://transitcore-led-feed.lgb84.workers.dev/v1/admin/linear-publish',async route=>{
+  if(route.request().method()==='OPTIONS'){
+   await route.fulfill({status:204,headers:{
+    'access-control-allow-origin':'*','access-control-allow-headers':'authorization, content-type',
+    'access-control-allow-methods':'POST, OPTIONS'
+   }});return;
+  }
+  const req=route.request(),payload=req.postDataJSON();
+  assert.equal(req.headers().authorization,'Bearer browser-test-secret');
+  assert.equal(payload.expectedRevision,cloudRevision);
+  assert.equal(cloudSaves>0,true,'Publish must use a saved cloud revision');
+  mapPublished=true;
+  await route.fulfill({status:201,contentType:'application/json',headers:{
+   'access-control-allow-origin':'*','access-control-allow-headers':'authorization, content-type',
+   'access-control-allow-methods':'POST, OPTIONS'
+  },body:JSON.stringify({ok:true,pullRequestNumber:261,pullRequestUrl:'https://github.com/5mkbt4m7n8-hue/transitcore/pull/261'})});
+ });
  await page.locator('[data-role=cloudKey]').fill('browser-test-secret');
  await page.locator('[data-act=cloudConnect]').click();
  await page.waitForFunction(()=>document.querySelector('[data-role=cloudStatus]').textContent.includes('Skylagring aktiv'));
@@ -98,6 +116,12 @@ try{
  await page.waitForFunction(()=>document.querySelector('[data-role=cloudStatus]').textContent.includes('Lagret permanent i skyen'));
  assert.equal(cloudStored.names['original-014'],'Solsiden skytest');
  assert(cloudSaves>=1&&cloudAuthValid,'Cloud save must use authorized Worker with valid revision');
+ assert.equal(await page.locator('[data-act=publishMap]').isEnabled(),true);
+ page.once('dialog',dialog=>dialog.accept());
+ await page.locator('[data-act=publishMap]').click();
+ await page.waitForFunction(()=>document.querySelector('[data-role=publishLink]').hidden===false);
+ assert.equal(mapPublished,true,'Confirming publication creates a draft PR request');
+ assert.match(await page.locator('[data-role=publishLink]').getAttribute('href'),/\/pull\/261$/);
  // Switch back to the normal offline test mode; the same edits stay local.
  await page.locator('[data-act=cloudDisconnect]').click();
  await page.getByRole('button',{name:'Bruk originalnavn'}).click();
@@ -239,6 +263,29 @@ try{
  assert.equal(await editPage.locator('.map-stop').count(),baseStopCount,'Discarded draft must not return');
  assert.deepEqual(editErrors,[]);
  await editPage.close();
+ // Approved changes load as a public overlay without replacing original
+ // source geometry or depending on a secret / localStorage.
+ const publishedPage=await browser.newPage();
+ const original=JSON.parse(await readFile(new URL('web/linear/network/trondheim-layout.json',root)));
+ const json=JSON.stringify(original);let hash=2166136261;
+ for(let i=0;i<json.length;i++){hash^=json.charCodeAt(i);hash=Math.imul(hash,16777619);}
+ const fp=(hash>>>0).toString(16)+'-'+json.length;
+ const accepted=structuredClone(original),s=accepted.stops.find(s=>s.id==='original-014');
+ s.x+=7;s.label.x+=7;
+ await publishedPage.route('**/web/linear/network/published-edits.json',r=>r.fulfill({
+  status:200,contentType:'application/json',body:JSON.stringify({
+   version:1,baseFingerprint:fp,sourceRevision:4,
+   publishedAt:new Date().toISOString(),layout:accepted,names:{'original-014':'Solsiden publisert'}
+  })
+ }));
+ await publishedPage.goto(`http://127.0.0.1:${server.address().port}/web/linear/index.html`);
+ await publishedPage.waitForFunction(()=>document.querySelectorAll('#rows .row').length>0);
+ await publishedPage.locator('#networkMode').click();
+ await publishedPage.waitForSelector('.map-stop[data-stop="original-014"]');
+ assert.equal(await publishedPage.locator('.map-label[data-label="original-014"]').textContent(),'Solsiden publisert');
+ const drawn=await publishedPage.locator('.map-stop[data-stop="original-014"]').first().getAttribute('transform');
+ assert(drawn.includes(String(s.x)),'Approved position is shown on public map');
+ await publishedPage.close();
 
  assert.deepEqual(errors,[]);console.log('Browser: map editor tap-placement, autosave, reload, discard, original geometry, route overlays, mobile and feed regression PASS');
 }finally{await browser.close();await new Promise(r=>server.close(r));}

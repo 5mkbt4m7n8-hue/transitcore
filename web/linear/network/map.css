@@ -70,3 +70,11 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-cloud [data-role=cloudStatus][data-kind=success]{color:#83e9b9}
 .map-cloud [data-role=cloudStatus][data-kind=warn]{color:#ffd08c}
 .map-cloud button[hidden]{display:none}
+
+/* Published edits require an explicit review action and confirmed cloud revision. */
+.map-publish-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;width:100%;padding-top:9px;border-top:1px solid #466988}
+.map-publish-actions [data-act=publishMap]{background:#315f69;color:#f8ffff;font-weight:700}
+.map-publish-actions [data-act=publishMap]:disabled{opacity:.55;cursor:not-allowed}
+.map-publish-actions [data-role=publishStatus]{flex:1 1 260px;font-size:12px;color:#b5cee4}
+.map-publish-actions [data-role=publishLink]{flex:1 1 100%;font-weight:700;color:#9eddd5}
+.map-publish-actions [data-role=publishLink][hidden]{display:none}
