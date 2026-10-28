@@ -67,6 +67,13 @@ try{
   const request=route.request();
   cloudAuthValid&&=(request.headers().authorization==='Bearer browser-test-secret');
   let result,status=200;
+  if(request.method()==='OPTIONS'){
+   await route.fulfill({status:204,headers:{
+    'access-control-allow-origin':'*','access-control-allow-headers':'authorization, content-type',
+    'access-control-allow-methods':'GET, PUT, OPTIONS'
+   }});
+   return;
+  }
   if(request.method()==='GET')result={revision:cloudRevision,snapshot:cloudStored};
   else if(request.method()==='PUT'){
    const body=request.postDataJSON();
