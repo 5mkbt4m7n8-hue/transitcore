@@ -59,3 +59,14 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-viewport .map-label[data-selected="true"]{fill:#ffe4a1}
 .map-viewport .map-stop:active{cursor:grabbing}
 .map-editor button{cursor:pointer}
+
+/* Optional authenticated cloud autosave, with visible save acknowledgement. */
+.map-cloud{width:100%;display:flex;flex-wrap:wrap;gap:9px;align-items:center;padding:12px;border:1px solid #466988;border-radius:10px;background:#112238}
+.map-cloud strong,.map-cloud small,.map-cloud [data-role=cloudStatus]{flex:1 1 100%}
+.map-cloud small{color:#b5cee4;line-height:1.5}
+.map-cloud label{display:flex;flex:1 1 240px;flex-direction:column;gap:5px}
+.map-cloud button{white-space:normal}
+.map-cloud [data-role=cloudStatus]{font-size:12px;color:#d7e4f2}
+.map-cloud [data-role=cloudStatus][data-kind=success]{color:#83e9b9}
+.map-cloud [data-role=cloudStatus][data-kind=warn]{color:#ffd08c}
+.map-cloud button[hidden]{display:none}

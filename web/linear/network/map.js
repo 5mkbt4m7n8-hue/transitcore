@@ -6,10 +6,10 @@
  root.InTransitNetwork={async create(host){
   const response=await fetch('network/trondheim-layout.json');if(!response.ok)throw Error('Kartlayout HTTP '+response.status);
   const initial=await response.json();const errors=M.validate(initial);if(errors.length)throw Error(errors.join(', '));
-  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><a data-role="geoLink" href="./geo/" class="map-geo-link">Åpne stopp i geografisk kart</a><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><div class="map-editor" id="networkEditor" hidden><button data-act="addStop">+ Ny holdeplass</button><button data-act="addPath">+ Ny kartlinje</button><button data-act="undo">Angre</button><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><span class="map-draft-status" data-role="draftStatus" aria-live="polite">Ingen nye endringer</span><div class="map-sketch-controls" data-role="sketchControls" hidden><strong data-role="sketchHelp" aria-live="polite"></strong><button data-act="finishSketch">Fullfør linjen</button><button data-act="sketchUndo">Fjern siste punkt</button><button data-act="sketchCancel">Avbryt tegning</button></div><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
+  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><a data-role="geoLink" href="./geo/" class="map-geo-link">Åpne stopp i geografisk kart</a><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><div class="map-editor" id="networkEditor" hidden><button data-act="addStop">+ Ny holdeplass</button><button data-act="addPath">+ Ny kartlinje</button><button data-act="undo">Angre</button><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><span class="map-draft-status" data-role="draftStatus" aria-live="polite">Ingen nye endringer</span><section class="map-cloud"><strong>Permanent skylagring</strong><small>Alle endringer lagres lokalt. Koble til skyen med administratornøkkelen for lagring på tvers av enheter. Nøkkelen beholdes kun mens siden er åpen.</small><label>Administratornøkkel <input type="password" autocomplete="off" data-role="cloudKey" placeholder="Administratornøkkel"></label><button type="button" data-act="cloudConnect">Koble til skylagring</button><button type="button" data-act="cloudDisconnect" hidden>Koble fra</button><button type="button" data-act="cloudUseRemote" hidden>Hent fra skyen</button><button type="button" data-act="cloudUseLocal" hidden>Bruk lokal versjon i skyen</button><span data-role="cloudStatus" role="status" aria-live="polite">Kun lokal lagring – ikke synkronisert til skyen.</span></section><div class="map-sketch-controls" data-role="sketchControls" hidden><strong data-role="sketchHelp" aria-live="polite"></strong><button data-act="finishSketch">Fullfør linjen</button><button data-act="sketchUndo">Fjern siste punkt</button><button data-act="sketchCancel">Avbryt tegning</button></div><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
   const q=r=>host.querySelector(`[data-role="${r}"]`),svg=host.querySelector('svg'),editorPanel=host.querySelector('#networkEditor');
   let localNames=N.names(initial);let layout=initial,context={},editing=false,selection=null,selectedSegmentIndex=0,drag=null,box=[0,0,913,1280],phase=0,report={},frame=null;
-  let placementMode=null,moveStopId=null,routeSketch=null,placementGestureMoved=false,suppressAutoSave=false;
+  let placementMode=null,moveStopId=null,routeSketch=null,placementGestureMoved=false,suppressAutoSave=false,cloud=null;
   const autoDraftKey='intransit-map-autodraft-v1',manualDraftKey='intransit-map-draft-v1';
   // Fingerprint the shipped layout, so an old local draft never silently
   // overrides a changed version of the canonical map.
@@ -29,6 +29,7 @@
    try{
     localStorage.setItem(autoDraftKey,JSON.stringify({version:1,baseFingerprint,layout:value,savedAt:Date.now()}));
     setDraftStatus('Endringer lagret automatisk på denne enheten');
+    cloud?.changed();
    }catch{
     setDraftStatus('Automatisk lagring er ikke tilgjengelig. Bruk Eksporter JSON.');
    }
@@ -56,6 +57,32 @@
   }
   const routeReview=q('reviewPath'),reference=q('reference'),routeColors=q('routeColors'),largeLabels=q('largeLabels');
   const editor=root.InTransitMapEditor(initial,next=>{layout=next;draw();fields();persistDraft(next);});
+  function applyCloudSnapshot(snapshot){
+   const errors=M.validate(snapshot.layout);
+   if(errors.length)throw Error('Skyutgaven har ugyldig layout: '+errors.join(', '));
+   localNames=N.replaceNames(initial,snapshot.names);
+   suppressAutoSave=true;
+   try{editor.import(snapshot.layout);}finally{suppressAutoSave=false;}
+   try{localStorage.setItem(autoDraftKey,JSON.stringify({
+    version:1,baseFingerprint,layout:snapshot.layout,savedAt:Date.now()
+   }));}catch{setDraftStatus('Skyversjon lastet, men lokal lagring er ikke tilgjengelig.');}
+  }
+  function updateCloudStatus(state){
+   q('cloudStatus').textContent=state.message;
+   q('cloudStatus').dataset.kind=state.kind;
+   const conflict=state.mode==='conflict';
+   host.querySelector('[data-act="cloudUseRemote"]').hidden=!conflict;
+   host.querySelector('[data-act="cloudUseLocal"]').hidden=!conflict;
+   host.querySelector('[data-act="cloudDisconnect"]').hidden=state.mode==='disconnected';
+   host.querySelector('[data-act="cloudConnect"]').textContent=state.mode==='disconnected'?'Koble til skylagring':'Koble til på nytt';
+  }
+  cloud=root.InTransitCloudDraft.create({
+   baseFingerprint,
+   getLocal:()=>({layout:editor.get(),names:N.names(initial)}),
+   hasLocal:()=>Boolean(localStorage.getItem(autoDraftKey))||Object.keys(N.names(initial)).length>0,
+   applyRemote:applyCloudSnapshot,
+   status:updateCloudStatus
+  });
   const setBox=()=>svg.setAttribute('viewBox',box.join(' '));
   const viewportCenter=()=>({x:box[0]+box[2]/2,y:box[1]+box[3]/2});
   function zoom(f,cx=box[0]+box[2]/2,cy=box[1]+box[3]/2){const w=Math.min(1826,Math.max(40,box[2]*f)),h=w*1280/913;box=[cx-(cx-box[0])*w/box[2],cy-(cy-box[1])*h/box[3],w,h];setBox();}
@@ -272,11 +299,11 @@
     const saveName=document.createElement('button');saveName.type='button';saveName.textContent='Lagre visningsnavn';
     saveName.onclick=()=>{try{
      localNames=N.rename(initial,item.id,nameInput.value.trim()===originalName?'':nameInput.value);
-     draw();fields();details(item);
+     cloud?.changed();draw();fields();details(item);
      q('details').textContent+='\nVisningsnavnet er lagret på denne enheten og delt med geografisk kart. Originalnavn og NSR-ID er uendret.';
     }catch(e){q('details').textContent=e.message;}};
     const resetName=document.createElement('button');resetName.type='button';resetName.textContent='Bruk originalnavn';
-    resetName.onclick=()=>{try{localNames=N.rename(initial,item.id,'');draw();fields();details(item);}catch(e){q('details').textContent=e.message;}};
+    resetName.onclick=()=>{try{localNames=N.rename(initial,item.id,'');cloud?.changed();draw();fields();details(item);}catch(e){q('details').textContent=e.message;}};
     const info=document.createElement('small');info.className='map-stop-name-note';
     info.textContent='Originalnavn: '+originalName+'. Endringen vises i begge kart og i holdeplassadministrasjonen på denne enheten. Kildeverifisering og rutekoblinger endres ikke.';
     const link=document.createElement('a');link.className='map-geo-link';link.href=geoHref(item.id);
@@ -338,13 +365,19 @@
    case'sketchUndo':undoSketchPoint();break;
    case'sketchCancel':cancelSketch();break;
    case'undo':if(routeSketch)undoSketchPoint();else editor.undo();break;
-   case'discard':cancelSketch();placementMode=null;moveStopId=null;syncSketchControls();suppressAutoSave=true;
+   case'discard':
+    if(cloud?.buttons().mode==='ready'&&!confirm('Tilbakestille hele kartet til originalversjonen? Dette oppdaterer også skyutgaven.'))break;
+    cancelSketch();placementMode=null;moveStopId=null;syncSketchControls();suppressAutoSave=true;
     try{editor.discard();}finally{suppressAutoSave=false;}
-    clearAutoDraft();selection=null;fields();break;
+    clearAutoDraft();selection=null;fields();cloud?.changed();break;
    case'export':download('trondheim-layout.json',editor.export());break;
    case'report':download('trondheim-mapping-report.json',JSON.stringify(report,null,2));break;
    case'save':localStorage.setItem(manualDraftKey,editor.export());setDraftStatus('Arbeidskopi lagret manuelt');break;
    case'restore':{const data=localStorage.getItem(manualDraftKey);if(data)editor.import(JSON.parse(data));else setDraftStatus('Ingen manuelt lagret arbeidskopi');break;}
+   case'cloudConnect':{const input=q('cloudKey'),key=input.value;input.value='';void cloud.connect(key);break;}
+   case'cloudDisconnect':cloud.disconnect();break;
+   case'cloudUseRemote':void cloud.chooseRemote();break;
+   case'cloudUseLocal':void cloud.chooseLocal();break;
   }}catch(e){q('details').textContent=e.message;}});
   q('import').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>2000000)throw Error('JSON er for stor');editor.import(JSON.parse(await file.text()));}catch(error){q('details').textContent=error.message;}finally{e.target.value='';}};
   q('focus').onchange=()=>{const s=layout.stops.find(s=>s.id===q('focus').value);if(s){selection={type:'stop',id:s.id};box=[s.x-80,s.y-112,160,224];setBox();syncGeoLink(s.id);fields();details(s);}};
@@ -414,9 +447,11 @@
   });
   root.addEventListener('storage',e=>{
     if(e.key!==N.KEY)return;
-    localNames=N.names(initial);draw();fields();
+    localNames=N.names(initial);cloud?.changed();draw();fields();
     if(selection?.type==='stop'){const stop=layout.stops.find(s=>s.id===selection.id);if(stop)details(stop);}
    });
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)cloud.beforeLeaving();});
+  window.addEventListener('pagehide',()=>cloud.beforeLeaving());
   setInterval(()=>{if(!host.hidden&&!document.hidden){phase++;paint();}},1200);draw();restoreAutoDraft();
   return {update(next){context=next;frame=next.frame;draw();},clear(){frame=null;paint();},
    focusStop(id){const stop=layout.stops.find(s=>s.id===id);if(!stop)return false;

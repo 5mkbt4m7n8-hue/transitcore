@@ -14,6 +14,7 @@ import { distance, color, rgb, matchesDirection, vehicleAllowedByBoard, validate
 export { matchesDirection, vehicleAllowedByBoard, validateConfiguration };
 import { diagnosticsRequest, selectOtaRelease } from "./device-diagnostics.mjs";
 import { boundedOperation, boundedFetchJson, FRAME_BUDGET_MS, MONITOR_TIMEOUT_MS } from "./feed-timing.mjs";
+import { handleLinearDraft,linearDraftStorage } from "./linear-draft.mjs";
 
 export const SIGNAL_POLICY = Object.freeze({
   version: 1,
@@ -458,6 +459,9 @@ export class DeviceStatus {
 
   async fetch(request) {
     const url = new URL(request.url);
+    if (url.pathname === "/linear-draft")return this.state.blockConcurrencyWhile
+      ?this.state.blockConcurrencyWhile(()=>linearDraftStorage(this.state.storage,request))
+      :linearDraftStorage(this.state.storage,request);
     if (url.pathname === "/logs" || url.pathname === "/logs/session")
       return diagnosticsRequest(this.state.storage, request);
     if (url.pathname === "/registry-page" && request.method === "GET") {
@@ -1249,6 +1253,7 @@ const worker = {
         return statusJson({ error:"mta_feed_unavailable", message:error.message }, 503);
       }
     }
+    if (url.pathname === "/v1/admin/linear-draft") return handleLinearDraft(request,env,secureTokenEquals);
     if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
     if (url.pathname === "/v1/admin/devices") return handleDevices(request, env);
     if (url.pathname === "/v1/admin/signal-test") return handleSignalTest(request, env);
