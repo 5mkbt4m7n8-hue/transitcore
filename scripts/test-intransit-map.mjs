@@ -10,6 +10,30 @@ assert.deepEqual(layout.coverage,{scope:'selected-corridors',endToEndRequired:fa
 assert.equal(M.report(layout,[]).coverage.endToEndRequired,false,'Report must distinguish deliberate partial scope from invalid stop mapping');
 assert.equal(layout.stops.length,100,'Existing schematic points preserved');
 assert.equal(layout.paths.length,18,'Existing paths preserved');
+const audit=M.platformAudit(layout);
+assert.equal(audit.total,65,'65 schematic stops have at least two unique Quays');
+assert.equal(audit.reviewed,0,'Physical side is not inferred automatically');
+assert.equal(audit.pending.length,65);
+const reviewedPlatform=structuredClone(layout);
+const solsiden=reviewedPlatform.stops.find(stop=>stop.id==='original-014');
+solsiden.platformSides={
+ 'NSR:Quay:73975':{side:'left',verification:'user-reviewed'},
+ 'NSR:Quay:73976':{side:'right',verification:'user-reviewed'}
+};
+solsiden.diodeMode='split';
+assert.deepEqual(M.validate(reviewedPlatform),[]);
+assert.equal(M.platformAudit(reviewedPlatform).reviewed,1);
+assert.equal(M.platformAudit(reviewedPlatform).pending.length,64);
+for(const mutation of [
+ stop=>{stop.platformSides['NSR:Quay:00000']={side:'left',verification:'user-reviewed'};},
+ stop=>{stop.platformSides['NSR:Quay:73975'].side='north';},
+ stop=>{stop.platformSides['NSR:Quay:73975'].verification='auto';},
+ stop=>{stop.diodeMode='shared';}
+]){
+ const bad=structuredClone(reviewedPlatform);mutation(bad.stops.find(s=>s.id==='original-014'));
+ assert(M.validate(bad).length,'Invalid/unverified platform side must not be accepted');
+}
+
 const invalidScope=structuredClone(layout);invalidScope.coverage.endToEndRequired=true;
 assert(M.validate(invalidScope).length,'Do not silently reinterpret selected corridors as complete end-to-end route');
 
