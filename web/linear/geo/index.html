@@ -10,8 +10,7 @@
  <nav class="geo-nav" aria-label="InTransit-visninger"><a href="../index.html">Lineær / skjemakart</a><a href="../live/">Live busskart</a><a href="../stops/">Holdeplasser</a><a href="../diagnostics/">Diagnose</a><strong>Geografisk kart – linje 1 GPS</strong></nav>
  <p>Plasser og navngi stopp lokalt, tegn og rediger geografiske traséer, dra knekkpunkter, og angre/gjenta endringer. AtB linje 1 har et eget lag for målte GPS-posisjoner. Eksisterende Linear og LED-logikk er uendret.</p>
  <div class="geo-tools"><label>Sanntidsgrunnlag <select id="boardSelect">
- <option value="trondheim-bus-board">Trondheim bybuss – eksisterende LED-tavle</option>
- <option value="trondheim-shared-stops-board">Felles bybusstopp</option>
+ <option value="trondheim-city-lines-catalog">Trondheim Buss – alle 47 linjeprofiler</option>
  <option value="trondheim-flybuss-live">FB73 (ETA, ikke GPS)</option>
  </select></label><button id="refresh">Oppdater datagrunnlag</button><small id="frameStatus" role="status">Laster …</small></div>
  <section id="geographicView"></section>
@@ -31,20 +30,18 @@
  const json=async url=>{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status+': '+url);return r.json();};
  let geo,boards,hardware,client;
  try{
-  const [bus,catalog,fly,shared]=await Promise.all([
-   json(BASE+'boards/trondheim-bus-board.json'),
+  const [catalog,fly]=await Promise.all([
    json(BASE+'boards/trondheim-city-lines-catalog.json'),
-   json(BASE+'boards/trondheim-flybuss-live.json'),
-   json(BASE+'boards/trondheim-shared-stops-board.json')
+   json(BASE+'boards/trondheim-flybuss-live.json')
   ]);
-  const all=[bus,catalog,fly,shared];boards=Object.fromEntries(all.map(b=>[b.id,b]));
+  const all=[catalog,fly];boards=Object.fromEntries(all.map(b=>[b.id,b]));
   geo=await InTransitGeo.create(document.getElementById('geographicView'));
   const assign=async()=>{
    const id=document.getElementById('boardSelect').value;
-   const board=boards[id], hardware=await json(BASE+'hardware/'+
-     (id==='trondheim-flybuss-live'?'trondheim-flybuss-live-hardware':
-      id==='trondheim-shared-stops-board'?'trondheim-shared-stops-board-hardware':
-      'trondheim-bus-board-hardware')+'.json');
+   const board=boards[id];
+   const hardware=id==='trondheim-city-lines-catalog'
+    ?{leds:{count:board.leds.count},assignments:board.nodes.map(node=>({logicalLed:node.led,physicalLed:node.led}))}
+    :await json(BASE+'hardware/trondheim-flybuss-live-hardware.json');
    client=TransitCoreFrames.create({boardId:id,ledCount:board.leds.count,visual:board.render?.visual});
    geo.update({board,hardware,boards:all,all:true,line:null,frame:null});
    return async()=>{
