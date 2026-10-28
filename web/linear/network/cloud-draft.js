@@ -88,6 +88,10 @@
    }finally{
     busy=false;
     if(mode==="ready"&&dirty&&timer===null)schedule(250);
+    // Re-announce the acknowledgement after unlocking the editor, so the
+    // publish button becomes available only for a completed cloud write.
+    if(mode==="ready"&&!dirty&&saved?.savedAt)
+     report("Lagret permanent i skyen · "+new Date(saved.savedAt).toLocaleTimeString("nb-NO"),"success");
    }
   }
   async function chooseRemote(){
