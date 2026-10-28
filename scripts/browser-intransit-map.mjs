@@ -61,6 +61,40 @@ try{
  assert.equal(calls,auditRequests,'Map review controls must not fetch live frames');
  const box=await page.locator('svg.map-viewport').getAttribute('viewBox');await page.locator('[data-act=in]').click();assert.notEqual(await page.locator('svg.map-viewport').getAttribute('viewBox'),box);await page.locator('[data-act=fit]').click();
  await page.locator('[data-act=edit]').click();
+ // Exercise real UI -> authenticated Worker request -> acknowledged cloud save.
+ let cloudRevision=0,cloudStored=null,cloudSaves=0,cloudAuthValid=true;
+ await page.route('https://transitcore-led-feed.lgb84.workers.dev/v1/admin/linear-draft',async route=>{
+  const request=route.request();
+  cloudAuthValid&&=(request.headers().authorization==='Bearer browser-test-secret');
+  let result,status=200;
+  if(request.method()==='GET')result={revision:cloudRevision,snapshot:cloudStored};
+  else if(request.method()==='PUT'){
+   const body=request.postDataJSON();
+   if(body.expectedRevision!==cloudRevision){status=409;result={error:'revision_conflict',revision:cloudRevision};}
+   else{
+    cloudRevision++;cloudSaves++;
+    cloudStored={...body,revision:cloudRevision,savedAt:new Date().toISOString()};
+    result={ok:true,revision:cloudRevision,savedAt:cloudStored.savedAt};
+   }
+  }else{status=405;result={error:'invalid_method'};}
+  await route.fulfill({status,contentType:'application/json',headers:{
+   'access-control-allow-origin':'*','access-control-allow-headers':'authorization, content-type',
+   'access-control-allow-methods':'GET, PUT, OPTIONS'
+  },body:JSON.stringify(result)});
+ });
+ await page.locator('[data-role=cloudKey]').fill('browser-test-secret');
+ await page.locator('[data-act=cloudConnect]').click();
+ await page.waitForFunction(()=>document.querySelector('[data-role=cloudStatus]').textContent.includes('Skylagring aktiv'));
+ await page.locator('[data-role=focus]').selectOption('original-014');
+ await page.getByLabel('Navn på holdeplassen (lokalt visningsnavn)').fill('Solsiden skytest');
+ await page.getByRole('button',{name:'Lagre visningsnavn'}).click();
+ await page.waitForFunction(()=>document.querySelector('[data-role=cloudStatus]').textContent.includes('Lagret permanent i skyen'));
+ assert.equal(cloudStored.names['original-014'],'Solsiden skytest');
+ assert(cloudSaves>=1&&cloudAuthValid,'Cloud save must use authorized Worker with valid revision');
+ // Switch back to the normal offline test mode; the same edits stay local.
+ await page.locator('[data-act=cloudDisconnect]').click();
+ await page.getByRole('button',{name:'Bruk originalnavn'}).click();
+ assert.equal(await page.locator('.map-label[data-label="original-014"]').textContent(),'Solsiden');
  // Rename and reposition a pre-existing, already named stop.
  await page.locator('[data-role=focus]').selectOption('original-014');
  await page.getByLabel('Navn på holdeplassen (lokalt visningsnavn)').fill('Solsiden korrigert');
