@@ -112,7 +112,7 @@ assert.equal(store.getItem(Links.KEY),stale,'Mismatched drafts are never overwri
 const schematicHtml=read('web/linear/index.html');
 assert.match(schematicHtml,/src="geo\/stop-links\.js"/);
 const schematicUi=read('web/linear/network/map.js');
-assert.match(schematicUi,/Navn på holdeplassen \\(lokalt visningsnavn\\)/);
+assert.match(schematicUi,/Navn på holdeplassen \(lokalt visningsnavn\)/);
 assert.match(schematicUi,/focusStop\(id\)/);
 assert.match(read('web/linear/geo/map.js'),/data-g="schematic"/);
 
