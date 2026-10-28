@@ -963,7 +963,12 @@ async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
   const frames = [];
   if (vehicleProfiles.length) {
     const vehicles = await liveVehiclesForProfiles(vehicleProfiles);
-    frames.push(buildPixelFrame(frameContext({ board, profiles: vehicleProfiles, hardware, vehicles, now })));
+    // A mixed GPS/estimated-call catalog has more configured routes than GPS
+    // profiles. The GPS builder validates exact route/profile parity; narrow
+    // only that internal view, retaining the complete 1282-node LED mapping.
+    const gpsBoard=vehicleProfiles.length===profiles.length?board:
+      {...board,routes:vehicleProfiles.map(profile=>profile.id)};
+    frames.push(buildPixelFrame(frameContext({ board:gpsBoard, profiles: vehicleProfiles, hardware, vehicles, now })));
   }
   if (arrivalProfiles.length) {
     board.hardware = hardware;
