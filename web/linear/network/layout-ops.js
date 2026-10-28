@@ -125,4 +125,3 @@
  }
  return {addStop,moveStop,addPath,extendPath,insertVertex,removeLastVertex,drawPath,appendPath,deleteNewStop,deleteNewPath};
 });
-

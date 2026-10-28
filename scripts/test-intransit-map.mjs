@@ -231,4 +231,3 @@ assert.match(ui,/routeColors\.onchange=\(\)=>draw\(\)/);
 assert.match(ui,/routeReview\.onchange=/);
 for(const file of ['model','layout-ops','map','editor'])new vm.Script(read(`web/linear/network/${file}.js`));
 console.log('InTransit layout validation, exact ID/physical LED mapping, lifecycle, expiry, route filtering and editor PASS');
-

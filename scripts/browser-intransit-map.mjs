@@ -419,4 +419,3 @@ try{
 
  assert.deepEqual(errors,[]);console.log('Browser: map editor tap-placement, autosave, reload, discard, original geometry, route overlays, mobile and feed regression PASS');
 }finally{await browser.close();await new Promise(r=>server.close(r));}
-

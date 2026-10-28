@@ -696,4 +696,3 @@
     selection={type:'stop',id:stop.id};box=[stop.x-80,stop.y-112,160,224];setBox();draw();fields();details(stop);return true;}};
  }};
 })(globalThis);
-

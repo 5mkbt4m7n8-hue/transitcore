@@ -133,4 +133,3 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 
 /* Hit area for small unresolved stops, including those with hidden labels. */
 .map-viewport .map-stop circle.map-stop-hit{fill:transparent;stroke:none;filter:none;pointer-events:all}
-
