@@ -78,3 +78,16 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-publish-actions [data-role=publishStatus]{flex:1 1 260px;font-size:12px;color:#b5cee4}
 .map-publish-actions [data-role=publishLink]{flex:1 1 100%;font-weight:700;color:#9eddd5}
 .map-publish-actions [data-role=publishLink][hidden]{display:none}
+
+/* Human-confirmed left/right schematic Quays: no direction inference. */
+.map-platform-progress{color:#a9d3e8;font-size:12px;flex:1 1 210px;align-self:center}
+.map-platform-review{display:grid;grid-template-columns:1fr;gap:10px;padding:12px;flex:1 1 100%;border:1px solid #537f99;border-radius:10px;background:#102737}
+.map-platform-review>strong{color:#c0f1ff}
+.map-platform-review>small{color:#b7ccdc;line-height:1.5}
+.map-platform-review .map-platform-row{display:grid;grid-template-columns:minmax(150px,1fr) minmax(180px,1fr);gap:7px 16px;align-items:center;padding:9px;border:1px solid #34526d;border-radius:8px;background:#14263c}
+.map-platform-row span{font:600 12px ui-monospace,SFMono-Regular,monospace;color:#e2edf9}
+.map-platform-row select{width:100%}
+.map-platform-row small{grid-column:1/-1;color:#b1c8da}
+.map-stop[data-side][data-review=pending] circle{fill:#1b2836;stroke:#cfaa64;stroke-dasharray:2 2}
+.map-stop[data-side][data-review=user-reviewed] circle{stroke:#a8eedf}
+@media(max-width:560px){.map-platform-review .map-platform-row{grid-template-columns:1fr}}
