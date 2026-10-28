@@ -297,7 +297,6 @@
    for(const path of layout.paths){if(path.routes.length&&!context.all&&!playback&&!path.routes.includes(context.route))continue;
     const p=el('polyline',{points:path.points.map(p=>p.x+','+p.y).join(' '),stroke:path.color,'stroke-width':path.width,class:'map-route',tabindex:0,'aria-label':path.id});
     p.onclick=()=>{selection={type:'path',id:path.id};selectedSegmentIndex=0;draw();fields();q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');};p.dataset.routePath=path.id;svg.append(p);
-    if(editing&&selection?.type==='path'&&selection.id===path.id)path.points.forEach((v,i)=>{const h=el('circle',{cx:v.x,cy:v.y,r:4,class:'map-handle'});h.dataset.path=path.id;h.dataset.index=i;svg.append(h);});
    }
    // Overlay only edges with direct Quay-to-Quay adjacency in loaded profiles.
    // This does not establish the route of an entire polyline or live coverage.
@@ -352,6 +351,9 @@
     });
     if(stop.label.visible){const label=el('text',{x:stop.label.x,y:stop.label.y,class:'map-label'});label.textContent=displayName(stop);label.dataset.label=stop.id;if(selection?.type==='stop'&&selection.id===stop.id)label.dataset.selected='true';svg.append(label);}
    }
+   // Only the explicitly selected line exposes handles above stop hit areas.
+   const selectedPath=editing&&selection?.type==='path'?layout.paths.find(p=>p.id===selection.id):null;
+   if(selectedPath)selectedPath.points.forEach((v,i)=>{const h=el('circle',{cx:v.x,cy:v.y,r:4,class:'map-handle'});h.dataset.path=selectedPath.id;h.dataset.index=i;svg.append(h);});
    showSketchPreview();
    q('focus').replaceChildren(new Option('Fokus på punkt …',''),...layout.stops.map(s=>new Option(displayName(s),s.id)));
     q('focus').value=selection?.type==='stop'?selection.id:'';syncGeoLink(selection?.type==='stop'?selection.id:null);
@@ -394,7 +396,7 @@
     '\nHoldplasskoblinger via StopPlace er bare tillatt når holdeplassen har én unik kartmarkør. Dette bekrefter ikke komplett trasé eller live-GPS.';
    const vs=p.points,xs=vs.map(v=>v.x),ys=vs.map(v=>v.y),cx=(Math.min(...xs)+Math.max(...xs))/2,cy=(Math.min(...ys)+Math.max(...ys))/2;
    const w=Math.min(913,Math.max(110,Math.max(...xs)-Math.min(...xs)+45,(Math.max(...ys)-Math.min(...ys)+45)*913/1280));
-   box=[cx-w/2,cy-w*1280/913/2,w,w*1280/913];setBox();
+   box=[cx-w/2,cy-w*1280/913/2,w,w*1280/913];draw();
   }
   function fields(){
    const area=q('fields');area.replaceChildren();if(!editing||!selection)return;
@@ -649,7 +651,7 @@
    }
    drag.next=next;layout=next;draw();
   };
-  function end(e){pointers.delete(e.pointerId);if(editing&&(placementMode||routeSketch))return;if(drag?.next)editor.import(drag.next);drag=null;}
+  function end(e){pointers.delete(e.pointerId);if(editing&&(placementMode||routeSketch))return;if(drag?.next)editor.import(drag.next);drag=null;draw();}
   svg.onpointerup=end;svg.onpointercancel=()=>{pointers.clear();drag=null;placementGestureMoved=true;layout=editor.get();draw();};
   // Capture click before the old map line/stop selection handlers, so an
   // insertion works even when the chosen pixel overlaps existing geometry.

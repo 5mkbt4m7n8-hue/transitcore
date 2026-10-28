@@ -226,11 +226,14 @@ try{
  const originalPoint=await page.evaluate(async()=>{const layout=await fetch('./network/trondheim-layout.json').then(r=>r.json());return layout.stops.find(s=>s.id==='original-014');});
  // Drag and undo must also leave the drawn lines unchanged.
  const marker=page.locator('.map-stop[data-stop="original-014"]').first();
+ await marker.scrollIntoViewIfNeeded();
  const markerBox=await marker.boundingBox();
  await page.mouse.move(markerBox.x+markerBox.width/2,markerBox.y+markerBox.height/2);
  await page.mouse.down();
  await page.mouse.move(markerBox.x+markerBox.width/2+25,markerBox.y+markerBox.height/2+20,{steps:5});
  await page.mouse.up();
+ const dragged=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.stops.find(s=>s.id==='original-014'));
+ assert(Math.hypot(dragged.x-originalPoint.x,dragged.y-originalPoint.y)>1,'Drag actually moves marker');
  assert.deepEqual(await page.locator('.map-route').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('points'))),pathSnapshot,'Drag movement preserves all lines');
  await page.locator('[data-act=undo]').click();
  await page.getByRole('button',{name:'Flytt valgt holdeplass'}).click();
@@ -244,6 +247,19 @@ try{
  await page.getByRole('button',{name:'Bruk originalnavn'}).click();
  assert.equal(await page.locator('.map-label[data-label="original-014"]').textContent(),'Solsiden');
  // Restore full-map coordinates before the existing sketch placement tests.
+ await page.locator('[data-act=fit]').click();
+ // Explicitly selecting a line still exposes independently editable vertices.
+ await page.locator('[data-role=reviewPath]').selectOption('trace-04');
+ assert((await page.locator('.map-handle[data-path="trace-04"]').count())>0);
+ const lineBefore=await page.locator('.map-route[data-route-path="trace-04"]').getAttribute('points');
+ await page.locator('.map-handle[data-path="trace-04"]').first().scrollIntoViewIfNeeded();
+ const handleBox=await page.locator('.map-handle[data-path="trace-04"]').first().boundingBox();
+ await page.mouse.move(handleBox.x+handleBox.width/2,handleBox.y+handleBox.height/2);
+ await page.mouse.down();
+ await page.mouse.move(handleBox.x+handleBox.width/2+20,handleBox.y+handleBox.height/2+20,{steps:4});
+ await page.mouse.up();
+ assert.notEqual(await page.locator('.map-route[data-route-path="trace-04"]').getAttribute('points'),lineBefore);
+ await page.locator('[data-act=undo]').click();
  await page.locator('[data-act=fit]').click();
  // The original white drawing is not modified when adding/removing a new element.
  const initialStops=await page.locator('.map-stop').count(),initialPaths=await page.locator('.map-route').count();
