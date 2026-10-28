@@ -459,7 +459,9 @@ export class DeviceStatus {
 
   async fetch(request) {
     const url = new URL(request.url);
-    if (url.pathname === "/linear-draft")return linearDraftStorage(this.state.storage,request);
+    if (url.pathname === "/linear-draft")return this.state.blockConcurrencyWhile
+      ?this.state.blockConcurrencyWhile(()=>linearDraftStorage(this.state.storage,request))
+      :linearDraftStorage(this.state.storage,request);
     if (url.pathname === "/logs" || url.pathname === "/logs/session")
       return diagnosticsRequest(this.state.storage, request);
     if (url.pathname === "/registry-page" && request.method === "GET") {
