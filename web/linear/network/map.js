@@ -687,6 +687,7 @@
   window.addEventListener('pagehide',()=>cloud.beforeLeaving());
   setInterval(()=>{if(!host.hidden&&!document.hidden){phase++;paint();}},1200);draw();restoreAutoDraft();
   if(new URLSearchParams(location.search).get('debug')==='1'){q('liveDebug').open=true;renderLiveDebug();}
+  if(new URLSearchParams(location.search).get('history')==='1')historyUI.open();
   if(publishedWarning)q('cloudStatus').textContent=publishedWarning;
   return {update(next){context=next;frame=next.frame;if(!playback)draw();},clear(){frame=null;if(!playback)paint();},
    focusStop(id){const stop=layout.stops.find(s=>s.id===id);if(!stop)return false;
