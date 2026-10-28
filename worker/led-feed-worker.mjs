@@ -15,6 +15,7 @@ export { matchesDirection, vehicleAllowedByBoard, validateConfiguration };
 import { diagnosticsRequest, selectOtaRelease } from "./device-diagnostics.mjs";
 import { boundedOperation, boundedFetchJson, FRAME_BUDGET_MS, MONITOR_TIMEOUT_MS } from "./feed-timing.mjs";
 import { handleLinearDraft,linearDraftStorage } from "./linear-draft.mjs";
+import {handleLinearPublish} from "./linear-publish.mjs";
 
 export const SIGNAL_POLICY = Object.freeze({
   version: 1,
@@ -1254,6 +1255,7 @@ const worker = {
       }
     }
     if (url.pathname === "/v1/admin/linear-draft") return handleLinearDraft(request,env,secureTokenEquals);
+    if (url.pathname === "/v1/admin/linear-publish") return handleLinearPublish(request,env,secureTokenEquals,(path,options)=>githubApi(env,path,options));
     if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
     if (url.pathname === "/v1/admin/devices") return handleDevices(request, env);
     if (url.pathname === "/v1/admin/signal-test") return handleSignalTest(request, env);
