@@ -249,6 +249,7 @@
    const values=M.signals(stop,context.board,context.hardware,frame,context.all?null:context.line,Date.now(),null,quayIds);
    const age=(Date.now()-Date.parse(frame?.generatedAt))/1000;
    q('details').textContent=displayName(stop)+(localNames[stop.id]?' (lokalt navn; original: '+stop.name+')':'')+(selectedSide?' · '+(selectedSide==='left'?'VENSTRE':'HØYRE')+' på tegningen (Quay '+(quayIds?.join(', ')||'ikke kartlagt')+')':'')+'\n'+(stop.verification!=='confirmed'?'Uavklart navn / ID. Ingen live-kobling.':values.length?values.map(v=>`Linje ${v.line||'?'} · ${v.destination||'Ukjent destinasjon'} · buss ${v.id||'ikke oppgitt'} · ${v.state}\nKilde: ${v.source||'ikke oppgitt'} · observasjonsalder: ${v.ageSeconds??'ukjent'} s`).join('\n'):'OFF · ingen aktiv gyldig observasjon; bekrefter ikke tom holdeplass.')+`\nFrame-alder: ${Number.isFinite(age)?Math.floor(age)+' s':'ingen frame'}`;
+   syncDebugSelection(stop);
   }
   function draw(){
    svg.replaceChildren();setBox();svg.classList.toggle('map-big-labels',largeLabels.checked);
@@ -341,6 +342,7 @@
    const active=all.filter(v=>v.state!=='PASSED'),known=active.every(v=>v.id),count=new Set(active.map(v=>v.id)).size;
    q('summary').textContent=`${layout.stops.length} kartpunkter · ${report.unmapped?.length||0} uten kobling · `+(known&&active.length?`${count} identifiserte aktive busser i kartets tilgjengelige feed`:'Aktivt bussantall ikke bekreftet')+' · Viser bare tegnede strekninger og data fra eksisterende Linear-feed; ikke nødvendigvis komplette bussruter.';
    if(selection?.type==='stop'){const selected=layout.stops.find(s=>s.id===selection.id);if(selected)details(selected);else selection=null;}
+   if(q('liveDebug').open)renderLiveDebug();
   }
 
   function reviewPath(id){
@@ -531,6 +533,15 @@
     try{editor.discard();}finally{suppressAutoSave=false;}
     clearAutoDraft();selection=null;fields();cloud?.changed();break;
    case'export':download('trondheim-layout.json',editor.export());break;
+   case'exportLiveDebug':{
+    if(!lastDiagnostic)renderLiveDebug();
+    if(lastDiagnostic)download('trondheim-live-diagnose.json',JSON.stringify({
+     exportedAt:new Date().toISOString(),scope:'last-received-frame-only',
+     ...lastDiagnostic,vehicleQuery:q('debugVehicle').value.trim(),
+     searchedVehicle:Live.findVehicle(frame,q('debugVehicle').value.trim())
+    },null,2));
+    break;
+   }
    case'report':download('trondheim-mapping-report.json',JSON.stringify(report,null,2));break;
    case'save':localStorage.setItem(manualDraftKey,editor.export());setDraftStatus('Arbeidskopi lagret manuelt');break;
    case'restore':{const data=localStorage.getItem(manualDraftKey);if(data)editor.import(JSON.parse(data));else setDraftStatus('Ingen manuelt lagret arbeidskopi');break;}
@@ -553,6 +564,16 @@
    }
   }}catch(e){q('details').textContent=e.message;}});
   q('import').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>2000000)throw Error('JSON er for stor');editor.import(JSON.parse(await file.text()));}catch(error){q('details').textContent=error.message;}finally{e.target.value='';}};
+  q('liveDebug').ontoggle=()=>renderLiveDebug();
+  q('debugStop').onchange=()=>{
+   debugStopId=q('debugStop').value;debugQuayId='';debugSide=null;
+   const stop=layout.stops.find(item=>item.id===debugStopId);
+   if(stop){selection={type:'stop',id:stop.id};selectedSide=null;
+    box=[stop.x-80,stop.y-112,160,224];setBox();fields();details(stop);}
+   renderLiveDebug();
+  };
+  q('debugQuay').onchange=()=>{debugQuayId=q('debugQuay').value;renderLiveDebug();};
+  q('debugVehicle').oninput=()=>renderLiveDebug();
   q('focus').onchange=()=>{const s=layout.stops.find(s=>s.id===q('focus').value);if(s){selection={type:'stop',id:s.id};selectedSide=null;box=[s.x-80,s.y-112,160,224];setBox();syncGeoLink(s.id);fields();details(s);}};
   routeReview.onchange=()=>{if(routeReview.value)reviewPath(routeReview.value);};
   reference.onchange=()=>draw();
@@ -626,6 +647,7 @@
   document.addEventListener('visibilitychange',()=>{if(document.hidden)cloud.beforeLeaving();});
   window.addEventListener('pagehide',()=>cloud.beforeLeaving());
   setInterval(()=>{if(!host.hidden&&!document.hidden){phase++;paint();}},1200);draw();restoreAutoDraft();
+  if(new URLSearchParams(location.search).get('debug')==='1'){q('liveDebug').open=true;renderLiveDebug();}
   if(publishedWarning)q('cloudStatus').textContent=publishedWarning;
   return {update(next){context=next;frame=next.frame;draw();},clear(){frame=null;paint();},
    focusStop(id){const stop=layout.stops.find(s=>s.id===id);if(!stop)return false;
