@@ -63,6 +63,25 @@ assert.deepEqual(M.resolve({...stop,bindings:[{...stop.bindings[0],nodeId:'bad'}
 assert.deepEqual(M.resolve(stop,{...board,id:'other-board'},hardware),[]);
 for(const lifecycle of ['PASSED','PARKED'])assert(M.signals(stop,board,hardware,{...frame,leds:frame.leds.map(l=>({...l,lifecycle}))},null,now).every(v=>v.state===lifecycle));
 
+// Actual Solsiden quays have separate physical LEDs and direction metadata.
+// Side is manually selected; filtering MUST NOT derive side from direction 0/1.
+const sideStop=reviewedPlatform.stops.find(s=>s.id==='original-014');
+const sideBindings=M.resolve(sideStop,board,hardware);
+const leftLed=sideBindings.find(b=>b.stopId==='NSR:Quay:73975').physicalLed;
+const rightLed=sideBindings.find(b=>b.stopId==='NSR:Quay:73976').physicalLed;
+assert.notEqual(leftLed,rightLed);
+const sideFrame={generatedAt:new Date(now).toISOString(),ttlSeconds:30,leds:[
+ {id:leftLed,state:'AT_STOP',rgb:[255,0,0],occupants:[{id:'left-bus',line:'1',state:'AT_STOP',rgb:[255,0,0]}]},
+ {id:rightLed,state:'APPROACHING',rgb:[0,200,0],occupants:[{id:'right-bus',line:'1',state:'APPROACHING',rgb:[0,200,0]}]}
+]};
+assert.deepEqual(M.signals(sideStop,board,hardware,sideFrame,null,now,null,['NSR:Quay:73975']).map(v=>v.id),['left-bus']);
+assert.deepEqual(M.signals(sideStop,board,hardware,sideFrame,null,now,null,['NSR:Quay:73976']).map(v=>v.id),['right-bus']);
+assert.deepEqual(M.signals(sideStop,board,hardware,sideFrame,null,now,null,[]),[],'Unreviewed side must remain OFF');
+assert.equal(M.signals(sideStop,board,hardware,sideFrame,null,now).length,2,'Legacy shared mode still aggregates both');
+const ambiguousHardware=structuredClone(hardware);
+ambiguousHardware.assignments.find(a=>a.logicalLed===board.nodes.find(n=>n.id==='solsiden-nsr-quay-73976').led).physicalLed=leftLed;
+assert.equal(M.signals(sideStop,board,ambiguousHardware,sideFrame,null,now,null,['NSR:Quay:73975']).length,0,'Shared physical LED may not activate a specific side');
+
 // Route colors require exact consecutive Quay IDs on both uniquely mapped
 // diagram endpoints. They are not inferred for an entire drawn path.
 const route1=JSON.parse(read('config/routes/atb-bus-1-live.json'));
