@@ -23,7 +23,7 @@ export function createPublication(snapshot,canonical,publishedAt){
   const changed=editsById.get(source.id);
   if(!changed)throw Error("original_stop_removed");
   const protectedFields=record=>{
-   const {x,y,label,radius,diodeMode,...protectedPart}=record;
+   const {x,y,label,radius,diodeMode,platformSides,...protectedPart}=record;
    return protectedPart;
   };
   // NSR/Quay IDs, verification and official names are never re-authored
