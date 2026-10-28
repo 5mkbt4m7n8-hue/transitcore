@@ -70,10 +70,10 @@ try{
  await page.waitForFunction(()=>document.querySelector('[data-h=time]').textContent.includes('1/3'));
  assert.match(await page.locator('[data-role=summary]').innerText(),/HISTORIKK – IKKE LIVE/);
  assert.equal(await page.locator('.map-stop[data-stop="original-004"][data-state="AT_STOP"]').count(),1);
- await page.locator('[data-h=timeline]').fill('1');
+ await page.locator('[data-h=timeline]').evaluate(el=>{el.value='1';el.dispatchEvent(new Event('input',{bubbles:true}));});
  assert.match(await page.locator('[data-h=time]').innerText(),/MÅLEFEIL/);
  assert.equal(await page.locator('.map-stop[data-state="AT_STOP"]').count(),0,'A failed sample must never copy prior LED state');
- await page.locator('[data-h=timeline]').fill('2');
+ await page.locator('[data-h=timeline]').evaluate(el=>{el.value='2';el.dispatchEvent(new Event('input',{bubbles:true}));});
  assert.equal(await page.locator('.map-stop[data-stop="original-004"][data-state="AT_STOP"]').count(),1);
  const historyDownload=page.waitForEvent('download');
  await page.locator('[data-h=export]').click();
