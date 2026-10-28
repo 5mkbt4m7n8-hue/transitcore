@@ -9,19 +9,20 @@ export function validateLinearSnapshot(body){
  const l=body.layout;
  if(l?.schemaVersion!==1||l.id!=="trondheim-white-map"||l.viewBox?.join(" ")!=="0 0 913 1280")throw Error("invalid_layout");
  if(!Array.isArray(l.stops)||l.stops.length<100||l.stops.length>3000||!Array.isArray(l.paths)||l.paths.length>1000)throw Error("invalid_geometry_count");
- const ids=new Set();
+ const ids=new Set(),stopIds=new Set();
  for(const stop of l.stops){
   if(!stop||typeof stop.id!=="string"||!(/^(original-\d{3}|custom-stop-\d{3,4})$/.test(stop.id))||ids.has(stop.id)||!validPoint(stop)||!validPoint(stop.label)||typeof stop.label.visible!=="boolean"||typeof stop.name!=="string"||stop.name.length>120||!Array.isArray(stop.bindings)||stop.bindings.length>100||!["shared","split"].includes(stop.diodeMode)||!Number.isFinite(stop.radius)||stop.radius<2||stop.radius>20)throw Error("invalid_stop");
-  ids.add(stop.id);
+  ids.add(stop.id);stopIds.add(stop.id);
  }
- for(let i=0;i<100;i++)if(!ids.has("original-"+String(i).padStart(3,"0")))throw Error("missing_original_stop");
+ // The source image has original-000..original-101, excluding 022 and 023.
+ for(let i=0;i<102;i++)if(i!==22&&i!==23&&!ids.has("original-"+String(i).padStart(3,"0")))throw Error("missing_original_stop");
  for(const path of l.paths){
   if(!path||typeof path.id!=="string"||ids.has(path.id)||!(/^(trace-\d{2}|custom-path-\d{3,4})$/.test(path.id))||!Array.isArray(path.points)||path.points.length<2||path.points.length>1000||!path.points.every(validPoint)||!Array.isArray(path.routes)||path.routes.length>100||!/^#[0-9a-f]{6}$/i.test(path.color)||!Number.isFinite(path.width)||path.width<.5||path.width>15)throw Error("invalid_path");
   ids.add(path.id);
  }
  if(!body.names||typeof body.names!=="object"||Array.isArray(body.names)||Object.keys(body.names).length>l.stops.length)throw Error("invalid_names");
  for(const [id,name] of Object.entries(body.names)){
-  if(!ids.has(id)||typeof name!=="string"||name.length>80||!name.trim()||name!==name.trim().replace(/\s+/g," "))throw Error("invalid_name");
+  if(!stopIds.has(id)||typeof name!=="string"||name.length>80||!name.trim()||name!==name.trim().replace(/\s+/g," "))throw Error("invalid_name");
  }
  return {version:1,baseFingerprint:body.baseFingerprint,layout:l,names:body.names};
 }
