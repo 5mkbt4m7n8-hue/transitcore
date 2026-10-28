@@ -223,7 +223,7 @@
     ).join('\n'):'Ingen matchende buss observert på denne holdeplassen i valgt frame.';
    const vehicleId=q('debugVehicle').value.trim(),found=Live.findVehicle(frame,vehicleId);
    q('debugVehicleResult').textContent=vehicleId?
-    (diag.health.code==='VALID'?
+    (['VALID','LAST_VALID'].includes(diag.health.code)?
      (found.length?found.map(bus=>
       'Buss '+bus.id+' · linje '+(bus.line||'?')+' · LED '+bus.physicalLed+' · '+bus.state+
       '\n  '+(bus.destination||'ukjent destinasjon')+' · kilde '+bus.source
