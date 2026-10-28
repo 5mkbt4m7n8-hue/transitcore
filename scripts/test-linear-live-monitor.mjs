@@ -26,6 +26,9 @@ const frame={
  ]
 };
 assert.equal(Debug.frameHealth(frame,now).code,'VALID');
+assert.equal(Debug.frameHealth(frame,now,'LAST_VALID').code,'LAST_VALID');
+assert.match(Debug.frameHealth(frame,now,'LAST_VALID').label,/henting feilet/);
+
 assert.equal(Debug.frameHealth(frame,now+31000).code,'EXPIRED');
 assert.equal(Debug.frameHealth({...frame,generatedAt:'2026-10-28T07:01:00.000Z'},now).code,'FUTURE_FRAME');
 assert.equal(Debug.frameHealth({...frame,generatedAt:'not-a-time'},now).code,'INVALID_FRAME');
@@ -36,6 +39,11 @@ const base={stop,board,hardware,frame,line:'1',now};
 let diag=Debug.inspect(base);
 assert.equal(diag.code,'VISIBLE');
 assert.equal(diag.frameSequence,73);
+const cached=Debug.inspect({...base,feedStatus:'LAST_VALID'});
+assert.equal(cached.code,'VISIBLE','Cached valid frame can still explain current rendered marker');
+assert.equal(cached.health.code,'LAST_VALID');
+assert.match(cached.reason,/ny henting feilet/);
+
 assert.equal(diag.health.ageSeconds,10);
 assert.equal(diag.observations.length,1);
 assert.equal(diag.observations[0].source,'GPS');
