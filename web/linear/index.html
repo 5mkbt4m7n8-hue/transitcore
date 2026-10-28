@@ -83,12 +83,13 @@
 </main>
 <aside class="info" id="info"><button class="close" id="close">Lukk</button><h2 id="infoTitle"></h2><div id="infoBody"></div></aside>
 <script src="../shared/board-client-model.js"></script><script src="../shared/canonical-frame-client.js"></script><script src="../shared/signal-policy.js"></script><script src="../shared/route-occupancy.js"></script><script src="network/model.js"></script><script src="network/editor.js"></script>
-<script src="network/layout-ops.js"></script><script src="network/cloud-draft.js"></script><script src="geo/model.js"></script><script src="geo/stop-links.js"></script><script src="network/map.js"></script><script>
+<script src="network/layout-ops.js"></script><script src="network/live-monitor.js"></script><script src="network/cloud-draft.js"></script><script src="geo/model.js"></script><script src="geo/stop-links.js"></script><script src="network/map.js"></script><script>
 "use strict";
 const SIGNALS=TransitCoreSignals;SIGNALS.applyCssVariables(document);
 const $=id=>document.getElementById(id),BASE="../../config/",FLYBUSS="flybuss-trondheim-fb73-live";
 let frameClient,frameClientId,board,hardware,baseBoard,baseHardware,flyBoard,flyHardware,catalogBoard,catalogHardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,diagnosticTakeovers=0,diagnosticVehicles=new Map,diagnosticOneSided=new Map,colorCycleTimer=null;
 let refreshGeneration=0,selectedGpsVehicle="",lastGpsDiagnostics=null,lastGpsFrame=null;
+let lastFeedStatus="WAITING",lastFeedError="",lastFeedBoardId="";
 const gpsDebugFields=["gpsSourceTime","gpsSourceAge","gpsDistance","gpsEvidenceState","gpsPhysicalLed","gpsLedState","gpsFrameTime","gpsSourceToFrame","gpsFrameAge","gpsStateChanged"];
 const stagingSelected=()=>$("source").value==="staging";
 const STAGING_ORIGIN="https://transitcore-linear-staging.lgb84.workers.dev";
@@ -348,16 +349,20 @@ async function refresh(){
   const clientId=$("source").value+":"+boardId;
   if(!frameClient||frameClientId!==clientId){frameClientId=clientId;frameClient=TransitCoreFrames.create({boardId,ledCount:hardware.leds.count,visual:board.render?.visual,...(stagingSelected()?{origin:STAGING_ORIGIN}:{})});}
   const result=await frameClient.refresh();if(generation!==refreshGeneration||document.hidden)return;
+  lastFeedStatus=result.sample?.status||"UNKNOWN";
+  lastFeedError=result.sample?.error||"";
+  lastFeedBoardId=boardId;
   if(result.frame)paint(result.frame);
+  else updateNetworkMap();
   if(bus1GpsSelected()&&$("gpsDebug").open&&result.frame&&result.sample.status==="VALID")void refreshGpsDebug(result.frame,generation);
   else if(bus1GpsSelected()&&$("gpsDebug").open)clearGpsDebug("Ingen fersk frame – sammenligning stoppet");
   $("status").textContent=boardId+" · "+result.algorithm+" · frame "+result.sample.sequence+" · alder "+result.sample.ageSeconds+" s · "+result.sample.status+(result.sample.error?" · FEIL: "+result.sample.error:"");
- }catch(error){if(generation!==refreshGeneration)return;lastFrame=null;networkMap?.clear();document.querySelectorAll(".led").forEach(l=>l.classList.remove("on","approaching","departed"));$("status").textContent=error.message;$("quality").textContent="IKKE TILGJENGELIG";}
+ }catch(error){if(generation!==refreshGeneration)return;lastFrame=null;lastFeedStatus="ERROR";lastFeedError=error.message;networkMap?.clear();updateNetworkMap();document.querySelectorAll(".led").forEach(l=>l.classList.remove("on","approaching","departed"));$("status").textContent=error.message;$("quality").textContent="IKKE TILGJENGELIG";}
  if(generation===refreshGeneration&&!document.hidden)timer=setTimeout(refresh,10000);
 }
 setInterval(()=>{if(!testing&&!document.hidden&&frameClient){const result=frameClient.snapshot();if(result.sample.status==="EXPIRED"&&result.frame)paint(result.frame);}},1000);
 document.addEventListener("visibilitychange",()=>{++refreshGeneration;clearTimeout(timer);if(!document.hidden)refresh()});
-function resetSourceView(){networkMap?.clear();selectedGpsVehicle="";clearGpsDebug("Venter på GPS-data");++refreshGeneration;clearTimeout(timer);testing=false;$("test").textContent="LED-test";frameClient=null;frameClientId=null;lastFrame=null;diagnosticVehicles.clear();diagnosticOneSided.clear();diagnosticTakeovers=0;$("info").classList.remove("show");$("activeCount").textContent="0";$("quality").textContent="Venter på valgt kilde";}
+function resetSourceView(){lastFeedStatus="WAITING";lastFeedError="";lastFeedBoardId="";networkMap?.clear();selectedGpsVehicle="";clearGpsDebug("Venter på GPS-data");++refreshGeneration;clearTimeout(timer);testing=false;$("test").textContent="LED-test";frameClient=null;frameClientId=null;lastFrame=null;diagnosticVehicles.clear();diagnosticOneSided.clear();diagnosticTakeovers=0;$("info").classList.remove("show");$("activeCount").textContent="0";$("quality").textContent="Venter på valgt kilde";}
 $("source").onchange=()=>{resetSourceView();build();return refresh();};
 $("gpsVehicle").onchange=()=>{selectedGpsVehicle=$("gpsVehicle").value;renderGpsDebug();};
 $("gpsDebug").ontoggle=()=>{if($("gpsDebug").open&&bus1GpsSelected())refresh();};
@@ -367,7 +372,7 @@ $("routeBadgeMode").onchange=()=>{if(lastFrame&&allRoutes())paint(lastFrame);};
 $("test").onclick=()=>{testing=!testing;if(testing)networkMap?.clear();$("test").textContent=testing?"Stopp test":"LED-test";if(!testing)return refresh();const leds=[...document.querySelectorAll(".led:not(.empty)")];let index=0;const step=()=>{if(!testing)return;document.querySelectorAll(".led").forEach(led=>led.classList.remove("on"));leds[index++%leds.length].classList.add("on");$("status").textContent=`LED-test ${index}/${leds.length}`;setTimeout(step,250)};step()};
 let networkMap=null,networkLoading=null;
 function updateNetworkMap(){
- if(networkMap&&profile)networkMap.update({board,hardware,boards:[baseBoard,catalogBoard,flyBoard].filter(Boolean),profiles,route:profile.id,line:profile.line.publicCode,routesByLine:Object.fromEntries(profiles.map(p=>[String(p.line.publicCode),p.id])),all:allRoutes(),numbers:routeBadgeMode()==="numbers",frame:testing?null:lastFrame});
+ if(networkMap&&profile)networkMap.update({board,hardware,boards:[baseBoard,catalogBoard,flyBoard].filter(Boolean),profiles,route:profile.id,line:profile.line.publicCode,routesByLine:Object.fromEntries(profiles.map(p=>[String(p.line.publicCode),p.id])),all:allRoutes(),numbers:routeBadgeMode()==="numbers",frame:testing?null:lastFrame,feedStatus:testing?"TEST_MODE":lastFeedStatus,feedError:testing?"LED-test aktiv – ikke live":lastFeedError,feedBoardId:lastFeedBoardId,feedSource:stagingSelected()?"STAGING":"Produksjon"});
 }
 async function setMapMode(network){
  $("networkView").hidden=!network;$("linearView").hidden=network;
