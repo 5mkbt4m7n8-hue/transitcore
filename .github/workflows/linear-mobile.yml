@@ -7,7 +7,9 @@ on:
       - 'scripts/test-linear-mobile-integration.mjs'
       - 'scripts/test-intransit-map.mjs'
       - 'scripts/test-linear-cloud-draft.mjs'
+      - 'scripts/test-linear-publish.mjs'
       - 'worker/linear-draft.mjs'
+      - 'worker/linear-publish.mjs'
       - 'worker/led-feed-worker.mjs'
       - 'scripts/browser-intransit-map.mjs'
       - 'scripts/audit-intransit-route-evidence.mjs'
@@ -20,7 +22,9 @@ on:
       - 'scripts/test-linear-mobile-integration.mjs'
       - 'scripts/test-intransit-map.mjs'
       - 'scripts/test-linear-cloud-draft.mjs'
+      - 'scripts/test-linear-publish.mjs'
       - 'worker/linear-draft.mjs'
+      - 'worker/linear-publish.mjs'
       - 'worker/led-feed-worker.mjs'
       - 'scripts/browser-intransit-map.mjs'
       - 'scripts/audit-intransit-route-evidence.mjs'
@@ -46,6 +50,9 @@ jobs:
 
       - name: Verify protected persistent Linear cloud drafts
         run: node scripts/test-linear-cloud-draft.mjs
+
+      - name: Verify GitHub map publication uses a saved cloud revision
+        run: node scripts/test-linear-publish.mjs
 
       - name: Audit schematic route coverage without fetching live data
         env:
