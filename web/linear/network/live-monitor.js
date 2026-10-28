@@ -17,6 +17,7 @@
   const age=(now-generated)/1000;
   if(age<0)return {code:"FUTURE_FRAME",label:"Frame-tidsstempelet ligger i fremtiden",ageSeconds:age};
   if(age>ttl)return {code:"EXPIRED",label:"Frame er utdatert",ageSeconds:age,ttlSeconds:ttl};
+  if(feedStatus==="LAST_VALID")return {code:"LAST_VALID",label:"Ny henting feilet; viser siste gyldige frame innenfor TTL",ageSeconds:age,ttlSeconds:ttl};
   return {code:"VALID",label:"Frame er innenfor TTL",ageSeconds:age,ttlSeconds:ttl};
  }
  function vehicles(frame){
@@ -52,7 +53,8 @@
   const acceptedIds=leds.filter(id=>!sharedLedIds.includes(id));
   const observed=vehicles(frame).filter(v=>acceptedIds.includes(v.physicalLed));
   const matched=observed.filter(v=>line===null||v.line===String(line));
-  const displayed=health.code==="VALID"&&!invalidQuay
+  const usable=health.code==="VALID"||health.code==="LAST_VALID";
+  const displayed=usable&&!invalidQuay
    ?Model.signals(stop,board,hardware,frame,line,now,null,quayId?[quayId]:null):[];
   const perQuay=quays.map(id=>{
    const entries=bindings.filter(b=>b.stopId===id);
@@ -66,10 +68,10 @@
   if(stop.verification!=="confirmed") [code,reason]=["UNVERIFIED_STOP","Holdeplassens Entur-kobling er ikke bekreftet; sanntidsmarkøren kan ikke brukes som bevis."];
   else if(invalidQuay)[code,reason]=["UNKNOWN_QUAY","Valgt Quay finnes ikke i denne holdeplassens kartkoblinger."];
   else if(!quays.length)[code,reason]=["NO_QUAY","Kartpunktet har ingen registrert Entur Quay-ID."];
-  else if(health.code!=="VALID")[code,reason]=[health.code,health.label+". Ingen aktuell bussposisjon kan bekreftes."];
+  else if(!usable)[code,reason]=[health.code,health.label+". Ingen aktuell bussposisjon kan bekreftes."];
   else if(!filtered.length)[code,reason]=["NOT_IN_BOARD","Valgt Quay er ikke koblet til den aktive tavleprofilen. Det sier ikke noe om fysisk busstrafikk."];
   else if(!acceptedIds.length&&sharedLedIds.length)[code,reason]=["AMBIGUOUS_LED","Samme fysiske LED er koblet til flere Quays. Plattformspesifikk posisjon kan ikke bekreftes."];
-  else if(displayed.length)[code,reason]=["VISIBLE","Aktiv observasjon i gyldig frame matcher valgt Quay og linjefilter."];
+  else if(displayed.length)[code,reason]=["VISIBLE",health.code==="LAST_VALID"?"Observasjon fra siste gyldige frame matcher Quay og linjefilter, men ny henting feilet.":"Aktiv observasjon i gyldig frame matcher valgt Quay og linjefilter."];
   else if(observed.length&&!matched.length&&line!==null)[code,reason]=["OTHER_LINE","Det finnes observasjoner på tilknyttet LED, men ingen matcher valgt busslinje."];
   else if(matched.length)[code,reason]=["NO_RENDERED_SIGNAL","Observasjoner finnes, men markøren er ikke aktiv i gjeldende visningsregler."];
   else [code,reason]=["NOT_OBSERVED","Ingen matchende observasjon på tilknyttet LED i denne framen. Dette beviser ikke at det ikke kjører buss."];
