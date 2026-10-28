@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {compactFrame,recordDaySample,pinDemo,dayHistoryStorage,handleTrondheimHistory} from '../worker/trondheim-history.mjs';
-const board='trondheim-shared-stops-board';
+const board='trondheim-city-lines-catalog';
 const localDay=stamp=>new Intl.DateTimeFormat('en-CA',{
  timeZone:'Europe/Oslo',year:'numeric',month:'2-digit',day:'2-digit'
 }).format(new Date(stamp));
@@ -16,7 +16,7 @@ class Storage{
 const store=new Storage(),now=Date.now(),day=localDay(now);
 const previous=localDay(now-24*60*60*1000);
 const sample=offset=>new Date(now+offset).toISOString();
-const makeFrame=(at,sequence=5)=>({schemaVersion:1,boardProfile:board,ledCount:147,
+const makeFrame=(at,sequence=5)=>({schemaVersion:1,boardProfile:board,ledCount:1282,
  generatedAt:at,sequence,ttlSeconds:30,leds:[
  {id:8,rgb:[25,90,110],brightness:32,state:'AT_STOP',
   vehicle:{id:'test-bus-11',line:'11',destination:'Lerkendal',latitude:63.1,longitude:10.4,source:'GPS'},
@@ -83,7 +83,7 @@ const publicResponse=await handleTrondheimHistory(new Request('https://worker.ex
 assert.equal(publicResponse.status,200);
 assert.equal((await publicResponse.json()).archive.day,previous);
 const worker=fs.readFileSync(new URL('../worker/led-feed-worker.mjs',import.meta.url),'utf8');
-assert.match(worker,/boardFrameResponse\("trondheim-shared-stops-board",env,"history"\)/);
+assert.match(worker,/boardFrameResponse\("trondheim-city-lines-catalog",env,"history"\)/);
 assert.match(worker,/recordScheduledTrondheimFrame\(/);
 assert.match(worker,/v1\/trondheim\/history/);
 const ui=fs.readFileSync(new URL('../web/linear/network/map.js',import.meta.url),'utf8');
