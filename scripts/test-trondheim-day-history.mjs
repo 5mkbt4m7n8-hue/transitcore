@@ -89,5 +89,5 @@ assert.match(worker,/v1\/trondheim\/history/);
 const ui=fs.readFileSync(new URL('../web/linear/network/map.js',import.meta.url),'utf8');
 const browser=fs.readFileSync(new URL('../web/linear/network/history-ui.js',import.meta.url),'utf8');
 for(const text of ['playbackFrame','playbackClock','recordedStop','loadReplayBoard','History.create'])assert(ui.includes(text));
-for(const text of ['dayHistory','timeline','archive','Bevar valgt døgn','onFrame(sample)','onLive()'])assert(browser.includes(text));
+for(const text of ['dayHistory','timeline','archive','Bevar valgt døgn','onFrame(sample,','onLive()'])assert(browser.includes(text));
 console.log('Trondheim history: 5min records, explicit errors, pagination, 24h+demo, privacy, admin and replay hooks PASS');
