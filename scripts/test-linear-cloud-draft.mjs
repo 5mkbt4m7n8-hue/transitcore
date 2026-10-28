@@ -8,6 +8,20 @@ const client=require("../web/linear/network/cloud-draft.js");
 const original=JSON.parse(readFileSync(new URL("../web/linear/network/trondheim-layout.json",import.meta.url)));
 const body={version:1,baseFingerprint:"abc123ef-125894",layout:structuredClone(original),names:{"original-014":"Solsiden oppdatert"}};
 assert.deepEqual(validateLinearSnapshot(body),body);
+const split=structuredClone(body);
+split.layout.stops.find(s=>s.id==='original-014').diodeMode='split';
+split.layout.stops.find(s=>s.id==='original-014').platformSides={
+ 'NSR:Quay:73975':{side:'left',verification:'user-reviewed'},
+ 'NSR:Quay:73976':{side:'right',verification:'user-reviewed'}
+};
+assert.deepEqual(validateLinearSnapshot(split),split);
+const unverified=structuredClone(split);
+unverified.layout.stops.find(s=>s.id==='original-014').platformSides['NSR:Quay:73975'].verification='auto';
+assert.throws(()=>validateLinearSnapshot(unverified),/invalid_platform_sides/);
+const spoofed=structuredClone(split);
+spoofed.layout.stops.find(s=>s.id==='original-014').platformSides['NSR:Quay:00000']={side:'right',verification:'user-reviewed'};
+assert.throws(()=>validateLinearSnapshot(spoofed),/invalid_platform_sides/);
+
 for(const change of [
  value=>{value.baseFingerprint="invalid";},
  value=>{value.layout.stops[0].x=-1;},
