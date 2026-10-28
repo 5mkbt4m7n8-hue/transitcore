@@ -6,6 +6,9 @@ on:
       - 'web/shared/**'
       - 'scripts/test-linear-mobile-integration.mjs'
       - 'scripts/test-intransit-map.mjs'
+      - 'scripts/test-linear-cloud-draft.mjs'
+      - 'worker/linear-draft.mjs'
+      - 'worker/led-feed-worker.mjs'
       - 'scripts/browser-intransit-map.mjs'
       - 'scripts/audit-intransit-route-evidence.mjs'
       - '.github/workflows/linear-mobile.yml'
@@ -16,6 +19,9 @@ on:
       - 'web/shared/**'
       - 'scripts/test-linear-mobile-integration.mjs'
       - 'scripts/test-intransit-map.mjs'
+      - 'scripts/test-linear-cloud-draft.mjs'
+      - 'worker/linear-draft.mjs'
+      - 'worker/led-feed-worker.mjs'
       - 'scripts/browser-intransit-map.mjs'
       - 'scripts/audit-intransit-route-evidence.mjs'
       - '.github/workflows/linear-mobile.yml'
@@ -37,6 +43,9 @@ jobs:
 
       - name: Verify InTransit layout, mapping and editor
         run: node scripts/test-intransit-map.mjs
+
+      - name: Verify protected persistent Linear cloud drafts
+        run: node scripts/test-linear-cloud-draft.mjs
 
       - name: Audit schematic route coverage without fetching live data
         env:
