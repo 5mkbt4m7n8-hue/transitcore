@@ -203,7 +203,13 @@ kjøretøy i Trondheim eller et sekund-for-sekund GPS-opptak.
 - Automatisk beholdes **kalenderdagen i dag og i går**, regnet i
   \`Europe/Oslo\`, slik at gårsdagens ferdige opptak kan arkiveres dagen
   etter. Dette er ikke permanent lagring av alle dager.
-- Én ferdig dag kan beskyttes som **demoarkiv** ved å skrive inn
+- **Første nesten komplette døgn** (minst 240 av normalt 288
+  femminuttersmålinger og over 20 timers spenn) beholdes **automatisk**
+  som demo når neste kalenderdag starter. Brukeren trenger ikke åpne
+  nettleseren. Startdagen kan være ufullstendig ved deploy og blir da
+  ikke automatisk arkivert. Dette er et eksplisitt kontrollert opptak,
+  ikke et garantert hullfritt GPS-datasett.
+- En annen ferdig dag kan beskyttes som **demoarkiv** ved å skrive inn
   administratornøkkel og trykke «Bevar valgt døgn som demo». Den
   originale dagen beholdes da i Durable Object over tid, også når de
   rullerende dagene slettes. Ny arkivering erstatter forrige demovalg.
