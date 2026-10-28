@@ -20,22 +20,16 @@
    bindings:[],reviewNote:'Ny holdeplass: navn og Entur-/Quay-ID avklares senere'});
   return id;
  }
- // Move a stop and its label, preserving any schematic path vertices
- // that were joined to this exact original stop position.
+ // Replace coordinate objects to detach even imported aliases from paths.
  function moveStop(layout,id,x,y){
-  const stop=layout.stops.find(s=>s.id===id);
+  const index=layout.stops.findIndex(s=>s.id===id),stop=layout.stops[index];
   if(!stop)throw Error('Ukjent holdeplass');
   if(!Number.isFinite(x)||!Number.isFinite(y))throw Error('Ugyldig plassering');
-  const pos=clampPos(x,y),old={x:stop.x,y:stop.y};
-  const dx=pos.x-old.x,dy=pos.y-old.y;
-  stop.x=pos.x;stop.y=pos.y;
-  stop.label.x=clamp(stop.label.x+dx,0,W);
-  stop.label.y=clamp(stop.label.y+dy,0,H);
-  const ambiguous=layout.stops.some(s=>s.id!==id&&Math.hypot(s.x-old.x,s.y-old.y)<=0.8);
-  if(!ambiguous)for(const path of layout.paths)for(const vertex of path.points){
-   if(Math.hypot(vertex.x-old.x,vertex.y-old.y)<=0.8){vertex.x=pos.x;vertex.y=pos.y;}
-  }
-  return stop;
+  const pos=clampPos(x,y),dx=pos.x-stop.x,dy=pos.y-stop.y;
+  const moved={...stop,...pos,label:{...stop.label,
+   x:clamp(stop.label.x+dx,0,W),y:clamp(stop.label.y+dy,0,H)}};
+  layout.stops[index]=moved;
+  return moved;
  }
  function addPath(layout,x,y){
   const a=clampPos(x,y),end=clampPos(a.x+34<=W?a.x+34:a.x-34,a.y);

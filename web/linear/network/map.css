@@ -130,3 +130,6 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-history-pin label{display:grid;gap:5px;flex:1 1 210px;font-size:12px}
 .map-history-pin button{background:#4a356c}
 @media(max-width:560px){.map-history-controls button{flex:1 1 auto}}
+
+/* Hit area for small unresolved stops, including those with hidden labels. */
+.map-viewport .map-stop circle.map-stop-hit{fill:transparent;stroke:none;filter:none;pointer-events:all}

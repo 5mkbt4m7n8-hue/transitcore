@@ -137,6 +137,20 @@ try{
  await page.locator('[data-act=fit]').click();
  const box=await page.locator('svg.map-viewport').getAttribute('viewBox');await page.locator('[data-act=in]').click();assert.notEqual(await page.locator('svg.map-viewport').getAttribute('viewBox'),box);await page.locator('[data-act=fit]').click();
  await page.locator('[data-act=edit]').click();
+ // Unresolved, label-less original marker is selectable and renameable by touch.
+ const mobile=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+ await mobile.goto(`http://127.0.0.1:${server.address().port}/web/linear/index.html?view=network&stop=original-003`);
+ await mobile.waitForSelector('.map-stop[data-stop="original-003"]');
+ await mobile.locator('[data-act=edit]').click();
+ const yellow=mobile.locator('.map-stop[data-stop="original-003"]');
+ await yellow.tap();
+ await mobile.getByLabel('Navn på holdeplassen (lokalt visningsnavn)').fill('Gult stopp test');
+ await mobile.getByRole('button',{name:'Lagre visningsnavn'}).click();
+ assert.equal(await mobile.locator('.map-label[data-label="original-003"]').textContent(),'Gult stopp test');
+ await mobile.reload();
+ await mobile.waitForSelector('.map-label[data-label="original-003"]');
+ assert.equal(await mobile.locator('.map-label[data-label="original-003"]').textContent(),'Gult stopp test');
+ await mobile.close();
  // Exercise real UI -> authenticated Worker request -> acknowledged cloud save.
  let cloudRevision=0,cloudStored=null,cloudSaves=0,cloudAuthValid=true;
  await page.route('https://transitcore-led-feed.lgb84.workers.dev/v1/admin/linear-draft',async route=>{
@@ -208,9 +222,23 @@ try{
  await page.getByRole('button',{name:'Lagre visningsnavn'}).click();
  assert.equal(await page.locator('.map-label[data-label="original-014"]').textContent(),'Solsiden korrigert');
  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-geo-draft-v1')).geo.names['original-014']),'Solsiden korrigert');
+ const pathSnapshot=await page.locator('.map-route').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('points')));
  const originalPoint=await page.evaluate(async()=>{const layout=await fetch('./network/trondheim-layout.json').then(r=>r.json());return layout.stops.find(s=>s.id==='original-014');});
+ // Drag and undo must also leave the drawn lines unchanged.
+ const marker=page.locator('.map-stop[data-stop="original-014"]').first();
+ await marker.scrollIntoViewIfNeeded();
+ const markerBox=await marker.boundingBox();
+ await page.mouse.move(markerBox.x+markerBox.width/2,markerBox.y+markerBox.height/2);
+ await page.mouse.down();
+ await page.mouse.move(markerBox.x+markerBox.width/2+25,markerBox.y+markerBox.height/2+20,{steps:5});
+ await page.mouse.up();
+ const dragged=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.stops.find(s=>s.id==='original-014'));
+ assert(Math.hypot(dragged.x-originalPoint.x,dragged.y-originalPoint.y)>1,'Drag actually moves marker');
+ assert.deepEqual(await page.locator('.map-route').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('points'))),pathSnapshot,'Drag movement preserves all lines');
+ await page.locator('[data-act=undo]').click();
  await page.getByRole('button',{name:'Flytt valgt holdeplass'}).click();
  await page.locator('svg.map-viewport').click({position:{x:210,y:205}});
+ assert.deepEqual(await page.locator('.map-route').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('points'))),pathSnapshot,'Tap movement preserves all rendered lines');
  const movedDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')));
  const movedPoint=movedDraft.layout.stops.find(s=>s.id==='original-014');
  assert(movedPoint&&Math.hypot(movedPoint.x-originalPoint.x,movedPoint.y-originalPoint.y)>10,'Tap placement updates existing station coordinates');
@@ -219,6 +247,19 @@ try{
  await page.getByRole('button',{name:'Bruk originalnavn'}).click();
  assert.equal(await page.locator('.map-label[data-label="original-014"]').textContent(),'Solsiden');
  // Restore full-map coordinates before the existing sketch placement tests.
+ await page.locator('[data-act=fit]').click();
+ // Explicitly selecting a line still exposes independently editable vertices.
+ await page.locator('[data-role=reviewPath]').selectOption('trace-04');
+ assert((await page.locator('.map-handle[data-path="trace-04"]').count())>0);
+ const lineBefore=await page.locator('.map-route[data-route-path="trace-04"]').getAttribute('points');
+ await page.locator('.map-handle[data-path="trace-04"]').first().scrollIntoViewIfNeeded();
+ const handleBox=await page.locator('.map-handle[data-path="trace-04"]').first().boundingBox();
+ await page.mouse.move(handleBox.x+handleBox.width/2,handleBox.y+handleBox.height/2);
+ await page.mouse.down();
+ await page.mouse.move(handleBox.x+handleBox.width/2+20,handleBox.y+handleBox.height/2+20,{steps:4});
+ await page.mouse.up();
+ assert.notEqual(await page.locator('.map-route[data-route-path="trace-04"]').getAttribute('points'),lineBefore);
+ await page.locator('[data-act=undo]').click();
  await page.locator('[data-act=fit]').click();
  // The original white drawing is not modified when adding/removing a new element.
  const initialStops=await page.locator('.map-stop').count(),initialPaths=await page.locator('.map-route').count();
