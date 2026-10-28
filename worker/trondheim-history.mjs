@@ -68,9 +68,20 @@ export async function recordDaySample(storage,{capturedAt,frame=null,error=""}){
  const index=await storage.get(INDEX)||[];
  if(!index.includes(day)){index.push(day);index.sort();await storage.put(INDEX,index)}
  // Keep today and preceding Oslo calendar day, plus ONE explicitly pinned demo.
- const archive=await storage.get(DEMO);
+ let archive=await storage.get(DEMO);
  const today=localDay(Date.now());
  const yesterday=localDay(Date.UTC(Number(today.slice(0,4)),Number(today.slice(5,7))-1,Number(today.slice(8))-1,12));
+ // Automatically preserve the first near-complete day as the future demo,
+ // even if nobody remembers to log in and press the archive button.
+ // Require >=240 of ~288 scheduled 5-minute records and >20h span.
+ if(!archive){
+  const finished=await storage.get(metaKey(yesterday));
+  if(finished?.count>=240&&Date.parse(finished.last)-Date.parse(finished.first)>=20*3600000){
+   archive={day:yesterday,pinnedAt:new Date().toISOString(),count:finished.count,
+    errors:finished.errors,automatic:true};
+   await storage.put(DEMO,archive);
+  }
+ }
  const keep=new Set([today,yesterday,archive?.day].filter(Boolean));
  const expired=index.filter(d=>!keep.has(d));
  if(expired.length){
