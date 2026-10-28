@@ -65,7 +65,7 @@ try{
  let cloudRevision=0,cloudStored=null,cloudSaves=0,cloudAuthValid=true;
  await page.route('https://transitcore-led-feed.lgb84.workers.dev/v1/admin/linear-draft',async route=>{
   const request=route.request();
-  cloudAuthValid&&=(request.headers().authorization==='Bearer browser-test-secret');
+  if(request.method()!=='OPTIONS')cloudAuthValid&&=(request.headers().authorization==='Bearer browser-test-secret');
   let result,status=200;
   if(request.method()==='OPTIONS'){
    await route.fulfill({status:204,headers:{
