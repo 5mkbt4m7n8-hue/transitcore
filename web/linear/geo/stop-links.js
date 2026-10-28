@@ -34,8 +34,18 @@
   storage.setItem(KEY,JSON.stringify(draft));
   return {...draft.geo.names};
  }
+ // Apply one coherent remote name snapshot without overwriting manually
+ // placed GPS coordinates or geographic paths saved on this device.
+ function replaceNames(layout,names,store){
+  const storage=store||localStorage,draft=load(layout,storage);
+  if(!names||typeof names!=="object"||Array.isArray(names))throw Error("Ugyldige sky-navn");
+  draft.geo.names={...names};
+  Geo.validate(draft.geo,layout);
+  storage.setItem(KEY,JSON.stringify(draft));
+  return {...draft.geo.names};
+ }
  function readGeo(layout,store){return load(layout,store).geo;}
  function schematicUrl(id){return '../index.html?view=network&stop='+encodeURIComponent(id);}
  function geographicUrl(id){return './geo/?stop='+encodeURIComponent(id);}
- return {KEY,fingerprint,load,names,rename,readGeo,schematicUrl,geographicUrl};
+ return {KEY,fingerprint,load,names,rename,replaceNames,readGeo,schematicUrl,geographicUrl};
 });
