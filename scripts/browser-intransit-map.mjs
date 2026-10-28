@@ -234,6 +234,9 @@ try{
  assert.match(await page.locator('[data-role=platformProgress]').innerText(),/0\/65/);
  await page.locator('[data-act=undo]').click();
  assert.equal(await page.locator('.map-stop[data-stop="original-014"][data-side]').count(),0);
+ // The audit UI zooms to one stop. Restore the full map before the unrelated
+ // Ranheim real-time click test that follows later in this suite.
+ await page.locator('[data-act=fit]').click();
 
  const download=page.waitForEvent('download');await page.locator('[data-act=export]').click();assert.equal((await download).suggestedFilename(),'trondheim-layout.json');
  await page.locator('#linearMode').click();assert.equal(await page.locator('#rows').innerHTML(),rows);assert.equal(await page.locator('#linearView').isVisible(),true);
