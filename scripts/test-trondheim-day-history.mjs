@@ -44,6 +44,17 @@ const meta=await dayHistoryStorage(store,new Request('https://status.internal/tr
 assert.equal(meta.boardProfile,board);assert.equal(meta.cadenceMinutes,5);
 assert.equal(meta.days[0].count,2);assert.equal(meta.days[0].errors,1);
 assert.equal((await pinDemo(store,day,now)).status,409,'Do not archive unfinished current day');
+// A near-complete previous day is preserved automatically even if the user
+// does not open the browser or enter an administrator key.
+const auto=new Storage(),prefix='trondheim-history:v1:';
+await auto.put(prefix+'index',[previous]);
+await auto.put(prefix+'meta:'+previous,{day:previous,count:270,errors:3,
+ first:new Date(now-30*3600000).toISOString(),last:new Date(now-7*3600000).toISOString()});
+await recordDaySample(auto,{capturedAt:new Date(now-1000).toISOString(),frame:makeFrame(new Date(now-1000).toISOString())});
+const autoIndex=await dayHistoryStorage(auto,new Request('https://status.internal/trondheim-history')).then(r=>r.json());
+assert.equal(autoIndex.archive.day,previous);
+assert.equal(autoIndex.archive.automatic,true,'First complete day is kept for future demos');
+
 const pastTime=now-24*3600000;
 assert.equal((await recordDaySample(store,{capturedAt:new Date(pastTime).toISOString(),frame:makeFrame(new Date(pastTime).toISOString(),100)})).status,'OK');
 const pinned=await pinDemo(store,previous,now);
