@@ -7,9 +7,10 @@
 })(globalThis,function(){
  "use strict";
  const ENDPOINT="https://transitcore-led-feed.lgb84.workers.dev/v1/admin/linear-draft";
+ const PUBLISH_ENDPOINT="https://transitcore-led-feed.lgb84.workers.dev/v1/admin/linear-publish";
  function create({baseFingerprint,getLocal,applyRemote,hasLocal,status,endpoint=ENDPOINT,fetcher=fetch}){
   let token="",mode="disconnected",revision=0,saved=null,dirty=false,busy=false,timer=null,retryDelay=5000;
-  const report=(message,kind="info")=>status({mode,message,kind,revision});
+  const report=(message,kind="info")=>status({mode,message,kind,revision,dirty,busy});
   const buttons=()=>{
    return {mode,revision,dirty,busy};
   };
@@ -108,8 +109,21 @@
     return true;
    }catch(error){report("Kunne ikke synkronisere: "+error.message,"warn");return false;}
   }
+  async function publishDraft(){
+   if(mode!=="ready"||!token)throw Error("Koble til skylagringen først.");
+   if(busy||dirty)throw Error("Vent på bekreftelsen «Lagret permanent i skyen» før publisering.");
+   if(revision<1)throw Error("Ingen skyversjon er lagret ennå.");
+   const response=await fetcher(PUBLISH_ENDPOINT,{
+    method:"POST",cache:"no-store",
+    headers:{"authorization":"Bearer "+token,"content-type":"application/json"},
+    body:JSON.stringify({expectedRevision:revision})
+   });
+   const result=await response.json().catch(()=>({}));
+   if(!response.ok)throw Error(result.message||result.error||"HTTP "+response.status);
+   return result;
+  }
   function beforeLeaving(){if(mode==="ready"&&dirty)void flush();}
-  return {connect,disconnect,changed,flush,chooseRemote,chooseLocal,beforeLeaving,buttons};
+  return {connect,disconnect,changed,flush,chooseRemote,chooseLocal,beforeLeaving,publishDraft,buttons};
  }
  return {create};
 });
