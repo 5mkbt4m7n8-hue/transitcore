@@ -59,6 +59,22 @@ try{
  await saveScreenshot('04-route-review-trace-04.png');
  assert.match(await page.locator('[data-role=details]').innerText(),/trace-04/);
  assert.equal(calls,auditRequests,'Map review controls must not fetch live frames');
+ // Read-only map diagnostics must load without adding any feed requests.
+ const beforeDebug=calls;
+ await page.locator('[data-role=liveDebug] summary').click();
+ await page.locator('[data-role=debugStop]').selectOption('original-014');
+ assert.match(await page.locator('[data-role=debugQuays]').innerText(),/NSR:Quay:73975/);
+ assert.match(await page.locator('[data-role=debugMeta]').innerText(),/frame #/);
+ await page.locator('[data-role=debugQuay]').selectOption('NSR:Quay:73975');
+ assert.match(await page.locator('[data-role=debugReason]').innerText(),/^(VISIBLE|OTHER_LINE|NOT_OBSERVED|NO_FRAME|NOT_IN_BOARD|EXPIRED)$/);
+ await page.locator('[data-role=debugVehicle]').fill('bus-not-in-this-frame');
+ assert.match(await page.locator('[data-role=debugVehicleResult]').innerText(),/ikke observert|Ingen gyldig frame/);
+ const debugDownload=page.waitForEvent('download');
+ await page.locator('[data-act=exportLiveDebug]').click();
+ assert.equal((await debugDownload).suggestedFilename(),'trondheim-live-diagnose.json');
+ assert.equal(calls,beforeDebug,'Live diagnostics must not fetch extra frames');
+ await page.locator('[data-role=liveDebug] summary').click();
+ await page.locator('[data-act=fit]').click();
  const box=await page.locator('svg.map-viewport').getAttribute('viewBox');await page.locator('[data-act=in]').click();assert.notEqual(await page.locator('svg.map-viewport').getAttribute('viewBox'),box);await page.locator('[data-act=fit]').click();
  await page.locator('[data-act=edit]').click();
  // Exercise real UI -> authenticated Worker request -> acknowledged cloud save.
@@ -244,6 +260,14 @@ try{
  live=true;await page.locator('#refresh').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('VALID'));
  await page.locator('#networkMode').click();await page.waitForSelector('.map-stop[data-state="AT_STOP"]');
  await page.locator('.map-stop[data-state="AT_STOP"]').first().click();assert.match(await page.locator('[data-role=details]').innerText(),/Kilde: ETA/);
+ await page.locator('[data-role=liveDebug] summary').click();
+ await page.locator('[data-role=debugStop]').selectOption('original-004');
+ await page.locator('[data-role=debugVehicle]').fill('fixture-bus');
+ assert.match(await page.locator('[data-role=debugVehicleResult]').innerText(),/fixture-bus/);
+ assert.match(await page.locator('[data-role=debugVehicleResult]').innerText(),/LED 0/);
+ assert.equal(await page.locator('[data-role=debugHealth]').getAttribute('data-code'),'VALID');
+ await page.locator('[data-role=liveDebug] summary').click();
+ await page.locator('[data-act=fit]').click();
  assert.doesNotMatch(await page.locator('[data-role=details]').innerText(),/Kilde: GPS/);
  await page.waitForFunction(()=>document.querySelectorAll('.map-stop[data-state="AT_STOP"]').length===0,{timeout:7000});
  live=false;
