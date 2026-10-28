@@ -8,6 +8,7 @@ on:
       - 'scripts/test-intransit-map.mjs'
       - 'scripts/test-linear-cloud-draft.mjs'
       - 'scripts/test-linear-publish.mjs'
+      - 'scripts/test-linear-live-monitor.mjs'
       - 'worker/linear-draft.mjs'
       - 'worker/linear-publish.mjs'
       - 'worker/led-feed-worker.mjs'
@@ -23,6 +24,7 @@ on:
       - 'scripts/test-intransit-map.mjs'
       - 'scripts/test-linear-cloud-draft.mjs'
       - 'scripts/test-linear-publish.mjs'
+      - 'scripts/test-linear-live-monitor.mjs'
       - 'worker/linear-draft.mjs'
       - 'worker/linear-publish.mjs'
       - 'worker/led-feed-worker.mjs'
@@ -53,6 +55,9 @@ jobs:
 
       - name: Verify GitHub map publication uses a saved cloud revision
         run: node scripts/test-linear-publish.mjs
+
+      - name: Verify read-only live monitor and diagnostic reasons
+        run: node scripts/test-linear-live-monitor.mjs
 
       - name: Audit schematic route coverage without fetching live data
         env:
