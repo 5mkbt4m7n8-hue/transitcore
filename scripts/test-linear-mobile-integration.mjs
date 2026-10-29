@@ -253,4 +253,38 @@ assert(!etaPopup.includes('gammel GPS')&&!etaPopup.includes('Live frame'));
 const legacyPopup=popup({id:997,state:'AT_STOP',vehicle:{id:journeyId}});
 assert.match(legacyPopup,/Linje:<\/strong> Ukjent/,'Never infer route identity from selected profile');
 assert.match(legacyPopup,/Ankomstprognose \(ETA\)/,'Old journey-only frames cannot claim GPS');
+// Line 11 stop view must show a physically nearby line 1 bus, including
+// when its headsign does not belong to the selected route.
+el('route').value='atb-bus-11-live';
+el('allRoutes').checked=false;
+el('route').onchange();
+await new Promise(resolve=>setImmediate(resolve));
+const otherLineClasses=new Set();
+const stopLed={dataset:{id:'134',name:'Bukkvollan',direction:'mot Blakli'},
+ style:{},classList:{
+  add(...names){for(const name of names)otherLineClasses.add(name);},
+  remove(...names){for(const name of names)otherLineClasses.delete(name);},
+  contains(name){return otherLineClasses.has(name);}
+ }};
+context.document.querySelectorAll=selector=>{
+ if(selector==='.led'||selector==='.led[data-id]'||selector==='.led[data-id="134"]')return [stopLed];
+ if(selector==='.station-buses'||selector==='.led.on[data-colors]')return [];
+ return [];
+};
+const offRouteItem={id:134,state:'AT_STOP',rgb:[237,83,80],vehicle:{
+ id:'line-1-detour',line:'1',destination:'Unexpected',ageSeconds:3,
+ distanceMeters:4,positionType:'gps-nearest-stop',routeListedHere:false
+},occupants:[{id:'line-1-detour',line:'1',destination:'Unexpected',
+ state:'AT_STOP',rgb:[237,83,80],distanceMeters:4,ageSeconds:3,
+ positionType:'gps-nearest-stop',routeListedHere:false}]};
+vm.runInContext('paint('+JSON.stringify({...frame,boardProfile:'trondheim-city-lines-catalog',
+ ledCount:1282,leds:[offRouteItem]})+')',context);
+assert(otherLineClasses.has('on'),'Selected line 11 must display an off-route line 1 GPS bus at a listed stop');
+assert.equal(JSON.parse(stopLed.dataset.vehicle).line,'1');
+const offRoutePopup=popup(offRouteItem);
+assert.match(offRoutePopup,/Linje:<\/strong> 1/);
+assert.match(offRoutePopup,/Nærmeste registrerte plattform/);
+assert.match(offRoutePopup,/GPS bekrefter ikke faktisk stopp/);
+assert.match(offRoutePopup,/Linjen er ikke registrert på denne plattformen/);
+context.document.querySelectorAll=originalQuery;
 console.log('Linear HTML, full Bus1 147 mapping, popup evidence, mobile defaults, GPS Debug PASS');
