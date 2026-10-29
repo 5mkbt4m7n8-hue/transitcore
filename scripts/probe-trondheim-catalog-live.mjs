@@ -75,6 +75,13 @@ async function probe(label,origin){
   result.ttlSeconds=data.ttlSeconds;
   result.activeLedCount=data.leds.length;
   result.sequence=data.sequence;
+  // Release health only: aggregate GPS proximity metadata, no raw positions or IDs.
+  result.gpsNearestStopCount=data.leds.filter(led=>
+   led.vehicle?.positionType==='gps-nearest-stop' ||
+   led.occupants?.some(o=>o.positionType==='gps-nearest-stop')).length;
+  result.offRouteNearestStops=data.leds.filter(led=>
+   led.vehicle?.routeListedHere===false ||
+   led.occupants?.some(o=>o.routeListedHere===false)).length;
  }catch(error){
   result.verdict='INVALID_OR_UNREACHABLE';
   result.reason=(error?.code||error?.name||'error').slice(0,55);
@@ -145,7 +152,13 @@ async function pageReleaseCheck(){
   result.http=response.status;result.bytes=bytes;
   result.unified=body.includes('boards/trondheim-city-lines-catalog.json')&&
    !body.includes('boards/trondheim-bus-board.json');
-  result.verdict=response.status===200&&result.unified?'VALID':'NOT_YET_PUBLISHED';
+  result.proximityPopup=body.includes('gps-nearest-stop')&&
+   body.includes('GPS innenfor stoppradius');
+  const profile=await fetchBounded('https://5mkbt4m7n8-hue.github.io/transitcore/config/routes/atb-bus-11-live.json');
+  result.line11Label=profile.response.ok
+   ?JSON.parse(profile.body).directions?.find(direction=>direction.reverseShape)?.label:null;
+  result.verdict=response.status===200&&result.unified&&result.proximityPopup&&
+   result.line11Label==='mot Blakli'?'VALID':'NOT_YET_PUBLISHED';
  }catch(error){result.verdict='UNAVAILABLE';result.reason=(error?.name||'network').slice(0,40)}
  return result;
 }
