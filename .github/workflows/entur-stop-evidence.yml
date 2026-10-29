@@ -1,0 +1,22 @@
+name: Entur Stop Evidence Research (read only)
+on:
+  pull_request:
+    paths:
+      - 'scripts/probe-entur-stop-evidence.mjs'
+      - '.github/workflows/entur-stop-evidence.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288ca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Read-only Entur schema and SIRI stop field presence; aggregates only
+        run: node scripts/probe-entur-stop-evidence.mjs
