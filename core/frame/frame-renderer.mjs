@@ -18,7 +18,9 @@ export function renderStationFrame({ board, hardware, now, signalPolicy: SIGNAL_
   const proximityJson = item => usesStrictStationGps(board) ? {
     positionType: item.positionType, routeListedHere: item.routeListedHere,
     quayId:item.quayId, stopPlaceId:item.stopPlaceId,
-    platformEvidence: item.platformEvidence, platformConfirmed: false,
+    platformEvidence: item.platformEvidence,
+    platformConfirmed: item.platformConfirmed === true,
+    ...(item.providerReportedAtStop === true ? {providerReportedAtStop:true} : {}),
     nearestQuayLed: item.nearestQuayLed,
     nearestQuayDistanceMeters: Math.round(item.nearestQuayDistanceMeters),
     withinStopRadius: item.withinStopRadius
