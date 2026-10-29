@@ -326,3 +326,22 @@ assert.deepEqual(signalFrames[6].leds[0].rgb, [66, 165, 245], "Latest departure 
 assert.equal(signalFrames[6].leds[0].brightness, 8);
 assert.deepEqual(signalFrames[7].leds, [], "Afterglow expires to OFF after ten seconds");
 console.log("Isolated Worker signal sequence tests OK");
+
+
+// Diagnostic for the original 1282 catalog (static only; no GPS tracking).
+const {readFileSync}=await import('node:fs');
+const line11Board=JSON.parse(readFileSync(new URL('../config/boards/trondheim-city-lines-catalog.json',import.meta.url),'utf8'));
+const line11Profile=JSON.parse(readFileSync(new URL('../config/routes/atb-bus-11-live.json',import.meta.url),'utf8'));
+const line11Nodes=line11Board.nodes.filter(node=>node.routes?.includes(line11Profile.id));
+const bukkvollan=line11Nodes.filter(node=>node.name==='Bukkvollan'||(node.stopIds||[]).some(id=>id==='NSR:Quay:75463'||id==='NSR:Quay:75464'));
+const destinations=['Risvollan','Blakli','Stavset','Risvollan senter'];
+console.log('LINE11_STATIC_DIRECTION_AUDIT '+JSON.stringify({
+ profileDirections:line11Profile.directions.map(d=>({label:d.label,words:d.destinationMatches,reverse:d.reverseShape})),
+ bukkvollan:bukkvollan.map(n=>({
+  led:n.led,quayId:n.quayId,stopIds:n.stopIds,
+  rule:n.routeDirections?.[line11Profile.id],
+  matchingDestinations:Object.fromEntries(destinations.map(dest=>[dest,matchesDirection(n,line11Profile,dest)]))
+ })),
+ coverage:Object.fromEntries(destinations.map(dest=>[dest,line11Nodes.filter(n=>matchesDirection(n,line11Profile,dest)).length])),
+ totalLine11Nodes:line11Nodes.length
+}));
