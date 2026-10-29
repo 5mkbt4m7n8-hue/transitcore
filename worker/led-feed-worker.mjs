@@ -18,6 +18,7 @@ import { handleLinearDraft,linearDraftStorage } from "./linear-draft.mjs";
 import {handleLinearPublish} from "./linear-publish.mjs";
 import {dayHistoryStorage,handleTrondheimHistory,recordScheduledTrondheimFrame} from "./trondheim-history.mjs";
 import {trondheimCatalogProfiles} from "./trondheim-catalog-profiles.mjs";
+import {catalogIndex} from "../core/engines/catalog-index.mjs";
 
 export const SIGNAL_POLICY = Object.freeze({
   version: 1,
@@ -48,6 +49,7 @@ export const validBoardId = value => typeof value === "string" && /^[a-z0-9-]{3,
 const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
 const configCache = new Map();
+const configPending = new Map();
 // A scheduled invocation checks multiple boards at once; they often share
 // route-profile JSON. Deduplicate in-flight loads and reuse only for the
 // existing five-minute configuration TTL, preserving the original freshness.
@@ -833,6 +835,14 @@ async function fetchRouteProfile(id, now) {
 async function configuration(boardId, now) {
   const cached = configCache.get(boardId);
   if (cached && now - cached.loadedAt < CONFIG_TTL_MS) return cached.value;
+  if (configPending.has(boardId)) return configPending.get(boardId);
+  const pending = loadConfiguration(boardId, now);
+  configPending.set(boardId, pending);
+  try { return await pending; }
+  finally { if (configPending.get(boardId) === pending) configPending.delete(boardId); }
+}
+
+async function loadConfiguration(boardId, now) {
   let board = await fetchJson(`${REPOSITORY}/config/boards/${boardId}.json`);
   // The 1282-position Trondheim catalog has 48 route profiles. Loading
   // each from raw GitHub exceeds the Free Worker limit (50 subrequests) as
@@ -849,6 +859,7 @@ async function configuration(boardId, now) {
   const resolvedHardware = hardware || defaultHardware(board);
   validateConfiguration(board, profiles, resolvedHardware);
   await attachProfileIdentity(board,resolvedHardware);
+  if (bundledCatalog) catalogIndex(board.nodes);
   const value = { board, profiles, hardware: resolvedHardware };
   configCache.set(boardId, { loadedAt: now, value });
   return value;

@@ -5,6 +5,9 @@ on:
       - "worker/trondheim-catalog-profiles.mjs"
       - "worker/led-feed-worker.mjs"
       - "core/frame/**"
+      - "core/engines/**"
+      - "scripts/benchmark-catalog-worker.mjs"
+      - "scripts/test-catalog-worker-concurrency.mjs"
       - "config/routes/**"
       - "scripts/test-feed-timing.mjs"
       - ".github/workflows/trondheim-catalog-bundle.yml"
@@ -18,11 +21,22 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
       - name: Run cold catalog subrequest regression
         run: node scripts/test-feed-timing.mjs
+      - name: Catalog semantic parity and stage CPU/heap benchmark
+        run: node --expose-gc scripts/benchmark-catalog-worker.mjs
+      - name: Catalog concurrent cold requests and refresh
+        run: node scripts/test-catalog-worker-concurrency.mjs
+      - name: Platform, pipeline, legacy and history regressions
+        run: |
+          node scripts/test-catalog-platform-direction.mjs
+          node scripts/test-frame-pipeline.mjs
+          node scripts/test-led-feed-worker.mjs
+          node scripts/test-trondheim-day-history.mjs
       - name: Install pinned Wrangler (no lifecycle scripts)
         run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund wrangler@4.43.0
       - name: Bundle real Worker with route JSON imports (DRY RUN ONLY)

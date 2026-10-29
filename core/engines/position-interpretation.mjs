@@ -1,9 +1,11 @@
 import { distance, matchesDirection, vehicleAllowedByBoard, nearestRoutePosition } from "../frame/mapping-support.mjs";
+import { catalogIndex } from "./catalog-index.mjs";
 
 // Route profiles are configuration, never provider observations.
 export function interpretStationVehicles({ board, profiles, hardware, vehicles, now = Date.now() }) {
   const byLine = new Map(profiles.map(profile => [String(profile.line.publicCode), profile]));
   const catalogProximity = board.id === "trondheim-city-lines-catalog";
+  const index = catalogProximity ? catalogIndex(board.nodes) : null;
   // Empty headsigns are not direction evidence (legacy physical boards retain
   // their existing matching semantics).
   const catalogMatches = (node, vehicle) => {
@@ -34,7 +36,7 @@ export function interpretStationVehicles({ board, profiles, hardware, vehicles, 
       const radius = Math.max(Number(board.render.approachRadiusMeters) || 250, 1);
       const latLimit = radius / 110000;
       const lonLimit = radius / (111000 * Math.max(0.2, Math.cos(vehicle.lat * Math.PI / 180)));
-      for (const candidate of board.nodes) {
+      for (const candidate of index.candidates(vehicle.lat, vehicle.lon, latLimit, lonLimit)) {
         if (!Number.isFinite(candidate.lat) || !Number.isFinite(candidate.lon) ||
             Math.abs(candidate.lat - vehicle.lat) > latLimit ||
             Math.abs(candidate.lon - vehicle.lon) > lonLimit) continue;
@@ -47,7 +49,7 @@ export function interpretStationVehicles({ board, profiles, hardware, vehicles, 
       // or outside the measured approach radius.
       const nearestNode = node, nearestMeters = meters;
       if (node?.stationId) {
-        const matched = board.nodes.filter(candidate =>
+        const matched = (index.stations.get(node.stationId) || []).filter(candidate =>
           candidate.stationId === node.stationId &&
           candidate.routes?.includes(vehicle.profile.id) &&
           catalogMatches(candidate, vehicle));
