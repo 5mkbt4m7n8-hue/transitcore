@@ -1,9 +1,6 @@
 name: Entur Stop Evidence Research (read only)
 on:
-  pull_request:
-    paths:
-      - 'scripts/probe-entur-stop-evidence.mjs'
-      - '.github/workflows/entur-stop-evidence.yml'
+  # Entur SIRI Lite is limited to 4 requests/minute; avoid per-commit PR probes.
   workflow_dispatch:
 permissions:
   contents: read
