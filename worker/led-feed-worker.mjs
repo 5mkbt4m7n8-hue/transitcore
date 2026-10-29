@@ -1039,7 +1039,47 @@ async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
     // vehicle-position route subset on mixed GPS/ETA catalog boards.
     const gpsBoard=vehicleProfiles.length===profiles.length?board:
       {...board,routes:vehicleProfiles.map(profile=>profile.id)};
-    frames.push(buildPixelFrame(frameContext({ board:gpsBoard, profiles: vehicleProfiles, hardware, vehicles, now })));
+    const gpsFrame=buildPixelFrame(frameContext({ board:gpsBoard, profiles: vehicleProfiles, hardware, vehicles, now }));
+    // A-B-C progress is deliberately SHADOW ONLY. The real LED and all
+    // hardware consumers still receive unchanged strict Quay placement.
+    // Staging's immutable candidate pin enables this; production requires
+    // a separate explicit opt-in, never inferred from a PR merge.
+    const shadowEnabled=env?.ROUTE_PROGRESS_SHADOW==="1" ||
+      /^[a-f0-9]{40}$/.test(String(env?.STAGING_COMMIT_SHA||""));
+    if(board.id==="trondheim-city-lines-catalog"&&env?.DEVICE_STATUS&&shadowEnabled){
+      try{
+        const compactProfiles=vehicleProfiles.map(p=>({
+          line:{publicCode:p.line.publicCode},
+          directions:(p.directions||[]).map(d=>({label:d.label,reverseShape:d.reverseShape})),
+          stops:(p.stops||[]).map(s=>({id:s.id,lat:s.lat,lon:s.lon}))
+        }));
+        const compactVehicles=vehicles.map(v=>({
+          id:v.id,publicCode:v.publicCode,latitude:v.latitude,
+          longitude:v.longitude,timestamp:v.timestamp
+        }));
+        const stub=env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName("__trondheim-route-progress-shadow__"));
+        const res=await stub.fetch("https://status.internal/route-progress-shadow",{
+          method:"POST",signal:AbortSignal.timeout(2000),
+          body:JSON.stringify({profiles:compactProfiles,vehicles:compactVehicles,now})
+        });
+        if(res.ok&&Array.isArray(gpsFrame.gpsObservations)){
+          const data=await res.json();
+          const evidence=new Map((data.results||[]).map(v=>[v.key,v]));
+          for(const o of gpsFrame.gpsObservations){
+            const tracked=evidence.get(String(o.line)+":"+String(o.id));
+            if(tracked)o.routeTracking={
+              status:tracked.status,
+              directionLabel:tracked.directionLabel,
+              checkpointCount:tracked.checkpointCount,
+              reason:tracked.reason,
+              // A direction hypothesis is not a confirmed Quay or stop.
+              platformConfirmed:false
+            };
+          }
+        }
+      }catch{/* Never break a valid LED frame because diagnostics failed. */}
+    }
+    frames.push(gpsFrame);
   }
   if (arrivalProfiles.length) {
     board.hardware = hardware;
