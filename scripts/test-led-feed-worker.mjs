@@ -373,4 +373,32 @@ assert.equal(matchedLine11.state,'AT_STOP');
 assert.equal(matchedLine11.vehicle?.line,'11');
 assert.equal(matchedLine11.vehicle?.destination,'Blakli');
 assert(!line11Frame.leds.some(led=>led.id===135),'Wrong-side LED 135 must remain off');
+// Off-route physical presence: a LINE 1 GPS observation at a LINE 11 stop
+// is shown as LINE 1, regardless of its headsign or the Quay route registry.
+const line1Profile=JSON.parse(readFileSync(new URL('../config/routes/atb-bus-1-live.json',import.meta.url),'utf8'));
+const crossRouteBoard={...line11Board,routes:[line11Profile.id,line1Profile.id]};
+const crossRouteVehicle={
+  vehicleId:'cross-route-line-1',destinationName:'Unexpected destination',
+  lastUpdated:new Date(now-3000).toISOString(),
+  line:{publicCode:'1'},location:{latitude:toRisvollan.lat,longitude:toRisvollan.lon}
+};
+const crossRouteFrame=buildFrame({board:crossRouteBoard,profiles:[line11Profile,line1Profile],hardware:line11Hardware,
+  vehicles:[crossRouteVehicle],now});
+const offRouteSignal=crossRouteFrame.leds.find(signal=>signal.id===134);
+assert(offRouteSignal,'GPS proximity must show a bus from another line at Bukkvollan');
+assert.equal(offRouteSignal.vehicle.line,'1','Preserve GPS-observed line, not selected route');
+assert.equal(offRouteSignal.vehicle.destination,'Unexpected destination');
+assert.equal(offRouteSignal.vehicle.positionType,'gps-nearest-stop');
+assert.equal(offRouteSignal.vehicle.routeListedHere,false);
+assert.equal(offRouteSignal.occupants[0].line,'1');
+assert.equal(offRouteSignal.occupants[0].routeListedHere,false);
+assert(!crossRouteFrame.leds.some(signal=>signal.id===135),'Nearest Quay should not illuminate both sides');
+const staleOffRoute=buildFrame({board:crossRouteBoard,profiles:[line11Profile,line1Profile],hardware:line11Hardware,
+  vehicles:[{...crossRouteVehicle,lastUpdated:new Date(now-600000).toISOString()}],now});
+assert.deepEqual(staleOffRoute.leds,[],'Stale GPS must not light a stop');
+const distantOffRoute=buildFrame({board:crossRouteBoard,profiles:[line11Profile,line1Profile],hardware:line11Hardware,
+  vehicles:[{...crossRouteVehicle,location:{latitude:63.05,longitude:10.1}}],now});
+assert.deepEqual(distantOffRoute.leds,[],'Faraway GPS must not light the nearest unrelated stop');
+assert.equal(line11Profile.directions[1].label,'mot Blakli');
+console.log('Line 11 Blakli endpoint, off-route line 1 proximity, confidence and staleness regressions OK');
 console.log('Line 11 Blakli/Risvollan Bukkvollan LED 134/135 direction and frame regression OK');
