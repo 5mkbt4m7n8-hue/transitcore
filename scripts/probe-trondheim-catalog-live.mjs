@@ -94,6 +94,11 @@ if(production.verdict!=='VALID') {
    const detail=String(latest?.detail||'');
    diag.failureStage=/^(configuration|live_data|motion):/.exec(detail)?.[1]||null;
    diag.routeParityMismatch=detail.includes('Route profile count mismatch');
+   diag.upstreamHttpCode=/Upstream HTTP ([45][0-9][0-9])/.exec(detail)?.[1]||null;
+   diag.timeout=/timed out|timeout|deadline/i.test(detail);
+   diag.providerFormat=/Invalid vehicle response/i.test(detail);
+   diag.fetchFailed=/fetch failed/i.test(detail);
+   diag.graphqlError=/GraphQL|Cannot query field|Unauthorized|Not authorized|syntax error|resource exhausted/i.test(detail);
    diag.sourceFailure=/provider|fetch|HTTP|timeout|deadline/i.test(detail);
   }
  }catch(e){diag.readError=(e?.name||'network_error').slice(0,40);}
