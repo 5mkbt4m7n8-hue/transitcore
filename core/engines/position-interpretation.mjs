@@ -13,24 +13,56 @@ export function interpretStationVehicles({ board, profiles, hardware, vehicles, 
   }
   const strongest = new Map(), occupantsByLed = new Map();
   for (const vehicle of dedupe.values()) {
-    const routeNodes = board.nodes.filter(node => node.routes.includes(vehicle.profile.id));
-    const directionNodes = routeNodes.filter(node => matchesDirection(node, vehicle.profile, vehicle.destination));
-    const hasDirectionMetadata = routeNodes.some(node => node.routeDirections?.[vehicle.profile.id]);
-    // A nearest-node fallback is unsafe on double-track boards: an unknown
-    // destination can otherwise activate the opposite direction's LED.
-    if (hasDirectionMetadata && !directionNodes.length) continue;
-    const candidates = directionNodes.length ? directionNodes : routeNodes;
+    const catalogProximity = board.id === "trondheim-city-lines-catalog";
     let node, meters = Infinity;
-    for (const candidate of candidates) {
-      const value = distance(vehicle, candidate);
-      if (value < meters) { node = candidate; meters = value; }
+    if (catalogProximity) {
+      // This is a physical proximity display, NOT a timetable/route validator.
+      // A bus can be on an unexpected route or have a different headsign.
+      // Select the closest documented Quay independently of its route list.
+      // Bounding-box first: avoid 1282 haversine calculations per bus.
+      const radius = Math.max(Number(board.render.approachRadiusMeters) || 250, 1);
+      const latLimit = radius / 110000;
+      const lonLimit = radius / (111000 * Math.max(0.2, Math.cos(vehicle.lat * Math.PI / 180)));
+      for (const candidate of board.nodes) {
+        if (!Number.isFinite(candidate.lat) || !Number.isFinite(candidate.lon) ||
+            Math.abs(candidate.lat - vehicle.lat) > latLimit ||
+            Math.abs(candidate.lon - vehicle.lon) > lonLimit) continue;
+        const value = distance(vehicle, candidate);
+        if (value < meters) { node = candidate; meters = value; }
+      }
+      // When Quays are very close together at the same StopPlace, a known
+      // line+headsign is useful for tie-breaking, but never a requirement.
+      // Never jump to a farther stop just because its route matches.
+      if (node?.stationId) {
+        const closeEnough = Math.min(25, radius / 3);
+        const matched = board.nodes.filter(candidate =>
+          candidate.stationId === node.stationId &&
+          candidate.routes?.includes(vehicle.profile.id) &&
+          matchesDirection(candidate, vehicle.profile, vehicle.destination));
+        for (const candidate of matched) {
+          const value = distance(vehicle, candidate);
+          if (value <= meters + closeEnough) { node = candidate; meters = value; break; }
+        }
+      }
+    } else {
+      // Preserve strict route/side matching for existing physical boards.
+      const routeNodes = board.nodes.filter(node => node.routes.includes(vehicle.profile.id));
+      const directionNodes = routeNodes.filter(node => matchesDirection(node, vehicle.profile, vehicle.destination));
+      const hasDirectionMetadata = routeNodes.some(node => node.routeDirections?.[vehicle.profile.id]);
+      if (hasDirectionMetadata && !directionNodes.length) continue;
+      const candidates = directionNodes.length ? directionNodes : routeNodes;
+      for (const candidate of candidates) {
+        const value = distance(vehicle, candidate);
+        if (value < meters) { node = candidate; meters = value; }
+      }
     }
     const approachRadius = board.render.approachRadiusMeters ?? 250;
     const arrivalRadius = board.render.arrivalRadiusMeters ?? 85;
     if (!node || meters > approachRadius) continue;
     const state = meters <= arrivalRadius ? "AT_STOP" : "APPROACHING";
     const id = node.led;
-    const candidate = { id, profile: vehicle.profile, vehicleId: vehicle.vehicleId, updated: vehicle.updated, destination: vehicle.destination, state, meters, lat: vehicle.lat, lon: vehicle.lon };
+    const candidate = { id, profile: vehicle.profile, vehicleId: vehicle.vehicleId, updated: vehicle.updated, destination: vehicle.destination, state, meters, lat: vehicle.lat, lon: vehicle.lon,
+      ...(catalogProximity ? {positionType:"gps-nearest-stop", routeListedHere:node.routes?.includes(vehicle.profile.id) === true} : {}) };
     const occupants = occupantsByLed.get(id) || [];
     occupants.push(candidate);
     occupantsByLed.set(id, occupants);
