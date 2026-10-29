@@ -60,6 +60,15 @@ try {
   assert.equal(historyWrites[0].frame.boardProfile,'trondheim-shared-stops-board');
   assert.ok(externalCalls.every(url => !url.includes('workers.dev')));
 
+  // Regression: this catalog mixes GPS vehicle routes and ETA route profiles.
+  // It must produce one 1282-point frame rather than fail GPS-profile parity.
+  const catalogResponse = await worker.fetch(
+    new Request('https://worker.test/v1/boards/trondheim-city-lines-catalog/frame'), env);
+  assert.equal(catalogResponse.status,200,'Full mixed GPS/ETA catalog must render');
+  const catalogFrame=await catalogResponse.json();
+  assert.equal(catalogFrame.boardProfile,'trondheim-city-lines-catalog');
+  assert.equal(catalogFrame.ledCount,1282);
+
   blockedMonitor = true;
   const started = Date.now();
   const reply = await worker.fetch(new Request('https://worker.test/v1/boards/grakallbanen-prototype-board/frame'), env);
