@@ -1,10 +1,10 @@
 name: Worker feed checks
 on:
   pull_request:
-    paths: ["worker/**", "config/**", "scripts/test-feed-timing.mjs", "scripts/test-led-feed-worker.mjs", ".github/workflows/worker-feed-check.yml"]
+    paths: ["core/**", "scripts/test-catalog-platform-direction.mjs", "worker/**", "config/**", "scripts/test-feed-timing.mjs", "scripts/test-led-feed-worker.mjs", ".github/workflows/worker-feed-check.yml"]
   push:
     branches: [main]
-    paths: ["worker/**", "config/**", "scripts/test-feed-timing.mjs", "scripts/test-led-feed-worker.mjs", ".github/workflows/worker-feed-check.yml"]
+    paths: ["core/**", "scripts/test-catalog-platform-direction.mjs", "worker/**", "config/**", "scripts/test-feed-timing.mjs", "scripts/test-led-feed-worker.mjs", ".github/workflows/worker-feed-check.yml"]
 permissions:
   contents: read
 jobs:
@@ -17,6 +17,10 @@ jobs:
         with:
           node-version: 22
       - run: |
+          node scripts/test-catalog-platform-direction.mjs
+          node scripts/test-frame-pipeline.mjs
+          node scripts/test-trondheim-day-history.mjs
+          node scripts/test-linear-platform-coverage.mjs
           node scripts/test-feed-timing.mjs
           node scripts/test-led-feed-worker.mjs
           node scripts/test-departure-memory.mjs

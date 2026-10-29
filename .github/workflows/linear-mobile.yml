@@ -2,6 +2,7 @@ name: Linear mobile and GPS Debug tests
 on:
   pull_request:
     paths:
+      - 'core/**'
       - 'web/linear/**'
       - 'web/shared/**'
       - 'scripts/test-linear-mobile-integration.mjs'
@@ -20,6 +21,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'core/**'
       - 'web/linear/**'
       - 'web/shared/**'
       - 'scripts/test-linear-mobile-integration.mjs'

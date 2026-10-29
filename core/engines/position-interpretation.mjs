@@ -4,6 +4,17 @@ import { distance, matchesDirection, vehicleAllowedByBoard, nearestRoutePosition
 export function interpretStationVehicles({ board, profiles, hardware, vehicles, now = Date.now() }) {
   const byLine = new Map(profiles.map(profile => [String(profile.line.publicCode), profile]));
   const catalogProximity = board.id === "trondheim-city-lines-catalog";
+  // Empty headsigns are not direction evidence (legacy physical boards retain
+  // their existing matching semantics).
+  const catalogMatches = (node, vehicle) => {
+    const text = vehicle.destination.trim().toLowerCase();
+    if (!text) return false;
+    const configured = node.routeDirections?.[vehicle.profile.id]?.destinationMatches ||
+      vehicle.profile.directions?.flatMap(direction => direction.destinationMatches || []) || [];
+    const explicit = configured.some(value => value.trim() && text.includes(value.toLowerCase())) ||
+      Object.keys(vehicle.profile.destinationDirectionAliases || {}).some(value => value.toLowerCase() === text);
+    return explicit && matchesDirection(node, vehicle.profile, vehicle.destination);
+  };
   const dedupe = new Map();
   for (const vehicle of vehicles) {
     const profile = byLine.get(String(vehicle.publicCode || ""));
@@ -14,7 +25,7 @@ export function interpretStationVehicles({ board, profiles, hardware, vehicles, 
   }
   const strongest = new Map(), occupantsByLed = new Map();
   for (const vehicle of dedupe.values()) {
-    let node, meters = Infinity;
+    let node, meters = Infinity, proximity;
     if (catalogProximity) {
       // This is a physical proximity display, NOT a timetable/route validator.
       // A bus can be on an unexpected route or have a different headsign.
@@ -28,22 +39,42 @@ export function interpretStationVehicles({ board, profiles, hardware, vehicles, 
             Math.abs(candidate.lat - vehicle.lat) > latLimit ||
             Math.abs(candidate.lon - vehicle.lon) > lonLimit) continue;
         const value = distance(vehicle, candidate);
-        if (value < meters) { node = candidate; meters = value; }
+        if (value < meters || value === meters && candidate.led < node.led) { node = candidate; meters = value; }
       }
-      // When Quays are very close together at the same StopPlace, a known
-      // line+headsign is useful for tie-breaking, but never a requirement.
-      // Never jump to a farther stop just because its route matches.
+      // Preserve the measured nearest Quay separately from the inferred platform.
+      // Only explicit, unambiguous destination evidence at this same StopPlace
+      // may resolve the platform. A route cannot move GPS to another StopPlace,
+      // or outside the measured approach radius.
+      const nearestNode = node, nearestMeters = meters;
       if (node?.stationId) {
-        const closeEnough = Math.min(25, radius / 3);
         const matched = board.nodes.filter(candidate =>
           candidate.stationId === node.stationId &&
           candidate.routes?.includes(vehicle.profile.id) &&
-          matchesDirection(candidate, vehicle.profile, vehicle.destination));
-        for (const candidate of matched) {
-          const value = distance(vehicle, candidate);
-          if (value <= meters + closeEnough) { node = candidate; meters = value; break; }
+          catalogMatches(candidate, vehicle));
+        const directionIds = new Set(matched.flatMap(candidate =>
+          candidate.routeDirections?.[vehicle.profile.id]?.directionIds || []));
+        if (directionIds.size === 1) {
+          let selected, selectedMeters = Infinity;
+          for (const candidate of matched) {
+            const value = distance(vehicle, candidate);
+            if (value <= radius && (value < selectedMeters ||
+                value === selectedMeters && candidate.led < selected.led)) {
+              selected = candidate; selectedMeters = value;
+            }
+          }
+          if (selected) { node = selected; meters = selectedMeters; }
         }
       }
+      if (node) proximity = {
+        nearestQuayLed: nearestNode.led, nearestQuayDistanceMeters: nearestMeters,
+        platformEvidence: node.routes?.includes(vehicle.profile.id) &&
+          catalogMatches(node, vehicle) ? "route-destination" :
+          node.routes?.includes(vehicle.profile.id) && vehicle.profile.directions?.some(direction =>
+            direction.destinationMatches?.some(value => value && vehicle.destination.toLowerCase().includes(value.toLowerCase()))) &&
+          node.routeDirections?.[vehicle.profile.id] ? "direction-conflict" : "gps-only",
+        // GPS and a headsign do not confirm a stop, even at a matching platform.
+        platformConfirmed: false
+      };
     } else {
       // Preserve strict route/side matching for existing physical boards.
       const routeNodes = board.nodes.filter(node => node.routes.includes(vehicle.profile.id));
@@ -59,10 +90,11 @@ export function interpretStationVehicles({ board, profiles, hardware, vehicles, 
     const approachRadius = board.render.approachRadiusMeters ?? 250;
     const arrivalRadius = board.render.arrivalRadiusMeters ?? 85;
     if (!node || meters > approachRadius) continue;
-    const state = meters <= arrivalRadius ? "AT_STOP" : "APPROACHING";
+    const state = !catalogProximity && meters <= arrivalRadius ? "AT_STOP" : "APPROACHING";
     const id = node.led;
     const candidate = { id, profile: vehicle.profile, vehicleId: vehicle.vehicleId, updated: vehicle.updated, destination: vehicle.destination, state, meters, lat: vehicle.lat, lon: vehicle.lon,
-      ...(catalogProximity ? {positionType:"gps-nearest-stop", routeListedHere:node.routes?.includes(vehicle.profile.id) === true} : {}) };
+      ...(catalogProximity ? {positionType:"gps-nearest-stop", routeListedHere:node.routes?.includes(vehicle.profile.id) === true,
+        ...proximity, withinStopRadius: meters <= arrivalRadius} : {}) };
     const occupants = occupantsByLed.get(id) || [];
     occupants.push(candidate);
     occupantsByLed.set(id, occupants);
