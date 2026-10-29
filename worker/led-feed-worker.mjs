@@ -1274,13 +1274,19 @@ async function handleOtaManifest(request,env){
 
 const worker = {
   async scheduled(controller, env) {
-    console.log("Scheduled background checks started", new Date(controller.scheduledTime).toISOString());
-    const results=await Promise.allSettled([
-     runBackgroundChecks(env),
-     boardFrameResponse("trondheim-city-lines-catalog",env,"history")
-    ]);
-    for(const outcome of results)if(outcome.status==="rejected")console.error("Scheduled check failed",outcome.reason);
-    console.log("Scheduled background checks completed");
+    // Cloudflare's subrequest budget is per scheduled invocation. Keep the
+    // five-minute catalog recording separate from eight legacy board checks.
+    // Both schedules run every five minutes, offset by one minute.
+    const cron=controller.cron;
+    console.log("Scheduled board check started",new Date(controller.scheduledTime).toISOString(),cron);
+    if(cron==="*/5 * * * *"){
+      await boardFrameResponse("trondheim-city-lines-catalog",env,"history");
+    }else if(cron==="1-59/5 * * * *"){
+      await runBackgroundChecks(env);
+    }else{
+      throw Error("unknown_scheduled_cron");
+    }
+    console.log("Scheduled board check completed",cron);
   },
   async fetch(request, env) {
     const v1=await apiV1(request,env,{
