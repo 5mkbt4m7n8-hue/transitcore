@@ -4,6 +4,7 @@ on:
     paths:
       - 'core/engines/route-progress.mjs'
       - 'scripts/test-route-progress.mjs'
+      - 'scripts/test-route-progress-durable.mjs'
       - 'core/engines/entur-stop-evidence.mjs'
       - 'scripts/test-entur-stop-evidence.mjs'
       - 'core/providers/entur/siri-vm-stop-parser.mjs'
@@ -27,6 +28,7 @@ jobs:
           node-version: '22'
       - run: |
           node scripts/test-route-progress.mjs
+          node scripts/test-route-progress-durable.mjs
           node scripts/test-entur-stop-evidence.mjs
           node scripts/test-siri-vm-stop-parser.mjs
           node scripts/test-entur-provider-projection.mjs
