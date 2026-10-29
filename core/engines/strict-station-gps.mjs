@@ -42,7 +42,8 @@ export function strictDirection(node, profile, destination) {
   return exact(rule.destinationMatches, text) || exact(rule.headsigns, text);
 }
 
-export function interpretStrictStationGps({board, profiles, vehicles, now}) {
+// maxDistanceMeters is an explicit diagnostic what-if input; existing Worker calls retain the 60 m policy.
+export function interpretStrictStationGps({board, profiles, vehicles, now, maxDistanceMeters=60}) {
   const catalog = board.id === 'trondheim-city-lines-catalog' ? board.nodes : board.gpsMatchingNodes;
   const index = catalogIndex(safetyCatalog(catalog || board.nodes)), byLine = new Map();
   if (!quayMaps.has(board.nodes)) quayMaps.set(board.nodes,new Map(board.nodes.map(node => [node.quayId,node])));
@@ -74,7 +75,7 @@ export function interpretStrictStationGps({board, profiles, vehicles, now}) {
     // Fixed safety policy: 60m maximum, at least 25m assumed uncertainty,
     // and >2*uncertainty+10m separation from every competing catalog Quay.
     // Entur currently provides no accuracy/trip/platform evidence in this feed.
-    const uncertainty = Math.max(25, v.accuracyMeters ?? 25), radius = Math.min(60, board.render.arrivalRadiusMeters ?? 60);
+    const uncertainty = Math.max(25, v.accuracyMeters ?? 25), radius = Math.min(maxDistanceMeters, board.render.arrivalRadiusMeters ?? maxDistanceMeters);
     const search = radius + 2 * 25 + 10;
     const nearby = index.candidates(vehicle.lat, vehicle.lon, search / 110000,
       search / (111000 * Math.max(.2, Math.cos(vehicle.lat * Math.PI / 180))));
