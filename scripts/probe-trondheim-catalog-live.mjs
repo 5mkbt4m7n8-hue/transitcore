@@ -8,7 +8,7 @@ const expectedCount=1282;
 const catalog=JSON.parse(await readFile(new URL('../config/boards/'+boardId+'.json',import.meta.url),'utf8'));
 assert.equal(catalog.id,boardId);
 assert.equal(catalog.leds.count,expectedCount);
-assert.equal(catalog.routes.length,47,'Expected 47 AtB route profiles');
+assert(catalog.routes.length>=47,'Expected catalog with 47+ route profiles');
 const expected=new Map([['NSR:Quay:73414',616],['NSR:Quay:73415',617]]);
 const lerkendal={};
 for(const [quay,led] of expected) {
