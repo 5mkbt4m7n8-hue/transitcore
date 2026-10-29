@@ -1,0 +1,27 @@
+name: Trondheim catalog Worker bundle dry run
+on:
+  pull_request:
+    paths:
+      - "worker/trondheim-catalog-profiles.mjs"
+      - "worker/led-feed-worker.mjs"
+      - "scripts/test-feed-timing.mjs"
+      - ".github/workflows/trondheim-catalog-bundle.yml"
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+      - name: Run cold catalog subrequest regression
+        run: node scripts/test-feed-timing.mjs
+      - name: Install pinned Wrangler (no lifecycle scripts)
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund wrangler@4.43.0
+      - name: Bundle real Worker with route JSON imports (DRY RUN ONLY)
+        run: npx --no-install wrangler deploy --config worker/wrangler.toml --dry-run --outdir "$RUNNER_TEMP/trondheim-catalog-dry-run"
