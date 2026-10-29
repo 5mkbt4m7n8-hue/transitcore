@@ -76,6 +76,11 @@ try {
   assert.equal(physicalFrame.ledCount,147);assert.equal(physicalFrame.gpsMatchingPolicy,'strict-route-quay-v1');
   assert(physicalFrame.leds.length>0,'Physical Worker must load the complete competition catalog');
   assert(physicalFrame.leds.every(v=>v.state==='APPROACHING'&&v.vehicle.quayId));
+  assert.equal(physicalFrame.gpsObservations,undefined,'Do not overflow the physical ESP JSON document with raw fleet data');
+  const diagnosticResponse=await worker.fetch(new Request('https://test/api/v1/frame/trondheim-bus-board?gpsDiagnostics=1'),env);
+  const diagnosticFrame=await diagnosticResponse.json();assert.equal(diagnosticResponse.status,200);
+  assert.equal(diagnosticFrame.gpsObservations.length,fleetSize);
+  assert.deepEqual(diagnosticFrame.leds,physicalFrame.leds,'Raw projection cannot change LED placement');
   console.log(JSON.stringify({mockedIO:true,vehiclesPerRequest:{cold:250,warm:250,thousand:1000},cold,warm,thousand,boardLoads,upstreamLoads,
     stages:Object.fromEntries(Object.entries(stage).map(([name,values])=>{
       values.sort((a,b)=>a-b);return [name,{samples:values.length,p95WallMs:values[Math.floor(values.length*.95)]}];

@@ -43,6 +43,8 @@ assert.equal(multiple.observations.filter(v=>v.status==='unresolved').length,1);
 assert.equal(interpret([good,{...good,id:'second'}]).occupantsByLed.get(134).length,2);
 // Every accepted result is checked against an independent full-catalog scan.
 const safe=safetyCatalog(board.nodes);let checked=0,accepted=0;
+assert.equal(safe.filter(n=>n.competitorOnly).length,82);
+for(const at of safe.filter(n=>n.competitorOnly))unresolved(at,'Blakli');
 for(const at of board.nodes){
  const unknown=unresolved(at,'Unregistered detour');
  assert.equal(unknown.observations[0].latitude,at.lat);assert.equal(unknown.observations[0].longitude,at.lon);

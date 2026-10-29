@@ -18,9 +18,10 @@ for(const node of board.nodes){
   if(!quay||quay.stationId!==node.stationId||Math.abs(quay.latitude-node.lat)>0.00001||Math.abs(quay.longitude-node.lon)>0.00001)
     mismatches.push({led:node.led,quayId:node.quayId,configuredStation:node.stationId,configuredLatitude:node.lat,configuredLongitude:node.lon,actual:quay||null});
 }
-const unsafe=safetyCatalog(board.nodes).filter(node=>{
+const safe=safetyCatalog(board.nodes),unsafe=safe.filter(node=>{
   const quay=actual.get(node.quayId);
   return !quay||quay.stationId!==node.stationId||Math.abs(quay.latitude-node.lat)>0.00001||Math.abs(quay.longitude-node.lon)>0.00001;
 });
-console.log(JSON.stringify({endpoint,checkedAt:new Date().toISOString(),configuredQuays:board.nodes.length,stopPlaces:stations.length,verified:board.nodes.length-mismatches.length,quarantined:safetyCatalog(board.nodes).filter(n=>n.quarantined).length,unsafeMismatchCount:unsafe.length,mismatches},null,2));
+for(const quay of actual.values())if(!safe.some(n=>n.quayId===quay.id))unsafe.push(quay);
+console.log(JSON.stringify({endpoint,checkedAt:new Date().toISOString(),configuredQuays:board.nodes.length,stopPlaces:stations.length,enturQuays:actual.size,competitorOnlyQuays:safe.filter(n=>n.competitorOnly).length,verified:board.nodes.length-mismatches.length,quarantined:safe.filter(n=>n.quarantined).length,unsafeMismatchCount:unsafe.length,mismatches},null,2));
 if(unsafe.length)process.exitCode=1;

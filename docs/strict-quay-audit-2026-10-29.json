@@ -1,8 +1,10 @@
 {
   "endpoint": "https://api.entur.io/journey-planner/v3/graphql",
-  "checkedAt": "2026-10-29T14:23:19.911Z",
+  "checkedAt": "2026-10-29T14:35:19.993Z",
   "configuredQuays": 1282,
   "stopPlaces": 689,
+  "enturQuays": 1364,
+  "competitorOnlyQuays": 82,
   "verified": 1278,
   "quarantined": 4,
   "unsafeMismatchCount": 0,

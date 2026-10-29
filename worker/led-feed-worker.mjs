@@ -1037,7 +1037,7 @@ async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
 const headers = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" };
 const response = (body, status = 200) => new Response(JSON.stringify(body, null, 2) + "\n", { status, headers });
 
-async function boardFrameResponse(boardId, env, source) {
+async function boardFrameResponse(boardId, env, source, includeGpsObservations = boardId === 'trondheim-city-lines-catalog') {
   const now = Date.now(), deadline = now + FRAME_BUDGET_MS;
   let stage = "configuration";
   const step = (name, operation) => {
@@ -1051,8 +1051,11 @@ async function boardFrameResponse(boardId, env, source) {
     const frame = usesStopAccuracy(board)?rawFrame:await step("motion", () => stabilizeMotionFrame(env, board, rawFrame, now));
     sample = { ...validFrameSummary(frame, boardId), source };
     if(source==="history"&&boardId==="trondheim-city-lines-catalog")historyFrame=frame;
-    result = response(frame);
-    result.headers.set("x-transitcore-stop-algorithm",usesStopAccuracy(board)?"motion-v1":"legacy");
+    // Physical ESP clients have a 32 KiB JSON document. Keep the raw fleet
+    // projection opt-in there; ordinary LEDs never need unresolved GPS rows.
+    const {gpsObservations, ...ledFrame} = frame;
+    result = response(includeGpsObservations ? frame : ledFrame);
+    result.headers.set("x-transitcore-stop-algorithm",frame.gpsMatchingPolicy || (usesStopAccuracy(board)?"motion-v1":"legacy"));
     result.headers.set("access-control-expose-headers","x-transitcore-stop-algorithm");
   } catch (error) {
     console.error(JSON.stringify({ event: "feed_request_failed", boardId, source, stage,
@@ -1468,7 +1471,8 @@ const worker = {
     const boardId = match?.[1];
     if (!validBoardId(boardId)) return response({ error: "not_found" }, 404);
     const monitorSource = request.headers.get("x-transitcore-monitor") === "scheduled" ? "scheduled" : "request";
-    return boardFrameResponse(boardId, env, monitorSource);
+    return boardFrameResponse(boardId, env, monitorSource,
+      boardId === 'trondheim-city-lines-catalog' || url.searchParams.get('gpsDiagnostics') === '1');
   }
 };
 export default worker;

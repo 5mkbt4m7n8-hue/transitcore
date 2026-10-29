@@ -1,5 +1,6 @@
 import {distance} from '../frame/mapping-support.mjs';
 import {catalogIndex} from './catalog-index.mjs';
+import competitors from '../../config/gps/trondheim-quay-competitors.json' with {type:'json'};
 
 // Ordinary Trondheim bus boards, including the immutable 147-point mapping.
 // Other modes (tram, FB73 estimates, recordings) keep their own interpreters.
@@ -17,11 +18,18 @@ const auditedCoordinates = new Map([
 const safetyCatalogs = new WeakMap();
 const quayMaps = new WeakMap();
 export function safetyCatalog(nodes) {
-  if (!safetyCatalogs.has(nodes)) safetyCatalogs.set(nodes,nodes.map(node=>{
-    const coords=auditedCoordinates.get(node.quayId);
-    return coords && (Math.abs(coords[0]-node.lat)>0.00001 || Math.abs(coords[1]-node.lon)>0.00001)
-      ? {...node,lat:coords[0],lon:coords[1],quarantined:true} : node;
-  }));
+  if (!safetyCatalogs.has(nodes)) {
+    const stations = new Set(nodes.map(n=>n.stationId)), quays = new Set(nodes.map(n=>n.quayId));
+    const extra = competitors.quays.filter(([id,station])=>stations.has(station)&&!quays.has(id))
+      .map(([quayId,stationId,lat,lon],i)=>({quayId,stationId,lat,lon,stopIds:[quayId],routes:[],
+        // Internal tie-break sentinel only. No route => never an active LED.
+        led:-1-i,competitorOnly:true}));
+    safetyCatalogs.set(nodes,[...nodes.map(node=>{
+      const coords=auditedCoordinates.get(node.quayId);
+      return coords && (Math.abs(coords[0]-node.lat)>0.00001 || Math.abs(coords[1]-node.lon)>0.00001)
+        ? {...node,lat:coords[0],lon:coords[1],quarantined:true} : node;
+    }),...extra]);
+  }
   return safetyCatalogs.get(nodes);
 }
 

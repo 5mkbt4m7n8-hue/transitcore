@@ -48,6 +48,12 @@ Feltet har ingen aktiv LED eller stopptilstand og brukes aldri som LED-occupant.
 Duplikater bruker nyeste observasjon; motstridende like tidsstempler eller en
 ugyldig nyere observasjon kan ikke gjenopplive et eldre gyldig treff.
 
+Den virtuelle katalogfeeden inkluderer rådiagnosene. Fysisk ESP-feed utelater
+rålisten som standard for å beskytte klientens 32 KiB JSON-dokument; eksplisitt
+`?gpsDiagnostics=1` på samme frame-URL gir den separate projeksjonen med
+identiske LEDs. API-aliaset bevarer dette valget. Ingen råobservasjoner blir
+lagt i en LED-liste.
+
 Fysisk 147-tavle laster/cache-deler hele katalogen for konkurrentkontrollen.
 Mangler denne, feiler normal Worker-konfigurasjonslasting; en direkte motor-
 kaller uten komplett katalog får bare unresolved. Den fysiske LED-en velges
@@ -92,15 +98,20 @@ for alle, men flyttede koordinater på LED 337/338 (Grøset søndre) og 1090/109
 som konkurrent. Original kartgeometri endres ikke. Rapport:
 [`strict-quay-audit-2026-10-29.json`](strict-quay-audit-2026-10-29.json).
 Gjenta med `node scripts/audit-strict-quays.mjs` (kun offentlige stoppdata).
+Kontrollen fant også **82 ekstra Entur-Quays** ved disse StopPlace-ene:
+konkurrentindeksen har derfor 1364 Quays, mens LED-katalogen fortsatt har 1282.
+De ekstra Quays har ingen rute eller aktiv LED; de kan bare hindre en usikker
+plassering. Offentlig kildedata ligger i `config/gps/trondheim-quay-competitors.json`.
+Kontrollen feiler også ved en ny Entur-Quay som mangler i konkurrentindeksen.
 Ukjente avvik feiler kontrollen; de fire eksplisitte karantenene rapporteres.
 
 ## Verifisering og utrullingsvilkår
 
 - 3963 registrerte destinasjonstilfeller og alle 1282 Quays kontrollert;
-  1449 entydige eksaktposisjoner godtas, 400 deterministiske støytilfeller,
+  1394 entydige eksaktposisjoner godtas, 400 deterministiske støytilfeller,
   motsatt side, ukjent linje/destinasjon, terminal-headsign, en/to plattformer,
   tidsstempler, duplikatkonflikt, flere samtidige busser og fire karantener.
-- 67 entydige fysiske Quay-plasseringer kontrolleres mot 147-assignments;
+- 65 entydige fysiske Quay-plasseringer kontrolleres mot 147-assignments;
   388 canonical/raw API-sammenligninger, 57 frosne legacy-fixture-sammenligninger.
   Legacy-fixtures har eksplisitt legacy-ID; ny fysisk produksjonspolicy testes
   separat og påstås ikke byte-identisk med gammel GPS-`AT_STOP`-atferd.
@@ -110,11 +121,11 @@ Ukjente avvik feiler kontrollen; de fire eksplisitte karantenene rapporteres.
 - Uavhengig fullscan-kontroll av spatial hash og alle konkurrentavstander;
   API/provider/lifecycle, FB73/plattformdekning, historikk, Linear-filtre,
   kart/redigering, transport/TTL og to ekte headless nettlesersuiter passerte lokalt.
-- Lokal Node 24 p95 tolking: 250 observasjoner **0,662 ms**, 1000 **2,299 ms**;
-  historisk fullscan før #278: **11,847 ms** ved 250. Datasett/semantikk er nå
+- Lokal Node 24 p95 tolking: 250 observasjoner **0,560 ms**, 1000 **3,665 ms**;
+  historisk fullscan før #278: **21,726 ms** ved 250. Datasett/semantikk er nå
   strengere, så dette er ytelsesmålinger, ikke gammel plasseringsparitet.
   Kandidatbesøk: 0,915 % av fullscan. Tallene er ikke Cloudflare billed CPU.
-- Wrangler **4.43.0** reelt Worker `--dry-run`: **730,77 KiB / 129,41 KiB gzip**,
+- Wrangler **4.43.0** reelt Worker `--dry-run`: **737,38 KiB / 131,51 KiB gzip**,
   ingen deploy. Bootstrap-diff og øvrig CI må være grønne på eksakt PR-head.
 
 **NO-GO for automatisk merge/deploy.** Eksplisitt brukerbeslutning kreves etter
