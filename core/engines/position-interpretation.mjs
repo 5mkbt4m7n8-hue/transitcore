@@ -2,8 +2,8 @@ import { distance, matchesDirection, vehicleAllowedByBoard, nearestRoutePosition
 import {usesStrictStationGps, interpretStrictStationGps} from './strict-station-gps.mjs';
 
 // Route profiles are configuration, never provider observations.
-export function interpretStationVehicles({ board, profiles, hardware, vehicles, now = Date.now() }) {
-  if (usesStrictStationGps(board)) return interpretStrictStationGps({board, profiles, vehicles, now});
+export function interpretStationVehicles({ board, profiles, hardware, vehicles, now = Date.now(), stopReports = [] }) {
+  if (usesStrictStationGps(board)) return interpretStrictStationGps({board, profiles, vehicles, now, stopReports});
   const byLine = new Map(profiles.map(profile => [String(profile.line.publicCode), profile]));
   const dedupe = new Map();
   for (const vehicle of vehicles) {
