@@ -1,9 +1,5 @@
 name: Read-only strict route GPS coverage
 on:
-  pull_request:
-    paths:
-      - 'scripts/probe-strict-route-coverage.mjs'
-      - '.github/workflows/strict-route-coverage.yml'
   workflow_dispatch:
 permissions:
   contents: read
