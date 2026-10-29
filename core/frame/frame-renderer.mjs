@@ -21,7 +21,11 @@ export function renderStationFrame({ board, hardware, now, signalPolicy: SIGNAL_
     rgb: rgb(board.render.lineColors?.[item.profile.line.publicCode] || item.profile.line.color || color(item.profile, item.destination)),
     state: item.state,
     ageSeconds: Math.max(0, Math.floor((now - item.updated) / 1000)),
-    distanceMeters: Math.round(item.meters)
+    distanceMeters: Math.round(item.meters),
+    ...(board.id === "trondheim-city-lines-catalog" ? {
+      positionType: "gps-nearest-stop",
+      routeListedHere: item.routeListedHere
+    } : {})
   });
   return {
     ...frameEnvelope(board, hardware, now),
@@ -43,7 +47,11 @@ export function renderStationFrame({ board, hardware, now, signalPolicy: SIGNAL_
           ageSeconds: Math.max(0, Math.floor((now - item.updated) / 1000)),
           distanceMeters: Math.round(item.meters),
           latitude: item.lat,
-          longitude: item.lon
+          longitude: item.lon,
+          ...(board.id === "trondheim-city-lines-catalog" ? {
+            positionType: "gps-nearest-stop",
+            routeListedHere: item.routeListedHere
+          } : {})
         },
         occupants
       };
