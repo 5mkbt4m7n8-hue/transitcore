@@ -206,7 +206,7 @@ const future=vm.runInContext('projectFb73EtaFrame('+JSON.stringify({...etaFixtur
 assert.equal(future.leds.length,2,'One LED per FB73 journey including approaching journeys');
 assert(future.leds.some(item=>item.vehicle.id==='journey-a'&&item.state==='APPROACHING'),'Future ETA should not disappear');
 assert(future.leds.some(item=>item.vehicle.id==='journey-b'&&item.id===30),'Nearer AT_STOP has priority for same journey');
-assert.match(html,/profile\.id===FLYBUSS&&frame\.boardProfile===board\.id/,'FB73 board frames must not require vehicle.line metadata absent from estimated calls');
+assert.match(html,/flybuss\?\[\{\.\.\.item\.vehicle,line:'FB73'/,'FB73 board frames must not require vehicle.line metadata absent from estimated calls');
 
 assert.equal(projected.leds.filter(v=>v.vehicle.id==='UNI:ServiceJourney:trip-42').length,1,'Same FB73 departure cannot light three consecutive stops');
 
@@ -253,8 +253,8 @@ assert(!etaPopup.includes('gammel GPS')&&!etaPopup.includes('Live frame'));
 const legacyPopup=popup({id:997,state:'AT_STOP',vehicle:{id:journeyId}});
 assert.match(legacyPopup,/Linje:<\/strong> Ukjent/,'Never infer route identity from selected profile');
 assert.match(legacyPopup,/Ankomstprognose \(ETA\)/,'Old journey-only frames cannot claim GPS');
-// Line 11 stop view must show a physically nearby line 1 bus, including
-// when its headsign does not belong to the selected route.
+// All GPS buses remain recorded, but a line 11 view hides line 1 buses
+// until the user explicitly enables the all-lines checkbox.
 el('route').value='atb-bus-11-live';
 el('allRoutes').checked=false;
 el('route').onchange();
@@ -279,12 +279,74 @@ const offRouteItem={id:134,state:'AT_STOP',rgb:[237,83,80],vehicle:{
  positionType:'gps-nearest-stop',routeListedHere:false}]};
 vm.runInContext('paint('+JSON.stringify({...frame,boardProfile:'trondheim-city-lines-catalog',
  ledCount:1282,leds:[offRouteItem]})+')',context);
-assert(otherLineClasses.has('on'),'Selected line 11 must display an off-route line 1 GPS bus at a listed stop');
+assert(!otherLineClasses.has('on'),'Without the checkbox line 11 view must hide line 1 buses');
+assert.equal(stopLed.dataset.vehicle,undefined,'An off-route observation must not enter the selected-line popup');
+el('allRoutes').checked=true;
+vm.runInContext('paint('+JSON.stringify({...frame,boardProfile:'trondheim-city-lines-catalog',
+ ledCount:1282,leds:[offRouteItem]})+')',context);
+assert(otherLineClasses.has('on'),'Opt-in all-lines view must show line 1 at a line 11 stop');
 assert.equal(JSON.parse(stopLed.dataset.vehicle).line,'1');
 const offRoutePopup=popup(offRouteItem);
 assert.match(offRoutePopup,/Linje:<\/strong> 1/);
 assert.match(offRoutePopup,/Nærmeste registrerte plattform/);
 assert.match(offRoutePopup,/GPS bekrefter ikke faktisk stopp/);
 assert.match(offRoutePopup,/Linjen er ikke registrert på denne plattformen/);
+el('allRoutes').checked=false;
 context.document.querySelectorAll=originalQuery;
+
+// Regression: GPS may detect buses from any route at a physical stop,
+// but single-line Linear view must display ONLY the selected line.
+const mixedStop={
+ id:134,state:'AT_STOP',lifecycle:'PASSED',rgb:[220,45,50],
+ vehicle:{id:'line1-primary',line:'1',destination:'Ranheim',ageSeconds:2},
+ occupants:[
+  {id:'line1-primary',line:'1',destination:'Ranheim',state:'AT_STOP',rgb:[220,45,50],ageSeconds:2},
+  {id:'line11-secondary',line:'11',destination:'Blakli',state:'APPROACHING',rgb:[70,190,85],ageSeconds:2,positionType:'gps-nearest-stop'}
+ ]
+};
+const otherOnly={id:135,state:'AT_STOP',rgb:[220,45,50],
+ vehicle:{id:'line1-only',line:'1',destination:'Ranheim'},
+ occupants:[{id:'line1-only',line:'1',state:'AT_STOP',rgb:[220,45,50]}]};
+const testFrame={...frame,boardProfile:'trondheim-city-lines-catalog',ledCount:1282,leds:[mixedStop,otherOnly]};
+el('route').value='atb-bus-11-live';
+el('route').onchange();
+await new Promise(resolve=>setImmediate(resolve));
+el('allRoutes').checked=false;
+let result=JSON.parse(vm.runInContext('JSON.stringify(selectVisibleItems(filterFrame, new Set(["134","135"])))',
+  Object.assign(context,{filterFrame:testFrame})));
+assert.equal(result.length,1,'Single-line view must not show a stop occupied only by other lines');
+assert.equal(result[0].id,134);
+assert.equal(result[0].occupants.length,1,'Selected view must not expose additional line occupants');
+assert.equal(result[0].vehicle.line,'11','Do not show the other line as primary');
+assert.equal(result[0].vehicle.id,'line11-secondary');
+assert.deepEqual(result[0].rgb,[70,190,85],'Selected line must supply its own LED color');
+assert.equal(result[0].state,'APPROACHING','Use selected line state');
+assert.equal(result[0].lifecycle,'APPROACHING','Other line PASSED must not mask selected line');
+assert.match(html,/Viser kun busser på valgt linje/,'Default view must explain selected-line visibility (staging warning can override the live note)');
+
+// Enabling checkbox reveals the same registered stops with all GPS bus lines.
+el('allRoutes').checked=true;
+result=JSON.parse(vm.runInContext('JSON.stringify(selectVisibleItems(filterFrame, new Set(["134","135"])))',context));
+assert.equal(result.length,2,'All-lines mode reveals otherwise hidden vehicles at registered stops');
+assert.deepEqual(result[0].occupants.map(v=>v.line),['1','11']);
+assert.equal(result[1].vehicle.line,'1');
+assert.equal(testFrame.leds[0].occupants.length,2,'Presentation must not mutate original GPS frame');
+// Switching back must restore line-only filter without changing backend.
+el('allRoutes').checked=false;
+result=JSON.parse(vm.runInContext('JSON.stringify(selectVisibleItems(filterFrame, new Set(["134","135"])))',context));
+assert.deepEqual(result.map(v=>v.id),[134]);
+
+// Flybuss ETA does not always carry a line identifier in legacy source frames.
+el('route').value='flybuss-trondheim-fb73-live';
+el('route').onchange();await new Promise(resolve=>setImmediate(resolve));
+const legacyFlyFrame={...frame,boardProfile:'trondheim-flybuss-live',leds:[{
+  id:36,state:'AT_STOP',rgb:[255,170,0],vehicle:{id:'UNI:ServiceJourney:test'}
+}]};
+const legacyShown=JSON.parse(vm.runInContext('JSON.stringify(selectVisibleItems(flyFrame,new Set(["36"])))',
+  Object.assign(context,{flyFrame:legacyFlyFrame})));
+assert.equal(legacyShown.length,1,'ETA flight-bus frame should remain visible');
+assert.equal(legacyShown[0].occupants[0].line,'FB73');
+assert.match(read('web/linear/network/map.js'),/function activeLine\(\)\{return playback\|\|context\.all\?null:context\.line;\}/,
+ 'Schematic map must filter selected route until all-lines checkbox is selected');
+
 console.log('Linear HTML, full Bus1 147 mapping, popup evidence, mobile defaults, GPS Debug PASS');
