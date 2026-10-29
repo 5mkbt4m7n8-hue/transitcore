@@ -1,9 +1,5 @@
 name: Live GPS route-sequence shadow replay (read only)
 on:
-  pull_request:
-    paths:
-      - 'scripts/probe-route-progress-shadow.mjs'
-      - '.github/workflows/route-progress-live-shadow.yml'
   workflow_dispatch:
 permissions:
   contents: read
