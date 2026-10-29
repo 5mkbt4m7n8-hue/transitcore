@@ -291,7 +291,28 @@ assert.match(offRoutePopup,/Linje:<\/strong> 1/);
 assert.match(offRoutePopup,/Nærmeste registrerte plattform/);
 assert.match(offRoutePopup,/GPS bekrefter ikke faktisk stopp/);
 assert.match(offRoutePopup,/Linjen er ikke registrert på denne plattformen/);
+const conflictItem={...offRouteItem,state:'APPROACHING',vehicle:{...offRouteItem.vehicle,
+ line:'11',destination:'Blakli',platformEvidence:'direction-conflict',platformConfirmed:false,
+ withinStopRadius:true},occupants:[{...offRouteItem.occupants[0],line:'11',
+ destination:'Blakli',state:'APPROACHING',platformEvidence:'direction-conflict'}]};
+vm.runInContext('paint('+JSON.stringify({...frame,boardProfile:'trondheim-city-lines-catalog',
+ ledCount:1282,leds:[conflictItem]})+')',context);
+assert(otherLineClasses.has('unconfirmed'),'Direction conflict needs a visible question marker');
+const conflictPopup=popup(conflictItem);
+assert.match(conflictPopup,/Destinasjonen stemmer ikke med plattformens retning/);
+assert.match(conflictPopup,/GPS innenfor stoppradius \(ikke bekreftet stans\)/);
+const inferredItem={...conflictItem,vehicle:{...conflictItem.vehicle,
+ platformEvidence:'route-destination',withinStopRadius:false},occupants:[{
+ ...conflictItem.occupants[0],platformEvidence:'route-destination'}]};
+vm.runInContext('paint('+JSON.stringify({...frame,boardProfile:'trondheim-city-lines-catalog',
+ ledCount:1282,leds:[inferredItem]})+')',context);
+assert(!otherLineClasses.has('unconfirmed'),'Question marker clears when evidence changes');
+assert.match(popup(inferredItem),/Plattform valgt ut fra linje og destinasjon/);
+assert.match(popup(inferredItem),/GPS i nærheten \(ikke bekreftet stans\)/);
 el('allRoutes').checked=false;
+vm.runInContext('paint('+JSON.stringify({...frame,leds:[inferredItem]})+')',context);
+assert.match(el('legend').innerHTML,/mot Stavset/);
+assert.match(el('legend').innerHTML,/mot Blakli/);
 context.document.querySelectorAll=originalQuery;
 
 // Regression: GPS may detect buses from any route at a physical stop,

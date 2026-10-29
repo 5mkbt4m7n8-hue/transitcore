@@ -14,6 +14,13 @@ function frameEnvelope(board, hardware, now) {
 }
 
 export function renderStationFrame({ board, hardware, now, signalPolicy: SIGNAL_POLICY }, { strongest, occupantsByLed }) {
+  const proximityJson = item => board.id === "trondheim-city-lines-catalog" ? {
+    positionType: "gps-nearest-stop", routeListedHere: item.routeListedHere,
+    platformEvidence: item.platformEvidence, platformConfirmed: false,
+    nearestQuayLed: item.nearestQuayLed,
+    nearestQuayDistanceMeters: Math.round(item.nearestQuayDistanceMeters),
+    withinStopRadius: item.withinStopRadius
+  } : {};
   const occupantJson = item => ({
     id: item.vehicleId,
     line: String(item.profile.line.publicCode),
@@ -22,10 +29,7 @@ export function renderStationFrame({ board, hardware, now, signalPolicy: SIGNAL_
     state: item.state,
     ageSeconds: Math.max(0, Math.floor((now - item.updated) / 1000)),
     distanceMeters: Math.round(item.meters),
-    ...(board.id === "trondheim-city-lines-catalog" ? {
-      positionType: "gps-nearest-stop",
-      routeListedHere: item.routeListedHere
-    } : {})
+    ...proximityJson(item)
   });
   return {
     ...frameEnvelope(board, hardware, now),
@@ -48,10 +52,7 @@ export function renderStationFrame({ board, hardware, now, signalPolicy: SIGNAL_
           distanceMeters: Math.round(item.meters),
           latitude: item.lat,
           longitude: item.lon,
-          ...(board.id === "trondheim-city-lines-catalog" ? {
-            positionType: "gps-nearest-stop",
-            routeListedHere: item.routeListedHere
-          } : {})
+          ...proximityJson(item)
         },
         occupants
       };
