@@ -322,7 +322,7 @@ assert.equal(result[0].vehicle.id,'line11-secondary');
 assert.deepEqual(result[0].rgb,[70,190,85],'Selected line must supply its own LED color');
 assert.equal(result[0].state,'APPROACHING','Use selected line state');
 assert.equal(result[0].lifecycle,'APPROACHING','Other line PASSED must not mask selected line');
-assert.match(el('scopeNote').textContent,/Viser kun busser på valgt linje/);
+assert.match(html,/Viser kun busser på valgt linje/,'Default view must explain selected-line visibility (staging warning can override the live note)');
 
 // Enabling checkbox reveals the same registered stops with all GPS bus lines.
 el('allRoutes').checked=true;
