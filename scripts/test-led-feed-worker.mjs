@@ -328,46 +328,32 @@ assert.deepEqual(signalFrames[7].leds, [], "Afterglow expires to OFF after ten s
 console.log("Isolated Worker signal sequence tests OK");
 
 
-// Diagnostic for the original 1282 catalog (static only; no GPS tracking).
+// Regression: Entur reports "Blakli" for line 11 services towards the
+// Risvollan side of the route, while the GTFS quay rule says "Risvollan".
 const {readFileSync}=await import('node:fs');
 const line11Board=JSON.parse(readFileSync(new URL('../config/boards/trondheim-city-lines-catalog.json',import.meta.url),'utf8'));
 const line11Profile=JSON.parse(readFileSync(new URL('../config/routes/atb-bus-11-live.json',import.meta.url),'utf8'));
 const line11Nodes=line11Board.nodes.filter(node=>node.routes?.includes(line11Profile.id));
-const bukkvollan=line11Nodes.filter(node=>node.name==='Bukkvollan'||(node.stopIds||[]).some(id=>id==='NSR:Quay:75463'||id==='NSR:Quay:75464'));
-const destinations=['Risvollan','Blakli','Stavset','Risvollan senter'];
-console.log('LINE11_STATIC_DIRECTION_AUDIT '+JSON.stringify({
- profileDirections:line11Profile.directions.map(d=>({label:d.label,words:d.destinationMatches,reverse:d.reverseShape})),
- bukkvollan:bukkvollan.map(n=>({
-  led:n.led,quayId:n.quayId,stopIds:n.stopIds,
-  rule:n.routeDirections?.[line11Profile.id],
-  matchingDestinations:Object.fromEntries(destinations.map(dest=>[dest,matchesDirection(n,line11Profile,dest)]))
- })),
- coverage:Object.fromEntries(destinations.map(dest=>[dest,line11Nodes.filter(n=>matchesDirection(n,line11Profile,dest)).length])),
- totalLine11Nodes:line11Nodes.length
-}));
-
-
-// External read-only sample; diagnostic only, never a test pass/fail gate.
-// Emit aggregate destinations, not IDs, coordinates or individual timestamps.
-try {
- const response=await fetch('https://transitcore-led-feed.lgb84.workers.dev/api/v1/vehicles/atb-live-all',
-   {headers:{accept:'application/json'},signal:AbortSignal.timeout(12000)});
- if(!response.ok)console.log('LINE11_PUBLIC_GPS_SUMMARY '+JSON.stringify({status:response.status}));
- else {
-  const body=await response.json();
-  const observations=Array.isArray(body.vehicles)?body.vehicles.filter(v=>String(v.line)==='11'):[];
-  const byDestination={};
-  for(const v of observations){
-   const key=typeof v.destination==='string'&&v.destination?v.destination:'(empty)';
-   byDestination[key]=(byDestination[key]||0)+1;
-  }
-  const sorted=Object.fromEntries(Object.entries(byDestination).sort((a,b)=>b[1]-a[1]));
-  console.log('LINE11_PUBLIC_GPS_SUMMARY '+JSON.stringify({
-   status:response.status,line11FreshGps:observations.length,
-   destinations:sorted,
-   destinationMatchedNodeCounts:Object.fromEntries(Object.keys(sorted).map(dest=>[
-    dest,line11Nodes.filter(node=>matchesDirection(node,line11Profile,dest)).length
-   ]))
-  }));
- }
-} catch(e){console.log('LINE11_PUBLIC_GPS_SUMMARY '+JSON.stringify({status:'unavailable',reason:e?.name||'network_error'}));}
+const findBukkvollan=quay=>line11Nodes.find(node=>node.stopIds?.includes(quay));
+const toRisvollan=findBukkvollan('NSR:Quay:75463');
+const toStavset=findBukkvollan('NSR:Quay:75464');
+assert.equal(toRisvollan?.led,134,'Risvollan-bound Bukkvollan quay must retain LED 134');
+assert.equal(toStavset?.led,135,'Stavset-bound Bukkvollan quay must retain LED 135');
+assert.equal(matchesDirection(toRisvollan,line11Profile,'Blakli'),true,
+  'Entur Blakli headsign must activate the Risvollan-bound quay');
+assert.equal(matchesDirection(toStavset,line11Profile,'Blakli'),false,
+  'Blakli GPS must not activate the opposite Bukkvollan platform');
+assert.equal(matchesDirection(toRisvollan,line11Profile,'Risvollan'),true);
+assert.equal(matchesDirection(toRisvollan,line11Profile,'Stavset'),false);
+assert.equal(matchesDirection(toStavset,line11Profile,'Stavset'),true);
+assert.equal(matchesDirection(toStavset,line11Profile,'Risvollan'),false);
+assert.equal(matchesDirection(toRisvollan,line11Profile,'Unknown'),false);
+assert.equal(matchesDirection(toStavset,line11Profile,''),false);
+const towardsRisvollan=line11Nodes.filter(node=>matchesDirection(node,line11Profile,'Risvollan'));
+const towardsBlakli=line11Nodes.filter(node=>matchesDirection(node,line11Profile,'Blakli'));
+assert(towardsRisvollan.length>20,'Expected multi-stop Risvollan service direction');
+assert.deepEqual(towardsBlakli.map(node=>node.led),towardsRisvollan.map(node=>node.led),
+  'Live Blakli and GTFS Risvollan must select the exact same direction-side quays');
+assert.equal(matchesDirection(toRisvollan,{...line11Profile,destinationDirectionAliases:undefined},'Blakli'),false,
+  'Missing explicit alias must keep the fail-closed direction policy');
+console.log('Line 11 Blakli/Risvollan Bukkvollan LED 134/135 direction regression OK');
