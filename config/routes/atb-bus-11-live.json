@@ -12,6 +12,7 @@
     "mode": "bus",
     "longName": "Blakli-sentrum-Stavset"
   },
+  "destinationDirectionAliases": {"Blakli": "1"},
   "directions": [
     {
       "id": "direction-0",
@@ -26,7 +27,8 @@
       "id": "direction-1",
       "label": "mot Risvollan",
       "destinationMatches": [
-        "Risvollan"
+        "Risvollan",
+        "Blakli"
       ],
       "color": "#66bb6a",
       "reverseShape": true
