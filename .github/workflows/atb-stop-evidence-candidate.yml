@@ -1,9 +1,6 @@
 name: AtB SIRI exact stop evidence candidate (read only)
 on:
-  pull_request:
-    paths:
-      - 'scripts/probe-entur-stop-match.mjs'
-      - '.github/workflows/atb-stop-evidence-candidate.yml'
+  # Entur SIRI Lite is limited to 4 requests/minute; avoid per-commit PR probes.
   workflow_dispatch:
 permissions:
   contents: read
