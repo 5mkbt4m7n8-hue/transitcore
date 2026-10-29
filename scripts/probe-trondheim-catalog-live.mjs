@@ -110,6 +110,9 @@ if(production.verdict!=='VALID') {
    diag.fetchFailed=/fetch failed/i.test(detail);
    diag.graphqlError=/GraphQL|Cannot query field|Unauthorized|Not authorized|syntax error|resource exhausted/i.test(detail);
    diag.sourceFailure=/provider|fetch|HTTP|timeout|deadline/i.test(detail);
+   diag.tokenTermPresent=/token/i.test(detail);
+   diag.graphqlComplexityTerm=/complexity|query too large|too many.*token|maximum.*token|query size|too many aliases/i.test(detail);
+   diag.authenticationTerm=/authorization|unauthorized|credential|secret|password|api.key/i.test(detail);
    diag.missingVehicleProvider=/Vehicle provider missing for ([a-z0-9-]+)/.exec(detail)?.[1]||null;
    // The monitor is publicly readable. Emit a bounded, redacted description,
    // never URLs, long identifiers, tokens, provider responses or coordinates.
