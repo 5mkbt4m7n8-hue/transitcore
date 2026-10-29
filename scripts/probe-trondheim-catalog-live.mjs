@@ -116,8 +116,11 @@ if(production.verdict!=='VALID') {
    let safe=detail.slice(0,160).replace(/https?:\/\/[^\s]+/g,'[URL]')
     .replace(/(?:Bearer\s+)[A-Za-z0-9._-]+/gi,'Bearer [REDACTED]')
     .replace(/NSR:(?:Quay|StopPlace):\d+/gi,'[STOP_ID]')
+    .replace(/[-+]?\d{1,3}\.\d{4,}/g,'[NUMBER]')
+    .replace(/latitud(?:e)?/gi,'[LAT_FIELD]')
+    .replace(/longitud(?:e)?/gi,'[LON_FIELD]')
     .replace(/[A-Za-z0-9_-]{32,}/g,'[OPAQUE]');
-   if(/secret|token|password|authorization|api.key|cookie|latitud|longitud/i.test(safe))safe='[REDACTED]';
+   if(/secret|token|password|authorization|api.key|cookie/i.test(safe))safe='[REDACTED]';
    diag.safeDetail=safe;
   }
  }catch(e){diag.readError=(e?.name||'network_error').slice(0,40);}
