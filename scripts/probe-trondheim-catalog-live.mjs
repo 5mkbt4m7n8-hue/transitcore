@@ -1,0 +1,85 @@
+// Read-only production/staging verification for the unified Trondheim catalog.
+// No credentials, POST requests, vehicle IDs, GPS coordinates, or raw frame output.
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+
+const boardId='trondheim-city-lines-catalog';
+const expectedCount=1282;
+const catalog=JSON.parse(await readFile(new URL('../config/boards/'+boardId+'.json',import.meta.url),'utf8'));
+assert.equal(catalog.id,boardId);
+assert.equal(catalog.leds.count,expectedCount);
+assert.equal(catalog.routes.length,47,'Expected 47 AtB route profiles');
+const expected=new Map([['NSR:Quay:73414',616],['NSR:Quay:73415',617]]);
+const lerkendal={};
+for(const [quay,led] of expected) {
+ const node=catalog.nodes.find(node=>node.stopIds?.includes(quay));
+ assert(node,'Missing Lerkendal gård quay '+quay);
+ assert.equal(node.led,led,'Unexpected Lerkendal gård LED mapping for '+quay);
+ assert(node.routes.includes('atb-bus-11-live'),'Line 11 missing at Lerkendal gård '+quay);
+ lerkendal[quay]=led;
+}
+console.log('STATIC_CATALOG '+JSON.stringify({boardId,ledCount:expectedCount,routeProfiles:catalog.routes.length,lerkendalGard:lerkendal}));
+
+async function fetchBounded(url){
+ const response=await fetch(url,{headers:{accept:'application/json'},redirect:'error',signal:AbortSignal.timeout(18000)});
+ let bytes=0;const chunks=[];
+ if(response.body)for await(const part of response.body){
+  bytes+=part.byteLength;
+  if(bytes>2_097_152){await response.body.cancel().catch(()=>{});throw Error('payload_exceeds_2MiB');}
+  chunks.push(part);
+ }
+ const body=Buffer.concat(chunks).toString('utf8');
+ return {response,bytes,body};
+}
+async function probe(label,origin){
+ const started=Date.now(),result={environment:label,boardId};
+ try {
+  const {response,bytes,body}=await fetchBounded(origin+'/api/v1/frame/'+boardId);
+  result.http=response.status;result.bytes=bytes;
+  result.elapsedMs=Date.now()-started;
+  result.cors=response.headers.get('access-control-allow-origin')||null;
+  result.contentType=response.headers.get('content-type')||null;
+  if(response.status!==200){
+   try{const error=JSON.parse(body);result.errorStage=typeof error.stage==='string'?error.stage.slice(0,40):null;}catch{}
+   result.verdict='UNAVAILABLE';return result;
+  }
+  if(!result.contentType?.includes('application/json'))throw Error('invalid_content_type');
+  const data=JSON.parse(body);
+  assert.equal(data.schemaVersion,1);
+  assert.equal(data.boardProfile,boardId);
+  assert.equal(data.ledCount,expectedCount);
+  assert(Number.isInteger(data.sequence)&&data.sequence>=0,'invalid_sequence');
+  assert(Number.isInteger(data.ttlSeconds)&&data.ttlSeconds>0,'invalid_ttl');
+  const generated=Date.parse(data.generatedAt);
+  assert(Number.isFinite(generated)&&Math.abs(Date.now()-generated)<=180_000,'stale_or_future_frame');
+  assert(Array.isArray(data.leds),'invalid_led_array');
+  const seen=new Set();
+  for(const led of data.leds){
+   assert(Number.isInteger(led.id)&&led.id>=0&&led.id<expectedCount,'out_of_range_led');
+   assert(!seen.has(led.id),'duplicate_led');
+   seen.add(led.id);
+   assert(['OFF','AT_STOP','APPROACHING','PASSED','PARKED'].includes(led.state),'invalid_state');
+  }
+  result.verdict='VALID';
+  result.frameAgeSeconds=Math.max(0,Math.round((Date.now()-generated)/1000));
+  result.ttlSeconds=data.ttlSeconds;
+  result.activeLedCount=data.leds.length;
+  result.sequence=data.sequence;
+ }catch(error){
+  result.verdict='INVALID_OR_UNREACHABLE';
+  result.reason=(error?.code||error?.name||'error').slice(0,55);
+  const safe=String(error?.message||'');
+  if(/^(invalid_|stale_or_future_frame|out_of_range_led|duplicate_led|payload_exceeds_2MiB)/.test(safe))result.reason=safe.slice(0,80);
+  result.elapsedMs=Date.now()-started;
+ }
+ return result;
+}
+const production=await probe('production','https://transitcore-led-feed.lgb84.workers.dev');
+const staging=await probe('linear_staging_gateway','https://transitcore-linear-staging.lgb84.workers.dev');
+console.log('LIVE_PROBE '+JSON.stringify(production));
+console.log('LIVE_PROBE '+JSON.stringify(staging));
+if(production.verdict!=='VALID'){
+ console.error('BLOCKED: Production has no validated 1282-point PixelFrame. Do not merge or deploy PR #266.');
+ process.exitCode=1;
+}
+if(staging.verdict!=='VALID')console.warn('STAGING_NOT_VERIFIED: Check gateway before relying on staging for catalog testing.');
