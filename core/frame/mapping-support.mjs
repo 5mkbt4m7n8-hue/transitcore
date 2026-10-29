@@ -26,10 +26,7 @@ function profileDirectionId(profile, destination) {
 
 export function matchesDirection(node, profile, destination) {
   const routeDirection = node.routeDirections?.[profile.id];
-  const text = String(destination||'').trim().toLowerCase();
-  // Empty GPS headsigns must never match every GTFS direction:
-  // "Risvollan".includes("") otherwise returns true.
-  if(!text)return false;
+  const text = destination.toLowerCase();
   const destinations = routeDirection?.destinationMatches || [];
   if (destinations.some(value => {
     const match = value.toLowerCase();
