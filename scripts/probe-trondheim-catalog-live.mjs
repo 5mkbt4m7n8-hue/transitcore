@@ -82,6 +82,22 @@ async function probe(label,origin){
   result.offRouteNearestStops=data.leds.filter(led=>
    led.vehicle?.routeListedHere===false ||
    led.occupants?.some(o=>o.routeListedHere===false)).length;
+  // Release #276: genuine GPS occupants carry explicit uncertainty metadata,
+  // and their proximity must never be mislabeled as a confirmed AT_STOP.
+  const gpsOccupants=data.leds.flatMap(led=>led.occupants||led.vehicle?[...(led.occupants||[]),...(led.vehicle?[led.vehicle]:[])]:[])
+   .filter(o=>o?.positionType==='gps-nearest-stop');
+  result.gpsObservations=gpsOccupants.length;
+  result.evidenceCount=gpsOccupants.filter(o=>['route-destination','gps-only','direction-conflict'].includes(o.platformEvidence)).length;
+  result.unconfirmedCount=gpsOccupants.filter(o=>o.platformConfirmed===false).length;
+  result.nearestQuayCount=gpsOccupants.filter(o=>Number.isInteger(o.nearestQuayLed)).length;
+  result.gpsAtStopCount=data.leds.filter(led=>led.state==='AT_STOP'&&
+    (led.vehicle?.positionType==='gps-nearest-stop'||led.occupants?.some(o=>o.positionType==='gps-nearest-stop'))).length;
+  result.release276Ready=result.gpsObservations>0&&
+    result.gpsObservations===result.evidenceCount&&
+    result.gpsObservations===result.unconfirmedCount&&
+    result.gpsObservations===result.nearestQuayCount&&
+    result.gpsAtStopCount===0;
+  if(label==='production'&&!result.release276Ready)result.verdict='OLD_OR_INVALID_WORKER_276';
  }catch(error){
   result.verdict='INVALID_OR_UNREACHABLE';
   result.reason=(error?.code||error?.name||'error').slice(0,55);
@@ -154,11 +170,14 @@ async function pageReleaseCheck(){
    !body.includes('boards/trondheim-bus-board.json');
   result.proximityPopup=body.includes('gps-nearest-stop')&&
    body.includes('GPS innenfor stoppradius');
+  result.release276UI=body.includes('unconfirmed')&&
+   body.includes('Plattform valgt ut fra linje og destinasjon')&&
+   body.includes('Retning:');
   const profile=await fetchBounded('https://5mkbt4m7n8-hue.github.io/transitcore/config/routes/atb-bus-11-live.json');
   result.line11Label=profile.response.ok
    ?JSON.parse(profile.body).directions?.find(direction=>direction.reverseShape)?.label:null;
   result.verdict=response.status===200&&result.unified&&result.proximityPopup&&
-   result.line11Label==='mot Blakli'?'VALID':'NOT_YET_PUBLISHED';
+   result.release276UI&&result.line11Label==='mot Blakli'?'VALID':'NOT_YET_PUBLISHED';
  }catch(error){result.verdict='UNAVAILABLE';result.reason=(error?.name||'network').slice(0,40)}
  return result;
 }
@@ -233,7 +252,7 @@ const [site,history,monitor]=await Promise.all([
 console.log('PUBLISHED_SITE '+JSON.stringify(site));
 console.log('HISTORY_RELEASE '+JSON.stringify(history));
 console.log('LEGACY_MONITOR '+JSON.stringify(monitor));
-if(site.verdict!=='VALID')process.exitCode=1;
+if(site.verdict!=='VALID'||production.verdict!=='VALID')process.exitCode=1;
 // Recording runs every five minutes, not on demand; report missing samples
 // without assuming an error until a full monitoring window has elapsed.
 if(history.verdict==='OLD_RECORDER'||history.verdict==='UNAVAILABLE')process.exitCode=1;
