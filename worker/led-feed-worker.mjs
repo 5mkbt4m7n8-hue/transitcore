@@ -9,6 +9,7 @@ import { createEnturProvider } from "../core/providers/entur/entur-provider.mjs"
 import { normalizeEnturVehicle } from "../core/providers/entur/entur-normalizer.mjs";
 import { buildPixelFrame } from "../core/frame/build-frame.mjs";
 import {usesStrictStationGps,safetyCatalog} from '../core/engines/strict-station-gps.mjs';
+import {updateRouteProgress} from '../core/engines/route-progress.mjs';
 import {metroQuayTargets,selectMetroEstimatedCalls} from "../core/engines/metro-arrival-estimates.mjs";
 import {usesStopAccuracy,buildStopAccuracy} from "./stop-accuracy.mjs";
 import { distance, color, rgb, matchesDirection, vehicleAllowedByBoard, validateConfiguration } from "../core/frame/mapping-support.mjs";
@@ -561,6 +562,23 @@ export class DeviceStatus {
       const history = (await this.state.storage.get("monitorHistory")) || [];
       const lastScheduled = await this.state.storage.get("monitorLastScheduled");
       return statusJson({ latest: latest || null, lastScheduled: lastScheduled || null, history });
+    }
+    if (url.pathname === "/route-progress-shadow" && request.method === "POST") {
+      // This is an isolated, sequential diagnostic state owner. The route
+      // hypothesis never changes or confirms an LED in this endpoint.
+      const context=await request.json();
+      if(!Array.isArray(context.vehicles)||context.vehicles.length>1200||
+        !Array.isArray(context.profiles)||context.profiles.length>60)
+        return statusJson({error:"invalid-shadow-input"},400);
+      return this.state.blockConcurrencyWhile(async()=>{
+        const old=await this.state.storage.get("routeProgressShadowV1")||{};
+        const result=updateRouteProgress({
+          profiles:context.profiles,vehicles:context.vehicles,now:context.now,
+          previousState:old
+        });
+        await this.state.storage.put("routeProgressShadowV1",result.state);
+        return statusJson({results:result.results});
+      });
     }
     if (url.pathname === "/stop-accuracy" && request.method === "POST") {
       const context=await request.json();
