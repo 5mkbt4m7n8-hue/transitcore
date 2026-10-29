@@ -963,7 +963,11 @@ async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
   const frames = [];
   if (vehicleProfiles.length) {
     const vehicles = await liveVehiclesForProfiles(vehicleProfiles);
-    frames.push(buildPixelFrame(frameContext({ board, profiles: vehicleProfiles, hardware, vehicles, now })));
+    // Keep all LED nodes, but validate GPS rendering against its actual
+    // vehicle-position route subset on mixed GPS/ETA catalog boards.
+    const gpsBoard=vehicleProfiles.length===profiles.length?board:
+      {...board,routes:vehicleProfiles.map(profile=>profile.id)};
+    frames.push(buildPixelFrame(frameContext({ board:gpsBoard, profiles: vehicleProfiles, hardware, vehicles, now })));
   }
   if (arrivalProfiles.length) {
     board.hardware = hardware;
