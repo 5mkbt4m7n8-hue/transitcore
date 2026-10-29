@@ -78,6 +78,27 @@ const production=await probe('production','https://transitcore-led-feed.lgb84.wo
 const staging=await probe('linear_staging_gateway','https://transitcore-linear-staging.lgb84.workers.dev');
 console.log('LIVE_PROBE '+JSON.stringify(production));
 console.log('LIVE_PROBE '+JSON.stringify(staging));
+// Public Worker board monitoring contains the actual last error stage. Emit only
+// coarse, allowlisted diagnostics; never print raw provider responses or IDs.
+if(production.verdict!=='VALID') {
+ const diag={boardId,environment:'production'};
+ try {
+  const {response,body}=await fetchBounded('https://transitcore-led-feed.lgb84.workers.dev/v1/boards/'+boardId+'/history');
+  diag.http=response.status;
+  if(response.ok){
+   const latest=JSON.parse(body)?.latest;
+   diag.state=['OK','FEED_ERROR','PROFILE_MISMATCH'].includes(latest?.state)?latest.state:'UNKNOWN';
+   diag.source=['request','scheduled','history'].includes(latest?.source)?latest.source:'unknown';
+   diag.ageSeconds=latest?.checkedAt&&Number.isFinite(Date.parse(latest.checkedAt))
+    ?Math.round((Date.now()-Date.parse(latest.checkedAt))/1000):null;
+   const detail=String(latest?.detail||'');
+   diag.failureStage=/^(configuration|live_data|motion):/.exec(detail)?.[1]||null;
+   diag.routeParityMismatch=detail.includes('Route profile count mismatch');
+   diag.sourceFailure=/provider|fetch|HTTP|timeout|deadline/i.test(detail);
+  }
+ }catch(e){diag.readError=(e?.name||'network_error').slice(0,40);}
+ console.log('PUBLIC_MONITOR '+JSON.stringify(diag));
+}
 if(production.verdict!=='VALID'){
  console.error('BLOCKED: Production has no validated 1282-point PixelFrame. Do not merge or deploy PR #266.');
  process.exitCode=1;
