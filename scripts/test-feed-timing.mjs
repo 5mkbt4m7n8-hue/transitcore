@@ -56,6 +56,12 @@ try {
     } })
   } };
   await worker.scheduled({ scheduledTime: Date.now() }, env);
+  const coldCronRequests=externalCalls.slice();
+  const scheduledRouteJson=coldCronRequests.filter(url=>url.includes('/config/routes/'));
+  assert.equal(scheduledRouteJson.length,new Set(scheduledRouteJson).size,
+    'All eight scheduled boards must share overlapping route-profile downloads');
+  assert(coldCronRequests.length<50,
+    'Cold cron must stay below Workers Free 50 external subrequest allowance: '+coldCronRequests.length);
   assert.equal(monitors.length, 9);
   assert.equal(monitors.filter(row => row.source === 'scheduled' && row.state === 'OK').length,8);
   assert.equal(monitors.filter(row => row.source === 'history' && row.state === 'OK' &&

@@ -48,6 +48,10 @@ export const validBoardId = value => typeof value === "string" && /^[a-z0-9-]{3,
 const CLIENT_NAME = "lgb-transitcore-led-feed";
 const CONFIG_TTL_MS = 5 * 60 * 1000;
 const configCache = new Map();
+// A scheduled invocation checks multiple boards at once; they often share
+// route-profile JSON. Deduplicate in-flight loads and reuse only for the
+// existing five-minute configuration TTL, preserving the original freshness.
+const routeProfileCache = new Map();
 const LIVE_VEHICLE_TTL_MS = 8 * 1000;
 const metroForecastCache = new Map();
 const METRO_FORECAST_CACHE_MS = 20000;
@@ -810,6 +814,22 @@ function addNodeCoordinates(board, profiles) {
   };
 }
 
+async function fetchRouteProfile(id, now) {
+  const cached=routeProfileCache.get(id);
+  if(cached?.value&&now-cached.loadedAt<CONFIG_TTL_MS)return cached.value;
+  if(cached?.pending)return cached.pending;
+  const pending=fetchJson(`${REPOSITORY}/config/routes/${id}.json`)
+    .then(profile=>{
+      routeProfileCache.set(id,{value:profile,loadedAt:Date.now()});
+      return profile;
+    }).catch(error=>{
+      if(routeProfileCache.get(id)?.pending===pending)routeProfileCache.delete(id);
+      throw error;
+    });
+  routeProfileCache.set(id,{pending});
+  return pending;
+}
+
 async function configuration(boardId, now) {
   const cached = configCache.get(boardId);
   if (cached && now - cached.loadedAt < CONFIG_TTL_MS) return cached.value;
@@ -821,7 +841,7 @@ async function configuration(boardId, now) {
   const bundledCatalog=boardId==="trondheim-city-lines-catalog";
   const [profiles, hardware] = await Promise.all([
     bundledCatalog ? trondheimCatalogProfiles(board) :
-      Promise.all(board.routes.map(id => fetchJson(`${REPOSITORY}/config/routes/${id}.json`))),
+      Promise.all(board.routes.map(id => fetchRouteProfile(id, now))),
     bundledCatalog ? null :
       fetchJson(`${REPOSITORY}/config/hardware/${boardId}-hardware.json`).catch(() => null)
   ]);
