@@ -36,8 +36,9 @@ export function projectEnturReportedStops({board,profiles,vehicles,now,reports,i
     const candidates=new Set(matches.map(x=>x.quayId));
     if(candidates.size!==1)continue;
     const report=[...matches].sort((a,b)=>Date.parse(b.recordedAt)-Date.parse(a.recordedAt))[0];
-    const vehicle=vehicles.find(v=>v.id===vehicleRef&&byVehicle.get(String(v.publicCode)+':'+v.id)===v);
-    if(!vehicle)continue;
+    const possible=[...byVehicle.values()].filter(v=>v.id===vehicleRef);
+    if(possible.length!==1)continue;
+    const vehicle=possible[0];
     const profile=byLine.get(String(vehicle.publicCode));
     const node=nodes.get(report.quayId);
     if(quarantinedQuays.has(report.quayId))continue;
