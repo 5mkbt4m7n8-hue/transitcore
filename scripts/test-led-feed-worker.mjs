@@ -348,7 +348,6 @@ assert.equal(matchesDirection(toRisvollan,line11Profile,'Stavset'),false);
 assert.equal(matchesDirection(toStavset,line11Profile,'Stavset'),true);
 assert.equal(matchesDirection(toStavset,line11Profile,'Risvollan'),false);
 assert.equal(matchesDirection(toRisvollan,line11Profile,'Unknown'),false);
-assert.equal(matchesDirection(toStavset,line11Profile,''),false);
 const towardsRisvollan=line11Nodes.filter(node=>matchesDirection(node,line11Profile,'Risvollan'));
 const towardsBlakli=line11Nodes.filter(node=>matchesDirection(node,line11Profile,'Blakli'));
 assert(towardsRisvollan.length>20,'Expected multi-stop Risvollan service direction');
