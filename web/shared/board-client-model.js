@@ -11,7 +11,7 @@
     const half=Math.floor(v.pulsePeriodMs/2),phase=(millis>>>0)%v.pulsePeriodMs;
     return v.pulseMinBrightness+Math.floor((phase<half?phase:v.pulsePeriodMs-phase)*(v.pulseMaxBrightness-v.pulseMinBrightness)/half);
   }
-  function create({boardProfile,ledCount,visual={}}){
+  function create({boardProfile,ledCount,visual={},strictExpiry=false}){
     let frame=null,acceptedAt=0,ttlMs=0,lastError=null;
     const changes=new Map();
     return {
@@ -36,7 +36,10 @@
         return true;
       },
       sample(now,millis,{ambient=false,masterPercent=100}={}){
-        const expired=frame && ((millis-acceptedAt)>>>0)>ttlMs;
+        // Preserve the ESP parity default; browser transport opts into a strict
+        // wall-clock boundary as well, so suspended tabs cannot retain buses.
+        const elapsed=(millis-acceptedAt)>>>0;
+        const expired=frame && (elapsed>ttlMs||strictExpiry&&(elapsed>=ttlMs||now>=Date.parse(frame.generatedAt)+frame.ttlSeconds*1000));
         const pulse=visualPulse(millis,visual),byId=new Map((frame&&!expired?frame.leds:[]).map(l=>[l.id,l]));
         const leds=Array.from({length:ledCount},(_,id)=>{
           const led=byId.get(id),s=led?state(led):'OFF';
