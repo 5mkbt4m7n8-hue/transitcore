@@ -4,6 +4,8 @@ on:
     paths:
       - 'core/engines/route-progress.mjs'
       - 'scripts/test-route-progress.mjs'
+      - 'core/engines/entur-stop-evidence.mjs'
+      - 'scripts/test-entur-stop-evidence.mjs'
       - '.github/workflows/route-progress-tests.yml'
   workflow_dispatch:
 permissions:
@@ -19,4 +21,6 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
-      - run: node scripts/test-route-progress.mjs
+      - run: |
+          node scripts/test-route-progress.mjs
+          node scripts/test-entur-stop-evidence.mjs
