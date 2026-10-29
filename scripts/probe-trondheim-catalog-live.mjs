@@ -185,6 +185,12 @@ async function historyReleaseCheck(){
   result.postReleaseCatalogSamples=catalogFrames.length;
   result.latestSampleTime=records.at(-1)?.capturedAt||null;
   result.latestSampleStatus=records.at(-1)?.status||null;
+  const latestError=String(afterRelease.filter(item=>item.status==='ERROR').at(-1)?.error||'');
+  result.recordErrorStage=/^(configuration|live_data|motion):/.exec(latestError)?.[1]||null;
+  result.recordErrorSubrequests=/subrequest/i.test(latestError);
+  result.recordErrorTimeout=/timed out|timeout/i.test(latestError);
+  result.recordErrorInvalidFrame=/invalid_recorded_frame|invalid_recorded_led/.test(latestError);
+  result.recordErrorOversize=/frame_too_large/.test(latestError);
   result.verdict=catalogFrames.length?'VALID':'AWAITING_NEW_CATALOG_SAMPLE';
  }catch(error){result.verdict='UNAVAILABLE';result.reason=(error?.message||'unknown').slice(0,70);}
  return result;
