@@ -8,9 +8,12 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
 const root=new URL('../',import.meta.url);
 let calls=0,live=false;
 const board=JSON.parse(await readFile(new URL('config/boards/trondheim-bus-board.json',root))),hardware=JSON.parse(await readFile(new URL('config/hardware/trondheim-bus-board-hardware.json',root)));
+const catalog=JSON.parse(await readFile(new URL('config/boards/trondheim-city-lines-catalog.json',root)));
+const ranheimLed=catalog.nodes.find(node=>node.stopIds?.includes('NSR:Quay:74982'))?.led;
+assert(Number.isInteger(ranheimLed)&&ranheimLed>=0&&ranheimLed<1282,'Ranheim Quay has a real catalog LED');
 const server=createServer(async(req,res)=>{try{
  const path=new URL(req.url,'http://localhost').pathname;
- if(path.startsWith('/api/v1/frame/')){calls++;res.setHeader('content-type','application/json');res.end(JSON.stringify({schemaVersion:1,boardProfile:path.split('/').pop(),ledCount:147,sequence:calls,generatedAt:new Date(Date.now()-(live?8000:0)).toISOString(),ttlSeconds:live?10:30,leds:live?[{id:0,brightness:32,state:'AT_STOP',rgb:[255,0,0],vehicle:{id:'fixture-bus',line:'1',source:'ETA'},occupants:[{id:'fixture-bus',line:'1',source:'ETA',state:'AT_STOP',rgb:[255,0,0]}]}]:[]}));return;}
+ if(path.startsWith('/api/v1/frame/')){calls++;res.setHeader('content-type','application/json');res.end(JSON.stringify({schemaVersion:1,boardProfile:path.split('/').pop(),ledCount:path.split('/').pop()==='trondheim-city-lines-catalog'?1282:147,sequence:calls,generatedAt:new Date(Date.now()-(live?8000:0)).toISOString(),ttlSeconds:live?10:30,leds:live?[{id:ranheimLed,brightness:32,state:'AT_STOP',rgb:[255,0,0],vehicle:{id:'fixture-bus',line:'1',source:'ETA'},occupants:[{id:'fixture-bus',line:'1',source:'ETA',state:'AT_STOP',rgb:[255,0,0]}]}]:[]}));return;}
  const file=new URL('.'+path,root);if(!file.href.startsWith(root.href)){res.writeHead(403).end();return;}
  res.setHeader('content-type',path.endsWith('.js')?'text/javascript':path.endsWith('.json')?'application/json':path.endsWith('.css')?'text/css':path.endsWith('.jpg')?'image/jpeg':'text/html');res.end(await readFile(file));
  }catch{res.writeHead(404).end();}});
@@ -34,8 +37,8 @@ try{
  const historyFrames=times.map((ms,i)=>({
   version:1,day:historyDay,slot:Math.floor(ms/300000)*300000,
   capturedAt:new Date(ms).toISOString(),status:i===1?'ERROR':'OK',error:i===1?'fixture HTTP 503':null,
-  frame:i===1?null:{schemaVersion:1,boardProfile:'trondheim-shared-stops-board',
-   ledCount:147,sequence:11+i,ttlSeconds:30,generatedAt:new Date(ms).toISOString(),
+  frame:i===1?null:{schemaVersion:1,boardProfile:i===0?'trondheim-shared-stops-board':'trondheim-city-lines-catalog',
+   ledCount:i===0?147:1282,sequence:11+i,ttlSeconds:30,generatedAt:new Date(ms).toISOString(),
    leds:[{id:0,state:'AT_STOP',rgb:[255,0,0],brightness:32,
     vehicle:{id:'history-bus',line:'1',source:'GPS'},
     occupants:[{id:'history-bus',line:'1',state:'AT_STOP',rgb:[255,0,0],source:'GPS'}]}]}
@@ -44,7 +47,7 @@ try{
  await page.route(/https:\/\/transitcore-led-feed\.lgb84\.workers\.dev\/v1\/trondheim\/history(?:\?|$)/,async route=>{
   historyReads++;const url=new URL(route.request().url()),selected=url.searchParams.get('day');
   const data=selected?{version:1,day:historyDay,archived:false,
-   records:historyFrames,nextCursor:null}:{version:1,boardProfile:'trondheim-shared-stops-board',
+   records:historyFrames,nextCursor:null}:{version:1,boardProfile:'trondheim-city-lines-catalog',
     cadenceMinutes:5,currentDay:'2026-10-28',previousDay:historyDay,
     archive:demoPinned?{day:historyDay}:null,
     days:[{day:historyDay,count:3,errors:1,savedAsDemo:demoPinned}]};
@@ -74,7 +77,7 @@ try{
  assert.match(await page.locator('[data-h=time]').innerText(),/MÅLEFEIL/);
  assert.equal(await page.locator('.map-stop[data-state="AT_STOP"]').count(),0,'A failed sample must never copy prior LED state');
  await page.locator('[data-h=timeline]').evaluate(el=>{el.value='2';el.dispatchEvent(new Event('input',{bubbles:true}));});
- assert.equal(await page.locator('.map-stop[data-stop="original-004"][data-state="AT_STOP"]').count(),1);
+ assert.equal(await page.locator('.map-stop[data-stop="original-004"][data-state="AT_STOP"]').count(),0,'New catalog frame must not reuse the old 147-point LED zero');
  const historyDownload=page.waitForEvent('download');
  await page.locator('[data-h=export]').click();
  assert.equal((await historyDownload).suggestedFilename(),'trondheim-historikk-'+historyDay+'.json');
@@ -357,7 +360,7 @@ try{
 
  const download=page.waitForEvent('download');await page.locator('[data-act=export]').click();assert.equal((await download).suggestedFilename(),'trondheim-layout.json');
  await page.locator('#linearMode').click();assert.equal(await page.locator('#rows').innerHTML(),rows);assert.equal(await page.locator('#linearView').isVisible(),true);
- // The supplied source has a confirmed Ranheim binding to physical LED 0.
+ // The original Ranheim marker has an exact Quay binding in the 1282-point catalog.
  live=true;await page.locator('#refresh').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('VALID'));
  await page.locator('#networkMode').click();await page.waitForSelector('.map-stop[data-state="AT_STOP"]');
  await page.locator('.map-stop[data-state="AT_STOP"]').first().click();assert.match(await page.locator('[data-role=details]').innerText(),/Kilde: ETA/);
@@ -365,7 +368,7 @@ try{
  await page.locator('[data-role=debugStop]').selectOption('original-004');
  await page.locator('[data-role=debugVehicle]').fill('fixture-bus');
  assert.match(await page.locator('[data-role=debugVehicleResult]').innerText(),/fixture-bus/);
- assert.match(await page.locator('[data-role=debugVehicleResult]').innerText(),/LED 0/);
+ assert.match(await page.locator('[data-role=debugVehicleResult]').innerText(),new RegExp('LED '+ranheimLed+'\\b'));
  assert.equal(await page.locator('[data-role=debugHealth]').getAttribute('data-code'),'VALID');
  await page.locator('[data-role=liveDebug] summary').click();
  await page.locator('[data-act=fit]').click();

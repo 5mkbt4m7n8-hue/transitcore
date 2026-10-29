@@ -6,7 +6,7 @@
   host.innerHTML='<details class="map-day-history" data-role="dayHistory"><summary>Historikk · dagsopptak og demo</summary><div class="map-day-history-body"><p>Serveren tar et øyeblikksbilde hvert femte minutt. Avspilling er aldri LIVE, og hull i opptaket skjules ikke.</p><div class="map-history-controls"><label>Dato <select data-h="day" aria-label="Historikkdato"></select></label><button type="button" data-h="load">Hent døgn</button><label>Hastighet <select data-h="speed" aria-label="Avspillingshastighet"><option value="2000">0,5×</option><option value="1000" selected>1×</option><option value="500">2×</option><option value="200">5×</option></select></label></div><div class="map-history-controls"><button type="button" data-h="play" disabled>Spill av</button><button type="button" data-h="live" disabled>Tilbake til LIVE</button><button type="button" data-h="export" disabled>Last ned opptak (JSON)</button></div><label class="map-history-timeline">Tidslinje <input type="range" min="0" max="0" step="1" value="0" disabled data-h="timeline" aria-label="Historisk frame"></label><p class="map-history-time" data-h="time">Ingen opptak lastet.</p><p data-h="status" role="status">Åpne historikk for å finne opptak.</p><div class="map-history-pin"><strong>Bevar ett døgn som demo</strong><small>Velg et avsluttet døgn. Arkivet lagrer ett valgt døgn med dets femminuttersmålinger og eventuelle hull. Et nytt valg erstatter den tidligere demoen.</small><label>Administratornøkkel <input data-h="key" type="password" autocomplete="off" placeholder="Kun ved arkivering" aria-label="Administratornøkkel for demo"></label><button type="button" data-h="pin">Bevar valgt døgn som demo</button></div></div></details>';
   const q=name=>host.querySelector('[data-h="'+name+'"]');
   const panel=host.querySelector('[data-role=dayHistory]');
-  let index=null,records=[],day="",timer=null,current=-1,loading=false;
+  let index=null,records=[],day="",timer=null,current=-1,loading=false,recordingBoards=new Map(),defaultBoard=null;
   const message=value=>{q("status").textContent=value};
   const clock=stamp=>new Intl.DateTimeFormat("no-NO",{
    timeZone:"Europe/Oslo",hour:"2-digit",minute:"2-digit",second:"2-digit"
@@ -37,7 +37,7 @@
     " · "+day+" · "+clock(sample.capturedAt)+" · "+(i+1)+"/"+records.length+
     " · "+(sample.status==="OK"?"Opptak · "+sample.frame.leds.length+" LED-oppføringer":
       "MÅLEFEIL · "+(sample.error||"ukjent"));
-   onFrame(sample);
+   onFrame(sample,recordingBoards.get(sample.frame?.boardProfile)||defaultBoard);
   }
   async function load(){
    if(loading)return;
@@ -45,8 +45,6 @@
    try{
     const next=q("day").value;
     if(!/^\d{4}-\d{2}-\d{2}$/.test(next))throw Error("Velg en dato");
-    const board=await loadReplayBoard();
-    if(!board?.board||!board.hardware)throw Error("Historikkprofil kunne ikke lastes");
     const data=[];let cursor=null,loops=0;
     do{
      if(++loops>20)throw Error("For mange historikksider");
@@ -60,9 +58,20 @@
      const v=data[i];
      if(v.day!==next||!Number.isFinite(Date.parse(v.capturedAt))||
        !["OK","ERROR"].includes(v.status)||
-       v.status==="OK"&&v.frame?.boardProfile!=="trondheim-shared-stops-board"||
+       v.status==="OK"&&!(v.frame?.boardProfile==="trondheim-city-lines-catalog"&&v.frame.ledCount===1282||
+         v.frame?.boardProfile==="trondheim-shared-stops-board"&&v.frame.ledCount===147)||
        i>0&&v.slot<=data[i-1].slot)throw Error("Ugyldig opptak eller rekkefølge");
     }
+    const ids=[...new Set(data.filter(item=>item.status==="OK").map(item=>item.frame.boardProfile))];
+    const configs=new Map();
+    for(const id of ids){
+     const config=await loadReplayBoard(id);
+     if(!config?.board||!config?.hardware||config.board.id!==id)throw Error("Historikkprofil kunne ikke lastes");
+     configs.set(id,config);
+    }
+    const fallback=configs.get("trondheim-city-lines-catalog")||configs.values().next().value||
+     await loadReplayBoard("trondheim-city-lines-catalog");
+    recordingBoards=configs;defaultBoard=fallback;
     records=data;day=next;current=-1;
     q("timeline").disabled=false;q("timeline").max=String(data.length-1);
     q("play").disabled=false;q("live").disabled=false;q("export").disabled=false;
@@ -103,7 +112,7 @@
   function exportDay(){
    if(!records.length)return;
    const data={schemaVersion:1,kind:"intransit-trondheim-day-demo",
-    boardProfile:"trondheim-shared-stops-board",day,cadenceMinutes:5,
+    boardProfiles:[...new Set(records.filter(item=>item.frame).map(item=>item.frame.boardProfile))],day,cadenceMinutes:5,
     exportedAt:new Date().toISOString(),records};
    const url=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:"application/json"}));
    const a=document.createElement("a");a.href=url;a.download="trondheim-historikk-"+day+".json";

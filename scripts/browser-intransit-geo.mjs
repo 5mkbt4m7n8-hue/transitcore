@@ -42,7 +42,7 @@ try{
    })});return;
   }
   const boardProfile=url.pathname.split('/').pop();
-  const id=boardProfile==='trondheim-flybuss-live'?46:147;
+  const id=boardProfile==='trondheim-city-lines-catalog'?1282:boardProfile==='trondheim-flybuss-live'?46:147;
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
    schemaVersion:1,boardProfile,ledCount:id,sequence:1,generatedAt:new Date().toISOString(),ttlSeconds:30,leds:[]
   })});
@@ -51,7 +51,7 @@ try{
  await page.goto(url);
  await page.waitForFunction(()=>document.querySelector('.geo-canvas')?._leaflet_id>0,{timeout:25000});
  await page.waitForFunction(()=>document.querySelector('.leaflet-overlay-pane canvas')!==null,{timeout:20000});
- assert.equal(await page.locator('#boardSelect').inputValue(),'trondheim-bus-board');
+ assert.equal(await page.locator('#boardSelect').inputValue(),'trondheim-city-lines-catalog');
  await page.waitForFunction(()=>document.querySelector('[data-g="gpsStatus"]')?.textContent.includes('1 busser'),{timeout:15000});
  assert.equal(await page.locator('[data-g=gpsEnabled]').isChecked(),true,'GPS overlay enabled on geographic map');
  assert.equal(await page.locator('[data-g=gpsFit]').isDisabled(),false,'Measured GPS positions can be centered on the map');

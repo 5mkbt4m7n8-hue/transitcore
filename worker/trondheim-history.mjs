@@ -1,6 +1,6 @@
 // Read-only public Trondheim playback plus admin-pinned one-day demo.
 // Recording runs in the EXISTING five-minute Worker cron, not in a browser.
-const BOARD="trondheim-shared-stops-board";
+const BOARD="trondheim-city-lines-catalog";
 const PREFIX="trondheim-history:v1:";
 const INDEX=PREFIX+"index";
 const DEMO=PREFIX+"demo";
@@ -52,7 +52,7 @@ export async function recordDaySample(storage,{capturedAt,frame=null,error=""}){
  let snapshot=null,reason="";
  try{if(frame)snapshot=compactFrame(frame);else reason=safeString(error||"feed_unavailable",120)}
  catch(e){reason=e.message}
- if(snapshot&&JSON.stringify(snapshot).length>170000){snapshot=null;reason="frame_too_large"}
+ if(snapshot&&JSON.stringify(snapshot).length>512000){snapshot=null;reason="frame_too_large"}
  const sample={version:1,day,slot:Number(slot),capturedAt:new Date(at).toISOString(),
   status:snapshot?"OK":"ERROR",frame:snapshot,error:snapshot?null:reason};
  const existing=await storage.get(key);

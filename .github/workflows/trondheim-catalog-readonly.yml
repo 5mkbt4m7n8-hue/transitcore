@@ -1,0 +1,23 @@
+name: Trondheim catalog live read-only verification
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/trondheim-catalog-readonly.yml"
+      - "scripts/probe-trondheim-catalog-live.mjs"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-catalog-probe:
+    name: Inspect public 1282-point feeds (no deploy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+      - name: Verify static Lerkendal Quays and public production/staging PixelFrames
+        run: node scripts/probe-trondheim-catalog-live.mjs

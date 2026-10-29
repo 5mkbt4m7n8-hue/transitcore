@@ -59,10 +59,10 @@ try {
   assert.equal(monitors.length, 9);
   assert.equal(monitors.filter(row => row.source === 'scheduled' && row.state === 'OK').length,8);
   assert.equal(monitors.filter(row => row.source === 'history' && row.state === 'OK' &&
-    row.id === 'trondheim-shared-stops-board').length,1);
+    row.id === 'trondheim-city-lines-catalog').length,1);
   assert.equal(historyWrites.length,1,'Cron must save exactly one day-history sample');
   assert.equal(historyWrites[0].action,'record');
-  assert.equal(historyWrites[0].frame.boardProfile,'trondheim-shared-stops-board');
+  assert.equal(historyWrites[0].frame.boardProfile,'trondheim-city-lines-catalog');
   assert.ok(externalCalls.every(url => !url.includes('workers.dev')));
 
   // Regression: this catalog mixes GPS vehicle routes and ETA route profiles.

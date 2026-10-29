@@ -79,7 +79,7 @@ for(const path of ['web/linear/geo/map.js'])new vm.Script(read(path));
 const page=read('web/linear/geo/index.html');
 assert.match(page,/src="model\.js"/);
 assert.match(page,/href="map.css"/);
-assert.match(page,/Trondheim bybuss/);
+assert.match(page,/Trondheim Buss/);
 assert.match(read('web/linear/geo/map.js'),/OpenStreetMap/);
 
  // Read and update the same geographic draft from both editors; existing geometry and
