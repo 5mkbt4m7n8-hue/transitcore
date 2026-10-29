@@ -111,6 +111,14 @@ if(production.verdict!=='VALID') {
    diag.graphqlError=/GraphQL|Cannot query field|Unauthorized|Not authorized|syntax error|resource exhausted/i.test(detail);
    diag.sourceFailure=/provider|fetch|HTTP|timeout|deadline/i.test(detail);
    diag.missingVehicleProvider=/Vehicle provider missing for ([a-z0-9-]+)/.exec(detail)?.[1]||null;
+   // The monitor is publicly readable. Emit a bounded, redacted description,
+   // never URLs, long identifiers, tokens, provider responses or coordinates.
+   let safe=detail.slice(0,160).replace(/https?:\\/\\/[^\\s]+/g,'[URL]')
+    .replace(/(?:Bearer\\s+)[A-Za-z0-9._-]+/gi,'Bearer [REDACTED]')
+    .replace(/NSR:(?:Quay|StopPlace):\\d+/gi,'[STOP_ID]')
+    .replace(/[A-Za-z0-9_-]{32,}/g,'[OPAQUE]');
+   if(/secret|token|password|authorization|api.key|cookie|latitud|longitud|vehicle.id/i.test(safe))safe='[REDACTED]';
+   diag.safeDetail=safe;
   }
  }catch(e){diag.readError=(e?.name||'network_error').slice(0,40);}
  console.log('PUBLIC_MONITOR '+JSON.stringify(diag));
