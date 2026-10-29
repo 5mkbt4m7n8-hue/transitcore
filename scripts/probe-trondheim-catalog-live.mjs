@@ -195,9 +195,31 @@ async function historyReleaseCheck(){
  }catch(error){result.verdict='UNAVAILABLE';result.reason=(error?.message||'unknown').slice(0,70);}
  return result;
 }
-const site=await pageReleaseCheck(),history=await historyReleaseCheck();
+async function legacyMonitorReleaseCheck(){
+ const result={boardId:'trondheim-bus-board'};
+ try{
+  const url='https://transitcore-led-feed.lgb84.workers.dev/v1/boards/trondheim-bus-board/history';
+  const {response,body}=await fetchBounded(url);
+  result.http=response.status;
+  if(!response.ok){result.verdict='UNAVAILABLE';return result;}
+  const last=JSON.parse(body).lastScheduled;
+  if(!last){result.verdict='MISSING';return result;}
+  result.lastScheduledTime=last.checkedAt||null;
+  result.lastScheduledAgeSeconds=Number.isFinite(Date.parse(last.checkedAt))
+   ?Math.round((Date.now()-Date.parse(last.checkedAt))/1000):null;
+  result.source=last.source||null;
+  result.state=['OK','FEED_ERROR','PROFILE_MISMATCH'].includes(last.state)?last.state:'UNKNOWN';
+  result.verdict=result.source==='scheduled'&&result.state==='OK'&&
+   result.lastScheduledAgeSeconds>=0&&result.lastScheduledAgeSeconds<660?'VALID':'NOT_RECENTLY_OK';
+ }catch(e){result.verdict='UNAVAILABLE';result.reason=(e?.name||'network').slice(0,40);}
+ return result;
+}
+const [site,history,monitor]=await Promise.all([
+ pageReleaseCheck(),historyReleaseCheck(),legacyMonitorReleaseCheck()
+]);
 console.log('PUBLISHED_SITE '+JSON.stringify(site));
 console.log('HISTORY_RELEASE '+JSON.stringify(history));
+console.log('LEGACY_MONITOR '+JSON.stringify(monitor));
 if(site.verdict!=='VALID')process.exitCode=1;
 // Recording runs every five minutes, not on demand; report missing samples
 // without assuming an error until a full monitoring window has elapsed.
