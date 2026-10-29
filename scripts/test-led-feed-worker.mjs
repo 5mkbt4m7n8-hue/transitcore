@@ -355,4 +355,22 @@ assert.deepEqual(towardsBlakli.map(node=>node.led),towardsRisvollan.map(node=>no
   'Live Blakli and GTFS Risvollan must select the exact same direction-side quays');
 assert.equal(matchesDirection(toRisvollan,{...line11Profile,destinationDirectionAliases:undefined},'Blakli'),false,
   'Missing explicit alias must keep the fail-closed direction policy');
-console.log('Line 11 Blakli/Risvollan Bukkvollan LED 134/135 direction regression OK');
+// End-to-end deterministic synthetic GPS sample: the Entur headsign "Blakli"
+ // at Quay 75463 must illuminate LED 134 (not opposite-direction 135).
+const line11OnlyBoard={...line11Board,routes:[line11Profile.id]};
+const line11Hardware={schemaVersion:1,boardProfile:line11Board.id,
+  leds:line11Board.leds,
+  assignments:line11Board.nodes.map(node=>({logicalLed:node.led,physicalLed:node.led}))};
+const line11Frame=buildFrame({board:line11OnlyBoard,profiles:[line11Profile],hardware:line11Hardware,
+ vehicles:[{vehicleId:'test-risvollan-side',destinationName:'Blakli',
+   lastUpdated:new Date(now-5000).toISOString(),line:{publicCode:'11'},
+   location:{latitude:toRisvollan.lat,longitude:toRisvollan.lon}}],now});
+assert.equal(line11Frame.boardProfile,line11Board.id);
+assert.equal(line11Frame.ledCount,1282);
+const matchedLine11=line11Frame.leds.find(led=>led.id===134);
+assert(matchedLine11,'Bukkvollan LED 134 must light for valid Blakli-bound GPS');
+assert.equal(matchedLine11.state,'AT_STOP');
+assert.equal(matchedLine11.vehicle?.line,'11');
+assert.equal(matchedLine11.vehicle?.destination,'Blakli');
+assert(!line11Frame.leds.some(led=>led.id===135),'Wrong-side LED 135 must remain off');
+console.log('Line 11 Blakli/Risvollan Bukkvollan LED 134/135 direction and frame regression OK');
