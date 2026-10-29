@@ -5,7 +5,7 @@
 Linear (både «Lineær» og «Hele kartet») og geografisk kart bruker
 `trondheim-city-lines-catalog` for Trondheim Buss. Valg av en busslinje
 eller «Vis alle bylinjer» endrer bare visningsfilteret, ikke tavle-ID eller
-LED-nummerering. Katalogen har 1282 *logiske LED-posisjoner* for 47
+LED-nummerering. Katalogen har 1282 *logiske LED-posisjoner* for 48
 registrerte ruteprofiler, **ikke 1282 holdeplasser**. Originalkartets 100
 stopppunkter og 18 tegnede linjer er uendret; uavklarte Quay-koblinger
 forblir OFF i stedet for å gis en automatisk, mulig feil binding.
