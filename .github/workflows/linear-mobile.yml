@@ -6,6 +6,8 @@ on:
       - 'web/linear/**'
       - 'web/shared/**'
       - 'scripts/test-linear-mobile-integration.mjs'
+      - 'scripts/test-canonical-frame-fetch.mjs'
+      - 'scripts/browser-linear-fetch.mjs'
       - 'scripts/test-intransit-map.mjs'
       - 'scripts/test-linear-cloud-draft.mjs'
       - 'scripts/test-linear-publish.mjs'
@@ -25,6 +27,8 @@ on:
       - 'web/linear/**'
       - 'web/shared/**'
       - 'scripts/test-linear-mobile-integration.mjs'
+      - 'scripts/test-canonical-frame-fetch.mjs'
+      - 'scripts/browser-linear-fetch.mjs'
       - 'scripts/test-intransit-map.mjs'
       - 'scripts/test-linear-cloud-draft.mjs'
       - 'scripts/test-linear-publish.mjs'
@@ -52,6 +56,9 @@ jobs:
           node-version: '22'
       - name: Verify Linear production defaults and opt-in Bus1 GPS Debug
         run: node scripts/test-linear-mobile-integration.mjs
+
+      - name: Verify bounded frame fetch, validation and recovery
+        run: node scripts/test-canonical-frame-fetch.mjs
 
       - name: Verify InTransit layout, mapping and editor
         run: node scripts/test-intransit-map.mjs
@@ -82,6 +89,9 @@ jobs:
         env:
           INTRANSIT_SCREENSHOT_DIR: artifacts/intransit-map
         run: node scripts/browser-intransit-map.mjs
+
+      - name: Browser regression for frame recovery and direction legend
+        run: node scripts/browser-linear-fetch.mjs
 
       - name: Upload InTransit review screenshots
         if: always()

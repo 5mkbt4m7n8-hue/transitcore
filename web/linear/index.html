@@ -203,7 +203,7 @@ function paint(frame){
   const visibleItems=selectVisibleItems(frame,visibleIds);
   const lineColors=new Map();
   for(const item of visibleItems)for(const value of item.occupants)lineColors.set(String(value.line),value.rgb||item.rgb);
-  $("legend").innerHTML=allRoutes()?[...lineColors].sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true})).map(([line,rgb])=>`<span><i class="dot" style="background:rgb(${rgb.join(',')})"></i>Linje ${esc(line)}</span>`).join(''):profile.directions.slice(0,2).map(direction=>`<span><i class="dot" style="background:${esc(profile.line.color||direction.color)}"></i>${esc(direction.label)}</span>`).join('');
+  $("legend").innerHTML=allRoutes()?[...lineColors].sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true})).map(([line,rgb])=>`<span><i class="dot" style="background:rgb(${rgb.join(',')})"></i>Linje ${esc(line)}</span>`).join(''):profile.directions.slice(0,2).map(direction=>`<span><i class="dot" style="background:${esc(direction.color||profile.line.color)}"></i>${esc(direction.label)}</span>`).join('');
   document.querySelectorAll('.station-buses').forEach(container=>{
     const ids=new Set([...container.parentElement.querySelectorAll('.led[data-id]')].map(led=>led.dataset.id));
     container.innerHTML=allRoutes()?renderStationBuses(visibleItems.filter(item=>ids.has(String(item.id)))):"";
@@ -221,7 +221,7 @@ function paint(frame){
     }
   }
   if(!colorCycleTimer)colorCycleTimer=setInterval(cycleLedColors,1200);
-  const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<=Number(frame.ttlSeconds||30),active=visibleItems.filter(item=>item.lifecycle!=="PASSED").length;
+  const age=Math.max(0,Math.floor((Date.now()-Date.parse(frame.generatedAt))/1000)),fresh=age<Number(frame.ttlSeconds||30),active=visibleItems.filter(item=>item.lifecycle!=="PASSED").length;
   $("activeCount").textContent=active;
   $("quality").textContent=fresh?`LIVE - ${age} s`:`UTDATERT - ${age} s`;
   $("quality").style.color=fresh?"var(--ok)":"var(--bad)";
@@ -302,8 +302,9 @@ async function refresh(){
   lastFeedError=result.sample?.error||"";
   lastFeedBoardId=boardId;
   if(result.frame)paint(result.frame);
-  else updateNetworkMap();
-  $("status").textContent=boardId+" · "+result.algorithm+" · frame "+result.sample.sequence+" · alder "+result.sample.ageSeconds+" s · "+result.sample.status+(result.sample.error?" · FEIL: "+result.sample.error:"");
+  else {lastFrame=null;updateNetworkMap();$("quality").textContent="IKKE TILGJENGELIG";}
+  if(result.sample.status==="LAST_VALID")$("quality").textContent="SISTE GYLDIGE · hentefeil";
+  $("status").textContent=boardId+" · "+result.algorithm+" · frame "+result.sample.sequence+" · alder "+result.sample.ageSeconds+" s · "+result.sample.status+(result.transport?" · "+result.transport.kind+" · forsøk "+result.transport.attempts+" · "+result.transport.url:"")+(result.sample.error?" · FEIL: "+result.sample.error:"");
  }catch(error){if(generation!==refreshGeneration)return;lastFrame=null;lastFeedStatus="ERROR";lastFeedError=error.message;networkMap?.clear();updateNetworkMap();document.querySelectorAll(".led").forEach(l=>l.classList.remove("on","approaching","departed"));$("status").textContent=error.message;$("quality").textContent="IKKE TILGJENGELIG";}
  if(generation===refreshGeneration&&!document.hidden)timer=setTimeout(refresh,10000);
 }

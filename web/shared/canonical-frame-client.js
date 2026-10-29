@@ -25,20 +25,21 @@
   activeClient=client;evidenceFrame=null;refreshEvidence.disabled=!published;
   evidenceText.textContent=published?'Hentes kun på forespørsel. Viser serverevidens, ikke målt hardware.':'UTKAST / SIMULERING: ikke publisert sanntidsdiagnostikk.';
  }
- function create({boardId,ledCount,visual={},published=true,origin=localOrigin(),fetchImpl=globalThis.fetch,clock=()=>Date.now(),monotonic=()=>Math.floor(performance.now())>>>0}){
+ function create({boardId,ledCount,visual={},published=true,origin=localOrigin(),fetchImpl=globalThis.fetch,clock=()=>Date.now(),monotonic=()=>Math.floor(performance.now())>>>0,timeoutMs=6000,retryDelays=[250,750],sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms))}){
   if(!/^[a-z0-9-]{3,120}$/.test(boardId))throw Error('Invalid boardId');
-  const model=Client.create({boardProfile:boardId,ledCount,visual});
+  const model=Client.create({boardProfile:boardId,ledCount,visual,strictExpiry:true});
   let frame=null,algorithm='not reported',pending=null;
+  let transport={kind:'idle',attempts:0,url:origin+'/api/v1/frame/'+boardId};
   const value=()=>{
    const sample=model.sample(clock(),monotonic());
    // Wire states/identities are never recomputed. Only expired frames become OFF.
    const expired=sample.status==='EXPIRED'||sample.status==='NO_FRAME';
-   const result={boardId,algorithm,sample,frame:frame?{...structuredClone(frame),leds:expired?[]:structuredClone(frame.leds)}:null};
+   const result={boardId,algorithm,sample,transport:{...transport},frame:frame?{...structuredClone(frame),leds:expired?[]:structuredClone(frame.leds)}:null};
    if(activeClient===api){
     if(evidenceFrame&&(expired||evidenceFrame.boardId!==boardId||evidenceFrame.sequence!==frame?.sequence||evidenceFrame.generatedAt!==frame?.generatedAt)){
      evidenceText.textContent='Diagnostikk fra en tidligere frame. Hent på nytt for å sammenligne med gjeldende frame.';evidenceFrame=null;
     }
-    identity.textContent=(published?'LIVE':'UTKAST')+' · '+boardId+' · '+algorithm+' · sekvens '+sample.sequence+' · '+(frame?.generatedAt||'ingen frame')+' · alder '+sample.ageSeconds+' s · '+sample.status;
+    identity.textContent=(published?'LIVE':'UTKAST')+' · '+boardId+' · '+algorithm+' · sekvens '+sample.sequence+' · '+(frame?.generatedAt||'ingen frame')+' · alder '+sample.ageSeconds+' s · '+sample.status+' · '+transport.kind+' · forsøk '+transport.attempts+' · '+transport.url;
     ledRows.textContent=(result.frame?.leds||[]).map(l=>'LED '+l.id+' · '+(l.vehicle?.id||'?')+' · '+(l.lifecycle||l.state)).join('\n')||'Alle LED-er OFF / ingen gyldig frame.';
    }
    return result;
@@ -58,11 +59,41 @@
    failed(message){model.failed(message);},
    async refresh(){
     if(pending)return pending;
-    pending=(async()=>{try{
-     const response=await fetchImpl(this.url,{cache:'no-store'});
-     if(!response.ok)throw Error('HTTP '+response.status);
-     this.accept(await response.json(),response.headers.get('x-transitcore-stop-algorithm')||'not reported');
-    }catch(error){model.failed(error.message);}return value();})();
+    pending=(async()=>{
+     // Simple CORS GET: no credentials/custom headers, no opaque mode or source fallback.
+     // Bound the entire request including JSON body hydration, not only headers.
+     for(let attempt=0;attempt<=Math.min(2,retryDelays.length);attempt++){
+      const controller=new AbortController();let timer,kind='network',retry=true;
+      transport={kind:'fetching',attempts:attempt+1,url:this.url,startedAt:new Date(clock()).toISOString()};
+      try{
+       const payload=await Promise.race([
+        (async()=>{
+         const response=await fetchImpl(this.url,{cache:'no-store',mode:'cors',credentials:'omit',signal:controller.signal});
+         if(!response.ok){kind='http';retry=[408,429].includes(response.status)||response.status>=500;throw Error('HTTP '+response.status);}
+         kind='payload';retry=false;
+         let input;
+         try{input=await response.json();}catch(error){
+          // A broken body stream is transport failure; invalid JSON is not.
+          if(!controller.signal.aborted&&error instanceof TypeError){kind='network';retry=true;}
+          throw error;
+         }
+         return {input,algorithm:response.headers.get('x-transitcore-stop-algorithm')||'not reported'};
+        })(),
+        new Promise((_,reject)=>{timer=setTimeout(()=>{kind='timeout';retry=true;controller.abort();reject(Error('Request timeout'));},timeoutMs);})
+       ]);
+       if(!this.accept(payload.input,payload.algorithm)){
+        transport={...transport,kind:'rejected-frame',generatedAt:payload.input?.generatedAt};break;
+       }
+       transport={...transport,kind:'ok',generatedAt:payload.input.generatedAt};break;
+      }catch(error){
+       const detail=kind==='network'?'Nettverk/CORS blokkert eller utilgjengelig (nettleseren oppgir ikke årsaken)':error.message;
+       transport={...transport,kind,error:detail};model.failed(kind+': '+detail);
+       if(!retry||attempt>=Math.min(2,retryDelays.length))break;
+      }finally{clearTimeout(timer);}
+      await sleep(retryDelays[attempt]);
+     }
+     return value();
+    })();
     try{return await pending;}finally{pending=null;}
    }
   };
