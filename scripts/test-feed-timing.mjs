@@ -62,12 +62,18 @@ try {
 
   // Regression: this catalog mixes GPS vehicle routes and ETA route profiles.
   // It must produce one 1282-point frame rather than fail GPS-profile parity.
+  const beforeCatalogCalls=externalCalls.length;
   const catalogResponse = await worker.fetch(
     new Request('https://worker.test/v1/boards/trondheim-city-lines-catalog/frame'), env);
   assert.equal(catalogResponse.status,200,'Full mixed GPS/ETA catalog must render');
   const catalogFrame=await catalogResponse.json();
   assert.equal(catalogFrame.boardProfile,'trondheim-city-lines-catalog');
   assert.equal(catalogFrame.ledCount,1282);
+  const catalogRequests=externalCalls.slice(beforeCatalogCalls);
+  assert.equal(catalogRequests.filter(url=>url.includes('/config/routes/')).length,0,
+   'Virtual catalog must not fetch each of its 48 routes at runtime');
+  assert(catalogRequests.filter(url=>url.includes('raw.githubusercontent.com')).length<=1,
+   'Cold catalog frame must fetch at most its board JSON (bundled profiles)');
 
   blockedMonitor = true;
   const started = Date.now();
