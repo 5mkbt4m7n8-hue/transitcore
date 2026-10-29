@@ -181,7 +181,10 @@
   function playbackClock(){return playback?Date.parse(playback.capturedAt):Date.now();}
   function activeBoard(){return playback?replayBoard:context.board;}
   function activeHardware(){return playback?replayHardware:context.hardware;}
-  function activeLine(){return playback||context.all?null:context.line;}
+  // In live catalog mode a schematic stop represents physical presence.
+  // Show every GPS-observed line at its documented Quay even when the route
+  // selector is focused on another line. Keep legacy replay filtering intact.
+  function activeLine(){return playback||context.all||context.board?.id==='trondheim-city-lines-catalog'?null:context.line;}
   // Legacy 147-point recordings remain readable, but all new live frames and
   // scheduled recordings use the one 1282-point Trondheim catalog.
   // Match Quays by explicit ID only; never infer a platform from a nearby stop.

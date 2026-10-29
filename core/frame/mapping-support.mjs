@@ -32,6 +32,14 @@ export function matchesDirection(node, profile, destination) {
     const match = value.toLowerCase();
     return text.includes(match) || match.includes(text);
   })) return true;
+  // Entur's live headsign can use a different terminal name than the GTFS
+  // trip headsign. Only explicitly configured, exact destination aliases may
+  // bridge that difference, and only to a quay in the designated direction.
+  // Never infer a direction from geographic proximity or an unknown headsign.
+  const aliasDirection=Object.entries(profile.destinationDirectionAliases||{})
+    .find(([name])=>name.toLowerCase()===text.trim())?.[1];
+  if(aliasDirection!=null)
+    return routeDirection?.directionIds?.includes(String(aliasDirection))===true;
   // GTFS destination evidence on the quay is stronger than shape orientation.
   // This matters on ring services and on profiles whose canonical shape is reversed.
   if (text && destinations.length) return false;

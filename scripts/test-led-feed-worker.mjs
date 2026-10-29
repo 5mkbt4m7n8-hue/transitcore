@@ -326,3 +326,79 @@ assert.deepEqual(signalFrames[6].leds[0].rgb, [66, 165, 245], "Latest departure 
 assert.equal(signalFrames[6].leds[0].brightness, 8);
 assert.deepEqual(signalFrames[7].leds, [], "Afterglow expires to OFF after ten seconds");
 console.log("Isolated Worker signal sequence tests OK");
+
+
+// Regression: Entur reports "Blakli" for line 11 services towards the
+// Risvollan side of the route, while the GTFS quay rule says "Risvollan".
+const {readFileSync}=await import('node:fs');
+const line11Board=JSON.parse(readFileSync(new URL('../config/boards/trondheim-city-lines-catalog.json',import.meta.url),'utf8'));
+const line11Profile=JSON.parse(readFileSync(new URL('../config/routes/atb-bus-11-live.json',import.meta.url),'utf8'));
+const line11Nodes=line11Board.nodes.filter(node=>node.routes?.includes(line11Profile.id));
+const findBukkvollan=quay=>line11Nodes.find(node=>node.stopIds?.includes(quay));
+const toRisvollan=findBukkvollan('NSR:Quay:75463');
+const toStavset=findBukkvollan('NSR:Quay:75464');
+assert.equal(toRisvollan?.led,134,'Risvollan-bound Bukkvollan quay must retain LED 134');
+assert.equal(toStavset?.led,135,'Stavset-bound Bukkvollan quay must retain LED 135');
+assert.equal(matchesDirection(toRisvollan,line11Profile,'Blakli'),true,
+  'Entur Blakli headsign must activate the Risvollan-bound quay');
+assert.equal(matchesDirection(toStavset,line11Profile,'Blakli'),false,
+  'Blakli GPS must not activate the opposite Bukkvollan platform');
+assert.equal(matchesDirection(toRisvollan,line11Profile,'Risvollan'),true);
+assert.equal(matchesDirection(toRisvollan,line11Profile,'Stavset'),false);
+assert.equal(matchesDirection(toStavset,line11Profile,'Stavset'),true);
+assert.equal(matchesDirection(toStavset,line11Profile,'Risvollan'),false);
+assert.equal(matchesDirection(toRisvollan,line11Profile,'Unknown'),false);
+const towardsRisvollan=line11Nodes.filter(node=>matchesDirection(node,line11Profile,'Risvollan'));
+const towardsBlakli=line11Nodes.filter(node=>matchesDirection(node,line11Profile,'Blakli'));
+assert(towardsRisvollan.length>20,'Expected multi-stop Risvollan service direction');
+assert.deepEqual(towardsBlakli.map(node=>node.led),towardsRisvollan.map(node=>node.led),
+  'Live Blakli and GTFS Risvollan must select the exact same direction-side quays');
+assert.equal(matchesDirection(toRisvollan,{...line11Profile,destinationDirectionAliases:undefined},'Blakli'),false,
+  'Missing explicit alias must keep the fail-closed direction policy');
+// End-to-end deterministic synthetic GPS sample: the Entur headsign "Blakli"
+ // at Quay 75463 must illuminate LED 134 (not opposite-direction 135).
+const line11OnlyBoard={...line11Board,routes:[line11Profile.id]};
+const line11Hardware={schemaVersion:1,boardProfile:line11Board.id,
+  leds:line11Board.leds,
+  assignments:line11Board.nodes.map(node=>({logicalLed:node.led,physicalLed:node.led}))};
+const line11Frame=buildFrame({board:line11OnlyBoard,profiles:[line11Profile],hardware:line11Hardware,
+ vehicles:[{vehicleId:'test-risvollan-side',destinationName:'Blakli',
+   lastUpdated:new Date(now-5000).toISOString(),line:{publicCode:'11'},
+   location:{latitude:toRisvollan.lat,longitude:toRisvollan.lon}}],now});
+assert.equal(line11Frame.boardProfile,line11Board.id);
+assert.equal(line11Frame.ledCount,1282);
+const matchedLine11=line11Frame.leds.find(led=>led.id===134);
+assert(matchedLine11,'Bukkvollan LED 134 must light for valid Blakli-bound GPS');
+assert.equal(matchedLine11.state,'AT_STOP');
+assert.equal(matchedLine11.vehicle?.line,'11');
+assert.equal(matchedLine11.vehicle?.destination,'Blakli');
+assert(!line11Frame.leds.some(led=>led.id===135),'Wrong-side LED 135 must remain off');
+// Off-route physical presence: a LINE 1 GPS observation at a LINE 11 stop
+// is shown as LINE 1, regardless of its headsign or the Quay route registry.
+const line1Profile=JSON.parse(readFileSync(new URL('../config/routes/atb-bus-1-live.json',import.meta.url),'utf8'));
+const crossRouteBoard={...line11Board,routes:[line11Profile.id,line1Profile.id]};
+const crossRouteVehicle={
+  vehicleId:'cross-route-line-1',destinationName:'Unexpected destination',
+  lastUpdated:new Date(now-3000).toISOString(),
+  line:{publicCode:'1'},location:{latitude:toRisvollan.lat,longitude:toRisvollan.lon}
+};
+const crossRouteFrame=buildFrame({board:crossRouteBoard,profiles:[line11Profile,line1Profile],hardware:line11Hardware,
+  vehicles:[crossRouteVehicle],now});
+const offRouteSignal=crossRouteFrame.leds.find(signal=>signal.id===134);
+assert(offRouteSignal,'GPS proximity must show a bus from another line at Bukkvollan');
+assert.equal(offRouteSignal.vehicle.line,'1','Preserve GPS-observed line, not selected route');
+assert.equal(offRouteSignal.vehicle.destination,'Unexpected destination');
+assert.equal(offRouteSignal.vehicle.positionType,'gps-nearest-stop');
+assert.equal(offRouteSignal.vehicle.routeListedHere,false);
+assert.equal(offRouteSignal.occupants[0].line,'1');
+assert.equal(offRouteSignal.occupants[0].routeListedHere,false);
+assert(!crossRouteFrame.leds.some(signal=>signal.id===135),'Nearest Quay should not illuminate both sides');
+const staleOffRoute=buildFrame({board:crossRouteBoard,profiles:[line11Profile,line1Profile],hardware:line11Hardware,
+  vehicles:[{...crossRouteVehicle,lastUpdated:new Date(now-600000).toISOString()}],now});
+assert.deepEqual(staleOffRoute.leds,[],'Stale GPS must not light a stop');
+const distantOffRoute=buildFrame({board:crossRouteBoard,profiles:[line11Profile,line1Profile],hardware:line11Hardware,
+  vehicles:[{...crossRouteVehicle,location:{latitude:63.05,longitude:10.1}}],now});
+assert.deepEqual(distantOffRoute.leds,[],'Faraway GPS must not light the nearest unrelated stop');
+assert.equal(line11Profile.directions[1].label,'mot Blakli');
+console.log('Line 11 Blakli endpoint, off-route line 1 proximity, confidence and staleness regressions OK');
+console.log('Line 11 Blakli/Risvollan Bukkvollan LED 134/135 direction and frame regression OK');

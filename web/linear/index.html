@@ -101,7 +101,7 @@ function build(){
   profile=profiles.find(item=>item.id===$("route").value)||profiles[0];useProfileLayout(profile);document.body?.classList?.toggle('fb73-eta',profile.id===FLYBUSS);const directions=profile.directions.slice(0,2),physical=new Map(hardware.assignments.map(a=>[a.logicalLed,a.physicalLed]));stationRows();
   $("allRoutes").disabled=profile.id===FLYBUSS;
   $("routeViewOptions").hidden=!allRoutes();
-  $("scopeNote").textContent=allRoutes()?"Viser katalogførte bylinjer på nøyaktig de samme plattformene. Hver buss vises nedenfor med linjenummer, farge og status. GPS-data kan være forsinket.":profile.id===FLYBUSS?"FB73: Kun anslåtte ankomster (ETA), ikke GPS. Én stabil LED per avgang vises når ankomst er anslått innen omtrent 2 minutter. Ingen LED utenfor dette vinduet betyr ikke at bussen står stille eller at det ikke går busser.":"Viser valgt linje. Klikk på en diode for detaljer.";
+  $("scopeNote").textContent=allRoutes()?"Viser katalogførte bylinjer på nøyaktig de samme plattformene. Hver buss vises nedenfor med linjenummer, farge og status. GPS-data kan være forsinket.":profile.id===FLYBUSS?"FB73: Kun anslåtte ankomster (ETA), ikke GPS. Én stabil LED per avgang vises når ankomst er anslått innen omtrent 2 minutter. Ingen LED utenfor dette vinduet betyr ikke at bussen står stille eller at det ikke går busser.":"Viser holdeplassene til valgt linje. Alle GPS-observerte busser i nærheten vises, også fra andre linjer. GPS beviser ikke hvilken plattform som ble brukt.";
   if(stagingSelected())$("scopeNote").textContent="STAGING · "+board.id+" · "+hardware.leds.count+" LED · samme PixelFrame-motor, ikke målt fysisk ESP. Ingen automatisk overgang til produksjonsfeed ved feil.";
   $("dirA").textContent=directions[0]?.label||"Retning A";$("dirB").textContent=directions[1]?.label||"Retning B";
   $("legend").innerHTML=directions.map(direction=>`<span><i class="dot" style="background:${esc(direction.color)}"></i>${esc(direction.label)}</span>`).join("");
@@ -178,7 +178,7 @@ function paint(frame){
   lastFrame=frame;
   updateNetworkMap();
   const visibleIds=new Set([...document.querySelectorAll('.led[data-id]')].map(led=>led.dataset.id));
-  const visibleItems=(frame.leds||[]).filter(item=>visibleIds.has(String(item.id))&&(profile.id===FLYBUSS&&frame.boardProfile===board.id||allRoutes()||[item.vehicle,...(item.occupants||[])].some(v=>String(v?.line)===String(profile.line.publicCode)))).map(item=>({...item,occupants:item.occupants?.length?item.occupants:profile.id===FLYBUSS?[{...item.vehicle,line:'FB73',destination:'Beregnet avgang',state:item.state,rgb:item.rgb}]:[item.vehicle||{}]}));
+  const visibleItems=(frame.leds||[]).filter(item=>visibleIds.has(String(item.id))&&(profile.id===FLYBUSS&&frame.boardProfile===board.id||board.id==="trondheim-city-lines-catalog"||allRoutes()||[item.vehicle,...(item.occupants||[])].some(v=>String(v?.line)===String(profile.line.publicCode)))).map(item=>({...item,occupants:item.occupants?.length?item.occupants:profile.id===FLYBUSS?[{...item.vehicle,line:'FB73',destination:'Beregnet avgang',state:item.state,rgb:item.rgb}]:[item.vehicle||{}]}));
   const lineColors=new Map();
   for(const item of visibleItems)for(const value of item.occupants)lineColors.set(String(value.line),value.rgb||item.rgb);
   $("legend").innerHTML=[...lineColors].sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true})).map(([line,rgb])=>`<span><i class="dot" style="background:rgb(${rgb.join(',')})"></i>Linje ${esc(line)}</span>`).join('');
@@ -223,7 +223,8 @@ function updateDiagnostics(items,frameAge,fresh){
       else if(labels.has(directions[1]?.label))counts.dirB++;
     }
     const destination=String(vehicle.destination||"").toLowerCase(),expected=directions.find(direction=>(direction.destinationMatches||[]).some(value=>destination.includes(String(value).toLowerCase())));
-    if(allRoutes()&&String(vehicle.line)!==String(profile.line.publicCode)){/* Platform identity defines the side for other routes. */}
+    if(board.id==="trondheim-city-lines-catalog"){/* Physical GPS proximity has no guaranteed direction-side evidence. */}
+    else if(allRoutes()&&String(vehicle.line)!==String(profile.line.publicCode)){/* Platform identity defines the side for other routes. */}
     else if(!expected)counts.unknownDestination++;
     else if(leds.length&&!labels.has("Begge retninger")&&!labels.has(expected.label))counts.mismatch++;
     const key=`${profile.id}:${item.id}`,vehicleId=String(vehicle.id||""),previous=diagnosticVehicles.get(key);
@@ -238,7 +239,7 @@ function updateDiagnostics(items,frameAge,fresh){
   $("diagDirectionMismatch").textContent=counts.mismatch;$("diagUnknownDestination").textContent=counts.unknownDestination;$("diagOneSided").textContent=oneSidedFrames;$("diagUnmapped").textContent=counts.unmapped;
   $("diagStale").className=counts.stale?"diagwarn":"diagok";$("diagMissing").className=counts.missing?"diagwarn":"diagok";
   $("diagDirectionMismatch").className=counts.mismatch?"diagbad":"diagok";$("diagUnknownDestination").className=counts.unknownDestination?"diagwarn":"diagok";$("diagOneSided").className=oneSidedFrames>=3?"diagwarn":"diagok";$("diagUnmapped").className=counts.unmapped?"diagwarn":"diagok";
-  $("diagNote").textContent=fresh?(counts.mismatch?`ADVARSEL: ${counts.mismatch} signal er på feil retningsside.`:counts.unmapped?`Merk: ${counts.unmapped} feed-signal mangler en synlig LED i linjekartet.`:oneSidedFrames>=3?`Merk: bare ${activeA?directions[0]?.label:directions[1]?.label} har aktive busser i ${oneSidedFrames} oppdateringer. Dette kan være reell trafikk eller manglende kjøretøy i kilden.`:`Frame er live (${frameAge} s). Retningene samsvarer med kjøretøydestinasjonene.`):`Frame er utdatert (${frameAge} s). Diagnoseverdiene kan være gamle.`;
+  $("diagNote").textContent=fresh&&board.id==="trondheim-city-lines-catalog"?"GPS-posisjoner vises ved nærmeste registrerte holdeplass. Retning og plattform er ikke alltid bekreftet.":fresh?(counts.mismatch?`ADVARSEL: ${counts.mismatch} signal er på feil retningsside.`:counts.unmapped?`Merk: ${counts.unmapped} feed-signal mangler en synlig LED i linjekartet.`:oneSidedFrames>=3?`Merk: bare ${activeA?directions[0]?.label:directions[1]?.label} har aktive busser i ${oneSidedFrames} oppdateringer. Dette kan være reell trafikk eller manglende kjøretøy i kilden.`:`Frame er live (${frameAge} s). Retningene samsvarer med kjøretøydestinasjonene.`):`Frame er utdatert (${frameAge} s). Diagnoseverdiene kan være gamle.`;
   $("diagNote").className=`diagnote ${fresh?"diagok":"diagbad"}`;
 }
 function showInfo(led){
@@ -252,10 +253,11 @@ function showInfo(led){
    'Linje '+esc(value.line||'?')+' – '+esc(value.destination||"Ukjent")+
    ' – '+esc(value.state||displayState)+(isEtaObservation(value)?' (ETA, ikke GPS)':Number.isFinite(value.distanceMeters)?' ('+esc(value.distanceMeters)+' m)':' (avstand ikke oppgitt)')+'</p>').join(''):'';
  $("infoBody").innerHTML='<p><strong>Retning:</strong> '+esc(led.dataset.direction)+'</p>'+
-  '<p><strong>Vist tilstand:</strong> '+(isEta?(displayState==='APPROACHING'?'Beregnet ankomst nærmer seg (ETA, ikke GPS)':'Estimert ved stopp (ETA, ikke GPS)'):esc(displayState))+'</p>'+
+  '<p><strong>Vist tilstand:</strong> '+(isEta?(displayState==='APPROACHING'?'Beregnet ankomst nærmer seg (ETA, ikke GPS)':'Estimert ved stopp (ETA, ikke GPS)'):vehicle.positionType==='gps-nearest-stop'&&displayState==='AT_STOP'?'GPS innenfor stoppradius (ikke bekreftet stans)':esc(displayState))+'</p>'+
   (item?'<p><strong>'+ (isEta?'Tur-ID:':'Kjøretøy-ID:') +'</strong> '+esc(vehicle.id||'Ukjent')+'</p>'+
    '<p><strong>Linje:</strong> '+esc(vehicle.line||'Ukjent')+'</p>'+
-   '<p><strong>Datagrunnlag:</strong> '+(isEta?'Ankomstprognose (ETA). Tidspunkt kan avvike fra faktisk ankomst. Ingen målt avstand eller posisjonsalder.':esc(Number.isFinite(vehicle.ageSeconds)?vehicle.ageSeconds+' s gammel GPS-posisjon':'Posisjonsgrunnlag ikke oppgitt'))+'</p>'+details:
+   '<p><strong>Datagrunnlag:</strong> '+(isEta?'Ankomstprognose (ETA). Tidspunkt kan avvike fra faktisk ankomst. Ingen målt avstand eller posisjonsalder.':esc(Number.isFinite(vehicle.ageSeconds)?vehicle.ageSeconds+' s gammel GPS-posisjon':'Posisjonsgrunnlag ikke oppgitt'))+'</p>'+
+   (vehicle.positionType==='gps-nearest-stop'?'<p><strong>GPS-nærhet:</strong> Nærmeste registrerte plattform; GPS bekrefter ikke faktisk stopp eller riktig plattform.'+(vehicle.routeListedHere===false?' Linjen er ikke registrert på denne plattformen.':'')+'</p>':'')+details:
    '<p>Ingen aktiv avgang på denne dioden nå.</p>');
  $("info").classList.add("show");
 }

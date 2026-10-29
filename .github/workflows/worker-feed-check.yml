@@ -1,10 +1,10 @@
 name: Worker feed checks
 on:
   pull_request:
-    paths: ["worker/**", "config/**", "scripts/test-feed-timing.mjs", ".github/workflows/worker-feed-check.yml"]
+    paths: ["worker/**", "config/**", "scripts/test-feed-timing.mjs", "scripts/test-led-feed-worker.mjs", ".github/workflows/worker-feed-check.yml"]
   push:
     branches: [main]
-    paths: ["worker/**", "config/**", "scripts/test-feed-timing.mjs", ".github/workflows/worker-feed-check.yml"]
+    paths: ["worker/**", "config/**", "scripts/test-feed-timing.mjs", "scripts/test-led-feed-worker.mjs", ".github/workflows/worker-feed-check.yml"]
 permissions:
   contents: read
 jobs:
