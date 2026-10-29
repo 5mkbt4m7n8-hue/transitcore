@@ -1,4 +1,5 @@
 import {distance} from '../frame/mapping-support.mjs';
+import {projectEnturReportedStops} from './entur-stop-projection.mjs';
 import {catalogIndex} from './catalog-index.mjs';
 import competitors from '../../config/gps/trondheim-quay-competitors.json' with {type:'json'};
 
@@ -43,7 +44,7 @@ export function strictDirection(node, profile, destination) {
 }
 
 // maxDistanceMeters is an explicit diagnostic what-if input; existing Worker calls retain the 60 m policy.
-export function interpretStrictStationGps({board, profiles, vehicles, now, maxDistanceMeters=60}) {
+export function interpretStrictStationGps({board, profiles, vehicles, now, maxDistanceMeters=60, stopReports=[]}) {
   const catalog = board.id === 'trondheim-city-lines-catalog' ? board.nodes : board.gpsMatchingNodes;
   const index = catalogIndex(safetyCatalog(catalog || board.nodes)), byLine = new Map();
   if (!quayMaps.has(board.nodes)) quayMaps.set(board.nodes,new Map(board.nodes.map(node => [node.quayId,node])));
@@ -116,5 +117,6 @@ export function interpretStrictStationGps({board, profiles, vehicles, now, maxDi
     occupants.push(item); occupantsByLed.set(item.id,occupants);
     if (!strongest.has(item.id) || meters < strongest.get(item.id).meters) strongest.set(item.id,item);
   }
-  return {strongest, occupantsByLed, observations};
+  return projectEnturReportedStops({board,profiles,vehicles,now,reports:stopReports,
+    interpreted:{strongest,occupantsByLed,observations}});
 }
