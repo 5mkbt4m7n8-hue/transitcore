@@ -374,4 +374,19 @@ assert.equal(legacyShown[0].occupants[0].line,'FB73');
 assert.match(read('web/linear/network/map.js'),/function activeLine\(\)\{return playback\|\|context\.all\?null:context\.line;\}/,
  'Schematic map must filter selected route until all-lines checkbox is selected');
 
+// Strict dual projection never paints unresolved GPS as a stop occupant.
+el('route').value='atb-bus-11-live';el('route').onchange();await new Promise(resolve=>setImmediate(resolve));
+const strictFrame={...frame,boardProfile:'trondheim-city-lines-catalog',ledCount:1282,
+ gpsMatchingPolicy:'strict-route-quay-v1',leds:[],gpsObservations:[
+ {id:'ambiguous-11',line:'11',destination:'Blakli',status:'unresolved',reason:'competing-quay',latitude:63.4,longitude:10.3},
+ {id:'other-line-bus',line:'1',destination:'Ranheim',status:'unresolved',reason:'route-or-direction-unresolved',latitude:63.5,longitude:10.4}]};
+el('allRoutes').checked=false;context.strictFrame=strictFrame;
+vm.runInContext('paint(strictFrame)',context);
+assert.match(el('diagUnresolved').innerHTML,/ambiguous-11/);assert(!el('diagUnresolved').innerHTML.includes('other-line-bus'));
+assert.equal(String(el('diagAtStop').textContent),'0');assert.match(el('diagNote').textContent,/ingen aktiv LED/);
+el('allRoutes').checked=true;vm.runInContext('paint(strictFrame)',context);
+assert.match(el('diagUnresolved').innerHTML,/other-line-bus/);
+assert.match(el('diagUnresolved').innerHTML,/63.4/);
+assert.equal(strictFrame.leds.length,0);
+
 console.log('Linear HTML, full Bus1 147 mapping, popup evidence, mobile defaults, GPS Debug PASS');

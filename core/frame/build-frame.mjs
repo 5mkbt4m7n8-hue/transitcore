@@ -4,6 +4,7 @@ import {mapLedStates} from "./led-mapper.mjs";
 import {interpretStationVehicles, interpretLinearVehicles} from "../engines/position-interpretation.mjs";
 import {renderStationFrame, renderLinearFrame, renderArrivalFrame} from "./frame-renderer.mjs";
 import {assertPixelFrame} from "./frame-validator.mjs";
+import {usesStrictStationGps} from '../engines/strict-station-gps.mjs';
 
 /** Provider-neutral pipeline. Caller owns transport, cache and motion history. */
 export function buildPixelFrame(input, {strategy = input.board.layout, validate = false} = {}) {
@@ -16,7 +17,7 @@ export function buildPixelFrame(input, {strategy = input.board.layout, validate 
     frameStage("config", () => validateConfiguration(context.board, context.profiles, context.hardware));
     // Only malformed legacy observations carry this explicit compatibility view.
     // Neither mapping nor rendering reads raw/provider-shaped data.
-    const vehicles = context.vehicles.map(v => v.frameCompatibility || v);
+    const vehicles = usesStrictStationGps(context.board) ? context.vehicles : context.vehicles.map(v => v.frameCompatibility || v);
     const mappingContext = {...context, vehicles};
     const linear = strategy === "linear-route-vled";
     const interpreted = frameStage("interpretation", () =>

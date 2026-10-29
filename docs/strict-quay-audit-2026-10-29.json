@@ -1,0 +1,63 @@
+{
+  "endpoint": "https://api.entur.io/journey-planner/v3/graphql",
+  "checkedAt": "2026-10-29T14:23:19.911Z",
+  "configuredQuays": 1282,
+  "stopPlaces": 689,
+  "verified": 1278,
+  "quarantined": 4,
+  "unsafeMismatchCount": 0,
+  "mismatches": [
+    {
+      "led": 337,
+      "quayId": "NSR:Quay:102735",
+      "configuredStation": "NSR:StopPlace:60265",
+      "configuredLatitude": 63.441363,
+      "configuredLongitude": 10.196187,
+      "actual": {
+        "id": "NSR:Quay:102735",
+        "latitude": 63.44047,
+        "longitude": 10.1979,
+        "stationId": "NSR:StopPlace:60265"
+      }
+    },
+    {
+      "led": 338,
+      "quayId": "NSR:Quay:103687",
+      "configuredStation": "NSR:StopPlace:60265",
+      "configuredLatitude": 63.441639,
+      "configuredLongitude": 10.195439,
+      "actual": {
+        "id": "NSR:Quay:103687",
+        "latitude": 63.44005,
+        "longitude": 10.19803,
+        "stationId": "NSR:StopPlace:60265"
+      }
+    },
+    {
+      "led": 1090,
+      "quayId": "NSR:Quay:73377",
+      "configuredStation": "NSR:StopPlace:42808",
+      "configuredLatitude": 63.419828,
+      "configuredLongitude": 10.755387,
+      "actual": {
+        "id": "NSR:Quay:73377",
+        "latitude": 63.420029,
+        "longitude": 10.754617,
+        "stationId": "NSR:StopPlace:42808"
+      }
+    },
+    {
+      "led": 1091,
+      "quayId": "NSR:Quay:73378",
+      "configuredStation": "NSR:StopPlace:42808",
+      "configuredLatitude": 63.419053,
+      "configuredLongitude": 10.757565,
+      "actual": {
+        "id": "NSR:Quay:73378",
+        "latitude": 63.419972,
+        "longitude": 10.756136,
+        "stationId": "NSR:StopPlace:42808"
+      }
+    }
+  ]
+}

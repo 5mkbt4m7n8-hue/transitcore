@@ -8,6 +8,7 @@ import { validateDeviceSettings } from "../core/models/device-config.mjs";
 import { createEnturProvider } from "../core/providers/entur/entur-provider.mjs";
 import { normalizeEnturVehicle } from "../core/providers/entur/entur-normalizer.mjs";
 import { buildPixelFrame } from "../core/frame/build-frame.mjs";
+import {usesStrictStationGps,safetyCatalog} from '../core/engines/strict-station-gps.mjs';
 import {metroQuayTargets,selectMetroEstimatedCalls} from "../core/engines/metro-arrival-estimates.mjs";
 import {usesStopAccuracy,buildStopAccuracy} from "./stop-accuracy.mjs";
 import { distance, color, rgb, matchesDirection, vehicleAllowedByBoard, validateConfiguration } from "../core/frame/mapping-support.mjs";
@@ -152,6 +153,7 @@ export function normalizeLedEntries(entries = [], ledCount = Infinity) {
 }
 
 export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), afterglowMs = SIGNAL_POLICY.departureAfterglowSeconds * 1000) {
+  if (frame.gpsMatchingPolicy === 'strict-route-quay-v1') return {frame, state:{}};
   // Invisible departure memory is independent of the visible afterglow.
   // Bound its lifetime so missing vehicles cannot remain latched indefinitely.
   previous = Object.fromEntries(Object.entries(previous).filter(([, value]) =>
@@ -376,6 +378,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
 }
 
 export function holdTransientEmptyFrame(frame, previous = null, now = Date.now(), holdMs = 0) {
+  if (frame.gpsMatchingPolicy === 'strict-route-quay-v1') return {frame};
   const hasSignals = Array.isArray(frame.leds) && frame.leds.length > 0;
   if (hasSignals) return { frame, previous: { frame, receivedAt: now } };
   const age = now - Number(previous?.receivedAt || 0);
@@ -859,7 +862,13 @@ async function loadConfiguration(boardId, now) {
   const resolvedHardware = hardware || defaultHardware(board);
   validateConfiguration(board, profiles, resolvedHardware);
   await attachProfileIdentity(board,resolvedHardware);
-  if (bundledCatalog) catalogIndex(board.nodes);
+  if (bundledCatalog) catalogIndex(safetyCatalog(board.nodes));
+  if (usesStrictStationGps(board) && !bundledCatalog) {
+    // A 147-point subset cannot see competing unlisted stops. Reuse the
+    // complete catalog and its configuration-lifetime index, fail closed on IO.
+    const catalog = await configuration('trondheim-city-lines-catalog', now);
+    Object.defineProperty(board, 'gpsMatchingNodes', {value:catalog.board.nodes});
+  }
   const value = { board, profiles, hardware: resolvedHardware };
   configCache.set(boardId, { loadedAt: now, value });
   return value;
@@ -1067,6 +1076,7 @@ async function boardFrameResponse(boardId, env, source) {
 }
 
 async function stabilizeMotionFrame(env, board, frame, now) {
+  if (usesStrictStationGps(board)) return attachSignalPolicy(frame);
   const configured = board.render?.departureAfterglowSeconds;
   const afterglowSeconds = configured == null && (board.id === "trondheim-bus-board" || GRAKALL_BOARD_IDS.has(board.id))
     ? SIGNAL_POLICY.departureAfterglowSeconds

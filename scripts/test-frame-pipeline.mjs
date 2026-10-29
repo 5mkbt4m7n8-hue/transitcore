@@ -15,6 +15,8 @@ let comparisons=0, benchmarkContext, benchmarkLegacy;
 for(const id of ["grakallbanen-board","grakallbanen-prototype-board","trondheim-bus-board"]) {
   const board=read("config/boards/"+id+".json");
   const hardware=read("config/hardware/"+id+"-hardware.json");
+  // Frozen behavior is retained only as an explicit legacy fixture; strict physical boards have dedicated regressions.
+  if(id==='trondheim-bus-board'){board.id='legacy-station-fixture';hardware.boardProfile=board.id;}
   const profiles=board.routes.map(r=>read("config/routes/"+r+".json"));
   if(board.layout!=="linear-route-vled") for(const node of board.nodes) {
     if(node.lat!=null) continue;
