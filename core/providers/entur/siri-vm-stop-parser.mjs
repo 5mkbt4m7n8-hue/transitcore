@@ -21,7 +21,7 @@ export function parseAtbReportedStops(xml,{maxActivities=4000}={}) {
   const journey=section(activity[0],'MonitoredVehicleJourney');
   // Next/onward/previous calls are *not* current stop evidence. Explicitly
   // discard those subtrees before selecting the direct MonitoredCall.
-  const currentOnly=journey?.replace(/<(?:[A-Za-z_][\\w.-]*:)?(?:OnwardCalls|PreviousCalls)(?:\\s[^<>]*?)?>[\\s\\S]*?<\\/(?:[A-Za-z_][\\w.-]*:)?(?:OnwardCalls|PreviousCalls)\\s*>/g,'');
+  const currentOnly=journey?.replace(/<(?:[A-Za-z_][\w.-]*:)?(?:OnwardCalls|PreviousCalls)(?:\s[^<>]*?)?>[\s\S]*?<\/(?:[A-Za-z_][\w.-]*:)?(?:OnwardCalls|PreviousCalls)\s*>/g,'');
   const call=currentOnly&&section(currentOnly,'MonitoredCall');
   if(!journey||!call||single(call,'VehicleAtStop')!=='true')continue;
   const vehicleRef=single(journey,'VehicleRef'),lineRef=single(journey,'LineRef');
