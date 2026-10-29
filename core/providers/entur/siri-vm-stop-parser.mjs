@@ -19,7 +19,10 @@ export function parseAtbReportedStops(xml,{maxActivities=4000}={}) {
  for(const activity of xml.matchAll(activityRE)){
   if(++seen>maxActivities)throw Error('SIRI-VM too many activities');
   const journey=section(activity[0],'MonitoredVehicleJourney');
-  const call=journey&&section(journey,'MonitoredCall');
+  // Next/onward/previous calls are *not* current stop evidence. Explicitly
+  // discard those subtrees before selecting the direct MonitoredCall.
+  const currentOnly=journey?.replace(/<(?:[A-Za-z_][\\w.-]*:)?(?:OnwardCalls|PreviousCalls)(?:\\s[^<>]*?)?>[\\s\\S]*?<\\/(?:[A-Za-z_][\\w.-]*:)?(?:OnwardCalls|PreviousCalls)\\s*>/g,'');
+  const call=currentOnly&&section(currentOnly,'MonitoredCall');
   if(!journey||!call||single(call,'VehicleAtStop')!=='true')continue;
   const vehicleRef=single(journey,'VehicleRef'),lineRef=single(journey,'LineRef');
   const quayId=single(call,'StopPointRef'),recordedAt=single(activity[0],'RecordedAtTime');
