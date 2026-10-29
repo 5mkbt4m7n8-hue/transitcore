@@ -1,6 +1,5 @@
 name: AtB SIRI exact stop evidence candidate (read only)
 on:
-  # Entur SIRI Lite is limited to 4 requests/minute; avoid per-commit PR probes.
   workflow_dispatch:
 permissions:
   contents: read
