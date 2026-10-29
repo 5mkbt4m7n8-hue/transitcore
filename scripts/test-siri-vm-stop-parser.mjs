@@ -26,10 +26,14 @@ assert.equal(reports[0].vehicleRef,'ATB:Vehicle:test-1');
 assert.equal(reports[0].lineRef,'ATB:Line:2_11');
 assert.equal(reports[0].quayId,'NSR:Quay:75464');
 assert.equal(reports[0].recordedAt,ts);
-assert.equal(parseAtbReportedStops(wrap(entry(stop('true')+stop('true')))).length,0);
-assert.equal(parseAtbReportedStops(wrap(entry(stop('true'),'x','RUT:Line:42')))).length,0);
-assert.equal(parseAtbReportedStops(wrap(entry(stop('false'))))).length,0);
-assert.equal(parseAtbReportedStops(wrap(entry(stop('true').replace('NSR:Quay:75464','NSR:StopPlace:43948'))))).length,0);
+const doubleCalls=stop('true')+stop('true');
+assert.equal(parseAtbReportedStops(wrap(entry(doubleCalls))).length,0);
+const otherAgency=wrap(entry(stop('true'),'x','RUT:Line:42'));
+assert.equal(parseAtbReportedStops(otherAgency).length,0);
+const falseReport=wrap(entry(stop('false')));
+assert.equal(parseAtbReportedStops(falseReport).length,0);
+const wrongStopType=wrap(entry(stop('true').replace('NSR:Quay:75464','NSR:StopPlace:43948')));
+assert.equal(parseAtbReportedStops(wrongStopType).length,0);
 assert.throws(()=>parseAtbReportedStops('<bad>'),/invalid/);
 const profile=JSON.parse(readFileSync(new URL('../config/routes/atb-bus-11-live.json',import.meta.url)));
 const node={quayId:'NSR:Quay:75464',stationId:'NSR:StopPlace:43948',stopIds:['NSR:Quay:75464'],
