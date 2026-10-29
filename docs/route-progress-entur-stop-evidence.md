@@ -47,10 +47,13 @@ Kildeeksempel: https://github.com/entur/profile-examples/blob/master/siri/vehicl
   De registrerte checkpoints er **ikke** bevis på faktisk stopp.
   En retningshypotese er ingen Quay-plassering.
 - `worker/led-feed-worker.mjs`: valgfri sentral Durable Object shadow
-  (`routeProgressShadowV1`), kun for staging med gyldig kandidat-SHA eller
-  eksplisitt `ROUTE_PROGRESS_SHADOW=1`. Metadata er diagnostikk;
-  **ingen** endring av normal LED-projeksjon, rutevalg, fysisk 147-mapping,
-  FB73 eller historikk. Hvis shadow feiler, påvirkes ingen LED.
+  (`routeProgressShadowV1`), kun ved eksplisitt
+  `ROUTE_PROGRESS_SHADOW=1` på en isolert kandidat-Worker.
+  Den beskyttede `deploy/staging/entry.mjs` bruker en annen frame-kjede
+  og aktiverer **ikke** denne testen ved staging-kandidat-SHA alene.
+  Metadata er diagnostikk; **ingen** endring av normal LED-projeksjon,
+  rutevalg, fysisk 147-mapping, FB73 eller historikk.
+  Hvis shadow feiler, påvirkes ingen LED.
 - `core/providers/entur/siri-vm-stop-parser.mjs`: konservativ ekstraksjon
   av eksplisitte SIRI VM MonitoredCall-stopp; OnwardCalls/PreviousCalls
   er utelukket. Krever tidsstempel med tidssone og entydig Quay. Ingen
