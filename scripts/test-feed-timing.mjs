@@ -55,20 +55,32 @@ try {
       return Response.json({ ok: true });
     } })
   } };
-  await worker.scheduled({ scheduledTime: Date.now() }, env);
-  const coldCronRequests=externalCalls.slice();
-  const scheduledRouteJson=coldCronRequests.filter(url=>url.includes('/config/routes/'));
-  assert.equal(scheduledRouteJson.length,new Set(scheduledRouteJson).size,
-    'All eight scheduled boards must share overlapping route-profile downloads');
-  assert(coldCronRequests.length<50,
-    'Cold cron must stay below Workers Free 50 external subrequest allowance: '+coldCronRequests.length);
-  assert.equal(monitors.length, 9);
-  assert.equal(monitors.filter(row => row.source === 'scheduled' && row.state === 'OK').length,8);
-  assert.equal(monitors.filter(row => row.source === 'history' && row.state === 'OK' &&
-    row.id === 'trondheim-city-lines-catalog').length,1);
-  assert.equal(historyWrites.length,1,'Cron must save exactly one day-history sample');
+  const wrangler=(await fs.readFile(new URL('worker/wrangler.toml',root),'utf8'));
+  assert.match(wrangler,/crons = \["\*\/5 \* \* \* \*", "1-59\/5 \* \* \* \*"\]/,
+    'Both five-minute cron expressions must be deployed');
+
+  await worker.scheduled({ scheduledTime: Date.now(),cron:"*/5 * * * *" },env);
+  const historyRequests=externalCalls.slice();
+  assert(historyRequests.length<50,
+    'Full catalog history invocation must stay under the Free Worker limit');
+  assert.equal(monitors.length,1,'The history cron must not run legacy board checks');
+  assert.equal(monitors[0].source,'history');
+  assert.equal(historyWrites.length,1,'History cron saves exactly one sample');
   assert.equal(historyWrites[0].action,'record');
   assert.equal(historyWrites[0].frame.boardProfile,'trondheim-city-lines-catalog');
+
+  const monitorStart=externalCalls.length;
+  await worker.scheduled({scheduledTime:Date.now(),cron:"1-59/5 * * * *"},env);
+  const monitorRequests=externalCalls.slice(monitorStart);
+  const scheduledRouteJson=monitorRequests.filter(url=>url.includes('/config/routes/'));
+  assert.equal(scheduledRouteJson.length,new Set(scheduledRouteJson).size,
+    'Scheduled legacy boards share overlapping route-profile downloads');
+  assert(monitorRequests.length<50,
+    'Eight-board monitor invocation must stay below Free Worker limit');
+  assert.equal(monitors.length,9,'Exactly eight legacy board monitors plus the history sample');
+  assert.equal(monitors.filter(row=>row.source==='scheduled'&&row.state==='OK').length,8);
+  assert.equal(historyWrites.length,1,'Monitor cron must not make another history sample');
+  await assert.rejects(worker.scheduled({scheduledTime:Date.now(),cron:"* * * * *"},env),/unknown_scheduled_cron/);
   assert.ok(externalCalls.every(url => !url.includes('workers.dev')));
 
   // Regression: this catalog mixes GPS vehicle routes and ETA route profiles.
