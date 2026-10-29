@@ -4,6 +4,8 @@ on:
     paths:
       - "worker/trondheim-catalog-profiles.mjs"
       - "worker/led-feed-worker.mjs"
+      - "core/frame/**"
+      - "config/routes/**"
       - "scripts/test-feed-timing.mjs"
       - ".github/workflows/trondheim-catalog-bundle.yml"
 permissions:
