@@ -206,7 +206,7 @@ const future=vm.runInContext('projectFb73EtaFrame('+JSON.stringify({...etaFixtur
 assert.equal(future.leds.length,2,'One LED per FB73 journey including approaching journeys');
 assert(future.leds.some(item=>item.vehicle.id==='journey-a'&&item.state==='APPROACHING'),'Future ETA should not disappear');
 assert(future.leds.some(item=>item.vehicle.id==='journey-b'&&item.id===30),'Nearer AT_STOP has priority for same journey');
-assert.match(html,/profile\.id===FLYBUSS&&frame\.boardProfile===board\.id/,'FB73 board frames must not require vehicle.line metadata absent from estimated calls');
+assert.match(html,/flybuss\?\[\{\.\.\.item\.vehicle,line:'FB73'/,'FB73 board frames must not require vehicle.line metadata absent from estimated calls');
 
 assert.equal(projected.leds.filter(v=>v.vehicle.id==='UNI:ServiceJourney:trip-42').length,1,'Same FB73 departure cannot light three consecutive stops');
 
