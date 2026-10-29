@@ -345,3 +345,29 @@ console.log('LINE11_STATIC_DIRECTION_AUDIT '+JSON.stringify({
  coverage:Object.fromEntries(destinations.map(dest=>[dest,line11Nodes.filter(n=>matchesDirection(n,line11Profile,dest)).length])),
  totalLine11Nodes:line11Nodes.length
 }));
+
+
+// External read-only sample; diagnostic only, never a test pass/fail gate.
+// Emit aggregate destinations, not IDs, coordinates or individual timestamps.
+try {
+ const response=await fetch('https://transitcore-led-feed.lgb84.workers.dev/api/v1/vehicles/atb-live-all',
+   {headers:{accept:'application/json'},signal:AbortSignal.timeout(12000)});
+ if(!response.ok)console.log('LINE11_PUBLIC_GPS_SUMMARY '+JSON.stringify({status:response.status}));
+ else {
+  const body=await response.json();
+  const observations=Array.isArray(body.vehicles)?body.vehicles.filter(v=>String(v.line)==='11'):[];
+  const byDestination={};
+  for(const v of observations){
+   const key=typeof v.destination==='string'&&v.destination?v.destination:'(empty)';
+   byDestination[key]=(byDestination[key]||0)+1;
+  }
+  const sorted=Object.fromEntries(Object.entries(byDestination).sort((a,b)=>b[1]-a[1]));
+  console.log('LINE11_PUBLIC_GPS_SUMMARY '+JSON.stringify({
+   status:response.status,line11FreshGps:observations.length,
+   destinations:sorted,
+   destinationMatchedNodeCounts:Object.fromEntries(Object.keys(sorted).map(dest=>[
+    dest,line11Nodes.filter(node=>matchesDirection(node,line11Profile,dest)).length
+   ]))
+  }));
+ }
+} catch(e){console.log('LINE11_PUBLIC_GPS_SUMMARY '+JSON.stringify({status:'unavailable',reason:e?.name||'network_error'}));}
