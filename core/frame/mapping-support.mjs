@@ -62,8 +62,9 @@ export function validateConfiguration(board, profiles, hardware) {
   if (hardware.schemaVersion !== 1 || hardware.boardProfile !== board.id) throw Error("Board/hardware profile mismatch");
   if (board.nodes.length !== board.leds.count || hardware.assignments?.length !== board.nodes.length) throw Error("LED count mismatch");
   const logical = new Set(), physical = new Set();
+  const nodeLeds = new Set(board.nodes.map(node => node.led));
   for (const assignment of hardware.assignments) {
-    if (!Number.isInteger(assignment.logicalLed) || !board.nodes.some(node => node.led === assignment.logicalLed) || logical.has(assignment.logicalLed)) throw Error(`Invalid logical LED ${assignment.logicalLed}`);
+    if (!Number.isInteger(assignment.logicalLed) || !nodeLeds.has(assignment.logicalLed) || logical.has(assignment.logicalLed)) throw Error(`Invalid logical LED ${assignment.logicalLed}`);
     if (!Number.isInteger(assignment.physicalLed) || assignment.physicalLed < 0 || assignment.physicalLed >= board.leds.count || physical.has(assignment.physicalLed)) throw Error(`Invalid physical LED ${assignment.physicalLed}`);
     logical.add(assignment.logicalLed); physical.add(assignment.physicalLed);
   }
