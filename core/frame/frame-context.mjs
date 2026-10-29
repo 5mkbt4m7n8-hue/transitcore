@@ -24,9 +24,9 @@
  */
 export function createFrameContext({board, profiles = [], hardware, vehicles = [],
   estimatedCalls = [], now = Date.now(), signalPolicy, atStopConfirmationSeconds,
-  providerMetadata, freshnessMetadata}) {
+  providerMetadata, freshnessMetadata, stopReports = []}) {
   return {board, profiles, hardware, vehicles, estimatedCalls, now, signalPolicy,
-    atStopConfirmationSeconds, providerMetadata, freshnessMetadata};
+    atStopConfirmationSeconds, providerMetadata, freshnessMetadata, stopReports};
 }
 
 export class FramePipelineError extends Error {
