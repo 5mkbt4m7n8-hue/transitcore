@@ -8,9 +8,12 @@ const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'
 const root=new URL('../',import.meta.url);
 let calls=0,live=false;
 const board=JSON.parse(await readFile(new URL('config/boards/trondheim-bus-board.json',root))),hardware=JSON.parse(await readFile(new URL('config/hardware/trondheim-bus-board-hardware.json',root)));
+const catalog=JSON.parse(await readFile(new URL('config/boards/trondheim-city-lines-catalog.json',root)));
+const ranheimLed=catalog.nodes.find(node=>node.stopIds?.includes('NSR:Quay:74982'))?.led;
+assert(Number.isInteger(ranheimLed)&&ranheimLed>=0&&ranheimLed<1282,'Ranheim Quay has a real catalog LED');
 const server=createServer(async(req,res)=>{try{
  const path=new URL(req.url,'http://localhost').pathname;
- if(path.startsWith('/api/v1/frame/')){calls++;res.setHeader('content-type','application/json');res.end(JSON.stringify({schemaVersion:1,boardProfile:path.split('/').pop(),ledCount:path.split('/').pop()==='trondheim-city-lines-catalog'?1282:147,sequence:calls,generatedAt:new Date(Date.now()-(live?8000:0)).toISOString(),ttlSeconds:live?10:30,leds:live?[{id:0,brightness:32,state:'AT_STOP',rgb:[255,0,0],vehicle:{id:'fixture-bus',line:'1',source:'ETA'},occupants:[{id:'fixture-bus',line:'1',source:'ETA',state:'AT_STOP',rgb:[255,0,0]}]}]:[]}));return;}
+ if(path.startsWith('/api/v1/frame/')){calls++;res.setHeader('content-type','application/json');res.end(JSON.stringify({schemaVersion:1,boardProfile:path.split('/').pop(),ledCount:path.split('/').pop()==='trondheim-city-lines-catalog'?1282:147,sequence:calls,generatedAt:new Date(Date.now()-(live?8000:0)).toISOString(),ttlSeconds:live?10:30,leds:live?[{id:ranheimLed,brightness:32,state:'AT_STOP',rgb:[255,0,0],vehicle:{id:'fixture-bus',line:'1',source:'ETA'},occupants:[{id:'fixture-bus',line:'1',source:'ETA',state:'AT_STOP',rgb:[255,0,0]}]}]:[]}));return;}
  const file=new URL('.'+path,root);if(!file.href.startsWith(root.href)){res.writeHead(403).end();return;}
  res.setHeader('content-type',path.endsWith('.js')?'text/javascript':path.endsWith('.json')?'application/json':path.endsWith('.css')?'text/css':path.endsWith('.jpg')?'image/jpeg':'text/html');res.end(await readFile(file));
  }catch{res.writeHead(404).end();}});
@@ -357,7 +360,7 @@ try{
 
  const download=page.waitForEvent('download');await page.locator('[data-act=export]').click();assert.equal((await download).suggestedFilename(),'trondheim-layout.json');
  await page.locator('#linearMode').click();assert.equal(await page.locator('#rows').innerHTML(),rows);assert.equal(await page.locator('#linearView').isVisible(),true);
- // The supplied source has a confirmed Ranheim binding to physical LED 0.
+ // The original Ranheim marker has an exact Quay binding in the 1282-point catalog.
  live=true;await page.locator('#refresh').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('VALID'));
  await page.locator('#networkMode').click();await page.waitForSelector('.map-stop[data-state="AT_STOP"]');
  await page.locator('.map-stop[data-state="AT_STOP"]').first().click();assert.match(await page.locator('[data-role=details]').innerText(),/Kilde: ETA/);
@@ -365,7 +368,7 @@ try{
  await page.locator('[data-role=debugStop]').selectOption('original-004');
  await page.locator('[data-role=debugVehicle]').fill('fixture-bus');
  assert.match(await page.locator('[data-role=debugVehicleResult]').innerText(),/fixture-bus/);
- assert.match(await page.locator('[data-role=debugVehicleResult]').innerText(),/LED 0/);
+ assert.match(await page.locator('[data-role=debugVehicleResult]').innerText(),new RegExp('LED '+ranheimLed+'\\b'));
  assert.equal(await page.locator('[data-role=debugHealth]').getAttribute('data-code'),'VALID');
  await page.locator('[data-role=liveDebug] summary').click();
  await page.locator('[data-act=fit]').click();
