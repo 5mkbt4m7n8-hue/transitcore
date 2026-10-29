@@ -75,9 +75,21 @@ export function updateRouteProgress({profiles,vehicles,previousState={},now=Date
       Math.abs(v.latitude)<=90&&Math.abs(v.longitude)<=180;
     if(!valid){results.push({key,status:'unresolved',reason:'invalid-or-stale'});continue;}
     const revision=routeRevision(profile),prior=old[key];
+    if(prior?.revision===revision&&prior.line===String(v.publicCode)&&
+      time<prior.lastAt&&now-prior.lastAt<=MAX_GAP_MS){
+      // Old provider updates never rewind an already established track.
+      tracks[key]=prior;
+      results.push({key,status:'unresolved',reason:'out-of-order-sample',
+        orientation:null,directionLabel:null,lastNearQuayId:null,
+        checkpointCount:prior.visits?.length||0});
+      continue;
+    }
+    const sameTime=prior?.revision===revision&&time===prior.lastAt;
+    const conflictingTime=sameTime&&prior.lastPoint&&
+      (prior.lastPoint.lat!==v.latitude||prior.lastPoint.lon!==v.longitude);
     const ongoing=prior?.revision===revision&&
-      time>prior.lastAt&&time-prior.lastAt<=MAX_GAP_MS&&
-      prior.line===String(v.publicCode);
+      time>=prior.lastAt&&time-prior.lastAt<=MAX_GAP_MS&&
+      prior.line===String(v.publicCode)&&!conflictingTime;
     let visits=ongoing?[...(prior.visits||[])].slice(-3):[];
     let reason='insufficient-checkpoints';
     if(ongoing&&prior.lastPoint){
