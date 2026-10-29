@@ -36,6 +36,17 @@ const first=updateRouteProgress({profiles:[p11],vehicles:[one],now:epoch+1000});
 const repeat=updateRouteProgress({profiles:[p11],vehicles:[one],previousState:first.state,now:epoch+2000});
 assert.equal(repeat.results[0].status,'unresolved');
 assert.equal(repeat.results[0].checkpointCount,1);
+const lockedDuplicate=updateRouteProgress({
+ profiles:[p11],vehicles:[position(p11,2,40)],previousState:forward.state,now:epoch+41000});
+assert.equal(lockedDuplicate.results[0].status,'direction-tracked','Repeated identical GPS timestamp cannot drop valid progress');
+const lockedConflict=updateRouteProgress({profiles:[p11],
+ vehicles:[{...position(p11,2,40),latitude:p11.stops[2].lat+0.00001}],
+ previousState:forward.state,now:epoch+41000});
+assert.equal(lockedConflict.results[0].status,'unresolved','Changed position at same timestamp invalidates lock');
+const outOfOrder=updateRouteProgress({profiles:[p11],
+ vehicles:[position(p11,2,39)],previousState:forward.state,now:epoch+41000});
+assert.equal(outOfOrder.results[0].reason,'out-of-order-sample');
+assert.deepEqual(outOfOrder.state.tracks['11:bus-1'],forward.state.tracks['11:bus-1']);
 const older=updateRouteProgress({profiles:[p11],vehicles:[{...one,timestamp:new Date(epoch-1000).toISOString()}],previousState:first.state,now:epoch+3000});
 assert.equal(older.results[0].checkpointCount,1);
 const stale=updateRouteProgress({profiles:[p11],vehicles:[one],previousState:first.state,now:epoch+60000});
