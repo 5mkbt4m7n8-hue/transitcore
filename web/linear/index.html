@@ -244,20 +244,23 @@ function updateDiagnostics(items,frameAge,fresh){
 function showInfo(led){
  const item=(lastFrame?.leds||[]).find(value=>String(value.id)===led.dataset.id),
   vehicle=JSON.parse(led.dataset.vehicle||"{}"),occupants=JSON.parse(led.dataset.occupants||"[]"),
-  isEta=profile?.id===FLYBUSS,
+  isEta=isEtaObservation(vehicle),
   displayState=led.classList.contains("departed")?"PASSED":led.dataset.state||item?.state||"AV";
  $("infoTitle").textContent=`${led.dataset.name} - LED ${led.dataset.id}`;
- const details=occupants.length?'<p><strong>Busser på samme LED:</strong></p>'+occupants.map(value=>
+ const details=occupants.length?'<p><strong>Observasjoner på samme LED:</strong></p>'+occupants.map(value=>
    '<p><i class="dot" style="background:rgb('+esc((value.rgb||[]).join(","))+')"></i>'+
    'Linje '+esc(value.line||'?')+' – '+esc(value.destination||"Ukjent")+
-   ' – '+esc(value.state||'?')+(isEta?' (ETA, ikke målt avstand)':' ('+esc(value.distanceMeters??'?')+' m)')+'</p>').join(''):'';
+   ' – '+esc(value.state||displayState)+(isEtaObservation(value)?' (ETA, ikke GPS)':Number.isFinite(value.distanceMeters)?' ('+esc(value.distanceMeters)+' m)':' (avstand ikke oppgitt)')+'</p>').join(''):'';
  $("infoBody").innerHTML='<p><strong>Retning:</strong> '+esc(led.dataset.direction)+'</p>'+
   '<p><strong>Vist tilstand:</strong> '+(isEta?(displayState==='APPROACHING'?'Beregnet ankomst nærmer seg (ETA, ikke GPS)':'Estimert ved stopp (ETA, ikke GPS)'):esc(displayState))+'</p>'+
-  (item?'<p><strong>Avgang:</strong> '+esc(vehicle.id||'Ukjent')+'</p>'+
-   '<p><strong>Linje:</strong> '+esc(isEta?'FB73':vehicle.line||profile.line.publicCode)+'</p>'+
-   '<p><strong>Datagrunnlag:</strong> '+(isEta?'Ankomstprognose (ETA). Tidspunkt kan avvike fra faktisk ankomst. Ingen målt avstand eller posisjonsalder.':esc(vehicle.ageSeconds!=null?vehicle.ageSeconds+' s gammel posisjon':'Live frame'))+'</p>'+details:
+  (item?'<p><strong>'+ (isEta?'Tur-ID:':'Kjøretøy-ID:') +'</strong> '+esc(vehicle.id||'Ukjent')+'</p>'+
+   '<p><strong>Linje:</strong> '+esc(vehicle.line||'Ukjent')+'</p>'+
+   '<p><strong>Datagrunnlag:</strong> '+(isEta?'Ankomstprognose (ETA). Tidspunkt kan avvike fra faktisk ankomst. Ingen målt avstand eller posisjonsalder.':esc(Number.isFinite(vehicle.ageSeconds)?vehicle.ageSeconds+' s gammel GPS-posisjon':'Posisjonsgrunnlag ikke oppgitt'))+'</p>'+details:
    '<p>Ingen aktiv avgang på denne dioden nå.</p>');
  $("info").classList.add("show");
+}
+function isEtaObservation(value){
+ return value?.positionType==='estimated-station-call'||String(value?.id||'').includes(':ServiceJourney:');
 }
 function hexRgb(value){const hex=String(value||"#60a5fa").replace("#","");return[0,2,4].map(index=>parseInt(hex.slice(index,index+2),16))}
 async function refresh(){

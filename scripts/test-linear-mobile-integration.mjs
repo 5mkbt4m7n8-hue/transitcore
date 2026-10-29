@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {createRequire} from 'node:module';
+import {renderArrivalFrame} from '../core/frame/frame-renderer.mjs';
+import {normalizeLedEntries, SIGNAL_POLICY} from '../worker/led-feed-worker.mjs';
 const read=p=>fs.readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const boardId='trondheim-bus-board';
 const frame={schemaVersion:1,boardProfile:boardId,ledCount:147,sequence:1,generatedAt:new Date().toISOString(),ttlSeconds:30,leds:[]};
@@ -209,4 +211,46 @@ assert.match(html,/profile\.id===FLYBUSS&&frame\.boardProfile===board\.id/,'FB73
 assert.equal(projected.leds.filter(v=>v.vehicle.id==='UNI:ServiceJourney:trip-42').length,1,'Same FB73 departure cannot light three consecutive stops');
 
 
-console.log('Linear HTML, full Bus1 147 mapping, one cycling LED with synchronized route number, mobile defaults, GPS Debug PASS');
+// Screenshot regressions: exercise the producer, collision merge and actual popup.
+const journeyId='UNI:ServiceJourney:FB73-169433-47600635';
+const etaCall={id:138,vehicleId:journeyId,destination:'Trondheim lufthavn',state:'AT_STOP',deltaSeconds:14,
+ profile:{line:{publicCode:'FB73',color:'#ffaa00'}}};
+const arrival=board=>renderArrivalFrame({board:{id:board,leds:{count:1282},render:{}},hardware:{leds:{count:1282}},
+ now:Date.now(),signalPolicy:SIGNAL_POLICY,estimatedCalls:[etaCall]});
+const etaLed=arrival('trondheim-city-lines-catalog').leds[0];
+assert.equal(etaLed.vehicle.line,'FB73');
+assert.equal(etaLed.vehicle.positionType,'estimated-station-call');
+assert.equal(etaLed.vehicle.deltaSeconds,14);
+assert(!Object.hasOwn(etaLed.vehicle,'distanceMeters'));
+assert(!Object.hasOwn(etaLed.vehicle,'ageSeconds'));
+// The historical 147 and dedicated FB73 wire formats are unchanged.
+for(const id of ['trondheim-bus-board','trondheim-shared-stops-board','trondheim-flybuss-live'])
+ assert.deepEqual(arrival(id).leds[0].vehicle,{id:journeyId});
+const gpsLed={id:138,state:'AT_STOP',rgb:[237,83,80],vehicle:{id:'1545',line:'1',destination:'Ranheim',ageSeconds:2,distanceMeters:14}};
+const merged=normalizeLedEntries([gpsLed,etaLed],1282)[0];
+assert.equal(merged.occupants.length,2);
+assert.deepEqual(merged.occupants.map(v=>v.line),['1','FB73']);
+el('route').value='atb-bus-1-live';el('route').onchange();await new Promise(resolve=>setImmediate(resolve));
+const popup=entry=>{
+ el('info').classList.add=()=>{};
+ context.popupFrame={...frame,leds:[entry]};
+ context.popupLed={dataset:{id:String(entry.id),name:'Buran',direction:'mot Ranheim',state:entry.state,
+  vehicle:JSON.stringify(entry.vehicle),occupants:JSON.stringify(entry.occupants||[entry.vehicle])},classList:{contains:()=>false}};
+ vm.runInContext('lastFrame=popupFrame;showInfo(popupLed)',context);
+ return el('infoBody').innerHTML;
+};
+const mixedPopup=popup(merged);
+assert.match(mixedPopup,/Kjøretøy-ID:<\/strong> 1545/);
+assert.match(mixedPopup,/2 s gammel GPS-posisjon/);
+assert.match(mixedPopup,/Linje 1 – Ranheim – AT_STOP \(14 m\)/);
+assert.match(mixedPopup,/Linje FB73 – Trondheim lufthavn – AT_STOP \(ETA, ikke GPS\)/);
+assert(!mixedPopup.includes('Linje ?')&&!mixedPopup.includes('? m'));
+const etaPopup=popup({...etaLed,id:997});
+assert.match(etaPopup,/Tur-ID:<\/strong> UNI:ServiceJourney:FB73-169433-47600635/);
+assert.match(etaPopup,/Linje:<\/strong> FB73/);
+assert.match(etaPopup,/Ankomstprognose \(ETA\)/);
+assert(!etaPopup.includes('gammel GPS')&&!etaPopup.includes('Live frame'));
+const legacyPopup=popup({id:997,state:'AT_STOP',vehicle:{id:journeyId}});
+assert.match(legacyPopup,/Linje:<\/strong> Ukjent/,'Never infer route identity from selected profile');
+assert.match(legacyPopup,/Ankomstprognose \(ETA\)/,'Old journey-only frames cannot claim GPS');
+console.log('Linear HTML, full Bus1 147 mapping, popup evidence, mobile defaults, GPS Debug PASS');
