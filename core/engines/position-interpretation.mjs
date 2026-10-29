@@ -3,17 +3,17 @@ import { distance, matchesDirection, vehicleAllowedByBoard, nearestRoutePosition
 // Route profiles are configuration, never provider observations.
 export function interpretStationVehicles({ board, profiles, hardware, vehicles, now = Date.now() }) {
   const byLine = new Map(profiles.map(profile => [String(profile.line.publicCode), profile]));
+  const catalogProximity = board.id === "trondheim-city-lines-catalog";
   const dedupe = new Map();
   for (const vehicle of vehicles) {
     const profile = byLine.get(String(vehicle.publicCode || ""));
     const updated = Date.parse(vehicle.timestamp || "");
-    if (!profile || !vehicleAllowedByBoard(board, profile, vehicle.destination) || vehicle.latitude == null || !Number.isFinite(updated) || (now - updated) / 1000 > board.render.freshnessSeconds) continue;
+    if (!profile || (!catalogProximity && !vehicleAllowedByBoard(board, profile, vehicle.destination)) || vehicle.latitude == null || !Number.isFinite(updated) || (now - updated) / 1000 > board.render.freshnessSeconds) continue;
     const previous = dedupe.get(vehicle.id);
     if (!previous || updated > previous.updated) dedupe.set(vehicle.id, { vehicleId: String(vehicle.id || ""), profile, updated, destination: vehicle.destination || "", lat: Number(vehicle.latitude), lon: Number(vehicle.longitude) });
   }
   const strongest = new Map(), occupantsByLed = new Map();
   for (const vehicle of dedupe.values()) {
-    const catalogProximity = board.id === "trondheim-city-lines-catalog";
     let node, meters = Infinity;
     if (catalogProximity) {
       // This is a physical proximity display, NOT a timetable/route validator.
