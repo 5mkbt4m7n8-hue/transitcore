@@ -900,7 +900,13 @@ async function legacyStationArrivals(board, profiles, now) {
   const timeRange = lookBehind + lookAhead;
   const targets = [];
   const seenQuays = new Set();
+  // On mixed GPS+ETA boards, only query platforms serving the ETA routes.
+  // Otherwise the virtual city catalog would send >1200 unrelated Entur
+  // GraphQL quay aliases for the single FB73 arrival profile.
+  const mixedPositioning=profiles.length<board.routes.length;
+  const arrivalRoutes=new Set(profiles.map(profile=>profile.id));
   for (const node of board.nodes) {
+    if(mixedPositioning&&!node.routes?.some(id=>arrivalRoutes.has(id)))continue;
     for (const quayId of node.stopIds || []) {
       if (seenQuays.has(quayId)) continue;
       seenQuays.add(quayId);

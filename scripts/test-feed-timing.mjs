@@ -25,6 +25,7 @@ try {
   const monitors = [];
   const historyWrites = [];
   const externalCalls = [];
+  const arrivalQueries = [];
   globalThis.fetch = async (url, options) => {
     externalCalls.push(String(url));
     const path = String(url).split('/main/')[1];
@@ -32,7 +33,11 @@ try {
       try { return new Response(await fs.readFile(new URL(path, root))); }
       catch { return new Response('', { status: 404 }); }
     }
-    if (options?.method === 'POST') return Response.json({ data: { vehicles: [] } });
+    if (options?.method === 'POST') {
+      const query=JSON.parse(options.body||'{}').query||'';
+      if(query.includes('estimatedCalls('))arrivalQueries.push(query);
+      return Response.json({ data: { vehicles: [] } });
+    }
     throw Error(`Unexpected self-fetch: ${url}`);
   };
   const env = { DEVICE_STATUS: {
@@ -63,12 +68,21 @@ try {
   // Regression: this catalog mixes GPS vehicle routes and ETA route profiles.
   // It must produce one 1282-point frame rather than fail GPS-profile parity.
   const beforeCatalogCalls=externalCalls.length;
+  const beforeArrivalQueries=arrivalQueries.length;
   const catalogResponse = await worker.fetch(
     new Request('https://worker.test/v1/boards/trondheim-city-lines-catalog/frame'), env);
   assert.equal(catalogResponse.status,200,'Full mixed GPS/ETA catalog must render');
   const catalogFrame=await catalogResponse.json();
   assert.equal(catalogFrame.boardProfile,'trondheim-city-lines-catalog');
   assert.equal(catalogFrame.ledCount,1282);
+  const catalog=JSON.parse(await fs.readFile(new URL('config/boards/trondheim-city-lines-catalog.json',root),'utf8'));
+  const fbQuays=new Set(catalog.nodes.filter(n=>n.routes?.includes('flybuss-trondheim-fb73-live'))
+    .flatMap(n=>n.stopIds||[]));
+  const newArrivalQueries=arrivalQueries.slice(beforeArrivalQueries);
+  assert.equal(newArrivalQueries.length,1,'Mixed catalog should query FB73 ETA once');
+  const requestedQuays=[...newArrivalQueries[0].matchAll(/q\d+:quay\(id:"([^"]+)"\)/g)].map(m=>m[1]);
+  assert(fbQuays.size>0&&fbQuays.size<100,'ETA route must not cover the whole 1282-quay catalog');
+  assert.deepEqual(new Set(requestedQuays),fbQuays,'ETA query must target only FB73 Quays');
   const catalogRequests=externalCalls.slice(beforeCatalogCalls);
   assert.equal(catalogRequests.filter(url=>url.includes('/config/routes/')).length,0,
    'Virtual catalog must not fetch each of its 48 routes at runtime');
