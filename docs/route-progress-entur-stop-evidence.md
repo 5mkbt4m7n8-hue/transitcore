@@ -113,4 +113,6 @@ node scripts/probe-route-progress-shadow.mjs
 ```
 
 De tre siste nettprøvene er read-only, uten kjøretøy-ID/GPS-utskrift.
+Nettprøvene er manuelle, **ikke automatisk kjørt ved hver PR-endring**:
+for hyppige prøver mot Entur utløste HTTP 429. Ikke omgå rategrensen.
 GitHub Actions bruker eksplisitt pinnede actions og ingen deploy secrets.
