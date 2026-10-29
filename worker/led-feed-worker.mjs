@@ -1042,10 +1042,10 @@ async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
     const gpsFrame=buildPixelFrame(frameContext({ board:gpsBoard, profiles: vehicleProfiles, hardware, vehicles, now }));
     // A-B-C progress is deliberately SHADOW ONLY. The real LED and all
     // hardware consumers still receive unchanged strict Quay placement.
-    // Staging's immutable candidate pin enables this; production requires
-    // a separate explicit opt-in, never inferred from a PR merge.
-    const shadowEnabled=env?.ROUTE_PROGRESS_SHADOW==="1" ||
-      /^[a-f0-9]{40}$/.test(String(env?.STAGING_COMMIT_SHA||""));
+    // The protected staging wrapper uses a different frame entrypoint,
+    // so a real isolated candidate Worker must explicitly opt in. Never
+    // infer shadow activation from a commit SHA or a PR merge.
+    const shadowEnabled=env?.ROUTE_PROGRESS_SHADOW==="1";
     if(board.id==="trondheim-city-lines-catalog"&&env?.DEVICE_STATUS&&shadowEnabled){
       try{
         const compactProfiles=vehicleProfiles.map(p=>({
