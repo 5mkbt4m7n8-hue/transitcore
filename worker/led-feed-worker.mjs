@@ -17,6 +17,7 @@ import { boundedOperation, boundedFetchJson, FRAME_BUDGET_MS, MONITOR_TIMEOUT_MS
 import { handleLinearDraft,linearDraftStorage } from "./linear-draft.mjs";
 import {handleLinearPublish} from "./linear-publish.mjs";
 import {dayHistoryStorage,handleTrondheimHistory,recordScheduledTrondheimFrame} from "./trondheim-history.mjs";
+import {trondheimCatalogProfiles} from "./trondheim-catalog-profiles.mjs";
 
 export const SIGNAL_POLICY = Object.freeze({
   version: 1,
@@ -813,9 +814,16 @@ async function configuration(boardId, now) {
   const cached = configCache.get(boardId);
   if (cached && now - cached.loadedAt < CONFIG_TTL_MS) return cached.value;
   let board = await fetchJson(`${REPOSITORY}/config/boards/${boardId}.json`);
+  // The 1282-position Trondheim catalog has 48 route profiles. Loading
+  // each from raw GitHub exceeds the Free Worker limit (50 subrequests) as
+  // soon as live data is fetched. Keep the legacy dynamic path for all
+  // physical boards; use deploy-pinned profiles only for this virtual catalog.
+  const bundledCatalog=boardId==="trondheim-city-lines-catalog";
   const [profiles, hardware] = await Promise.all([
-    Promise.all(board.routes.map(id => fetchJson(`${REPOSITORY}/config/routes/${id}.json`))),
-    fetchJson(`${REPOSITORY}/config/hardware/${boardId}-hardware.json`).catch(() => null)
+    bundledCatalog ? trondheimCatalogProfiles(board) :
+      Promise.all(board.routes.map(id => fetchJson(`${REPOSITORY}/config/routes/${id}.json`))),
+    bundledCatalog ? null :
+      fetchJson(`${REPOSITORY}/config/hardware/${boardId}-hardware.json`).catch(() => null)
   ]);
   // Linear route boards derive segment positions from the ordered route profile.\n  // Only station-network boards need coordinates copied onto every board node.\n  if (board.layout !== "linear-route-vled") board = addNodeCoordinates(board, profiles);
   const resolvedHardware = hardware || defaultHardware(board);
@@ -963,9 +971,8 @@ async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
   const frames = [];
   if (vehicleProfiles.length) {
     const vehicles = await liveVehiclesForProfiles(vehicleProfiles);
-    // A mixed GPS/estimated-call catalog has more configured routes than GPS
-    // profiles. The GPS builder validates exact route/profile parity; narrow
-    // only that internal view, retaining the complete 1282-node LED mapping.
+    // Keep all LED nodes, but validate GPS rendering against its actual
+    // vehicle-position route subset on mixed GPS/ETA catalog boards.
     const gpsBoard=vehicleProfiles.length===profiles.length?board:
       {...board,routes:vehicleProfiles.map(profile=>profile.id)};
     frames.push(buildPixelFrame(frameContext({ board:gpsBoard, profiles: vehicleProfiles, hardware, vehicles, now })));
