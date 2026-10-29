@@ -253,8 +253,8 @@ assert(!etaPopup.includes('gammel GPS')&&!etaPopup.includes('Live frame'));
 const legacyPopup=popup({id:997,state:'AT_STOP',vehicle:{id:journeyId}});
 assert.match(legacyPopup,/Linje:<\/strong> Ukjent/,'Never infer route identity from selected profile');
 assert.match(legacyPopup,/Ankomstprognose \(ETA\)/,'Old journey-only frames cannot claim GPS');
-// Line 11 stop view must show a physically nearby line 1 bus, including
-// when its headsign does not belong to the selected route.
+// All GPS buses remain recorded, but a line 11 view hides line 1 buses
+// until the user explicitly enables the all-lines checkbox.
 el('route').value='atb-bus-11-live';
 el('allRoutes').checked=false;
 el('route').onchange();
@@ -279,13 +279,19 @@ const offRouteItem={id:134,state:'AT_STOP',rgb:[237,83,80],vehicle:{
  positionType:'gps-nearest-stop',routeListedHere:false}]};
 vm.runInContext('paint('+JSON.stringify({...frame,boardProfile:'trondheim-city-lines-catalog',
  ledCount:1282,leds:[offRouteItem]})+')',context);
-assert(otherLineClasses.has('on'),'Selected line 11 must display an off-route line 1 GPS bus at a listed stop');
+assert(!otherLineClasses.has('on'),'Without the checkbox line 11 view must hide line 1 buses');
+assert.equal(stopLed.dataset.vehicle,undefined,'An off-route observation must not enter the selected-line popup');
+el('allRoutes').checked=true;
+vm.runInContext('paint('+JSON.stringify({...frame,boardProfile:'trondheim-city-lines-catalog',
+ ledCount:1282,leds:[offRouteItem]})+')',context);
+assert(otherLineClasses.has('on'),'Opt-in all-lines view must show line 1 at a line 11 stop');
 assert.equal(JSON.parse(stopLed.dataset.vehicle).line,'1');
 const offRoutePopup=popup(offRouteItem);
 assert.match(offRoutePopup,/Linje:<\/strong> 1/);
 assert.match(offRoutePopup,/Nærmeste registrerte plattform/);
 assert.match(offRoutePopup,/GPS bekrefter ikke faktisk stopp/);
 assert.match(offRoutePopup,/Linjen er ikke registrert på denne plattformen/);
+el('allRoutes').checked=false;
 context.document.querySelectorAll=originalQuery;
 
 // Regression: GPS may detect buses from any route at a physical stop,
