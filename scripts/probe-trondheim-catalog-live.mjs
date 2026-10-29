@@ -117,7 +117,7 @@ if(production.verdict!=='VALID') {
     .replace(/(?:Bearer\s+)[A-Za-z0-9._-]+/gi,'Bearer [REDACTED]')
     .replace(/NSR:(?:Quay|StopPlace):\d+/gi,'[STOP_ID]')
     .replace(/[A-Za-z0-9_-]{32,}/g,'[OPAQUE]');
-   if(/secret|token|password|authorization|api.key|cookie|latitud|longitud|vehicle.id/i.test(safe))safe='[REDACTED]';
+   if(/secret|token|password|authorization|api.key|cookie|latitud|longitud/i.test(safe))safe='[REDACTED]';
    diag.safeDetail=safe;
   }
  }catch(e){diag.readError=(e?.name||'network_error').slice(0,40);}
