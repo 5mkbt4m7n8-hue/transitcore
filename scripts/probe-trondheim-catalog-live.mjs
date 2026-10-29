@@ -19,6 +19,16 @@ for(const [quay,led] of expected) {
  lerkendal[quay]=led;
 }
 console.log('STATIC_CATALOG '+JSON.stringify({boardId,ledCount:expectedCount,routeProfiles:catalog.routes.length,lerkendalGard:lerkendal}));
+const routeAudit={byPositioning:{},missingVehicleProvider:[],missingPositioning:[]};
+for(const id of catalog.routes) {
+ const profile=JSON.parse(await readFile(new URL('../config/routes/'+id+'.json',import.meta.url),'utf8'));
+ const strategy=profile.positioning?.strategy||'missing';
+ routeAudit.byPositioning[strategy]=(routeAudit.byPositioning[strategy]||0)+1;
+ if(strategy==='missing')routeAudit.missingPositioning.push(id);
+ if(strategy!=='estimated-station-calls'&&(!profile.provider?.vehicleEndpoint||!profile.provider?.codespaceId))
+  routeAudit.missingVehicleProvider.push(id);
+}
+console.log('ROUTE_SOURCE_AUDIT '+JSON.stringify(routeAudit));
 
 async function fetchBounded(url){
  const response=await fetch(url,{headers:{accept:'application/json'},redirect:'error',signal:AbortSignal.timeout(18000)});
@@ -100,6 +110,7 @@ if(production.verdict!=='VALID') {
    diag.fetchFailed=/fetch failed/i.test(detail);
    diag.graphqlError=/GraphQL|Cannot query field|Unauthorized|Not authorized|syntax error|resource exhausted/i.test(detail);
    diag.sourceFailure=/provider|fetch|HTTP|timeout|deadline/i.test(detail);
+   diag.missingVehicleProvider=/Vehicle provider missing for ([a-z0-9-]+)/.exec(detail)?.[1]||null;
   }
  }catch(e){diag.readError=(e?.name||'network_error').slice(0,40);}
  console.log('PUBLIC_MONITOR '+JSON.stringify(diag));
