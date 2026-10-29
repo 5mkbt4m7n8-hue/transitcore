@@ -185,7 +185,7 @@ async function historyReleaseCheck(){
   result.postReleaseCatalogSamples=catalogFrames.length;
   result.latestSampleTime=records.at(-1)?.capturedAt||null;
   result.latestSampleStatus=records.at(-1)?.status||null;
-  const latestError=String(afterRelease.filter(item=>item.status==='ERROR').at(-1)?.error||'');
+  const latestError=String(records.at(-1)?.status==='ERROR'?records.at(-1)?.error||'':'');
   result.recordErrorStage=/^(configuration|live_data|motion):/.exec(latestError)?.[1]||null;
   result.recordErrorSubrequests=/subrequest/i.test(latestError);
   result.recordErrorTimeout=/timed out|timeout/i.test(latestError);
