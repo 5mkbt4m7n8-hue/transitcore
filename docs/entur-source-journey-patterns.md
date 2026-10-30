@@ -204,6 +204,50 @@ tidsstempel og konkurrerende Quays forblir uendret.
 ServiceJourneys med fysiske stopp gjennom hele turer, og særskilt
 undersøke sikker bruk av kildebestemt retning ved delte plattformer.
 
+## Source-of-truth: line 1 termini, not line marketing names (2026-10-30)
+
+The complete source JourneyPattern inventory shows **Ranheim ↔ Østre Lund**
+as the ordinary full route. Terminal Quays are
+`NSR:Quay:102721` (Østre Lund) and `NSR:Quay:74982`
+(Ranheim, inbound platform). The source-defined 19-Quay short turns
+are **Strindheim → Tillerterminalen** (`NSR:Quay:75607`)
+and **Tillerterminalen → Strindheim** (`NSR:Quay:73033`).
+The full sequences have 32 Quays in both directions. The pattern
+catalogue currently contains eight actual JourneyPattern variants.
+
+`core/engines/entur-trip-terminus.mjs` is a pure, **shadow-only**
+function. It requires a source-verified, exact ServiceJourney→JourneyPattern
+link and rechecks the *entire ordered Quay sequence* against the trusted
+source snapshot. It selects **the last Quay of that one trip** and
+resolves the stop name only from an exactly matching Quay in the board
+catalogue. A missing or contradictory source ID returns `unresolved`,
+not a guessed destination. GPS headsign is an **advisory comparison**,
+never the source of a terminus or Quay/LED evidence. All 8 variants,
+including 19-Quay short turns, are covered by regression tests.
+
+The route profile's main name is corrected to
+`Ranheim - Østre Lund`. Its GPS-only direction labels are
+`sørover` and `nordover`, *not* end-station claims:
+a GPS checkpoint history alone cannot tell whether a bus ends early.
+Existing Kattem/Tillerterminalen destination/headsign matching is
+preserved for compatibility with source-reported variants; those
+strings are not treated as full-route endpoints. The previously verified
+exact `Østre Lund → 0` alias remains, and Quays with multiple
+catalogue directions remain fail-closed.
+
+A read-only live pilot
+[GitHub Actions #41049399648](https://github.com/5mkbt4m7n8-hue/transitcore/actions/runs/41049399648)
+joined 3/3 AtB line-1 ServiceJourneys to their route patterns, terminal
+Quays and GPS/SIRI identities: one planned terminus **Østre Lund**, two
+**Ranheim**, with three exact-name matches against the GPS headsign.
+This is a **small timestamped sample**, not proof of terminal arrival,
+full-trip progress, or operating-day correctness. The script printed
+aggregated destination names only, no vehicle IDs/coordinates.
+
+**NO-GO for LED / merge / deploy.** Shadow-only source terminal metadata
+must not be used to bypass the explicit current-Quay, time, vehicle or
+shared-Quay direction guards.
+
 ## Neste release gate
 
 1. Kjør én manuelt kontrollert SIRI- og Transit Data-match i
