@@ -42,7 +42,7 @@
    events.push({at:stamp(at),bus:t.label,type,detail:String(detail).slice(0,110)});
    prune(at);save();
   };
-  const possibilities=(visited,limit=5)=>allowed.filter(p=>{
+  const possibilities=(visited,limit=200)=>allowed.filter(p=>{
    let last=-1;
    for(const quay of visited){
     const i=p.quays.indexOf(quay,last+1);
@@ -66,7 +66,8 @@
     const occupants=led.occupants?.length?led.occupants:
      led.vehicle?[{...led.vehicle,state:led.state}]:[];
     for(const v of occupants){
-     if(String(v?.line)!=='1'||typeof v.id!=='string'||!v.id)continue;
+     if(String(v?.line)!=='1'||typeof v.id!=='string'||!v.id||
+      Number.isFinite(v.ageSeconds)&&v.ageSeconds>45)continue;
      let quay=null;
      if(QUAY.test(v.quayId)&&mapped.includes(v.quayId))quay=v.quayId;
      else if(v.positionType==='gps-nearest-stop'&&
@@ -109,12 +110,13 @@
     if(now<t.lastSeen)continue;
     t.lastSeen=now;t.missing=false;t.destination=event.destination||t.destination;
     const prior=t.lastQuay,changed=event.quay!==prior;
+    let sequenceConflict=false;
     if(changed){
      if(t.visited.length){
       let candidates=possibilities([...t.visited,event.quay]);
       if(!candidates.length){
        // Do not infer a reversal or fake an intermediate stop.
-       t.status='CONFLICT';t.direction=null;t.directionBasis='unknown';
+       sequenceConflict=true;t.direction=null;t.directionBasis='unknown';
        emit(t,'CONFLICT',now,'Ny '+name(event.quay)+' passer ikke observert stoppsekvens');
        t.visited=[event.quay];
       }else{
@@ -131,7 +133,7 @@
     }else if(event.confirmed&&t.status!=='SOURCE_STOP'){
      emit(t,'SOURCE_STOP',now,'SIRI bekrefter '+name(event.quay));
     }
-    t.status=event.confirmed?'SOURCE_STOP':'GPS_NEAR';
+    t.status=sequenceConflict?'CONFLICT':event.confirmed?'SOURCE_STOP':'GPS_NEAR';
     const candidates=possibilities(t.visited);
     if(event.sourceDirection){
      if(t.direction&&t.direction!==event.sourceDirection){
@@ -140,7 +142,7 @@
      }else{
       t.direction=event.sourceDirection;t.directionBasis='source';
      }
-    }else if(!t.direction&&t.visited.length>=2){
+    }else if(!sequenceConflict&&!t.direction&&t.visited.length>=2){
      const d=directionFor(candidates);
      if(d){t.direction=d;t.directionBasis='gps-sequence';
       emit(t,'DIRECTION',now,'Rutefølge tyder på '+d+' (GPS, ikke kildebekreftet)');}
