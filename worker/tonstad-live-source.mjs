@@ -121,7 +121,7 @@ export function addTonstadSourceToFrame(frame,evidence,now=Date.now()){
  for(const {vehicle,profile,node,proof} of evidence.accepted){
   const rawColor=profile.line.color;
   const rgb=Array.isArray(rawColor)?rawColor:
-    /^#[a-f\d]{6}$/i.test(rawColor||'')?[0,2,4].map(i=>parseInt(rawColor.slice(i+1+i, i+3+i),16)):[237,83,80];
+    /^#[a-f\d]{6}$/i.test(rawColor||'')?[0,2,4].map(i=>parseInt(rawColor.slice(i+1,i+3),16)):[237,83,80];
   const occupant={
    id:vehicle.id,line:'1',destination:vehicle.destination,rgb,
    state:'AT_STOP',quayId:TONSTAD,stopPlaceId:node.stationId,
