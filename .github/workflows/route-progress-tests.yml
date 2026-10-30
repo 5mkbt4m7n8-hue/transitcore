@@ -8,6 +8,8 @@ on:
       - 'core/engines/entur-stop-evidence.mjs'
       - 'core/engines/strict-station-gps.mjs'
       - 'scripts/test-entur-shared-quay-projection.mjs'
+      - 'scripts/shared-quay-frame-shadow.mjs'
+      - 'scripts/test-shared-quay-frame-shadow.mjs'
       - 'scripts/test-entur-stop-evidence.mjs'
       - 'core/providers/entur/siri-vm-stop-parser.mjs'
       - 'scripts/test-siri-vm-stop-parser.mjs'
@@ -52,6 +54,7 @@ jobs:
           node scripts/test-siri-vm-stop-parser.mjs
           node scripts/test-entur-provider-projection.mjs
           node scripts/test-entur-shared-quay-projection.mjs
+          node scripts/test-shared-quay-frame-shadow.mjs
           node scripts/test-entur-trip-pattern-link.mjs
           node scripts/test-siri-dated-trip-join.mjs
           node scripts/test-entur-trip-terminus.mjs
