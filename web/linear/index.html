@@ -33,6 +33,10 @@
     .tonstad-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
     .tonstad-number{font:bold 20px system-ui}.tonstad-note{color:var(--muted);font-size:12px;line-height:1.5}
     .tonstad-history{padding-left:22px;max-height:260px;overflow:auto;margin:8px 0}.tonstad-history li{border-bottom:1px solid #29323d;padding:7px 3px;font-size:12px;line-height:1.4;color:#e2e8f0}.tonstad-history li small{color:var(--muted)}
+    .line1-track{padding:10px 12px;margin:7px 0;background:#171d25;border:1px solid #354050;border-radius:9px}
+    .line1-track strong{display:block}.line1-track small{display:block;color:var(--muted);line-height:1.5;margin-top:4px}
+    #line1Events{max-height:260px;overflow:auto;padding-left:20px}
+    #line1Events li{margin:6px 0;font-size:12px;color:#cad5e4}
     #tonstadState{font-weight:700}#tonstadState[data-status="AT_STOP"]{color:var(--ok)}
     #tonstadState[data-status="UNRESOLVED"],#tonstadState[data-status="GPS_ONLY"]{color:var(--warn)}
     #tonstadState[data-status="STALE"],#tonstadState[data-status="OTHER_BOARD"]{color:var(--bad)}
@@ -49,6 +53,15 @@
   <p class="sub" id="scopeNote">Viser valgt linje. Klikk på en diode for detaljer.</p>
   <div class="summary"><span class="badge">Holdeplasser <b id="stationCount">-</b></span><span class="badge">Aktive LED-er <b id="activeCount">-</b></span><span class="badge">Frame <b id="quality">-</b></span></div>
   <div class="legend" id="legend"></div>
+  <details class="diagnostics" id="line1Progress"><summary>🚌 Linje 1 · spor A → B → C (test)</summary>
+    <div class="diagbody">
+      <p class="tonstad-note">Følger registrerte GPS-posisjoner ved Quay på hele linje 1, både mot Ranheim og motsatt vei. Først når rekkefølgen passer kildekartet kan retningen utledes. Mellomliggende stopp er ikke automatisk bekreftet.</p>
+      <div id="line1Tracks" aria-live="polite"><p class="tonstad-note">Venter på første gyldige buss-frame.</p></div>
+      <div class="tools"><strong>Hendelser i nettleseren</strong><button id="line1Export" type="button">Eksporter JSON</button><button id="line1Clear" type="button">Tøm historikk</button></div>
+      <ol id="line1Events"></ol>
+      <p class="tonstad-note">Bare observasjoner mens siden er åpen. «Ikke lenger synlig» betyr at bussen mangler i mottatte frames, ikke at den faktisk forlot holdeplassen. Historikk lagres lokalt i ett døgn, ikke på serveren.</p>
+    </div>
+  </details>
   <details class="diagnostics" id="tonstadTest"><summary>🧪 Tonstadkrysset · sanntidstest for linje 1</summary>
     <div class="diagbody">
       <p id="tonstadState" data-status="NO_FRAME">Venter på data</p>
@@ -90,12 +103,13 @@
 </main>
 <aside class="info" id="info"><button class="close" id="close">Lukk</button><h2 id="infoTitle"></h2><div id="infoBody"></div></aside>
 <script src="../shared/board-client-model.js"></script><script src="../shared/canonical-frame-client.js"></script><script src="../shared/signal-policy.js"></script><script src="../shared/route-occupancy.js"></script><script src="network/model.js"></script><script src="network/editor.js"></script>
-<script src="network/layout-ops.js"></script><script src="network/live-monitor.js"></script><script src="network/tonstad-live-test.js"></script><script src="network/history-ui.js"></script><script src="network/cloud-draft.js"></script><script src="geo/model.js"></script><script src="geo/stop-links.js"></script><script src="network/map.js"></script><script>
+<script src="network/layout-ops.js"></script><script src="network/live-monitor.js"></script><script src="network/tonstad-live-test.js"></script><script src="network/line1-route-progress.js"></script><script src="network/history-ui.js"></script><script src="network/cloud-draft.js"></script><script src="geo/model.js"></script><script src="geo/stop-links.js"></script><script src="network/map.js"></script><script>
 "use strict";
 const SIGNALS=TransitCoreSignals;SIGNALS.applyCssVariables(document);
 const $=id=>document.getElementById(id),BASE="../../config/",FLYBUSS="flybuss-trondheim-fb73-live";
 let frameClient,frameClientId,board,hardware,flyBoard,flyHardware,catalogBoard,catalogHardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,diagnosticTakeovers=0,diagnosticVehicles=new Map,diagnosticOneSided=new Map,colorCycleTimer=null;
 let refreshGeneration=0;
+let line1Tracker=null;
 let lastFeedStatus="WAITING",lastFeedError="",lastFeedBoardId="";
 const stagingSelected=()=>$("source").value==="staging";
 const STAGING_ORIGIN="https://transitcore-linear-staging.lgb84.workers.dev";
@@ -225,6 +239,7 @@ function paint(frame){
   frame=projectFb73EtaFrame(frame);
   lastFrame=frame;
   updateTonstadPanel(true);
+  updateLine1Progress(frame);
   updateNetworkMap();
   const visibleIds=new Set([...document.querySelectorAll('.led[data-id]')].map(led=>led.dataset.id));
   const visibleItems=selectVisibleItems(frame,visibleIds);
@@ -314,6 +329,28 @@ function showInfo(led){
    '<p>Ingen aktiv avgang på denne dioden nå.</p>');
  $("info").classList.add("show");
 }
+function updateLine1Progress(frame=null){
+  if(!line1Tracker)return;
+  const snapshot=frame?line1Tracker.ingest(frame,{source:stagingSelected()?"staging":"production"}):
+    line1Tracker.summary();
+  const names={SOURCE_STOP:"SIRI-bekreftet ved stopp",GPS_NEAR:"GPS nær holdeplass",
+    CONFLICT:"Rutesekvens i konflikt",NOT_VISIBLE:"Ikke lenger i mottatt frame"};
+  $("line1Tracks").innerHTML=snapshot.active.length?snapshot.active.map(item=>{
+    const direction=item.direction==="inbound"?"mot Ranheim":item.direction==="outbound"?"mot Østre Lund / Tiller":"uavklart";
+    const evidence=item.directionBasis==="source"?"kildebekreftet turretning":
+      item.directionBasis==="gps-sequence"?"utledet fra GPS-rekkefølge":"retning ikke bekreftet";
+    return '<div class="line1-track"><strong>'+esc(item.bus)+' · '+esc(item.destination||"Destinasjon ukjent")+
+      '</strong><small>'+esc(names[item.status]||item.status)+' · '+esc(item.stop||"Ingen Quay")+
+      ' · '+esc(direction)+' ('+esc(evidence)+')</small><small>Observert rekkefølge: '+
+      esc(item.sequence.join(" → ")||"ukjent")+'</small><small>Neste planlagte Quay: '+
+      esc(item.next||"kan ikke fastslås")+' · Sist sett '+esc(item.ageSeconds)+' s siden</small></div>';
+  }).join(""):'<p class="tonstad-note">Ingen linje 1-busser med entydig Quay i mottatte frames.</p>';
+  $("line1Events").innerHTML=snapshot.events.slice(0,20).map(item=>{
+    const at=new Date(item.at).toLocaleString("no-NO",{timeZone:"Europe/Oslo",
+      hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    return '<li>'+esc(at)+' · '+esc(item.bus)+' · '+esc(item.detail)+'</li>';
+  }).join("")||'<li>Ingen ruteobservasjoner ennå.</li>';
+}
 function updateTonstadPanel(record=false){
   const info=InTransitTonstadLiveTest.inspect({
     frame:lastFrame,board:catalogBoard,now:Date.now(),
@@ -367,10 +404,17 @@ async function refresh(){
 }
 setInterval(()=>{if(!testing&&!document.hidden&&frameClient){const result=frameClient.snapshot();if(result.sample.status==="EXPIRED"&&result.frame)paint(result.frame);}},1000);
 document.addEventListener("visibilitychange",()=>{++refreshGeneration;clearTimeout(timer);if(!document.hidden)refresh()});
-function resetSourceView(){lastFeedStatus="WAITING";lastFeedError="";lastFeedBoardId="";networkMap?.clear();++refreshGeneration;clearTimeout(timer);testing=false;$("test").textContent="LED-test";frameClient=null;frameClientId=null;lastFrame=null;diagnosticVehicles.clear();diagnosticOneSided.clear();diagnosticTakeovers=0;$("info").classList.remove("show");$("activeCount").textContent="0";$("quality").textContent="Venter på valgt kilde";updateTonstadPanel();}
+function resetSourceView(){lastFeedStatus="WAITING";lastFeedError="";lastFeedBoardId="";networkMap?.clear();++refreshGeneration;clearTimeout(timer);testing=false;$("test").textContent="LED-test";frameClient=null;frameClientId=null;lastFrame=null;diagnosticVehicles.clear();diagnosticOneSided.clear();diagnosticTakeovers=0;$("info").classList.remove("show");$("activeCount").textContent="0";$("quality").textContent="Venter på valgt kilde";updateTonstadPanel();updateLine1Progress();}
 $("source").onchange=()=>{resetSourceView();build();return refresh();};
 $("tonstadFocus").onclick=async()=>{await setMapMode(true);networkMap?.focusStop(InTransitTonstadLiveTest.MAP_STOP)};
 $("tonstadRefresh").onclick=()=>refresh();
+$("line1Clear").onclick=()=>{line1Tracker?.clear();updateLine1Progress();};
+$("line1Export").onclick=()=>{
+  if(!line1Tracker)return;
+  const blob=new Blob([line1Tracker.exportJson()],{type:"application/json"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="intransit-linje1-rutesporing.json";a.click();URL.revokeObjectURL(url);
+};
 $("tonstadClear").onclick=()=>{tonstadHistory.clear();updateTonstadPanel();};
 $("tonstadExport").onclick=()=>{
   const output=tonstadHistory.exportJson(),blob=new Blob([output],{type:"application/json"}),
@@ -395,7 +439,7 @@ async function setMapMode(network){
  }
 }
 $("linearMode").onclick=()=>setMapMode(false);$("networkMode").onclick=()=>setMapMode(true);
-Promise.all([json(`${BASE}boards/trondheim-flybuss-live.json`),json(`${BASE}hardware/trondheim-flybuss-live-hardware.json`),json(`${BASE}boards/trondheim-city-lines-catalog.json`)]).then(async values=>{[flyBoard,flyHardware,catalogBoard]=values;catalogHardware={leds:{count:catalogBoard.leds.count},assignments:catalogBoard.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))};board=catalogBoard;hardware=catalogHardware;profiles=await Promise.all([...new Set([...catalogBoard.routes,FLYBUSS])].map(id=>json(`${BASE}routes/${id}.json`)));$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");const params=new URLSearchParams(location.search),requested=params.get("route");if(params.get("tonstad")==="1")$("tonstadTest").open=true;if(profiles.some(p=>p.id===requested))$("route").value=requested;$("source").value=params.get("source")==="staging"?"staging":"production";build();refresh();if(params.get("view")==="network"){await setMapMode(true);if(params.get("stop"))networkMap?.focusStop(params.get("stop"));}}).catch(error=>$("status").textContent=error.message);
+Promise.all([json(`${BASE}boards/trondheim-flybuss-live.json`),json(`${BASE}hardware/trondheim-flybuss-live-hardware.json`),json(`${BASE}boards/trondheim-city-lines-catalog.json`),json(`${BASE}gps/atb-journey-patterns-1-11.json`)]).then(async values=>{let line1Patterns;[flyBoard,flyHardware,catalogBoard,line1Patterns]=values;catalogHardware={leds:{count:catalogBoard.leds.count},assignments:catalogBoard.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))};board=catalogBoard;hardware=catalogHardware;profiles=await Promise.all([...new Set([...catalogBoard.routes,FLYBUSS])].map(id=>json(`${BASE}routes/${id}.json`)));line1Tracker=InTransitLine1Progress.create({board:catalogBoard,patterns:line1Patterns,profile:profiles.find(p=>p.id==="atb-bus-1-live"),storage:typeof localStorage==="undefined"?null:localStorage});updateLine1Progress();$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");const params=new URLSearchParams(location.search),requested=params.get("route");if(params.get("tonstad")==="1")$("tonstadTest").open=true;if(params.get("line1")==="1")$("line1Progress").open=true;if(profiles.some(p=>p.id===requested))$("route").value=requested;$("source").value=params.get("source")==="staging"?"staging":"production";build();refresh();if(params.get("view")==="network"){await setMapMode(true);if(params.get("stop"))networkMap?.focusStop(params.get("stop"));}}).catch(error=>$("status").textContent=error.message);
 </script></body></html>
 
 
