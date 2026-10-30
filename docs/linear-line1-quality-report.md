@@ -40,6 +40,36 @@ opptaket føres derfor som **LED-observasjoner** (ingen SIRI/GPS
 garanteres), og manglende serverframes vises som tidsluker
 og feil – aldri som bevis for at en bestemt buss ikke kjørte.
 
+## Toppliste – stopp som bør undersøkes først
+
+**Prioriterte stopp (maks 10)** vises øverst i tabellen. Listen
+bygger **utelukkende på registrerte liveavvik** på en konkret Quay:
+konflikter i rutefølgen, busser som ikke lenger er synlige i
+mottatte frames, sprang mellom observerte Quays og kildeoppgitte
+uavklarte GPS-matcher. Den er **ikke** en fasit over feilaktige
+holdeplasser.
+
+Sortering gir ekstra vekt til motstridende Quay-følge,
+deretter bortfalt sporing, uobserverte mellomstopp og
+uavklart GPS. Disse vektene er kun sorteringshjelp;
+samme GPS-avvik kan dukke opp i flere frames. Hvert forslag
+viser antall gyldige frames og hvor mange av dem som
+faktisk inneholder detaljert GPS-diagnostikk.
+
+Knappen **«Vis stopp på kart»** bruker Quay-bindingene
+fra det originale `trondheim-layout.json` og fokuserer
+eksisterende markør – ingen nye stopp eller kartkoordinater
+opprettes. Ved ukjent/tvetydig kobling vises en melding,
+ikke et gjettet stopp.
+
+Dersom ingen ekte avvik ble observert, vises
+**ingen toppliste**. Ved utilgjengelig detaljdiagnostikk
+vises en uttrykkelig advarsel om begrenset grunnlag.
+Fem-minutters serveropptak kan ikke rangere spesifikke
+GPS-/SIRI-avvik, siden detaljbevis er fjernet; panelet
+sier derfor klart fra om dette istedenfor å lage en
+misvisende «verste holdeplasser»-liste.
+
 ## Slik tolkes tabellen
 
 - **SIRI:** antall positive, kildestøttede observasjoner på Quay,
