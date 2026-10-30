@@ -1,9 +1,7 @@
 name: Entur exact dated-journey linkage pilot (read only)
+// Entur source rate-limits parallel Actions jobs. PR regression tests remain
+// automatic in route-progress-tests.yml; live polls are explicitly manual.
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/entur-dated-journey-join.yml'
-      - 'scripts/probe-entur-dated-journey-join.mjs'
   workflow_dispatch:
 permissions:
   contents: read
