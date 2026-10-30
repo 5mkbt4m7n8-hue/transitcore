@@ -30,7 +30,7 @@ const reverse=run(p11,[7,6,5]);
 assert.equal(reverse.results[2].status,'direction-tracked');
 assert.equal(reverse.results[2].orientation,'reverse');
 assert.equal(reverse.results[2].directionLabel,'mot Blakli');
-assert.equal(run(p1,[0,1,2],[0,45,90]).results[2].directionLabel,'mot Kattem/Tiller');
+assert.equal(run(p1,[0,1,2],[0,45,90]).results[2].directionLabel,'mot Østre Lund');
 const one=position(p11,0,0);
 const first=updateRouteProgress({profiles:[p11],vehicles:[one],now:epoch+1000});
 const repeat=updateRouteProgress({profiles:[p11],vehicles:[one],previousState:first.state,now:epoch+2000});
