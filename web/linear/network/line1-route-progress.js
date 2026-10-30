@@ -19,6 +19,18 @@
    if(!n?.quayId||!Number.isInteger(n.led))continue;
    const arr=byLed.get(n.led)||[];arr.push(n.quayId);byLed.set(n.led,arr);
   }
+  // The checked-in line 1 profile usually lists one platform side.
+  // Name opposite-direction Quays via their shared StopPlace, not by
+  // guessing proximity from coordinates or changing the underlying map.
+  const nodeByQuay=new Map((board.nodes||[]).map(n=>[n.quayId,n]));
+  const stationNames=new Map();
+  for(const stop of profile?.stops||[]){
+   const stationId=nodeByQuay.get(stop.id)?.stationId;
+   if(stationId&&stop.name)stationNames.set(stationId,stop.name);
+  }
+  for(const node of board.nodes||[])
+   if(!names.has(node.quayId)&&stationNames.has(node.stationId))
+    names.set(node.quayId,stationNames.get(node.stationId));
   const name=q=>names.get(q)||q;
   const tracks=new Map(),events=[];
   let lastSource='',serial=0;
@@ -146,6 +158,11 @@
      const d=directionFor(candidates);
      if(d){t.direction=d;t.directionBasis='gps-sequence';
       emit(t,'DIRECTION',now,'Rutefølge tyder på '+d+' (GPS, ikke kildebekreftet)');}
+    }
+    if(t.direction&&!candidates.some(p=>p.directionType===t.direction)){
+     if(t.status!=='CONFLICT')emit(t,'CONFLICT',now,
+      'Observasjon passer ikke låst '+t.direction+'-retning');
+     t.status='CONFLICT';
     }
     const compatible=candidates.filter(p=>!t.direction||p.directionType===t.direction);
     t.nextQuay=t.status==='CONFLICT'?null:nextOf(compatible,event.quay);
