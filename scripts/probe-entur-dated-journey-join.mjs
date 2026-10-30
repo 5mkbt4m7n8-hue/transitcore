@@ -4,7 +4,9 @@
 // identity, provider-reported stop, or eligibility for a physical LED.
 // No raw VehicleRef, trip ID, coordinates or SIRI XML are printed.
 import {parsePilotSiriJourneyRefs} from '../core/providers/entur/siri-vm-journey-parser.mjs';
-import {patternInventory,joinSiriVehicleToServiceJourney} from '../core/engines/entur-trip-pattern-link.mjs';
+import {patternInventory,joinSiriVehicleToServiceJourney,resolveExactServiceJourneyPattern} from '../core/engines/entur-trip-pattern-link.mjs';
+import {describeVerifiedTripTerminus} from '../core/engines/entur-trip-terminus.mjs';
+import {readFile} from 'node:fs/promises';
 import {fetchAtbFleetGps} from '../worker/atb-fleet-gps.mjs';
 
 const base='https://api.entur.io/transit-data/v1beta/mcp';
@@ -77,6 +79,7 @@ console.log('SIRI_REFERENCE_SAMPLE '+JSON.stringify({
   distinctServiceJourneyRefs:byLine[code].size,unrecognizedReferenceObservations:unusual[code],
   observationsRecordedWithin120s:recent[code]}]))
 }));
+const quayCatalog=JSON.parse(await readFile(new URL('../config/boards/trondheim-city-lines-catalog.json',import.meta.url),'utf8'));
 const fleet=await fetchAtbFleetGps({now:Date.now(),clientName:client});
 const gpsByLineAndId=new Map(fleet.vehicles.map(v=>[v.line+'|'+v.id,v]));
 console.log('GPS_SHADOW_SAMPLE '+JSON.stringify({gpsVehicles:fleet.vehicles.length,note:'IDs and positions are not emitted'}));
@@ -87,6 +90,7 @@ for(const code of ['1','11']){
    routePatternsVerified:0,sourceQuaySequencesVerified:0,freshReferenceMatches:0,
    calendarChecks:0,scheduledOnObservedDate:0,calendarUnverified:0,
    gpsIdAndTimeMatches:0,gpsUnresolved:{},
+   plannedTerminiByName:{},headsignComparisons:{},
    unresolved:{},operatingDayVerified:false,gpsVehicleJoinVerified:false,physicalStopVerified:false};
  const reject=reason=>stats.unresolved[reason]=(stats.unresolved[reason]||0)+1;
  for(const [id,metadata] of sampled){
@@ -101,6 +105,22 @@ for(const code of ['1','11']){
   if(service.journeyPattern?.directionType!==p.directionType){reject('pattern-direction-conflict');continue;}
   stats.routePatternsVerified++;
   const observedVehicle=gpsByLineAndId.get(code+'|'+metadata.siri.vehicleRef);
+  const route=resolveExactServiceJourneyPattern({
+   lineCode:code,datedVehicleJourneyRef:id,serviceJourney:service,
+   vehicleLineRef:metadata.siri.lineRef
+  });
+  const terminal=describeVerifiedTripTerminus({
+   lineCode:code,journeyEvidence:route,quayCatalog,
+   vehicleHeadsign:observedVehicle?.destination||null
+  });
+  if(terminal.status==='planned-terminus-supported'){
+   const name=terminal.terminalName||'unnamed-Quay';
+   stats.plannedTerminiByName[name]=(stats.plannedTerminiByName[name]||0)+1;
+   if(observedVehicle){
+    const match=terminal.headsignAgreement;
+    stats.headsignComparisons[match]=(stats.headsignComparisons[match]||0)+1;
+   }
+  }else reject('terminus-'+terminal.reason);
   if(!observedVehicle)stats.gpsUnresolved['gps-id-not-exact']=(stats.gpsUnresolved['gps-id-not-exact']||0)+1;
   else {
    const identity=joinSiriVehicleToServiceJourney({siri:metadata.siri,
