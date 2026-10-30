@@ -1,9 +1,5 @@
 name: Entur lines 1 and 11 source JourneyPatterns audit
 on:
-  pull_request:
-    paths:
-      - 'scripts/probe-entur-line-patterns.mjs'
-      - '.github/workflows/entur-line-patterns.yml'
   workflow_dispatch:
 permissions:
   contents: read
