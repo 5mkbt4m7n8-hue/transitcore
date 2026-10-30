@@ -1,9 +1,5 @@
 name: Entur route-pattern schema research (read only)
 on:
-  pull_request:
-    paths:
-      - 'scripts/probe-entur-route-pattern-schema.mjs'
-      - '.github/workflows/entur-route-pattern-schema.yml'
   workflow_dispatch:
 permissions:
   contents: read
