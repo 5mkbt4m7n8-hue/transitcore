@@ -22,6 +22,27 @@ async function call(name,args,id){
  return JSON.parse(body.result?.content?.find(c=>c.type==='text')?.text||'{}').data;
 }
 
+
+async function calendarOnObservedDate(id,recordedAt){
+ // The beta GraphQL activeDates field is deprecated. Only record source
+ // calendar evidence; NEVER treat it as a live GPS or stop confirmation.
+ const serviceDate=new Intl.DateTimeFormat('sv-SE',{
+  timeZone:'Europe/Oslo',year:'numeric',month:'2-digit',day:'2-digit'
+ }).format(new Date(recordedAt));
+ const res=await fetch('https://api.entur.io/transit-data/v1beta/graphql',{
+  method:'POST',headers:{...headers,'Content-Type':'application/json'},
+  body:JSON.stringify({query:'query($id:ID!){serviceJourney(id:$id){id activeDates}}',variables:{id}}),
+  signal:AbortSignal.timeout(16000)});
+ if(res.status===429)throw Error('Transit GraphQL calendar rate limited; stop, no retry');
+ if(!res.ok)throw Error('Transit GraphQL calendar HTTP '+res.status);
+ const result=await res.json();
+ if(result.errors?.length)throw Error('Transit GraphQL calendar query unavailable');
+ const journey=result.data?.serviceJourney;
+ if(!journey||journey.id!==id||!Array.isArray(journey.activeDates))
+  return {available:false,scheduled:false};
+ return {available:true,scheduled:journey.activeDates.includes(serviceDate)};
+}
+
 const response=await fetch('https://api.entur.io/realtime/v1/rest/vm?datasetId=ATB&maxSize=1500',{
  headers:{...headers,Accept:'application/xml'},signal:AbortSignal.timeout(18000)});
 if(response.status===429)throw Error('SIRI VM rate limited; stop, no retry');
@@ -44,7 +65,7 @@ for(const row of refs){
  }
  const found=byLine[code];
  if(!found.has(row.datedVehicleJourneyRef))found.set(row.datedVehicleJourneyRef,{
-  recent:Number.isFinite(age)&&age>=0&&age<=120000
+  recent:Number.isFinite(age)&&age>=0&&age<=120000,recordedAt:row.recordedAt
  });
  else if(Number.isFinite(age)&&age>=0&&age<=120000)found.get(row.datedVehicleJourneyRef).recent=true;
 }
@@ -59,6 +80,7 @@ for(const code of ['1','11']){
  const sampled=[...byLine[code].entries()].sort((a,b)=>Number(b[1].recent)-Number(a[1].recent)).slice(0,3);
  const stats={line:code,sampled:sampled.length,exactServiceJourneyMatches:0,
    routePatternsVerified:0,sourceQuaySequencesVerified:0,freshReferenceMatches:0,
+   calendarChecks:0,scheduledOnObservedDate:0,calendarUnverified:0,
    unresolved:{},operatingDayVerified:false,gpsVehicleJoinVerified:false,physicalStopVerified:false};
  const reject=reason=>stats.unresolved[reason]=(stats.unresolved[reason]||0)+1;
  for(const [id,metadata] of sampled){
@@ -75,11 +97,17 @@ for(const code of ['1','11']){
   if(p.quays.length>=2){
    stats.sourceQuaySequencesVerified++;
    if(metadata.recent)stats.freshReferenceMatches++;
+   if(stats.calendarChecks===0&&metadata.recent){
+    stats.calendarChecks++;
+    const calendar=await calendarOnObservedDate(id,metadata.recordedAt);
+    if(calendar.available&&calendar.scheduled)stats.scheduledOnObservedDate++;
+    else stats.calendarUnverified++;
+   }
   }
  }
  console.log('SERVICE_JOURNEY_PATTERN_PILOT '+JSON.stringify(stats));
 }
 console.log('PILOT_RELEASE_GATE '+JSON.stringify({
  status:'NO_GO',sourceReferenceType:'ATB:ServiceJourney',
- note:'Exact service-journey and pattern joins are NOT dated-operation verification. No GPS-to-vehicle join, stop evidence, or LED writes. Keep PR as draft.'
+ note:'ServiceJourney pattern and calendar evidence do NOT prove a dated vehicle journey. No GPS-to-vehicle join, stop evidence, or LED writes. Keep PR as draft.'
 }));
