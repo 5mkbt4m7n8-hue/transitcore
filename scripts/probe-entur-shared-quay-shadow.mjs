@@ -12,7 +12,7 @@ import {evaluateEnturStopEvidence} from '../core/engines/entur-stop-evidence.mjs
 import {fetchAtbFleetGps} from '../worker/atb-fleet-gps.mjs';
 
 const CLIENT='transitcore-shared-quay-observer';
-const SAMPLES=5,INTERVAL_MS=26000,MAX_SOURCE_LOOKUPS=8;
+const SAMPLES=20,INTERVAL_MS=20000,MAX_SOURCE_LOOKUPS=24;
 const targets={'NSR:Quay:102733':'Tonstadkrysset',
  'NSR:Quay:102721':'Østre Lund'};
 const board=JSON.parse(await readFile(new URL('../config/boards/trondheim-city-lines-catalog.json',import.meta.url),'utf8'));
@@ -50,6 +50,7 @@ async function serviceJourney(id) {
 console.log('SHARED_QUAY_START '+JSON.stringify({
  quays:Object.entries(targets).map(([id,name])=>({id,name})),
  samples:SAMPLES,intervalSeconds:INTERVAL_MS/1000,
+ targetLocalTime:'2026-10-30 14:11 Europe/Oslo at Tonstadkrysset towards Ranheim',
  rule:'Strict existing provider gate is NOT overridden; source direction is only route context'
 }));
 for(let poll=0;poll<SAMPLES;poll++){
