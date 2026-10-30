@@ -124,6 +124,9 @@ try{
  Date.now=()=>now+120001;
  const next=await worker.fetch(request(),env);
  assert.equal(next.status,200);
- assert.equal(observation.calls.length,2*count);
+ assert.equal(observation.calls.length,count+2,
+  'Fresh probe fetches SIRI/GPS, but a stale SIRI/GPS pair must skip the ServiceJourney lookup');
+ assert.equal((await next.json()).simulatedLedOn,false,
+  'A stale source event must NEVER show a simulated LED');
 }finally{Date.now=originalNow;}
 console.log('Isolated staging Worker: authorized manual only, DO cooldown, one-shot source, one shared LED, negative cases, 429 fail-closed PASS');
