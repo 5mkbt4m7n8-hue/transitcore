@@ -21,6 +21,9 @@ export function renderStationFrame({ board, hardware, now, signalPolicy: SIGNAL_
     platformEvidence: item.platformEvidence,
     platformConfirmed: item.platformConfirmed === true,
     ...(item.providerReportedAtStop === true ? {providerReportedAtStop:true} : {}),
+    ...(item.providerReportedAtStop === true && item.sharedQuaySameLed === true &&
+      ['inbound','outbound'].includes(item.plannedSourceDirection)
+      ? {plannedSourceDirection:item.plannedSourceDirection,sharedQuaySameLed:true} : {}),
     nearestQuayLed: item.nearestQuayLed,
     nearestQuayDistanceMeters: Math.round(item.nearestQuayDistanceMeters),
     withinStopRadius: item.withinStopRadius
