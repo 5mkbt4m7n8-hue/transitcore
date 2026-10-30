@@ -1,0 +1,27 @@
+name: AtB shared Quay source-direction pilot (read only)
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/entur-shared-quay-shadow.yml'
+      - 'scripts/probe-entur-shared-quay-shadow.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: atb-shared-quay-shadow-read-only
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Confirm both source directions use each Quay and LED gate remains closed
+        run: node scripts/test-entur-shared-quay-context.mjs
+      - name: Compare live source journeys and Quays without vehicle or GPS logging
+        run: node scripts/probe-entur-shared-quay-shadow.mjs
