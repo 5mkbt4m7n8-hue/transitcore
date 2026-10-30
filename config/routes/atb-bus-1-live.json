@@ -19,7 +19,7 @@
   "directions": [
     {
       "id": "south",
-      "label": "mot Østre Lund",
+      "label": "sørover",
       "destinationMatches": [
         "Kattem",
         "Østre Lund",
