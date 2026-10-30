@@ -351,6 +351,47 @@ kontroller og en gjennomtenkt, ratebegrenset inngang før merge.
 Østre Lund (`NSR:Quay:102721`) og andre flertydige Quays
 er ikke omfattet.
 
+## Hendelsesdiagnostikk for neste Tonstadkrysset-passering
+
+Etter liveobservasjonen rundt **14:11 norsk tid 2026-10-30** er det
+lagt inn ny personvernbegrenset, skrivebeskyttet diagnostikk i
+`scripts/probe-entur-shared-quay-shadow.mjs`. Den gamle prøven ga
+anonymiserte totalsummer og kunne derfor ikke knytte hver
+SIRI/GPS-treff til den offentlige Quay-en. En historisk måling kan
+**ikke** rekonstrueres ut fra denne endringen.
+
+Neste kjøring logger én `SHARED_QUAY_EVENT` per **unik, eksplisitt
+`VehicleAtStop=true`-rapport** på linje 1 for Tonstadkrysset
+(`NSR:Quay:102733`) eller Østre Lund (`NSR:Quay:102721`).
+Kun tillatte felter er synlige: hendelsesnummer, pollnummer,
+Quay-ID/navn, SIRI-tidspunkt i UTC, om eksakt
+ServiceJourney-referanse finnes, om GPS VehicleRef ble funnet,
+ServiceJourney-oppslagsstatus, kilderetning `inbound/outbound`,
+Quay-rolle og tilstedeværelse i mønsteret, samsvar mellom SIRI/GPS
+identitet og tidspunkt, normalisert destinasjon, resultatet av
+den vanlige stopp-gaten, og **konkret avvisningsgrunn**. Retning
+kan beskrives fra eksakt ServiceJourney selv om GPS-observasjonen
+mangler, men blir da *kun planlagt rutekontekst*.
+
+I hver `SHARED_QUAY_POLL` rapporteres også **aggregerte**
+antall ferske GPS-posisjoner for linje 1 innen 100 meter fra de
+to Quay-ene og antall med destinasjon Ranheim. GPS-nærhet
+**beviser ikke faktisk stopp**, heller ikke ved Tonstadkrysset.
+Hvis ingen eksplisitt SIRI-stoppmelding sendes, blir det heller
+ingen `SHARED_QUAY_EVENT`; forskjellen mellom «ingen SIRI-stopp»
+og «ingen GPS i området» kan likevel vises i pollsummen.
+
+Ingen rå VehicleRef, ServiceJourney-/tur-ID, koordinater, rå SIRI-XML
+eller andre vilkårlige kildefelter logges. Felt og verdier filtreres
+av `scripts/shared-quay-diagnostic-format.mjs`, og
+`scripts/test-shared-quay-diagnostic-format.mjs` tester eksplisitt
+mot lekkasje av identifikatorer og koordinater. Read-only-kjøringen
+tar 8 prøver med 20 sekunders mellomrom; det spesifikke klokkeslettet
+14:11 er **fjernet** fra den gjenbrukbare testens metadata.
+
+Dette er kun observasjon og gir ikke tillatelse til fysisk
+LED-aktivering. PR #279 forblir **draft/NO-GO**, ingen produksjonsutrulling.
+
 ## Neste release gate
 
 1. Kjør én manuelt kontrollert SIRI- og Transit Data-match i
