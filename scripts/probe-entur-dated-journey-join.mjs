@@ -18,9 +18,13 @@ const pick=(s,tag)=>{
  return s.match(regex)?.[1]?.trim()||null;
 };
 const observed={'1':new Map(),'11':new Map()};
-const s=await fetch('https://api.entur.io/realtime/v1/rest/vm?maxSize=1500',{
+// Scope the bounded sample to AtB, not the first 1500 vehicle activities nationwide.
+const s=await fetch('https://api.entur.io/realtime/v1/rest/vm?datasetId=ATB&maxSize=1500',{
  headers:{...headers,Accept:'application/xml'},signal:AbortSignal.timeout(18000)});
-if(s.status===429){console.log('SIRI_JOURNEY_JOIN_BLOCKED '+JSON.stringify({httpStatus:429,note:'Stop, respect Retry-After; not a negative matching result.'}));}
+if(s.status===429){
+ console.log('SIRI_JOURNEY_JOIN_BLOCKED '+JSON.stringify({httpStatus:429,note:'Stop, respect Retry-After; not a negative matching result.'}));
+ process.exit(2);
+}
 else if(!s.ok)throw Error('SIRI VM HTTP '+s.status);
 else{
  const xml=await s.text();
@@ -33,7 +37,7 @@ else{
   if(id&&/^[A-Za-z0-9_:.+-]{6,180}$/.test(id))observed[code].set(id,(observed[code].get(id)||0)+1);
  }
  console.log('SIRI_JOURNEY_REF_SAMPLE '+JSON.stringify({
-  activities:activities.length,byLine:Object.fromEntries(Object.entries(observed).map(([line,m])=>[line,{
+  datasetId:'ATB',activities:activities.length,moreData:/MoreData\s*=\s*["']true["']/i.test(xml),byLine:Object.fromEntries(Object.entries(observed).map(([line,m])=>[line,{
    distinctRefs:m.size,refPrefixes:[...new Set([...m.keys()].map(id=>id.split(':').slice(0,2).join(':')))].slice(0,5)
   }]))
  }));
@@ -53,7 +57,7 @@ for(const line of ['1','11']){
    operatingDay:row?.operatingDay||null
   }));
  }
- const date='2026-10-30';
+ const date=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Oslo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const sample=await call('datedServiceJourneys',{lines:[lineId],operatingDays:[date],first:8,
   fields:field},req++);
  const rows=(sample?.datedServiceJourneys?.edges||[]).map(e=>e.node);
