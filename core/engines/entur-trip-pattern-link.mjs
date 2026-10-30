@@ -116,3 +116,55 @@ export function joinSiriVehicleToDatedTrip({
   datedJourney,serviceDate:operatingDay,vehicleLineRef:siri.lineRef
  });
 }
+
+
+/**
+ * Shadow-only source reference resolver. SIRI-VM may label the field
+ * DatedVehicleJourneyRef even when its value is an ATB:ServiceJourney ID.
+ * An exact ServiceJourney lookup proves the source pattern, NOT the dated
+ * operation, a platform call, or that the bus is physically at a stop.
+ */
+export function resolveExactServiceJourneyPattern({
+ lineCode,datedVehicleJourneyRef,serviceJourney,vehicleLineRef
+}){
+ const reject=reason=>({status:'unresolved',reason,quays:[]});
+ const record=inventory.get(String(lineCode));
+ if(!record)return reject('line-not-in-catalogue');
+ if(vehicleLineRef!==record.lineId)return reject('vehicle-line-mismatch');
+ if(!/^ATB:ServiceJourney:[A-Za-z0-9_.+-]+$/.test(datedVehicleJourneyRef||''))
+   return reject('siri-ref-not-atb-service-journey');
+ if(!serviceJourney||serviceJourney.id!==datedVehicleJourneyRef)
+   return reject('service-journey-id-not-exact');
+ if(serviceJourney.line?.id!==record.lineId)return reject('service-journey-line-unverified');
+ const p=record.patterns.find(x=>x.id===serviceJourney.journeyPattern?.id);
+ if(!p)return reject('pattern-not-in-verified-snapshot');
+ if(serviceJourney.journeyPattern?.directionType!==p.directionType)
+   return reject('journey-pattern-direction-conflict');
+ return {status:'route-pattern-supported',reason:'exact-service-journey-reference',
+  lineId:record.lineId,serviceJourneyId:serviceJourney.id,
+  patternId:p.id,directionType:p.directionType,quays:[...p.quays],
+  source:'entur-transit-data-v1beta',
+  datedTripIdentityConfirmed:false,operatingDayVerified:false,
+  vehicleIdentityConfirmed:false,providerStopConfirmed:false,eligibleForLed:false};
+}
+
+/** Shadow-only SIRI↔GPS ID/time evidence; no operating-date or stop proof. */
+export function joinSiriVehicleToServiceJourney({
+ siri,vehicle,serviceJourney,now=Date.now()
+}){
+ const reject=reason=>({status:'unresolved',reason,quays:[]});
+ if(siri?.source!=='entur-siri-vm'||!siri.vehicleRef||
+   siri.vehicleRef!==vehicle?.id)return reject('vehicle-id-not-exact');
+ const lineCode=String(vehicle.publicCode||'');
+ if(siri.lineRef!==`ATB:Line:2_${lineCode}`)return reject('vehicle-line-not-exact');
+ const at=Date.parse(siri.recordedAt||''),gpsAt=Date.parse(vehicle.timestamp||'');
+ if(!Number.isFinite(at)||!Number.isFinite(gpsAt)||at>now+5000||gpsAt>now+5000||
+   now-at>30000||now-gpsAt>30000||Math.abs(at-gpsAt)>20000)
+   return reject('unsynchronized-siri-gps');
+ const route=resolveExactServiceJourneyPattern({
+  lineCode,datedVehicleJourneyRef:siri.datedVehicleJourneyRef,
+  serviceJourney,vehicleLineRef:siri.lineRef
+ });
+ return route.status==='route-pattern-supported'?
+  {...route,vehicleIdentityConfirmed:true}:route;
+}
