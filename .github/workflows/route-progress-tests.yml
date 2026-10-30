@@ -12,6 +12,9 @@ on:
       - 'core/engines/entur-stop-projection.mjs'
       - 'scripts/test-entur-provider-projection.mjs'
       - 'core/engines/entur-trip-pattern-link.mjs'
+      - 'core/engines/entur-trip-terminus.mjs'
+      - 'scripts/test-entur-trip-terminus.mjs'
+      - 'config/routes/atb-bus-1-live.json'
       - 'scripts/test-entur-trip-pattern-link.mjs'
       - 'config/gps/atb-journey-patterns-1-11.json'
       - 'core/providers/entur/siri-vm-journey-parser.mjs'
@@ -43,6 +46,7 @@ jobs:
           node scripts/test-entur-provider-projection.mjs
           node scripts/test-entur-trip-pattern-link.mjs
           node scripts/test-siri-dated-trip-join.mjs
+          node scripts/test-entur-trip-terminus.mjs
           node --check scripts/probe-entur-dated-journey-join.mjs
           node scripts/test-source-quay-sequence-shadow.mjs
           node --check scripts/probe-entur-multi-stop-shadow.mjs
