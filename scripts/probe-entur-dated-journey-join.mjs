@@ -31,7 +31,7 @@ async function calendarOnObservedDate(id,recordedAt){
  }).format(new Date(recordedAt));
  const res=await fetch('https://api.entur.io/transit-data/v1beta/graphql',{
   method:'POST',headers:{...headers,'Content-Type':'application/json'},
-  body:JSON.stringify({query:'query($id:ID!){serviceJourney(id:$id){id activeDates}}',variables:{id}}),
+  body:JSON.stringify({query:'query($id:String!){serviceJourney(id:$id){id activeDates}}',variables:{id}}),
   signal:AbortSignal.timeout(16000)});
  if(res.status===429)throw Error('Transit GraphQL calendar rate limited; stop, no retry');
  if(!res.ok)throw Error('Transit GraphQL calendar HTTP '+res.status);
