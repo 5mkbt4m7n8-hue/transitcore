@@ -1,9 +1,7 @@
 name: AtB 1 and 11 source Quay multi-stop shadow (read only)
+// Entur source rate-limits parallel Actions jobs. PR regression tests remain
+// automatic in route-progress-tests.yml; live polls are explicitly manual.
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/entur-multi-stop-shadow.yml'
-      - 'scripts/probe-entur-multi-stop-shadow.mjs'
   workflow_dispatch:
 permissions:
   contents: read
