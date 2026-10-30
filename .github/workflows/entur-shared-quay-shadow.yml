@@ -1,13 +1,7 @@
 name: AtB shared Quay source-direction pilot (read only)
+// Entur source rate-limits parallel Actions jobs. PR regression tests remain
+// automatic in route-progress-tests.yml; live polls are explicitly manual.
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/entur-shared-quay-shadow.yml'
-      - 'scripts/probe-entur-shared-quay-shadow.mjs'
-      - 'scripts/shared-quay-frame-shadow.mjs'
-      - 'scripts/test-shared-quay-frame-shadow.mjs'
-      - 'scripts/shared-quay-diagnostic-format.mjs'
-      - 'scripts/test-shared-quay-diagnostic-format.mjs'
   workflow_dispatch:
 permissions:
   contents: read
