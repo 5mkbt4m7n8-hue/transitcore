@@ -16,6 +16,7 @@ on:
       - 'config/gps/atb-journey-patterns-1-11.json'
       - 'core/providers/entur/siri-vm-journey-parser.mjs'
       - 'scripts/test-siri-dated-trip-join.mjs'
+      - 'scripts/probe-entur-dated-journey-join.mjs'
       - '.github/workflows/route-progress-tests.yml'
   workflow_dispatch:
 permissions:
@@ -39,3 +40,4 @@ jobs:
           node scripts/test-entur-provider-projection.mjs
           node scripts/test-entur-trip-pattern-link.mjs
           node scripts/test-siri-dated-trip-join.mjs
+          node --check scripts/probe-entur-dated-journey-join.mjs
