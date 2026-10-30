@@ -132,6 +132,46 @@ date-aware skille ved midnatt, årsaksanalyse for manglende
 kjøretøymatcher, og staging/edge-hardware-målinger før en eventuell
 sikkerhetsvurdering av LED-bruk. Ikke merge eller deploy automatisk.
 
+## Linje 1: offentlig Quay-/destinasjonsdiagnostikk 30.10.2026
+
+Read-only 8-poll-replay i [Actions #41039875231](https://github.com/5mkbt4m7n8-hue/transitcore/actions/runs/41039875231)
+sjekket alle åtte kilde-JourneyPatterns med 62 unike Quay-ID-er.
+Alle 62 Quays fantes i den lokale katalogen; to var retningsmessig
+tvetydige og **forblir sperret for automatisk stoppbekreftelse**:
+`NSR:Quay:102733` (Tonstadkrysset) og `NSR:Quay:102721`
+(Østre Lund). Det er ikke dokumentert at disse kan entydig velges ved
+kjøretøyets oppgitte destinasjon.
+
+Fire SIRI-stoppobservasjoner ble avvist med
+`destination-direction-mismatch`:
+
+| Quay | Offentlig navn | GPS-headsign | Observasjoner | SIRI JourneyPattern-retning |
+| --- | --- | --- | ---: | --- |
+| `NSR:Quay:103009` | Buran | Østre Lund | 2 | outbound |
+| `NSR:Quay:73975` | Solsiden | Østre Lund | 2 | outbound |
+
+Begge stoppene er eksakt i kilde-JourneyPattern (32 Quays) og har
+*entydig* katalog-retning `0`. Katalogregelen hadde bare
+`Kattem` og `Tillerterminalen` som matchende stopp-headsigns.
+Ruteprofilen hadde allerede `Østre Lund` som tillatt destinasjon i
+sørlig kjøreretning. Forskjellen peker på en manglende *eksakt alias*,
+ikke grunnlag for nærmeste-nabo- eller motsatt-plattform-fallback.
+Disse fire er sample-hendelser, ikke dokumentasjon på fire forskjellige
+fysiske busser.
+
+**Isolert kandidat i PR #279:** eksakt
+`destinationDirectionAliases: {"Østre Lund":"0"}` i
+`config/routes/atb-bus-1-live.json`. Regresjonen på faktisk
+katalog kontrollerer at Buran/Solsiden kan passere SIRI-evidensporten
+med tilhørende identitet, tidsstempler og posisjon, mens motsatt
+katalogretning og begge tvetydige Quays fortsatt avvises. Dette er
+ikke en generell likhet mellom Enturs `outbound` og GTFS `0`.
+Endringen kan påvirke LED-kandidatvalg **dersom den senere merges**,
+og må derfor ikke rulles ut før særskilt staging/edge-godkjenning.
+
+**NO-GO:** Ikke merge/utrulling. Ingen fysisk stoppbekreftelse,
+fullt gjennomspilt tur eller sikker bekreftelse av de to delte Quays.
+
 ## Neste release gate
 
 1. Kjør én manuelt kontrollert SIRI- og Transit Data-match i
