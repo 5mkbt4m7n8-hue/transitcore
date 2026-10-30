@@ -30,6 +30,7 @@ assert.equal(quality.ingest(first,{now}),true);
 assert.equal(quality.ingest(first,{now}),false,'Repeated same frame cannot inflate counts');
 let report=quality.liveReport({now});
 assert.equal(report.samples,1);
+assert.equal(report.diagnosticSamples,1);
 const row=q=>report.rows.find(r=>r.quay===q);
 assert.equal(row(A).siri,1);
 assert.equal(row(B).gps,1);
@@ -73,6 +74,7 @@ const records=[
 ];
 const history=quality.historyReport(records,{day});
 assert.equal(history.samples,2);
+assert.equal(history.diagnosticSamples,0,'Recordings lack source detail');
 assert.equal(history.errors,1);
 assert.equal(history.gaps,1,'Detects missing 5-minute interval');
 assert.equal(history.rows.find(r=>r.quay===A).ledOnly,2);
