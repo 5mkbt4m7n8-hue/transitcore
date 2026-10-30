@@ -13,6 +13,7 @@ on:
       - 'scripts/test-linear-publish.mjs'
       - 'scripts/test-linear-live-monitor.mjs'
       - 'scripts/test-tonstad-live-test.mjs'
+      - 'scripts/test-line1-route-progress.mjs'
       - 'scripts/test-trondheim-day-history.mjs'
       - 'worker/trondheim-history.mjs'
       - 'worker/linear-draft.mjs'
@@ -35,6 +36,7 @@ on:
       - 'scripts/test-linear-publish.mjs'
       - 'scripts/test-linear-live-monitor.mjs'
       - 'scripts/test-tonstad-live-test.mjs'
+      - 'scripts/test-line1-route-progress.mjs'
       - 'scripts/test-trondheim-day-history.mjs'
       - 'worker/trondheim-history.mjs'
       - 'worker/linear-draft.mjs'
@@ -76,6 +78,9 @@ jobs:
 
       - name: Verify Tonstadkrysset source-confirmed vs GPS-only live panel
         run: node scripts/test-tonstad-live-test.mjs
+
+      - name: Verify line 1 A-B-C observation state machine and lost-frame events
+        run: node scripts/test-line1-route-progress.mjs
 
       - name: Verify Trondheim one-day history and pinned demo
         run: node scripts/test-trondheim-day-history.mjs

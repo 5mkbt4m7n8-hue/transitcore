@@ -26,6 +26,12 @@ try{
  await page.route('https://transitcore-linear-staging.lgb84.workers.dev/**',r=>r.fulfill({status:503,body:'test staging unavailable'}));
  await page.goto(`http://127.0.0.1:${server.address().port}/web/linear/index.html`);
  await page.waitForFunction(()=>document.querySelectorAll('#rows .row').length>0);
+ await page.locator('#line1Progress summary').click();
+ await page.waitForFunction(()=>document.querySelector('#line1Tracks')?.textContent?.length>0);
+ assert.equal(await page.locator('#line1Export').count(),1,'Line 1 route history can be exported');
+ assert.equal(await page.locator('#line1Clear').count(),1,'Line 1 route history can be cleared');
+ assert.match(await page.locator('#line1Tracks').textContent(),/Ingen linje 1|Buss /,
+  'Route tracker must show an honest empty state or observed buses');
  await page.locator('#tonstadTest summary').click();
  await page.waitForFunction(()=>document.querySelector('#tonstadLed').textContent!=='–');
  assert.equal(await page.locator('#tonstadLed').textContent(),String(tonstadLed),
