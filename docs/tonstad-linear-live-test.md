@@ -48,6 +48,31 @@ Trondheim-feeden kan derfor fortsatt vise null kildebekreftede
 stopp selv når Entur har registrert dem, og det skal ikke
 forveksles med en påvist feil i selve Quay-mappingen.
 
+## GPS-nærhet og hendelseslogg
+
+Fra nettlesertesten på linje 1 ser du nå et eget antall **GPS nær
+kartpunktet**. Eldre PixelFrame-feeder kan ha `nearestQuayLed`
+uten `quayId`. Disse telles som **GPS-nærhet**, ikke som en
+bekreftet Quay eller faktisk stopp. Bare eksplisitt SIRI
+`VehicleAtStop`, koblet til Quay `NSR:Quay:102733`, teller som
+**SIRI-bekreftet stopp**.
+
+Under testpanelet er en lokal **hendelseslogg**. Den lagrer overganger
+i tilstanden (`GPS_ONLY`, `AT_STOP`, `UNRESOLVED`,
+`NOT_OBSERVED`) mens nettsiden er åpen. Flere identiske
+10-sekundersframes blir ikke duplisert. Loggen inneholder
+tidspunkt i Oslo, valgt feed, antall SIRI- og GPS-observasjoner,
+bekreftet retning og eventuelle avvisningsårsaker. En nedlasting
+gir JSON med samme anonymiserte opplysninger.
+
+Dette er **ikke** kontinuerlig serverovervåking: nettleseren må
+være åpen, og historikken lagres bare i nettleserens
+`localStorage` i inntil ett døgn, maks 50 endringer. Ingen
+kjøretøy-ID eller rå koordinater lagres i denne loggen.
+`NOT_OBSERVED` etter `AT_STOP` betyr kun at kilden
+ikke lenger viser den bussen, **ikke** dokumentert fysisk
+avreise. I privat modus kan lagringen være midlertidig.
+
 ## Testdekning og feilretting
 
 `scripts/test-tonstad-live-test.mjs` dekker kildebevis begge

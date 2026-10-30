@@ -50,4 +50,53 @@ const noMap=test.inspect({...basic,board:{...board,nodes:board.nodes.filter(n=>n
 assert.equal(noMap.state,'NO_MAPPING');
 const duplicate=test.inspect({...basic,board:{...board,nodes:[...board.nodes,{...node,led:node.led+1}]},frame:confirmed});
 assert.equal(duplicate.state,'NO_MAPPING');
-console.log('Linear Tonstadkrysset UI: one Quay/LED, SIRI north/south, GPS-only, stale/unknown, no false matches PASS');
+// Legacy GPS PixelFrames omit quayId: use measured nearestQuayLed only as
+// proximity, without ever counting a source-confirmed physical stop.
+const legacyNear={...frame,leds:[{id:node.led,state:'APPROACHING',
+ occupants:[{id:'PRIVATE-LEGACY-GPS',line:'1',destination:'Ranheim',
+  positionType:'gps-nearest-stop',nearestQuayLed:node.led,
+  state:'APPROACHING',withinStopRadius:true}]}]};
+const near=test.inspect({...basic,frame:legacyNear});
+assert.equal(near.state,'GPS_ONLY');
+assert.equal(near.gpsNearby,1);
+assert.equal(near.sourceConfirmed,0);
+assert.equal(near.observedVehicles,1);
+assert(!JSON.stringify(near).includes('PRIVATE-LEGACY-GPS'));
+assert.equal(test.inspect({...basic,frame:{...legacyNear,leds:[{...legacyNear.leds[0],
+ occupants:[{...legacyNear.leds[0].occupants[0],nearestQuayLed:node.led+1}]}]}}).state,'NOT_OBSERVED');
+const confirmedCount=test.inspect({...basic,frame:confirmed});
+assert.equal(confirmedCount.gpsNearby,0,'Source report is not GPS-only');
+const stored=new Map();
+const storage={getItem:key=>stored.get(key)||null,setItem:(key,val)=>stored.set(key,val)};
+const history=test.createHistory({storage,clock:()=>now});
+assert.equal(history.observe({info:test.inspect({...basic,frame})}),null,'Do not fill history with initial idle frame');
+const first=history.observe({info:near,source:'production',now});
+assert.equal(first.state,'GPS_ONLY');
+assert.equal(first.gpsNearby,1);
+assert.equal(history.observe({info:near,source:'production',now:now+1000}),null,'No duplicate 10s poll rows');
+const second=history.observe({info:confirmedCount,source:'production',now:now+2000});
+assert.equal(second.state,'AT_STOP');
+assert.equal(second.inbound,1);
+const third=history.observe({info:test.inspect({...basic,frame}),source:'production',now:now+3000});
+assert.equal(third.state,'NOT_OBSERVED','Record a disappearing confirmed bus, not invent a passage');
+assert.equal(history.observe({info:test.inspect({...basic,frame,now:now+36000}),now:now+36000}),null,
+ 'Never log expired evidence as an observed bus');
+assert.equal(history.entries(now+3000).length,3);
+const recovered=test.createHistory({storage,clock:()=>now+4000});
+assert.equal(recovered.entries().length,3,'History persists through page reload for up to one day');
+const exported=recovered.exportJson();
+assert(exported.includes('Browser-observed PixelFrame'));
+assert(!exported.includes('PRIVATE-LEGACY-GPS'));
+assert(!exported.includes('PRIVATE-V'));
+assert(!exported.includes('latitude'));
+assert(!exported.includes('longitude'));
+recovered.clear();
+assert.equal(recovered.entries().length,0);
+assert.equal(test.createHistory({storage,clock:()=>now+5000}).entries().length,0);
+const ttl=test.createHistory({storage,clock:()=>now,ttlMs:1000,limit:2});
+ttl.observe({info:near,now});
+ttl.observe({info:confirmedCount,now:now+500});
+ttl.observe({info:near,now:now+2500});
+assert.equal(ttl.entries(now+2500).length,1,'Remove older observations after TTL');
+
+console.log('Linear Tonstadkrysset UI: one Quay/LED, SIRI north/south, GPS-only, stale/unknown, legacy GPS, 24h transition history and JSON export PASS');
