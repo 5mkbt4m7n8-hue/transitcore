@@ -392,9 +392,9 @@ tar 8 prøver med 20 sekunders mellomrom; det spesifikke klokkeslettet
 Dette er kun observasjon og gir ikke tillatelse til fysisk
 LED-aktivering. PR #279 forblir **draft/NO-GO**, ingen produksjonsutrulling.
 
-## Offline tavlesimulering med ekte frame-renderer (31.10.2026)
+## Offline tavlesimulering med ekte frame-renderer (30.10.2026)
 
-En **isoleret skyggetest** beregner nå et mulig LED-resultat med den
+En **isolert skyggetest** beregner nå et mulig LED-resultat med den
 samme `interpretStrictStationGps` + `renderStationFrame` som
 tavlefeeden bruker, men kun inne i GitHub Actions-prosessen. Dette er
 **ikke en utplassert Cloudflare staging-Worker** og heller ikke en
