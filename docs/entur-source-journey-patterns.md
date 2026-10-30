@@ -298,6 +298,59 @@ avklar om samme Quay-ID representerer ett delt fysisk stopp eller
 hvilke separate, kildebekreftede plattformer som faktisk finnes.
 Ikke åpne `ambiguous-quay-direction`-porten i mellomtiden.
 
+## Tonstadkrysset: én Quay og én LED for begge retninger (PR #279)
+
+Brukerens karttolkning, Enturs kilde-JourneyPatterns og publisert
+holdeplassinformasjon støtter at linje 1 benytter samme plattform/Quay
+ved Tonstadkrysset i begge kjøreretninger:
+`NSR:Quay:102733`. Begge retninger har Quay-en som *mellomstopp*.
+Det skal derfor ikke opprettes et oppdiktet nord-/sør-Quay eller
+en ekstra LED for den andre retningen.
+
+Den tidligere generelle `ambiguous-quay-direction`-sperren er
+**ikke fjernet**. Kandidaten har kun dette presise unntaket:
+`atb-bus-1-live` + `NSR:Quay:102733`, og bare når
+
+1. SIRI `MonitoredCall.VehicleAtStop=true` gjelder samme Quay
+   og det eksakte kjøretøyet, linjen og tidspunktet;
+2. en eksplisitt innsendt `sharedQuayJourneys`-Map har den
+   **eksakte SIRI ServiceJourney-referansen og Entur-responsen**.
+   `joinSiriVehicleToServiceJourney` skal passere med korrekt
+   kilde-JourneyPattern, GPS-kjøretøy og ferske tidsstempler;
+3. kildens Quay-sekvens faktisk inkluderer Tonstadkrysset
+   nøyaktig én gang som mellomstopp, med korrekt kildeterminal
+   for ordinær tur eller kortvariant;
+4. destinasjonsskiltet ikke motsier denne retningen. Kattem kan
+   være et skiltalias, men erstatter ikke faktisk siste Quay;
+5. GPS er maksimalt 100 m fra rapportert Quay, alle andre
+   kildesjekker passerer, og kartet inneholder **nøyaktig én**
+   Quay-node/LED-posisjon for denne ID-en.
+
+Med to uavhengige, godkjente kjøretøyobservasjoner ved samme
+Quay blir begge registrert som okkupanter på **den samme LED-en**.
+Én LED har fortsatt én vist tilstand; dette betyr ikke to lys
+eller et nytt felt på tavlen. Ingen tur-ID, GPS-nærhet,
+`OnwardCall`, ETA eller destinasjonsskilt alene kan aktivere stoppet.
+
+Implementasjon: `core/engines/entur-stop-evidence.mjs` og
+`core/engines/entur-stop-projection.mjs`, opt-in i
+`core/engines/strict-station-gps.mjs`.
+`scripts/test-entur-shared-quay-projection.mjs` tester full tur
+i begge retninger, kortvarianter, to kjøretøy på samme LED,
+manglende kildebevis, feil headsign, feil ServiceJourney,
+konflikter, gammel SIRI, GPS-avvik, dupliserte Quay-noder
+og at Østre Lund **fremdeles** er blokkert.
+
+**Viktig utrullingsgrense:** produksjons-Worker leverer verken
+`stopReports` eller `sharedQuayJourneys` som verifiserte
+sammenkoblede innganger. Ingen automatisk nettverksadapter er
+skrudd på, og den nye stien kjører dermed **ikke i produksjon**.
+Den isolerte sanntidsprøven kan måle kildedekning, men aktiverer
+aldri LED. Det må foreligge ytterligere staging-/fysiske
+kontroller og en gjennomtenkt, ratebegrenset inngang før merge.
+Østre Lund (`NSR:Quay:102721`) og andre flertydige Quays
+er ikke omfattet.
+
 ## Neste release gate
 
 1. Kjør én manuelt kontrollert SIRI- og Transit Data-match i
