@@ -13,6 +13,9 @@
     "longName": "Ranheim - Strindheim - sentrum - Tiller - Heimdal - Kattem",
     "color": "#ef5350"
   },
+  "destinationDirectionAliases": {
+    "Østre Lund": "0"
+  },
   "directions": [
     {
       "id": "south",
