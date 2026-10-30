@@ -31,6 +31,10 @@ try{
  assert.equal(await page.locator('#qualityMode').count(),1);
  assert.equal(await page.locator('#qualityExport').count(),1);
  assert.equal(await page.locator('#qualityClear').count(),1);
+ assert.equal(await page.locator('#qualityPrioritySection').count(),1);
+ assert.equal(await page.locator('#qualityPriorityList').count(),1);
+ assert.match(await page.locator('#qualityPriorityNote').textContent(),/Ingen ruteavvik|Ingen gyldige|mangler detaljert/);
+ 
  assert.match(await page.locator('#qualityStatus').textContent(),/gyldige frames|Venter på første|Siste 24 timer/);
  await page.locator('#line1Progress summary').click();
  await page.waitForFunction(()=>document.querySelector('#line1Tracks')?.textContent?.length>0);
