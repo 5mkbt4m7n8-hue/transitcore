@@ -6,6 +6,8 @@ import {execFileSync} from 'node:child_process';
 import {performance} from 'node:perf_hooks';
 import {interpretStationVehicles} from '../core/engines/position-interpretation.mjs';
 import {catalogIndex} from '../core/engines/catalog-index.mjs';
+import {safetyCatalog} from '../core/engines/strict-station-gps.mjs';
+import {distance} from '../core/frame/mapping-support.mjs';
 import {validateConfiguration} from '../core/frame/mapping-support.mjs';
 import {mapLedStates} from '../core/frame/led-mapper.mjs';
 import {renderStationFrame} from '../core/frame/frame-renderer.mjs';
@@ -19,7 +21,8 @@ const workerModuleImport={wallMs:performance.now()-initAt,cpuMs:(initUsed.user+i
   heapDeltaBytes:process.memoryUsage().heapUsed-initHeap,
   note:'Local Node module import with core modules already imported, not Cloudflare cold-start CPU'};
 const read = path => JSON.parse(readFileSync(new URL(path, root)));
-// Fixed pre-change implementation is the independent semantic/performance oracle.
+// Historical proximity implementation is a performance baseline only.
+// Strict placement intentionally rejects its unsafe nearest-stop assignments.
 const baselineRevision = 'aa5cfc73ef2738b4d618d63364126c3538bea51f';
 async function baseline(path) {
   let source = execFileSync('git', ['show', `${baselineRevision}:${path}`], {encoding:'utf8'});
@@ -55,7 +58,9 @@ const boundary = board.nodes.slice(0,100).flatMap((node,i)=>[-1,1].map(sign=>({
   latitude:node.lat+sign*board.render.approachRadiusMeters/110000,
   longitude:node.lon,timestamp:new Date(now).toISOString()})));
 for (const vehicles of [all, boundary, fleet(250), fleet(1000)]) {
-  assert.deepEqual(interpretStationVehicles(context(vehicles)),old.interpretStationVehicles(context(vehicles)));
+  const result=interpretStationVehicles(context(vehicles));
+  assert.equal(result.observations.length,vehicles.length);
+  assert([...result.strongest.values()].every(v=>v.state==='APPROACHING'&&v.routeListedHere&&v.platformConfirmed===false));
 }
 const first = catalogIndex(board.nodes);
 let examined=0;
@@ -70,9 +75,19 @@ const changed = structuredClone(board.nodes);
 changed[0].lat += 1;
 assert.notEqual(catalogIndex(changed),first,'New configuration must invalidate index');
 const reversed = {...board,nodes:[...board.nodes].reverse()};
-assert.deepEqual(interpretStationVehicles({...context(all),board:reversed}),old.interpretStationVehicles({...context(all),board:reversed}));
+assert.deepEqual(interpretStationVehicles({...context(all),board:reversed}),interpretStationVehicles(context(all)));
 const tie = {...board,nodes:[{...board.nodes[0],led:9999},{...board.nodes[0],led:3}]};
-assert.equal([...interpretStationVehicles({...context([{...all[0],destination:'Unknown'}]),board:tie}).strongest.keys()][0],3);
+assert.equal(interpretStationVehicles({...context([{...all[0],destination:'Unknown'}]),board:tie}).strongest.size,0);
+// Independent full-scan oracle verifies that the preserved spatial hash finds
+// the actual nearest competitor, including the 4 audited coordinate changes.
+const safe=safetyCatalog(board.nodes),safeIndex=catalogIndex(safe);
+for(const v of all){
+ const at={lat:v.latitude,lon:v.longitude},radius=120;
+ const candidates=safeIndex.candidates(at.lat,at.lon,radius/110000,radius/(111000*Math.max(.2,Math.cos(at.lat*Math.PI/180))));
+ const rank=nodes=>nodes.map(n=>({id:n.led,d:distance(at,n)})).sort((a,b)=>a.d-b.d||a.id-b.id);
+ const expected=rank(safe).filter(n=>n.d<=120),actual=rank(candidates).filter(n=>n.d<=120);
+ assert.deepEqual(actual,expected);
+}
 
 function measure(name, operation, iterations=300) {
   for(let i=0;i<30;i++) operation();
@@ -91,7 +106,7 @@ function measure(name, operation, iterations=300) {
     transientHeapBytes:peak-before.heapUsed,retainedHeapBytes:process.memoryUsage().heapUsed-before.heapUsed,
     rssBytes:process.memoryUsage().rss};
 }
-const input=context(fleet(250));
+const input=context(fleet(250)),thousandInput=context(fleet(1000));
 let liveInput;
 if (process.argv.includes('--live')) {
   const response=await fetch(profiles[0].provider.vehicleEndpoint,{method:'POST',
@@ -101,7 +116,7 @@ if (process.argv.includes('--live')) {
   assert(response.ok,`Live upstream HTTP ${response.status}`);
   const data=await response.json();assert(!data.errors?.length);assert(Array.isArray(data.data?.vehicles));
   liveInput={...context(data.data.vehicles.map(normalizeEnturVehicle)),now:Date.now()};
-  assert.deepEqual(interpretStationVehicles(liveInput),old.interpretStationVehicles(liveInput));
+  assert(interpretStationVehicles(liveInput).observations.length>0);
 }
 const interpreted=interpretStationVehicles(input),mapped=mapLedStates(input,interpreted);
 const raw=input.vehicles.map(v=>({vehicleId:v.id,lastUpdated:v.timestamp,destinationName:v.destination,
@@ -117,7 +132,7 @@ const results=[
   measure('render-250',()=>renderStationFrame(input,mapped)),
   measure('serialize-250',()=>JSON.stringify(renderStationFrame(input,mapped))),
   measure('index-cold',()=>catalogIndex([...board.nodes])),
-  measure('interpret-1000-after',()=>interpretStationVehicles(context(fleet(1000))),100)
+  measure('interpret-1000-after',()=>interpretStationVehicles(thousandInput),100)
 ];
 if(liveInput) results.push(measure('interpret-live-before',()=>old.interpretStationVehicles(liveInput)),
   measure('interpret-live-after',()=>interpretStationVehicles(liveInput)));
@@ -134,6 +149,6 @@ if(globalThis.gc)for(const [name,operation] of [
   }
   deltas.sort((a,b)=>a-b);memory.push({name,p95SingleOperationHeapDeltaBytes:deltas[19]});
 }
-console.log(JSON.stringify({runtime:process.version,baselineRevision,semanticParity:true,
+console.log(JSON.stringify({runtime:process.version,baselineRevision,spatialFullScanParity:true,strictSafetyInvariants:true,
   nodes:board.nodes.length,profiles:profiles.length,candidateVisitRatio:examined/board.nodes.length**2,
   workerModuleImport,liveVehicleCount:liveInput?.vehicles.length,memory,results},null,2));

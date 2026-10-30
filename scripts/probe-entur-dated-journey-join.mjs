@@ -1,0 +1,149 @@
+// Read-only pilot: SIRI DatedVehicleJourneyRef can contain an exact
+// ATB:ServiceJourney ID. Verify it *as that type*, never by rewriting prefixes.
+// The resulting route pattern does NOT establish a dated operating trip, GPS
+// identity, provider-reported stop, or eligibility for a physical LED.
+// No raw VehicleRef, trip ID, coordinates or SIRI XML are printed.
+import {parsePilotSiriJourneyRefs} from '../core/providers/entur/siri-vm-journey-parser.mjs';
+import {patternInventory,joinSiriVehicleToServiceJourney,resolveExactServiceJourneyPattern} from '../core/engines/entur-trip-pattern-link.mjs';
+import {describeVerifiedTripTerminus} from '../core/engines/entur-trip-terminus.mjs';
+import {readFile} from 'node:fs/promises';
+import {fetchAtbFleetGps} from '../worker/atb-fleet-gps.mjs';
+
+const base='https://api.entur.io/transit-data/v1beta/mcp';
+const client='transitcore-journey-ref-audit';
+const headers={'ET-Client-Name':client};
+const patterns=patternInventory();
+async function call(name,args,id){
+ const response=await fetch(base,{method:'POST',headers:{...headers,
+  'Content-Type':'application/json','Accept':'application/json, text/event-stream'},
+  body:JSON.stringify({jsonrpc:'2.0',id,method:'tools/call',params:{name,arguments:args}}),
+  signal:AbortSignal.timeout(16000)});
+ if(response.status===429)throw Error('Transit Data rate limited; stop, no retry');
+ if(!response.ok)throw Error('Transit Data HTTP '+response.status+'; stop, no retry');
+ const body=await response.json();
+ if(body.error||body.result?.isError)throw Error('Transit Data '+name+' rejected query; no retry');
+ return JSON.parse(body.result?.content?.find(c=>c.type==='text')?.text||'{}').data;
+}
+
+
+async function calendarOnObservedDate(id,recordedAt){
+ // The beta GraphQL activeDates field is deprecated. Only record source
+ // calendar evidence; NEVER treat it as a live GPS or stop confirmation.
+ const serviceDate=new Intl.DateTimeFormat('sv-SE',{
+  timeZone:'Europe/Oslo',year:'numeric',month:'2-digit',day:'2-digit'
+ }).format(new Date(recordedAt));
+ const res=await fetch('https://api.entur.io/transit-data/v1beta/graphql',{
+  method:'POST',headers:{...headers,'Content-Type':'application/json'},
+  body:JSON.stringify({query:'query($id:String!){serviceJourney(id:$id){id activeDates}}',variables:{id}}),
+  signal:AbortSignal.timeout(16000)});
+ if(res.status===429)throw Error('Transit GraphQL calendar rate limited; stop, no retry');
+ if(!res.ok)throw Error('Transit GraphQL calendar HTTP '+res.status);
+ const result=await res.json();
+ if(result.errors?.length)throw Error('Transit GraphQL calendar query unavailable');
+ const journey=result.data?.serviceJourney;
+ if(!journey||journey.id!==id||!Array.isArray(journey.activeDates))
+  return {available:false,scheduled:false};
+ return {available:true,scheduled:journey.activeDates.includes(serviceDate)};
+}
+
+const response=await fetch('https://api.entur.io/realtime/v1/rest/vm?datasetId=ATB&maxSize=1500',{
+ headers:{...headers,Accept:'application/xml'},signal:AbortSignal.timeout(18000)});
+if(response.status===429)throw Error('SIRI VM rate limited; stop, no retry');
+if(!response.ok)throw Error('SIRI VM HTTP '+response.status+'; stop, no retry');
+const xml=await response.text();
+const moreData=/MoreData\s*=\s*["']true["']/i.test(xml);
+const refs=parsePilotSiriJourneyRefs(xml);
+const totalActivities=(xml.match(/<(?:[\w.-]+:)?VehicleActivity(?:\s[^>]*)?>/gi)||[]).length;
+const byLine={'1':new Map(),'11':new Map()};
+const unusual={'1':0,'11':0};
+const recent={'1':0,'11':0};
+const sampledAt=Date.now();
+for(const row of refs){
+ const code=row.lineRef==='ATB:Line:2_1'?'1':row.lineRef==='ATB:Line:2_11'?'11':null;
+ if(!code)continue;
+ const age=sampledAt-Date.parse(row.recordedAt);
+ if(Number.isFinite(age)&&age>=0&&age<=120000)recent[code]++;
+ if(!/^ATB:ServiceJourney:[A-Za-z0-9_.+-]+$/.test(row.datedVehicleJourneyRef)){
+  unusual[code]++; continue;
+ }
+ const found=byLine[code];
+ if(!found.has(row.datedVehicleJourneyRef))found.set(row.datedVehicleJourneyRef,{
+  recent:Number.isFinite(age)&&age>=0&&age<=120000,recordedAt:row.recordedAt,siri:row
+ });
+ else if(Date.parse(row.recordedAt)>Date.parse(found.get(row.datedVehicleJourneyRef).recordedAt))
+  found.set(row.datedVehicleJourneyRef,{recent:Number.isFinite(age)&&age>=0&&age<=120000,recordedAt:row.recordedAt,siri:row});
+}
+console.log('SIRI_REFERENCE_SAMPLE '+JSON.stringify({
+ datasetId:'ATB',activities:totalActivities,parsedPilotObservations:refs.length,
+ moreData,byLine:Object.fromEntries(['1','11'].map(code=>[code,{
+  distinctServiceJourneyRefs:byLine[code].size,unrecognizedReferenceObservations:unusual[code],
+  observationsRecordedWithin120s:recent[code]}]))
+}));
+const quayCatalog=JSON.parse(await readFile(new URL('../config/boards/trondheim-city-lines-catalog.json',import.meta.url),'utf8'));
+const fleet=await fetchAtbFleetGps({now:Date.now(),clientName:client});
+const gpsByLineAndId=new Map(fleet.vehicles.map(v=>[v.line+'|'+v.id,v]));
+console.log('GPS_SHADOW_SAMPLE '+JSON.stringify({gpsVehicles:fleet.vehicles.length,note:'IDs and positions are not emitted'}));
+let requestId=10;
+for(const code of ['1','11']){
+ const sampled=[...byLine[code].entries()].sort((a,b)=>Number(b[1].recent)-Number(a[1].recent)).slice(0,3);
+ const stats={line:code,sampled:sampled.length,exactServiceJourneyMatches:0,
+   routePatternsVerified:0,sourceQuaySequencesVerified:0,freshReferenceMatches:0,
+   calendarChecks:0,scheduledOnObservedDate:0,calendarUnverified:0,
+   gpsIdAndTimeMatches:0,gpsUnresolved:{},
+   plannedTerminiByName:{},headsignComparisons:{},
+   unresolved:{},operatingDayVerified:false,gpsVehicleJoinVerified:false,physicalStopVerified:false};
+ const reject=reason=>stats.unresolved[reason]=(stats.unresolved[reason]||0)+1;
+ for(const [id,metadata] of sampled){
+  const data=await call('serviceJourney',{id,
+   fields:'id line{id} journeyPattern{id directionType}'},requestId++);
+  const service=data?.serviceJourney;
+  if(!service||service.id!==id){reject('service-journey-id-not-exact');continue;}
+  stats.exactServiceJourneyMatches++;
+  if(service.line?.id!==patterns.get(code)?.lineId){reject('line-not-exact');continue;}
+  const p=patterns.get(code).patterns.find(x=>x.id===service.journeyPattern?.id);
+  if(!p){reject('pattern-not-in-snapshot');continue;}
+  if(service.journeyPattern?.directionType!==p.directionType){reject('pattern-direction-conflict');continue;}
+  stats.routePatternsVerified++;
+  const observedVehicle=gpsByLineAndId.get(code+'|'+metadata.siri.vehicleRef);
+  const route=resolveExactServiceJourneyPattern({
+   lineCode:code,datedVehicleJourneyRef:id,serviceJourney:service,
+   vehicleLineRef:metadata.siri.lineRef
+  });
+  const terminal=describeVerifiedTripTerminus({
+   lineCode:code,journeyEvidence:route,quayCatalog,
+   vehicleHeadsign:observedVehicle?.destination||null
+  });
+  if(terminal.status==='planned-terminus-supported'){
+   const name=terminal.terminalName||'unnamed-Quay';
+   stats.plannedTerminiByName[name]=(stats.plannedTerminiByName[name]||0)+1;
+   if(observedVehicle){
+    const match=terminal.headsignAgreement;
+    stats.headsignComparisons[match]=(stats.headsignComparisons[match]||0)+1;
+   }
+  }else reject('terminus-'+terminal.reason);
+  if(!observedVehicle)stats.gpsUnresolved['gps-id-not-exact']=(stats.gpsUnresolved['gps-id-not-exact']||0)+1;
+  else {
+   const identity=joinSiriVehicleToServiceJourney({siri:metadata.siri,
+    vehicle:{id:observedVehicle.id,publicCode:observedVehicle.line,timestamp:observedVehicle.lastUpdated},
+    serviceJourney:service,now:Date.now()});
+   if(identity.status==='route-pattern-supported')stats.gpsIdAndTimeMatches++;
+   else stats.gpsUnresolved[identity.reason]=(stats.gpsUnresolved[identity.reason]||0)+1;
+  }
+  if(p.quays.length>=2){
+   stats.sourceQuaySequencesVerified++;
+   if(metadata.recent)stats.freshReferenceMatches++;
+   if(stats.calendarChecks===0&&metadata.recent){
+    stats.calendarChecks++;
+    const calendar=await calendarOnObservedDate(id,metadata.recordedAt);
+    if(calendar.available&&calendar.scheduled)stats.scheduledOnObservedDate++;
+    else stats.calendarUnverified++;
+   }
+  }
+ }
+ stats.gpsVehicleJoinVerified=stats.gpsIdAndTimeMatches>0;
+ console.log('SERVICE_JOURNEY_PATTERN_PILOT '+JSON.stringify(stats));
+}
+console.log('PILOT_RELEASE_GATE '+JSON.stringify({
+ status:'NO_GO',sourceReferenceType:'ATB:ServiceJourney',
+ note:'ServiceJourney pattern and calendar evidence do NOT prove a dated vehicle journey. GPS identity matching (if any) is only a same-ID/time check; no stop proof or LED writes. Keep PR as draft.'
+}));

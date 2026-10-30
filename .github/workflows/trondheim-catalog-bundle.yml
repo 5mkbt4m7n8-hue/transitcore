@@ -9,6 +9,7 @@ on:
       - "scripts/benchmark-catalog-worker.mjs"
       - "scripts/test-catalog-worker-concurrency.mjs"
       - "config/routes/**"
+      - "config/gps/**"
       - "scripts/test-feed-timing.mjs"
       - ".github/workflows/trondheim-catalog-bundle.yml"
 permissions:

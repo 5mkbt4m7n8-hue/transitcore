@@ -1,4 +1,5 @@
 import { color, rgb } from "./mapping-support.mjs";
+import {usesStrictStationGps} from '../engines/strict-station-gps.mjs';
 // Wire envelope is shared by GPS and estimated calls; defaults are unchanged.
 function frameEnvelope(board, hardware, now) {
   return {
@@ -13,10 +14,16 @@ function frameEnvelope(board, hardware, now) {
   };
 }
 
-export function renderStationFrame({ board, hardware, now, signalPolicy: SIGNAL_POLICY }, { strongest, occupantsByLed }) {
-  const proximityJson = item => board.id === "trondheim-city-lines-catalog" ? {
-    positionType: "gps-nearest-stop", routeListedHere: item.routeListedHere,
-    platformEvidence: item.platformEvidence, platformConfirmed: false,
+export function renderStationFrame({ board, hardware, now, signalPolicy: SIGNAL_POLICY }, { strongest, occupantsByLed, observations }) {
+  const proximityJson = item => usesStrictStationGps(board) ? {
+    positionType: item.positionType, routeListedHere: item.routeListedHere,
+    quayId:item.quayId, stopPlaceId:item.stopPlaceId,
+    platformEvidence: item.platformEvidence,
+    platformConfirmed: item.platformConfirmed === true,
+    ...(item.providerReportedAtStop === true ? {providerReportedAtStop:true} : {}),
+    ...(item.providerReportedAtStop === true && item.sharedQuaySameLed === true &&
+      ['inbound','outbound'].includes(item.plannedSourceDirection)
+      ? {plannedSourceDirection:item.plannedSourceDirection,sharedQuaySameLed:true} : {}),
     nearestQuayLed: item.nearestQuayLed,
     nearestQuayDistanceMeters: Math.round(item.nearestQuayDistanceMeters),
     withinStopRadius: item.withinStopRadius
@@ -33,6 +40,7 @@ export function renderStationFrame({ board, hardware, now, signalPolicy: SIGNAL_
   });
   return {
     ...frameEnvelope(board, hardware, now),
+    ...(observations ? {gpsMatchingPolicy:'strict-route-quay-v1', gpsObservations:observations} : {}),
     motionPolicy: { atStopConfirmationSeconds: Math.max(0, Number(board.render.atStopConfirmationSeconds) || 0) },
     leds: [...strongest.values()].sort((a, b) => a.id - b.id).map(item => {
       const occupants = (occupantsByLed.get(item.id) || []).sort((a, b) => {

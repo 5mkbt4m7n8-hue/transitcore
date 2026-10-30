@@ -10,13 +10,16 @@
     "id": "ATB:Line:2_1",
     "publicCode": "1",
     "mode": "bus",
-    "longName": "Ranheim - Strindheim - sentrum - Tiller - Heimdal - Kattem",
+    "longName": "Ranheim - Østre Lund",
     "color": "#ef5350"
+  },
+  "destinationDirectionAliases": {
+    "Østre Lund": "0"
   },
   "directions": [
     {
       "id": "south",
-      "label": "mot Kattem/Tiller",
+      "label": "sørover",
       "destinationMatches": [
         "Kattem",
         "Østre Lund",
@@ -27,7 +30,7 @@
     },
     {
       "id": "north",
-      "label": "mot Ranheim/Strindheim",
+      "label": "nordover",
       "destinationMatches": [
         "Ranheim",
         "Strindheim"

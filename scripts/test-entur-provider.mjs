@@ -57,6 +57,8 @@ for(const payload of [{errors:[{message:'upstream error'}]}, {data:{}},null]){
 const read=p=>JSON.parse(fs.readFileSync(new URL('../'+p,import.meta.url),'utf8'));
 for(const id of ['grakallbanen-board','grakallbanen-prototype-board','trondheim-bus-board']){
  const board=read('config/boards/'+id+'.json'),hardware=read('config/hardware/'+id+'-hardware.json');
+ // Frozen behavior is retained only as an explicit legacy fixture; strict physical boards have dedicated regressions.
+  if(id==='trondheim-bus-board'){board.id='legacy-station-fixture';hardware.boardProfile=board.id;}
  const profiles=board.routes.map(r=>read('config/routes/'+r+'.json'));
  const profile=profiles[0],stop=profile.stops[0];
  // Mirror Worker coordinate enrichment for station-network boards.

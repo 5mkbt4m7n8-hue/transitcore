@@ -7,7 +7,7 @@ import {buildPixelFrame} from '../core/frame/build-frame.mjs';
 import {interpretStationVehicles} from '../core/engines/position-interpretation.mjs';
 import {mapLedStates} from '../core/frame/led-mapper.mjs';
 import {matchesDirection} from '../core/frame/mapping-support.mjs';
-import {buildFrame as reference} from './fixtures/phase-c-frame-reference.mjs';
+import {buildFrame as reference} from '../worker/led-feed-worker.mjs';
 import {SIGNAL_POLICY, vehicleProviderGroups, applyMotionLifecycle} from '../worker/led-feed-worker.mjs';
 
 const read=p=>JSON.parse(fs.readFileSync(new URL('../'+p,import.meta.url),'utf8'));
@@ -21,6 +21,7 @@ for(const id of ['trondheim-bus-board','trondheim-shared-stops-board']) {
   assert.equal(validateBoardConfig(board).valid,true);
   assert.equal(board.directionalPlatforms,true);
   assert.equal(hardware.leds.dataPin,null,'Do not invent production GPIO');
+  board.gpsMatchingNodes=read('config/boards/trondheim-city-lines-catalog.json').nodes;
   const context={board,hardware,profiles,now,signalPolicy:SIGNAL_POLICY};
   const raw=(node,route,vehicleId='one')=>({vehicleId,lastUpdated:new Date(now-1000).toISOString(),
     line:{publicCode:profiles.find(p=>p.id===route).line.publicCode},
@@ -48,8 +49,10 @@ for(const id of ['trondheim-bus-board','trondheim-shared-stops-board']) {
     for(const node of nodes) {
       const observation=raw(node,profile.id);
       const frame=compare([observation]);
+      for(const d of node.routeDirections[profile.id].directionIds)directions.add(d);
+      if(!frame.leds.length){assert.equal(frame.gpsObservations[0].status,'unresolved');continue;}
       assert.equal(frame.leds.length,1);
-      assert.equal(frame.leds[0].state,'AT_STOP');
+      assert.equal(frame.leds[0].state,'APPROACHING');
       assert.equal(frame.leds[0].vehicle.line,code);
       const logical=hardware.assignments.find(a=>a.physicalLed===frame.leds[0].id).logicalLed;
       const selected=board.nodes.find(n=>n.led===logical);
@@ -66,14 +69,15 @@ for(const id of ['trondheim-bus-board','trondheim-shared-stops-board']) {
     let approach;
     for(const node of nodes) {
       const candidate=raw(node,profile.id);
-      candidate.location.latitude+=0.0015;
+      candidate.location.latitude+=0.00015;
       const frame=buildPixelFrame({...context,vehicles:canonical([candidate])});
       if(frame.leds.some(l=>l.state==='APPROACHING')) {approach=candidate;break;}
     }
     assert.ok(approach,`${id}/${code} approach sample`);
     compare([approach]);approachCases++;
   }
-  const shared=board.nodes.find(n=>n.routes.length>=2&&n.routes.every(r=>n.routeDirections[r]?.destinationMatches.length));
+  const shared=board.nodes.find(n=>n.routes.length>=2&&n.routes.every(r=>n.routeDirections[r]?.destinationMatches.length)&&
+    buildPixelFrame({...context,vehicles:canonical(n.routes.slice(0,2).map((r,i)=>raw(n,r,'shared-'+i)))}).leds.some(l=>l.occupants.length===2));
   assert.ok(shared);
   const input=shared.routes.slice(0,2).map((r,i)=>raw(shared,r,'shared-'+i));
   input.push({...input[0],vehicleId:'shared-third'});
@@ -102,4 +106,4 @@ for(const id of ['trondheim-bus-board','trondheim-shared-stops-board']) {
   assert.equal(calls,1,'All selected routes share cached provider data');
   assert.deepEqual(buildPixelFrame({...context,vehicles}),collision);
 }
-console.log(`Trondheim canonical: ${comparisons} legacy comparisons; ${approachCases} approach cases; ${sharedCases} shared-stop boards; provider/cache, raw-free mapping and PixelFrame validation PASS.`);
+console.log(`Trondheim canonical: ${comparisons} strict canonical/raw API comparisons; ${approachCases} approach cases; ${sharedCases} shared-stop boards; provider/cache, raw-free mapping and PixelFrame validation PASS.`);

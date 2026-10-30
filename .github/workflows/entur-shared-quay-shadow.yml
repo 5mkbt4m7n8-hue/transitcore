@@ -1,0 +1,29 @@
+name: AtB shared Quay source-direction pilot (read only)
+// Entur source rate-limits parallel Actions jobs. PR regression tests remain
+// automatic in route-progress-tests.yml; live polls are explicitly manual.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: atb-shared-quay-shadow-read-only
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Verify diagnostic output privacy and safe fields
+        run: node scripts/test-shared-quay-diagnostic-format.mjs
+      - name: Simulate full-board LED rendering offline, never deploy
+        run: node scripts/test-shared-quay-frame-shadow.mjs
+      - name: Confirm both source directions use each Quay and LED gate remains closed
+        run: node scripts/test-entur-shared-quay-context.mjs
+      - name: Compare live source journeys and Quays without vehicle or GPS logging
+        run: node scripts/probe-entur-shared-quay-shadow.mjs

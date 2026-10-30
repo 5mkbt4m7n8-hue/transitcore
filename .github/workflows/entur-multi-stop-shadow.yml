@@ -1,0 +1,26 @@
+name: AtB 1 and 11 source Quay multi-stop shadow (read only)
+// Entur source rate-limits parallel Actions jobs. PR regression tests remain
+// automatic in route-progress-tests.yml; live polls are explicitly manual.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+# Never overlap multiple 26-second SIRI poll sequences.
+concurrency:
+  group: atb-multi-stop-shadow-read-only
+  cancel-in-progress: false
+jobs:
+  shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Unit test strict chronological sequence gate
+        run: node scripts/test-source-quay-sequence-shadow.mjs
+      - name: Observe real SIRI, GPS, source Quays; no writes, no vehicle coordinates in logs
+        run: node scripts/probe-entur-multi-stop-shadow.mjs

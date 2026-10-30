@@ -1,0 +1,20 @@
+name: Entur exact dated-journey linkage pilot (read only)
+// Entur source rate-limits parallel Actions jobs. PR regression tests remain
+// automatic in route-progress-tests.yml; live polls are explicitly manual.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  join:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Compare public journey references, never log vehicle IDs or GPS
+        run: node scripts/probe-entur-dated-journey-join.mjs

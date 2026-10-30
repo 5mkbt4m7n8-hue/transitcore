@@ -1,0 +1,28 @@
+name: Tonstadkrysset independent staging Worker dry run
+on:
+  pull_request:
+    paths:
+      - 'worker/tonstad-shadow-probe.mjs'
+      - 'worker/tonstad-shadow-staging-worker.mjs'
+      - 'worker/wrangler.tonstad-shadow-staging.toml'
+      - 'scripts/test-tonstad-shadow-staging.mjs'
+      - 'scripts/shared-quay-frame-shadow.mjs'
+      - '.github/workflows/tonstad-shadow-staging-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  staging-dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Test fail-closed HTTP auth, durable gate, source joins, private frame
+        run: node scripts/test-tonstad-shadow-staging.mjs
+      - name: Bundle independent staging Worker only; DO NOT DEPLOY
+        run: npx --yes wrangler@4.43.0 deploy --config worker/wrangler.tonstad-shadow-staging.toml --dry-run --outdir /tmp/tonstad-shadow-staging-dryrun

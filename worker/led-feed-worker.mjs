@@ -8,6 +8,8 @@ import { validateDeviceSettings } from "../core/models/device-config.mjs";
 import { createEnturProvider } from "../core/providers/entur/entur-provider.mjs";
 import { normalizeEnturVehicle } from "../core/providers/entur/entur-normalizer.mjs";
 import { buildPixelFrame } from "../core/frame/build-frame.mjs";
+import {usesStrictStationGps,safetyCatalog} from '../core/engines/strict-station-gps.mjs';
+import {updateRouteProgress} from '../core/engines/route-progress.mjs';
 import {metroQuayTargets,selectMetroEstimatedCalls} from "../core/engines/metro-arrival-estimates.mjs";
 import {usesStopAccuracy,buildStopAccuracy} from "./stop-accuracy.mjs";
 import { distance, color, rgb, matchesDirection, vehicleAllowedByBoard, validateConfiguration } from "../core/frame/mapping-support.mjs";
@@ -152,6 +154,7 @@ export function normalizeLedEntries(entries = [], ledCount = Infinity) {
 }
 
 export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), afterglowMs = SIGNAL_POLICY.departureAfterglowSeconds * 1000) {
+  if (frame.gpsMatchingPolicy === 'strict-route-quay-v1') return {frame, state:{}};
   // Invisible departure memory is independent of the visible afterglow.
   // Bound its lifetime so missing vehicles cannot remain latched indefinitely.
   previous = Object.fromEntries(Object.entries(previous).filter(([, value]) =>
@@ -376,6 +379,7 @@ export function applyMotionLifecycle(frame, previous = {}, now = Date.now(), aft
 }
 
 export function holdTransientEmptyFrame(frame, previous = null, now = Date.now(), holdMs = 0) {
+  if (frame.gpsMatchingPolicy === 'strict-route-quay-v1') return {frame};
   const hasSignals = Array.isArray(frame.leds) && frame.leds.length > 0;
   if (hasSignals) return { frame, previous: { frame, receivedAt: now } };
   const age = now - Number(previous?.receivedAt || 0);
@@ -558,6 +562,23 @@ export class DeviceStatus {
       const history = (await this.state.storage.get("monitorHistory")) || [];
       const lastScheduled = await this.state.storage.get("monitorLastScheduled");
       return statusJson({ latest: latest || null, lastScheduled: lastScheduled || null, history });
+    }
+    if (url.pathname === "/route-progress-shadow" && request.method === "POST") {
+      // This is an isolated, sequential diagnostic state owner. The route
+      // hypothesis never changes or confirms an LED in this endpoint.
+      const context=await request.json();
+      if(!Array.isArray(context.vehicles)||context.vehicles.length>1200||
+        !Array.isArray(context.profiles)||context.profiles.length>60)
+        return statusJson({error:"invalid-shadow-input"},400);
+      return this.state.blockConcurrencyWhile(async()=>{
+        const old=await this.state.storage.get("routeProgressShadowV1")||{};
+        const result=updateRouteProgress({
+          profiles:context.profiles,vehicles:context.vehicles,now:context.now,
+          previousState:old
+        });
+        await this.state.storage.put("routeProgressShadowV1",result.state);
+        return statusJson({results:result.results});
+      });
     }
     if (url.pathname === "/stop-accuracy" && request.method === "POST") {
       const context=await request.json();
@@ -859,7 +880,13 @@ async function loadConfiguration(boardId, now) {
   const resolvedHardware = hardware || defaultHardware(board);
   validateConfiguration(board, profiles, resolvedHardware);
   await attachProfileIdentity(board,resolvedHardware);
-  if (bundledCatalog) catalogIndex(board.nodes);
+  if (bundledCatalog) catalogIndex(safetyCatalog(board.nodes));
+  if (usesStrictStationGps(board) && !bundledCatalog) {
+    // A 147-point subset cannot see competing unlisted stops. Reuse the
+    // complete catalog and its configuration-lifetime index, fail closed on IO.
+    const catalog = await configuration('trondheim-city-lines-catalog', now);
+    Object.defineProperty(board, 'gpsMatchingNodes', {value:catalog.board.nodes});
+  }
   const value = { board, profiles, hardware: resolvedHardware };
   configCache.set(boardId, { loadedAt: now, value });
   return value;
@@ -1012,7 +1039,47 @@ async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
     // vehicle-position route subset on mixed GPS/ETA catalog boards.
     const gpsBoard=vehicleProfiles.length===profiles.length?board:
       {...board,routes:vehicleProfiles.map(profile=>profile.id)};
-    frames.push(buildPixelFrame(frameContext({ board:gpsBoard, profiles: vehicleProfiles, hardware, vehicles, now })));
+    const gpsFrame=buildPixelFrame(frameContext({ board:gpsBoard, profiles: vehicleProfiles, hardware, vehicles, now }));
+    // A-B-C progress is deliberately SHADOW ONLY. The real LED and all
+    // hardware consumers still receive unchanged strict Quay placement.
+    // The protected staging wrapper uses a different frame entrypoint,
+    // so a real isolated candidate Worker must explicitly opt in. Never
+    // infer shadow activation from a commit SHA or a PR merge.
+    const shadowEnabled=env?.ROUTE_PROGRESS_SHADOW==="1";
+    if(board.id==="trondheim-city-lines-catalog"&&env?.DEVICE_STATUS&&shadowEnabled){
+      try{
+        const compactProfiles=vehicleProfiles.map(p=>({
+          line:{publicCode:p.line.publicCode},
+          directions:(p.directions||[]).map(d=>({label:d.label,reverseShape:d.reverseShape})),
+          stops:(p.stops||[]).map(s=>({id:s.id,lat:s.lat,lon:s.lon}))
+        }));
+        const compactVehicles=vehicles.map(v=>({
+          id:v.id,publicCode:v.publicCode,latitude:v.latitude,
+          longitude:v.longitude,timestamp:v.timestamp
+        }));
+        const stub=env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName("__trondheim-route-progress-shadow__"));
+        const res=await stub.fetch("https://status.internal/route-progress-shadow",{
+          method:"POST",signal:AbortSignal.timeout(2000),
+          body:JSON.stringify({profiles:compactProfiles,vehicles:compactVehicles,now})
+        });
+        if(res.ok&&Array.isArray(gpsFrame.gpsObservations)){
+          const data=await res.json();
+          const evidence=new Map((data.results||[]).map(v=>[v.key,v]));
+          for(const o of gpsFrame.gpsObservations){
+            const tracked=evidence.get(String(o.line)+":"+String(o.id));
+            if(tracked)o.routeTracking={
+              status:tracked.status,
+              directionLabel:tracked.directionLabel,
+              checkpointCount:tracked.checkpointCount,
+              reason:tracked.reason,
+              // A direction hypothesis is not a confirmed Quay or stop.
+              platformConfirmed:false
+            };
+          }
+        }
+      }catch{/* Never break a valid LED frame because diagnostics failed. */}
+    }
+    frames.push(gpsFrame);
   }
   if (arrivalProfiles.length) {
     board.hardware = hardware;
@@ -1028,7 +1095,7 @@ async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
 const headers = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" };
 const response = (body, status = 200) => new Response(JSON.stringify(body, null, 2) + "\n", { status, headers });
 
-async function boardFrameResponse(boardId, env, source) {
+async function boardFrameResponse(boardId, env, source, includeGpsObservations = boardId === 'trondheim-city-lines-catalog') {
   const now = Date.now(), deadline = now + FRAME_BUDGET_MS;
   let stage = "configuration";
   const step = (name, operation) => {
@@ -1042,8 +1109,11 @@ async function boardFrameResponse(boardId, env, source) {
     const frame = usesStopAccuracy(board)?rawFrame:await step("motion", () => stabilizeMotionFrame(env, board, rawFrame, now));
     sample = { ...validFrameSummary(frame, boardId), source };
     if(source==="history"&&boardId==="trondheim-city-lines-catalog")historyFrame=frame;
-    result = response(frame);
-    result.headers.set("x-transitcore-stop-algorithm",usesStopAccuracy(board)?"motion-v1":"legacy");
+    // Physical ESP clients have a 32 KiB JSON document. Keep the raw fleet
+    // projection opt-in there; ordinary LEDs never need unresolved GPS rows.
+    const {gpsObservations, ...ledFrame} = frame;
+    result = response(includeGpsObservations ? frame : ledFrame);
+    result.headers.set("x-transitcore-stop-algorithm",frame.gpsMatchingPolicy || (usesStopAccuracy(board)?"motion-v1":"legacy"));
     result.headers.set("access-control-expose-headers","x-transitcore-stop-algorithm");
   } catch (error) {
     console.error(JSON.stringify({ event: "feed_request_failed", boardId, source, stage,
@@ -1067,6 +1137,7 @@ async function boardFrameResponse(boardId, env, source) {
 }
 
 async function stabilizeMotionFrame(env, board, frame, now) {
+  if (usesStrictStationGps(board)) return attachSignalPolicy(frame);
   const configured = board.render?.departureAfterglowSeconds;
   const afterglowSeconds = configured == null && (board.id === "trondheim-bus-board" || GRAKALL_BOARD_IDS.has(board.id))
     ? SIGNAL_POLICY.departureAfterglowSeconds
@@ -1458,7 +1529,8 @@ const worker = {
     const boardId = match?.[1];
     if (!validBoardId(boardId)) return response({ error: "not_found" }, 404);
     const monitorSource = request.headers.get("x-transitcore-monitor") === "scheduled" ? "scheduled" : "request";
-    return boardFrameResponse(boardId, env, monitorSource);
+    return boardFrameResponse(boardId, env, monitorSource,
+      boardId === 'trondheim-city-lines-catalog' || url.searchParams.get('gpsDiagnostics') === '1');
   }
 };
 export default worker;

@@ -10,6 +10,8 @@ let calls=0,live=false;
 const board=JSON.parse(await readFile(new URL('config/boards/trondheim-bus-board.json',root))),hardware=JSON.parse(await readFile(new URL('config/hardware/trondheim-bus-board-hardware.json',root)));
 const catalog=JSON.parse(await readFile(new URL('config/boards/trondheim-city-lines-catalog.json',root)));
 const ranheimLed=catalog.nodes.find(node=>node.stopIds?.includes('NSR:Quay:74982'))?.led;
+const tonstadLed=catalog.nodes.find(node=>node.quayId==='NSR:Quay:102733')?.led;
+assert(Number.isInteger(tonstadLed),'Tonstad Quay has a known physical LED in the catalog');
 assert(Number.isInteger(ranheimLed)&&ranheimLed>=0&&ranheimLed<1282,'Ranheim Quay has a real catalog LED');
 const server=createServer(async(req,res)=>{try{
  const path=new URL(req.url,'http://localhost').pathname;
@@ -24,6 +26,13 @@ try{
  await page.route('https://transitcore-linear-staging.lgb84.workers.dev/**',r=>r.fulfill({status:503,body:'test staging unavailable'}));
  await page.goto(`http://127.0.0.1:${server.address().port}/web/linear/index.html`);
  await page.waitForFunction(()=>document.querySelectorAll('#rows .row').length>0);
+ await page.locator('#tonstadTest summary').click();
+ await page.waitForFunction(()=>document.querySelector('#tonstadLed').textContent!=='–');
+ assert.equal(await page.locator('#tonstadLed').textContent(),String(tonstadLed),
+  'Tonstadkrysset live panel must map to the exact catalog LED');
+ assert.match(await page.locator('#tonstadState').textContent(),/Ingen bekreftet buss|Venter på data|Frame er/);
+ assert.equal(await page.locator('#tonstadFocus').count(),1,
+  'Tester can focus original Tonstadkrysset stop from existing Linear map');
  const rows=await page.locator('#rows').innerHTML(),route=await page.locator('#route').inputValue(),before=calls;
  await page.locator('#networkMode').click();await page.waitForSelector('.map-stop');
  assert.equal(calls,before,'Mode switch must not request another frame');assert.equal(await page.locator('#route').inputValue(),route);

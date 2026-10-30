@@ -1,0 +1,21 @@
+# Separate manual-only staging Worker, never production transitcore-led-feed.
+# No cron, production DEVICE_STATUS, routes, webhooks or device API.
+# Never deploy this file via Cloudflare Git auto-deploy include paths.
+name = "transitcore-tonstad-shadow-staging"
+main = "tonstad-shadow-staging-worker.mjs"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[observability]
+enabled = false
+
+[[durable_objects.bindings]]
+name = "TONSTAD_GATE"
+class_name = "TonstadStagingGate"
+
+[[migrations]]
+tag = "tonstad-shadow-gate-v1"
+new_sqlite_classes = ["TonstadStagingGate"]
+
+[triggers]
+crons = []

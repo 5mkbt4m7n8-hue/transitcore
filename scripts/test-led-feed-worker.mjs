@@ -29,18 +29,18 @@ const normalizedEqual=normalizeLedEntries([
 assert.deepEqual(normalizedEqual[0].occupants.map(value=>value.id),["blue","green"],"likeverdige vogner skal beholdes for lokal fargeveksling");
 
 const now = Date.parse("2026-08-11T12:00:00Z");
-const board = { id: "trondheim-bus-board", leds: { count: 2 }, routes: ["route-1"], render: { freshnessSeconds: 120, approachRadiusMeters: 250, arrivalRadiusMeters: 85 }, nodes: [
+const board = { id: "legacy-station-fixture", leds: { count: 2 }, routes: ["route-1"], render: { freshnessSeconds: 120, approachRadiusMeters: 250, arrivalRadiusMeters: 85 }, nodes: [
   { led: 10, lat: 63.4305, lon: 10.3951, routes: ["route-1"], routeDirections: { "route-1": { directionIds: ["0"], destinationMatches: ["Kattem"] } } },
   { led: 11, lat: 63.4310, lon: 10.3951, routes: ["route-1"], routeDirections: { "route-1": { directionIds: ["1"], destinationMatches: ["Ranheim"] } } }
 ] };
 const profiles = [{ id: "route-1", line: { publicCode: "1", color: "#00ff50" }, provider: {}, directions: [{ reverseShape: false, color: "#00ff50", destinationMatches: ["Kattem"] }, { reverseShape: true, color: "#0064ff", destinationMatches: ["Ranheim"] }] }];
-const hardware = { schemaVersion: 1, boardProfile: "trondheim-bus-board", leds: { count: 2, brightnessLimit: 20 }, assignments: [{ logicalLed: 10, physicalLed: 1 }, { logicalLed: 11, physicalLed: 0 }] };
+const hardware = { schemaVersion: 1, boardProfile: "legacy-station-fixture", leds: { count: 2, brightnessLimit: 20 }, assignments: [{ logicalLed: 10, physicalLed: 1 }, { logicalLed: 11, physicalLed: 0 }] };
 const vehicles = [{ vehicleId: "bus-1", lastUpdated: new Date(now - 5000).toISOString(), destinationName: "Kattem", line: { publicCode: "1" }, location: { latitude: 63.4305, longitude: 10.3951 } }];
 
 validateConfiguration(board, profiles, hardware);
 const frame = buildFrame({ board, profiles, hardware, vehicles, now });
 assert.equal(frame.schemaVersion, 1);
-assert.equal(frame.boardProfile, "trondheim-bus-board");
+assert.equal(frame.boardProfile, "legacy-station-fixture");
 assert.equal(frame.ledCount, 2);
 assert.equal(frame.ttlSeconds, 30);
 assert.equal(frame.motionPolicy.atStopConfirmationSeconds, 0, "Korte busstopp skal ikke vente en ekstra feedperiode på AT_STOP");
@@ -163,7 +163,7 @@ console.log("GrÃƒÂ¥kallbanen linear VLED worker test OK");
 
 
 
-const motionBase = { schemaVersion: 1, boardProfile: "trondheim-bus-board", generatedAt: new Date(now).toISOString(), sequence: 1, ttlSeconds: 30, ledCount: 2 };
+const motionBase = { schemaVersion: 1, boardProfile: "legacy-station-fixture", generatedAt: new Date(now).toISOString(), sequence: 1, ttlSeconds: 30, ledCount: 2 };
 const approachingLed = { id: 1, rgb: [0, 255, 80], brightness: 20, state: "APPROACHING", vehicle: { id: "bus-motion", line: "1", destination: "Ranheim", ageSeconds: 1, distanceMeters: 120 } };
 let motion = applyMotionLifecycle({ ...motionBase, leds: [approachingLed] }, {}, now);
 assert.equal(motion.frame.leds[0].state, "APPROACHING");
@@ -308,7 +308,7 @@ assert.equal(latestDeparture.frame.leds[0].occupants.length, 1);
 console.log("LED priority, line colour and latest-departure tests OK");
 
 const signalFrames = buildSignalTestSequence({
-  boardProfile: "trondheim-bus-board",
+  boardProfile: "legacy-station-fixture",
   ledCount: 147,
   ledId: 76,
   firstLine: { code: "1", rgb: [239, 83, 80] },
@@ -385,15 +385,9 @@ const crossRouteVehicle={
 };
 const crossRouteFrame=buildFrame({board:crossRouteBoard,profiles:[line11Profile,line1Profile],hardware:line11Hardware,
   vehicles:[crossRouteVehicle],now});
-const offRouteSignal=crossRouteFrame.leds.find(signal=>signal.id===134);
-assert(offRouteSignal,'GPS proximity must show a bus from another line at Bukkvollan');
-assert.equal(offRouteSignal.vehicle.line,'1','Preserve GPS-observed line, not selected route');
-assert.equal(offRouteSignal.vehicle.destination,'Unexpected destination');
-assert.equal(offRouteSignal.vehicle.positionType,'gps-nearest-stop');
-assert.equal(offRouteSignal.vehicle.routeListedHere,false);
-assert.equal(offRouteSignal.occupants[0].line,'1');
-assert.equal(offRouteSignal.occupants[0].routeListedHere,false);
-assert(!crossRouteFrame.leds.some(signal=>signal.id===135),'Nearest Quay should not illuminate both sides');
+assert.deepEqual(crossRouteFrame.leds,[],'Off-route GPS never activates an ordinary LED');
+assert.equal(crossRouteFrame.gpsObservations[0].status,'unresolved');
+assert.equal(crossRouteFrame.gpsObservations[0].latitude,toRisvollan.lat);
 const staleOffRoute=buildFrame({board:crossRouteBoard,profiles:[line11Profile,line1Profile],hardware:line11Hardware,
   vehicles:[{...crossRouteVehicle,lastUpdated:new Date(now-600000).toISOString()}],now});
 assert.deepEqual(staleOffRoute.leds,[],'Stale GPS must not light a stop');
