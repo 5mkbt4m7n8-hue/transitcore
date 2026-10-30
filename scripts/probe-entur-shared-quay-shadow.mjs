@@ -24,7 +24,8 @@ const failure=reason=>failureCount[reason]=(failureCount[reason]||0)+1;
 const totals=Object.fromEntries(Object.entries(targets).map(([id,name])=>[id,{
  name,uniqueSourceReports:0,identityAndTimeMatched:0,sourceTripPatternVerified:0,
  sourceDirections:{inbound:0,outbound:0},sourceRoles:{origin:0,intermediate:0,terminus:0},
- sourceQuayNotOnTrip:0,strictProviderGateAccepted:0,strictProviderGateRejected:{},
+ sourceQuayNotOnTrip:0,strictProviderGateAccepted:0,
+ sharedSameLedAccepted:0,strictProviderGateRejected:{},
  physicalSideVerified:0,ledEligible:0
 }]));
 let lookups=0;
@@ -104,9 +105,16 @@ for(let poll=0;poll<SAMPLES;poll++){
    vehicle:{id:gpsRow.id,publicCode:gpsRow.line,
     destination:gpsRow.destination,latitude:gpsRow.latitude,
     longitude:gpsRow.longitude,timestamp:gpsRow.lastUpdated},
-   profile,node:nodes.get(report.quayId),now});
-  if(evidence.accepted)row.strictProviderGateAccepted++;
-  else row.strictProviderGateRejected[evidence.reason]=(row.strictProviderGateRejected[evidence.reason]||0)+1;
+   profile,node:nodes.get(report.quayId),now,
+   // Only the exact same snapshot and source journey may supply this proof.
+   // Existing stop projector receives NONE automatically in production.
+   sharedQuayJourney:report.quayId==='NSR:Quay:102733'?
+     {siri:candidate[0],serviceJourney:sj}:null
+  });
+  if(evidence.accepted){
+   row.strictProviderGateAccepted++;
+   if(evidence.sharedQuaySameLed)row.sharedSameLedAccepted++;
+  }else row.strictProviderGateRejected[evidence.reason]=(row.strictProviderGateRejected[evidence.reason]||0)+1;
  }
  console.log('SHARED_QUAY_POLL '+JSON.stringify({
   poll:poll+1,newUniqueReports:newReports,sourceTripIdentityTimeMatches:linked,
