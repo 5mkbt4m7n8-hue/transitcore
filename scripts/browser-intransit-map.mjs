@@ -31,6 +31,11 @@ try{
  assert.equal(await page.locator('#tonstadLed').textContent(),String(tonstadLed),
   'Tonstadkrysset live panel must map to the exact catalog LED');
  assert.match(await page.locator('#tonstadState').textContent(),/Ingen bekreftet buss|Venter på data|Frame er/);
+ assert.equal(await page.locator('#tonstadGps').textContent(),'0',
+  'No current GPS observation is zero, without claiming no real bus');
+ assert.equal(await page.locator('#tonstadExport').count(),1);
+ assert.equal(await page.locator('#tonstadClear').count(),1);
+ assert.match(await page.locator('#tonstadHistory').textContent(),/Ingen hendelser/);
  assert.equal(await page.locator('#tonstadFocus').count(),1,
   'Tester can focus original Tonstadkrysset stop from existing Linear map');
  const rows=await page.locator('#rows').innerHTML(),route=await page.locator('#route').inputValue(),before=calls;
