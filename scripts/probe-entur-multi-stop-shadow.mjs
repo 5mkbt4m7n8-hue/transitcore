@@ -190,13 +190,19 @@ for(let poll=0;poll<SAMPLE_COUNT;poll++){
   target.state=result.state;
   for(const kind of ['gpsVisits','gpsForward','gpsAdjacentTriplets',
     'providerVisits','providerForward','providerAdjacentTriplets','reverseOrConflict'])
-   stats[kind]+=result.delta[kind];
+   stats[kind]+=kind==='providerVisits'?result.delta.providerStops:result.delta[kind];
  }
  console.log('SEQUENCE_SHADOW_POLL '+JSON.stringify({
   poll:poll+1,selected:targets.size,linked,gpsCandidates,
   providerAccepted,providerRejected,sourceStopReports:sample.providerAtStopCount,
   note:'Aggregated counters only; not stop placement or a physical LED frame'
  }));
+}
+for(const code of ['1','11']){
+ for(const key of ['gpsVisits','gpsForward','gpsAdjacentTriplets','providerVisits',
+  'providerForward','providerAdjacentTriplets','reverseOrConflict'])
+  if(!Number.isInteger(lineStats[code][key])||lineStats[code][key]<0)
+   throw Error('Invalid aggregated Quay shadow counter '+code+'/'+key);
 }
 const summary=Object.fromEntries(['1','11'].map(code=>{
  const targeted=[...targets.values()].filter(t=>t.line===code);
