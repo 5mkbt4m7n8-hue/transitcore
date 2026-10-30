@@ -137,6 +137,7 @@ const ambiguousCatalogQuays=[...sourceQuays].filter(id=>{
 });
 console.log('LINE1_SOURCE_CATALOG_AUDIT '+JSON.stringify({
  sourcePatterns:sourcePatterns.length,uniqueSourceQuays:sourceQuays.size,
+ candidateAliasOstreLund:route1.destinationDirectionAliases?.['Østre Lund']||null,
  missingCatalogCount:missingQuays.length,missingQuays:missingQuays.slice(0,15),
  ambiguousCatalogCount:ambiguousCatalogQuays.length,
  ambiguousQuays:ambiguousCatalogQuays.slice(0,15),
