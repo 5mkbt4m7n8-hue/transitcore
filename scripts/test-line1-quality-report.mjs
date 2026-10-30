@@ -58,6 +58,29 @@ assert.equal(report.rows.find(r=>r.quay===B).gap,1);
 assert.equal(report.rows.find(r=>r.quay===B).conflict,1);
 assert.equal(report.rows.find(r=>r.quay===B).status,'review');
 assert.equal(quality.liveReport({source:'staging',now}).rows.find(r=>r.quay===B).lost,0);
+const top=quality.priorities(report);
+assert.equal(top.status,'OBSERVED_ISSUES');
+assert.deepEqual(top.rows.map(r=>r.quay),[B,C],
+ 'Observed route loss, conflict and gap outrank a single unresolved GPS report');
+assert.equal(top.rows[0].issues.lost,1);
+assert.equal(top.rows[0].issues.conflict,1);
+assert.equal(top.rows[0].issues.gap,1);
+assert.equal(top.rows[0].totalFrames,1);
+assert.equal(top.rows[0].diagnosticCoverage,1);
+assert(!JSON.stringify(top).includes('PRIVATE'));
+assert.equal(quality.priorities(report,{limit:1}).rows.length,1);
+assert.equal(quality.priorities(quality.liveReport({source:'staging',now})).status,
+ 'NO_OBSERVED_ISSUES','Other source has no route anomaly');
+assert.equal(quality.priorities(quality.liveReport({source:'staging',now})).rows.length,0);
+const missingDiagnostics=create({board,profile,patterns,clock:()=>now});
+const noDiagnosticsFrame=frame(now-500,[],undefined);
+delete noDiagnosticsFrame.gpsObservations;
+missingDiagnostics.ingest(noDiagnosticsFrame,{now});
+const noEvidence=missingDiagnostics.priorities(missingDiagnostics.liveReport({now}));
+assert.equal(noEvidence.status,'NO_OBSERVED_ISSUES');
+assert(noEvidence.note.includes('mangler detaljert GPS-diagnostikk'));
+assert.equal(noEvidence.rows.length,0,'No fake top-10 from missing source fields');
+assert.equal(quality.priorities({mode:'live',samples:0,rows:[]}).status,'NO_SAMPLES');
 const copied=create({board,profile,patterns,storage,clock:()=>now});
 assert.equal(copied.liveReport({now}).samples,1,'Restores local aggregate samples');
 assert.equal(copied.liveReport({now}).rows.find(r=>r.quay===B).lost,1);
@@ -73,6 +96,9 @@ const records=[
   status:'OK',frame:histFrame}
 ];
 const history=quality.historyReport(records,{day});
+assert.equal(quality.priorities(history).status,'INSUFFICIENT_DETAIL');
+assert.deepEqual(quality.priorities(history).rows,[],
+ 'Do not rank alleged bad Quays from five-minute LED-only recordings');
 assert.equal(history.samples,2);
 assert.equal(history.diagnosticSamples,0,'Recordings lack source detail');
 assert.equal(history.errors,1);

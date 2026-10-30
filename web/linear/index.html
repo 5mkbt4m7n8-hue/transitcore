@@ -43,6 +43,12 @@
     .quality-status{font-weight:700}.quality-status.review{color:var(--warn)}.quality-status.source{color:var(--ok)}
     .quality-status.no-sample{color:var(--muted)}.quality-muted{font-size:12px;color:var(--muted);line-height:1.55}
     #qualityStatus{font-size:12px;color:var(--muted);margin:10px 0}
+    .quality-priority{margin:10px 0 12px;border:1px solid #344454;border-radius:10px;padding:12px}
+    .quality-priority h3{font-size:14px;margin:0 0 5px}
+    .quality-priority li{padding:9px 0;border-top:1px solid #2e3b48;font-size:12px}
+    .quality-priority li:first-child{border-top:none}
+    .quality-priority li button{padding:4px 8px;margin-left:8px}
+    .quality-priority small{display:block;color:var(--muted);margin-top:4px;line-height:1.45}
     #tonstadState{font-weight:700}#tonstadState[data-status="AT_STOP"]{color:var(--ok)}
     #tonstadState[data-status="UNRESOLVED"],#tonstadState[data-status="GPS_ONLY"]{color:var(--warn)}
     #tonstadState[data-status="STALE"],#tonstadState[data-status="OTHER_BOARD"]{color:var(--bad)}
@@ -80,6 +86,11 @@
         <span class="badge">Uavklarte GPS <b id="qualityUnresolved">0</b></span>
         <span class="badge">Sporingsavvik <b id="qualityIssues">0</b></span>
       </div>
+      <section class="quality-priority" aria-label="Prioriterte holdeplasser" id="qualityPrioritySection">
+        <h3>Stopp å undersøke først (maks 10)</h3>
+        <p id="qualityPriorityNote" class="quality-muted">Venter på gyldige observasjoner.</p>
+        <ol id="qualityPriorityList"></ol>
+      </section>
       <div class="quality-wrap"><table class="quality-table">
         <thead><tr><th>Holdeplass / Quay</th><th>Vurdering</th><th>SIRI</th><th>GPS</th><th>LED*</th><th>Uavklart</th><th>Forsvunnet</th><th>Konflikt / hull</th></tr></thead>
         <tbody id="qualityRows"></tbody>
@@ -414,9 +425,25 @@ function updateQualityReport(frame=null){
  if(!report){
   $("qualityStatus").textContent="Velg dato og last opptak; historiske frames er ikke kontinuerlig GPS-sporing.";
   $("qualityRows").innerHTML="";
+  $("qualityPriorityList").innerHTML="";
+  $("qualityPriorityNote").textContent="Ingen rapport med nok detaljer til å rangere holdeplasser.";
   ["qualityFrames","qualitySiri","qualityGps","qualityUnresolved","qualityIssues"].forEach(id=>$(id).textContent="0");
   return;
  }
+ const top=line1Quality.priorities(report,{limit:10});
+ $("qualityPriorityNote").textContent=top.note;
+ const reasonLabels={conflict:"rutekonflikt",lost:"ikke lenger synlig",
+  gap:"mellomstopp uten observasjon",unresolved:"uavklart GPS"};
+ $("qualityPriorityList").innerHTML=top.rows.map((item,index)=>{
+  const reasons=Object.entries(item.issues).filter(([,n])=>n>0).map(([kind,n])=>
+   n+" "+reasonLabels[kind]).join(" · ");
+  return '<li><strong>'+esc(String(index+1)+'. '+item.name)+'</strong> '+
+   '<button type="button" data-quality-quay="'+esc(item.quay)+'">Vis stopp på kart</button>'+
+   '<small>'+esc(item.quay+' · '+reasons)+'</small>'+
+   '<small>'+esc('Datagrunnlag: '+item.totalFrames+' frames, '+item.diagnosticCoverage+
+    ' med GPS-diagnostikk. '+item.sourceSamples+' SIRI-/'+item.gpsSamples+
+    ' GPS-observasjoner. Vekting er kun sorteringshjelp.')+'</small></li>';
+ }).join("");
  const rows=report.rows.slice().sort((a,b)=>{
   const issues=item=>item.unresolved+item.lost+item.conflict+item.gap;
   return issues(b)-issues(a)||b.evidence-a.evidence||a.name.localeCompare(b.name,"no");
@@ -531,6 +558,22 @@ $("source").onchange=()=>{resetSourceView();build();return refresh();};
 $("tonstadFocus").onclick=async()=>{await setMapMode(true);networkMap?.focusStop(InTransitTonstadLiveTest.MAP_STOP)};
 $("tonstadRefresh").onclick=()=>refresh();
 $("line1Clear").onclick=()=>{line1Tracker?.clear();updateLine1Progress();};
+$("qualityPriorityList").onclick=async event=>{
+ const target=event?.target?.closest?.("[data-quality-quay]");
+ if(!target)return;
+ const quay=target.dataset.qualityQuay;
+ if(!/^NSR:Quay:\d+$/.test(quay))return;
+ const title=$("qualityPriorityNote");
+ try{
+  const layout=await json("network/trondheim-layout.json");
+  const stops=(layout.stops||[]).filter(stop=>stop.bindings?.some(b=>
+   b.boardId==="trondheim-city-lines-catalog"&&b.stopId===quay));
+  if(stops.length!==1)throw Error("Finner ikke én entydig stoppmarkør for Quay");
+  await setMapMode(true);
+  if(!networkMap?.focusStop(stops[0].id))throw Error("Stoppmarkøren kunne ikke fokuseres");
+  title.textContent="Viser "+stops[0].name+" på originalkartet. "+line1Quality.priorities(qualityReportCache).note;
+ }catch(error){title.textContent="Kunne ikke vise stoppet: "+error.message;}
+};
 $("qualityMode").onchange=()=>updateQualityReport();
 $("qualityLoad").onclick=()=>loadQualityHistory();
 $("qualityDay").onchange=()=>{qualityHistoryReport=null;updateQualityReport();};

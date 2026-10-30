@@ -196,6 +196,43 @@
     first:selected[0]?.capturedAt||null,last:selected.at(-1)?.capturedAt||null,
     disclaimer:'5-minute recordings omit detailed SIRI/GPS proof; LED-only observations are not physical stops.'};
   }
+  // Issue-led priorities, never a ranking of "bad stops" from missing data.
+  // Historical compact frames lack Quay/source diagnostics; only live
+  // observations can identify concrete Quays requiring investigation.
+  function priorities(report,{limit=10}={}){
+   if(!report||report.mode!=='live')
+    return {status:'INSUFFICIENT_DETAIL',rows:[],
+     note:'Døgnopptaket har kun LED-observasjoner, ikke Quay-spesifikke avvisninger. Kan ikke rangere feil fra dette.'};
+   if(!Number.isInteger(report.samples)||report.samples===0)
+    return {status:'NO_SAMPLES',rows:[],
+     note:'Ingen gyldige live-frames er mottatt i nettleseren ennå.'};
+   const weight={conflict:5,lost:3,gap:2,unresolved:1};
+   const rows=(report.rows||[]).map(r=>{
+    const issues={
+     conflict:Math.max(0,Number(r.conflict)||0),
+     lost:Math.max(0,Number(r.lost)||0),
+     gap:Math.max(0,Number(r.gap)||0),
+     unresolved:report.diagnosticSamples>0?Math.max(0,Number(r.unresolved)||0):0
+    };
+    const signalCount=Object.values(issues).reduce((n,v)=>n+v,0);
+    const score=Object.entries(weight).reduce((n,[k,w])=>n+Math.min(issues[k],10)*w,0);
+    return {quay:r.quay,name:r.name,score,signals:signalCount,
+     issues,sourceSamples:r.siri,gpsSamples:r.gps,
+     diagnosticCoverage:report.diagnosticSamples,
+     totalFrames:report.samples,
+     issueKinds:Object.keys(issues).filter(k=>issues[k]>0)};
+   }).filter(r=>r.signals>0).sort((a,b)=>b.score-a.score||
+      b.issueKinds.length-a.issueKinds.length||
+      b.signals-a.signals||a.name.localeCompare(b.name,'no'));
+   const n=Number.isInteger(limit)?Math.max(1,Math.min(limit,10)):10;
+   return {status:rows.length?'OBSERVED_ISSUES':'NO_OBSERVED_ISSUES',
+    rows:rows.slice(0,n),totalCandidates:rows.length,
+    note:rows.length
+      ?'Rangert etter observerte konflikter, tapte spor, hull og uavklart GPS. Samme GPS-avvik kan telle flere ganger – dette er en undersøkelsesliste, ikke en feilprosent.'
+      :report.diagnosticSamples===0
+       ?'Ingen ruteavvik registrert, men feeden mangler detaljert GPS-diagnostikk. Fravær av avvik er ikke bekreftet.'
+       :'Ingen ruteavvik registrert i dette utvalget. Det betyr ikke at alle stopp fungerer feilfritt.'};
+  }
   function exportJson(report){
    return JSON.stringify({format:'intransit-line1-quality-v1',exportedAt:nowIso(clock()),
     ...report},null,2);
@@ -204,7 +241,7 @@
    live.clear();transitions.clear();seenFrame.clear();seenEvent.clear();
    liveCount=0;invalid=0;save();
   }
-  return {ingest,ingestEvents,liveReport,historyReport,exportJson,clear};
+  return {ingest,ingestEvents,liveReport,historyReport,priorities,exportJson,clear};
  }
  return {create};
 });
