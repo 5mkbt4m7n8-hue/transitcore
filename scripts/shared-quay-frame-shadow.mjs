@@ -18,8 +18,9 @@ export function evaluateTonstadShadowFrame({
  // Source proof is carried per vehicle, with its exact SIRI report/time.
  const targetReports=reports.filter(r=>r?.source==='entur-siri-vm'&&
   r.quayId===TONSTAD_QUAY&&r.lineRef===profile.line.id&&r.vehicleAtStop===true);
- const evidenceByVehicle=new Map();
+ const evidenceByVehicle=new Map(),conflictingIds=new Set();
  for(const r of targetReports){
+  if(conflictingIds.has(r.vehicleRef))continue;
   const evidence=verifiedJourneys.get(r.vehicleRef);
   if(!evidence||evidence.siri?.recordedAt!==r.recordedAt||
     evidence.siri?.vehicleRef!==r.vehicleRef||
@@ -28,6 +29,7 @@ export function evaluateTonstadShadowFrame({
   // "best" source proof. The projector rejects conflicting provider Quays.
   if(evidenceByVehicle.has(r.vehicleRef)) {
    evidenceByVehicle.delete(r.vehicleRef);
+   conflictingIds.add(r.vehicleRef);
    continue;
   }
   evidenceByVehicle.set(r.vehicleRef,evidence);
