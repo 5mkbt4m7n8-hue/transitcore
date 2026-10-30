@@ -4,6 +4,8 @@ on:
     paths:
       - '.github/workflows/entur-shared-quay-shadow.yml'
       - 'scripts/probe-entur-shared-quay-shadow.mjs'
+      - 'scripts/shared-quay-diagnostic-format.mjs'
+      - 'scripts/test-shared-quay-diagnostic-format.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,6 +23,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+      - name: Verify diagnostic output privacy and safe fields
+        run: node scripts/test-shared-quay-diagnostic-format.mjs
       - name: Confirm both source directions use each Quay and LED gate remains closed
         run: node scripts/test-entur-shared-quay-context.mjs
       - name: Compare live source journeys and Quays without vehicle or GPS logging
