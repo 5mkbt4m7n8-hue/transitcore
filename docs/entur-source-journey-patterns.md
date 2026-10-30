@@ -172,6 +172,38 @@ og må derfor ikke rulles ut før særskilt staging/edge-godkjenning.
 **NO-GO:** Ikke merge/utrulling. Ingen fysisk stoppbekreftelse,
 fullt gjennomspilt tur eller sikker bekreftelse av de to delte Quays.
 
+## Alias-kandidat kontrollert med levende data 30.10.2026
+
+[Ny 8-poll livekjøring](https://github.com/5mkbt4m7n8-hue/transitcore/actions/runs/41040804503)
+brukte den oppdaterte linje-1-ruteprofilen med
+`destinationDirectionAliases: {"Østre Lund":"0"}` fra PR-grenen.
+Tre ulike pilotbusser per linje hadde 24 av 24 ferske, eksakte
+SIRI↔GPS-identitets-/tidsmatcher hver. Stoppbevis er fortsatt fra
+leverandørens SIRI MonitoredCall, ikke fysisk sensorbekreftelse.
+
+| Kontroll | Linje 1 | Linje 11 |
+| --- | ---: | ---: |
+| Godkjente SIRI-stoppmeldinger | 7/8 | 9/9 |
+| Avvist destinasjons-/retningskonflikt | 0 | 0 |
+| Avvist tvetydig Quay | 1 | 0 |
+
+Linje 1-avvisningen gjaldt `NSR:Quay:102733` Tonstadkrysset:
+katalogens `directionIds=["0","1"]` for samme Quay, og GPS-headsign
+`Østre Lund`. Dette er *ikke* grunnlag for å automatisk velge side:
+vi vet at SIRI-rapporten er på kildens `outbound`-mønster, men
+`outbound` er ikke automatisk lik katalogretning `0`.
+
+Kandidat-aliasen løste ingen retningstvetydighet ved Tonstadkrysset,
+men ga **ingen destinasjonsavvisninger i den begrensede nye prøven**.
+Det er en positiv kontroll, ikke et fullstendig anslag på alle avganger,
+eller bevis på at de samme fire avviste meldingene fra forrige prøve
+kom igjen. Eksplisitte regler for eksakt Quay, identitet, nærhet,
+tidsstempel og konkurrerende Quays forblir uendret.
+
+**NO-GO for merge/deploy.** Må først sammenligne planlagte
+ServiceJourneys med fysiske stopp gjennom hele turer, og særskilt
+undersøke sikker bruk av kildebestemt retning ved delte plattformer.
+
 ## Neste release gate
 
 1. Kjør én manuelt kontrollert SIRI- og Transit Data-match i
