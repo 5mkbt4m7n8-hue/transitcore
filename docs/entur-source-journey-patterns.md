@@ -92,23 +92,45 @@ ordinær Quay-sekvens fra vår tidsstemplede Entur-katalog. Resultatene
 er gjengitt i GitHub Actions, kjøring `41036305907`. Testen har
 ingen rå VehicleRef- eller GPS-utskrifter.
 
-Den separate, rent diagnostiske funksjonen
-`resolveExactServiceJourneyPattern` og
+De separate funksjonene `resolveExactServiceJourneyPattern` og
 `joinSiriVehicleToServiceJourney` er **shadow-only**. Sistnevnte
-krever identiske VehicleRef/linje-ID-er og tidsstempler fra SIRI og
-GPS-observasjon, men er ennå bare syntetisk testet. Den returnerer
-`route-pattern-supported`, ikke `linked` eller `AT_STOP`.
-`operatingDayVerified=false`, `datedTripIdentityConfirmed=false`
-og `eligibleForLed=false` forblir eksplisitt.
+krever identisk VehicleRef, AtB-linje og ferske, synkroniserte
+tidsstempler mellom SIRI og GPS. De er testet med positive og negative
+syntetiske kasus og er også kjørt i et lesebasert liveuttrekk.
+De returnerer `route-pattern-supported`, aldri `linked` eller `AT_STOP`.
+`datedTripIdentityConfirmed=false`, `operatingDayVerified=false`,
+`providerStopConfirmed=false` og `eligibleForLed=false` forblir
+eksplisitte også ved eksakt rutemønster-match.
 
-Konkret gjenstående: verifiser turens **operasjonsdato** med en
-kilde som faktisk uttrykker gyldige datoer for ServiceJourney
-eller en dokumentert kobling til DatedServiceJourney. Entur MCP
-tilbyr ikke eksperimentell `activeDates` som felt. En
-`RecordedAtTime` fra SIRI alene er ikke bevis på korrekt
-operasjonsdato, spesielt ved midnatt. Deretter må en *faktisk*
-SIRI↔GPS-identitetsmatch og stoppsekvens over tid verifiseres før
-LED-konsekvenser vurderes. Inntil det er gjort: NO-GO.
+## Ny kontroll 30.10.2026 kl. 09:55 UTC: dato og faktisk GPS-identitet
+
+GitHub Actions-kjøring `41036936070` brukte ett avgrenset
+AtB SIRI VM-uttrekk (408 kjøretøyaktiviteter), én AtB Vehicle
+Positions-forespørsel (118 GPS-kjøretøy) og opptil tre individuelle
+ServiceJourney-oppslag per linje. Den hentet kun kalenderdata for
+**ett** ferskt ServiceJourney-eksempel per linje via Transit Data
+GraphQL `activeDates` (et dokumentert, men deprecated/eksperimentelt
+felt). Ingen rå kjøretøy-ID-er eller GPS-koordinater ble skrevet til logg.
+
+| Kontroll | Linje 1 | Linje 11 |
+| --- | ---: | ---: |
+| Eksakt ServiceJourney/linje/JourneyPattern | 3/3 | 3/3 |
+| Eksakt SIRI VehicleRef mot fersk GPS-ID og synkrone tidspunkter | 3/3 | 2/3 |
+| Calendar `activeDates` inneholdt lokal SIRI-observasjonsdato | 1/1 | 1/1 |
+| Stopp fysisk bekreftet | 0 | 0 |
+
+Én av tre linje-11-observasjoner manglet eksakt GPS-ID i
+uttrekket; årsaken er foreløpig ikke fastslått. AtB ServiceJourney-ID-ene
+ble brukt **uten å omskrive ID-type eller prefiks**. Dokumentert
+rutemønster og kontrollert kalenderdato er verdifulle bevis,
+men én aktiv kalenderdato beviser ikke at *akkurat den daterte turen*
+ble kjørt, at kjøretøyet passerte angitt Quay, eller at en LED skal lyse.
+
+**Fortsatt NO-GO.** Neste kontroller er tidsserier over flere
+faktiske turer, kildebekreftede stoppmeldinger mot eksakt Quay,
+date-aware skille ved midnatt, årsaksanalyse for manglende
+kjøretøymatcher, og staging/edge-hardware-målinger før en eventuell
+sikkerhetsvurdering av LED-bruk. Ikke merge eller deploy automatisk.
 
 ## Neste release gate
 
