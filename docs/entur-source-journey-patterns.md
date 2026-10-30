@@ -396,7 +396,22 @@ LED-aktivering. PR #279 forblir **draft/NO-GO**, ingen produksjonsutrulling.
 
 En **isolert skyggetest** beregner nå et mulig LED-resultat med den
 samme `interpretStrictStationGps` + `renderStationFrame` som
-tavlefeeden bruker, men kun inne i GitHub Actions-prosessen. Dette er
+tavlefeeden bruker, men kun inne i GitHub Actions-prosessen. **Ratebegrensning 30.10.2026:** Ved parallell GitHub-kjøring ble
+Enturs offentlige SIRI-endepunkt avvist med **HTTP 429** i
+`Entur exact dated-journey linkage pilot`. Skrivebeskyttet test
+stanset korrekt uten retry; dette er en kildetilgangsfeil, ikke et
+påvist LED-problem. For å hindre PR-commits i å starte flere
+samtidige nettverkspollere er følgende tre workflows nå
+**`workflow_dispatch`-only**: `entur-shared-quay-shadow.yml`,
+`entur-multi-stop-shadow.yml` og
+`entur-dated-journey-join.yml`. Alle deterministiske
+regresjonstester for kildekobling, Quay-/LED-valg og simulert
+frame kjører fortsatt automatisk gjennom
+`route-progress-tests.yml`.
+Livekontroller må startes bevisst én av gangen, med kontrollert
+Entur-tilgang; en grønn kode-CI er ikke det samme som grønt livebevis.
+
+Dette er
 **ikke en utplassert Cloudflare staging-Worker** og heller ikke en
 fysisk LED-test.
 
