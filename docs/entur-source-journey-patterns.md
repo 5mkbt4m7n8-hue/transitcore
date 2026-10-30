@@ -248,6 +248,56 @@ aggregated destination names only, no vehicle IDs/coordinates.
 must not be used to bypass the explicit current-Quay, time, vehicle or
 shared-Quay direction guards.
 
+## Delte Quays: Tonstadkrysset og Østre Lund, 30.10.2026
+
+Entur-snapshotet (8 kildemønstre på linje 1) viser at de **samme**
+`NSR:Quay`-ID-ene benyttes i begge registrerte kjøreretninger:
+
+| Quay | Offentlig navn | outbound-mønstre | inbound-mønstre | Rolle i ordinære turer |
+| --- | --- | ---: | ---: | --- |
+| `NSR:Quay:102733` | Tonstadkrysset | 4 | 4 | Mellomstopp på begge retninger |
+| `NSR:Quay:102721` | Østre Lund | 3 | 3 | Endestopp outbound / startstopp inbound |
+
+Kilderetningen fra en **eksakt, verifisert** ServiceJourney kan
+beskrive turens planlagte kjøreretning og stoppets posisjon i sekvensen.
+Det innebærer ikke at kilden har identifisert *en separat fysisk
+plattform/LED* ved delte Quays. Det er også feil å anta at
+Enturs `outbound` er lik `GTFS direction_id=0` på enhver Quay.
+Korte turer til Tillerterminalen kan ikke behandles som turer som
+går helt til Østre Lund.
+
+Ny ren skyggefunksjon:
+`core/engines/entur-shared-quay-context.mjs`. Den krever allerede
+kontrollert SIRI↔GPS-vehicleidentitet og nøyaktig Entur
+ServiceJourney→JourneyPattern-oppslag. Den kontrollerer hele
+kildesekvensen, returnerer planlagt retning og `origin` /
+`intermediate` / `terminus`, men setter alltid
+`physicalSideConfirmed=false`, `providerStopConfirmed=false`,
+`operatingDayVerified=false` og `eligibleForLed=false`.
+Regresjonstestene kontrollerer 8/8 Tonstadkrysset-mønstre og 6/6
+Østre Lund-mønstre, inkludert negativt testfall for
+kortvariant som ikke slutter på Østre Lund.
+
+Lesebasert [GitHub Actions-kjøring #41056026465](https://github.com/5mkbt4m7n8-hue/transitcore/actions/runs/41056026465)
+tok fem prøver med 26 s mellomrom, `datasetId=ATB`, og forsøkte
+eksakt kobling mot AtBs GPS-data. Resultat:
+
+- Tonstadkrysset: 0 unike eksplisitte SIRI current-stop-rapporter
+  i vinduet; ikke grunnlag for en livekobling.
+- Østre Lund: 1 unik SIRI current-stop-rapport, men ingen
+  matchende *kvalifisert* GPS-kjøretøy i samme uttrekk. Dermed
+  0 eksakte SIRI↔GPS-matcher og 0 kilde-JourneyPattern-verifiseringer
+  for akkurat denne livehendelsen. Årsaken til manglende GPS-match
+  er ikke fastslått.
+- Ingen fysisk Quay-side er verifisert, og ingen LED ble endret.
+
+**NO-GO.** Grønn workflow betyr at en sikker og avgrenset
+diagnostikk er gjennomført, ikke at den delte plattformen er løst.
+Følg opp med flere kilde- og GPS-observasjoner ved disse Quays og
+avklar om samme Quay-ID representerer ett delt fysisk stopp eller
+hvilke separate, kildebekreftede plattformer som faktisk finnes.
+Ikke åpne `ambiguous-quay-direction`-porten i mellomtiden.
+
 ## Neste release gate
 
 1. Kjør én manuelt kontrollert SIRI- og Transit Data-match i
