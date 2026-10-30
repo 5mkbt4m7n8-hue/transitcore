@@ -13,6 +13,7 @@ import {fetchAtbFleetGps} from '../worker/atb-fleet-gps.mjs';
 import {distance} from '../core/frame/mapping-support.mjs';
 import {resolveExactServiceJourneyPattern} from '../core/engines/entur-trip-pattern-link.mjs';
 import {publicSharedQuayEvent,publicNearbyGpsCounts} from './shared-quay-diagnostic-format.mjs';
+import {evaluateTonstadShadowFrame,TONSTAD_QUAY} from './shared-quay-frame-shadow.mjs';
 
 const CLIENT='transitcore-shared-quay-observer';
 // A future read-only sample; not tied to the already elapsed 14:11 pass.
@@ -79,6 +80,7 @@ for(let poll=0;poll<SAMPLES;poll++){
  const pilot=parsePilotSiriJourneyRefs(xml);
  const gpsById=new Map(gps.vehicles.filter(v=>v.line==='1').map(v=>[v.id,v]));
  let newReports=0,linked=0;
+ const shadowReports=[],shadowJourneys=new Map();
  for(const report of reports){
   // Raw identities stay private inside this process; they are never output.
   const uniqueKey=report.vehicleRef+'|'+report.quayId+'|'+report.recordedAt;
@@ -177,6 +179,10 @@ for(let poll=0;poll<SAMPLES;poll++){
   });
   event.currentStopGate=evidence.accepted?'accepted':'rejected';
   if(evidence.accepted){
+   if(report.quayId===TONSTAD_QUAY){
+    shadowReports.push(report);
+    shadowJourneys.set(report.vehicleRef,{siri:candidate[0],serviceJourney:sj});
+   }
    row.strictProviderGateAccepted++;
    if(evidence.sharedQuaySameLed)row.sharedSameLedAccepted++;
    finish(evidence.reason,false);
@@ -186,6 +192,21 @@ for(let poll=0;poll<SAMPLES;poll++){
    finish(evidence.reason);
   }
  }
+ // Run the REAL strict interpreter and frame renderer locally against
+ // the complete board. Log only a sanitized target summary, never raw frames.
+ const frameShadow=evaluateTonstadShadowFrame({
+  board,profile,now,
+  vehicles:[...gpsById.values()].map(v=>({
+   id:v.id,publicCode:v.line,destination:v.destination,
+   latitude:v.latitude,longitude:v.longitude,timestamp:v.lastUpdated
+  })),
+  reports:shadowReports,verifiedJourneys:shadowJourneys
+ });
+ if(frameShadow.provenAtStopOccupants>shadowReports.length)
+  throw Error('Shadow frame has unproven occupants');
+ console.log('SHARED_QUAY_FRAME_SHADOW '+JSON.stringify({
+  poll:poll+1,...frameShadow
+ }));
  const nearbyCounts=Object.keys(targets).map(quayId=>{
   const node=nodes.get(quayId);
   const near=gps.vehicles.filter(v=>v.line==='1'&&
