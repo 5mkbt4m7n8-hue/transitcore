@@ -17,6 +17,8 @@ on:
       - 'core/engines/entur-shared-quay-context.mjs'
       - 'scripts/test-entur-shared-quay-context.mjs'
       - 'scripts/probe-entur-shared-quay-shadow.mjs'
+      - 'scripts/shared-quay-diagnostic-format.mjs'
+      - 'scripts/test-shared-quay-diagnostic-format.mjs'
       - 'core/engines/entur-trip-terminus.mjs'
       - 'scripts/test-entur-trip-terminus.mjs'
       - 'config/routes/atb-bus-1-live.json'
@@ -54,6 +56,7 @@ jobs:
           node scripts/test-siri-dated-trip-join.mjs
           node scripts/test-entur-trip-terminus.mjs
           node scripts/test-entur-shared-quay-context.mjs
+          node scripts/test-shared-quay-diagnostic-format.mjs
           node --check scripts/probe-entur-shared-quay-shadow.mjs
           node --check scripts/probe-entur-dated-journey-join.mjs
           node scripts/test-source-quay-sequence-shadow.mjs
