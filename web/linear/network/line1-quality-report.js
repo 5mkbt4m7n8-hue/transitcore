@@ -121,7 +121,8 @@
    const selected=source==='staging'?'staging':'production';
    const key=selected+'|'+generated;
    if(seenFrame.has(key))return false;
-   const data={at:generated,source:selected,items:count(frame),rows:[]};
+   const data={at:generated,source:selected,items:count(frame),rows:[],
+    diagnosticsAvailable:Array.isArray(frame.gpsObservations)};
    // Use only aggregate counters in storage: no IDs, raw coordinates or XML.
    live.set(key,data);seenFrame.add(key);liveCount++;prune(now);save();
    return true;
@@ -169,6 +170,7 @@
    const frames=[...live.values()].filter(v=>v.source===selected);
    const observations=[...transitions.values()].filter(e=>e.source===selected);
    return {mode:'live',source:selected,samples:frames.length,invalid,
+    diagnosticSamples:frames.filter(v=>v.diagnosticsAvailable===true).length,
     first:frames[0]?nowIso(frames[0].at):null,last:frames.at(-1)?nowIso(frames.at(-1).at):null,
     rows:mergeRows(frames,observations),events:observations.length,
     disclaimer:'Counts are observations in sampled frames, not successful/missed real stops.'};
@@ -189,6 +191,7 @@
      items:count(sample.frame,{mode:'history'})});
    }
    return {mode:'history',source:'recording',day,samples:frames.length,
+    diagnosticSamples:0,
     total:selected.length,errors,gaps,rows:mergeRows(frames),
     first:selected[0]?.capturedAt||null,last:selected.at(-1)?.capturedAt||null,
     disclaimer:'5-minute recordings omit detailed SIRI/GPS proof; LED-only observations are not physical stops.'};
