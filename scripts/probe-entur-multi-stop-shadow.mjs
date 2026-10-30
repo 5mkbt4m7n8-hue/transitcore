@@ -9,7 +9,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {fetchAtbFleetGps} from '../worker/atb-fleet-gps.mjs';
 import {parsePilotSiriJourneyRefs} from '../core/providers/entur/siri-vm-journey-parser.mjs';
 import {parseAtbReportedStops} from '../core/providers/entur/siri-vm-stop-parser.mjs';
-import {joinSiriVehicleToServiceJourney} from '../core/engines/entur-trip-pattern-link.mjs';
+import {joinSiriVehicleToServiceJourney,patternInventory} from '../core/engines/entur-trip-pattern-link.mjs';
 import {observeSourceQuaySequence} from '../core/engines/source-quay-sequence-shadow.mjs';
 import {evaluateEnturStopEvidence} from '../core/engines/entur-stop-evidence.mjs';
 import {distance} from '../core/frame/mapping-support.mjs';
@@ -103,6 +103,46 @@ const lineStats=Object.fromEntries(['1','11'].map(code=>[code,{
  providerVisits:0,providerForward:0,providerAdjacentTriplets:0,
  providerRejected:{},reverseOrConflict:0
 }]));
+// Public stop/headsign diagnostics only: vehicle IDs and coordinates never leave process.
+const directionFailures=new Map();
+function recordDirectionFailure(reason,report,gps,target,node){
+ if(target.line!=='1'||!['ambiguous-quay-direction','destination-direction-mismatch'].includes(reason))return;
+ const rule=node?.routeDirections?.[route1.id]||null;
+ const destination=String(gps.destination||'').slice(0,90);
+ const directionIds=[...(rule?.directionIds||[])].map(String).sort();
+ const catalogHeadings=[...(rule?.headsigns||[])].map(String).slice(0,10);
+ const catalogDestinations=[...(rule?.destinationMatches||[])].map(String).slice(0,10);
+ const publicDetail={
+  reason,quayId:report.quayId,stopName:String(node?.name||'').slice(0,100),
+  sourcePatternDirection:target.route.directionType,
+  sourceQuayInPattern:target.route.quays.includes(report.quayId),
+  catalogDirectionIds:directionIds,
+  reportedGpsHeadsign:destination,
+  catalogHeadings,catalogDestinations,
+  sourcePatternLength:target.route.quays.length,
+  note:'Source inbound/outbound cannot be assumed to equal catalog direction 0/1'
+ };
+ const group=JSON.stringify(publicDetail);
+ const known=directionFailures.get(group)||{detail:publicDetail,rawObservations:0,uniqueEvents:new Set()};
+ known.rawObservations++;
+ known.uniqueEvents.add(report.vehicleRef+'|'+report.recordedAt+'|'+report.quayId);
+ directionFailures.set(group,known);
+}
+const sourcePatterns=patternInventory().get('1').patterns;
+const sourceQuays=new Set(sourcePatterns.flatMap(p=>p.quays));
+const missingQuays=[...sourceQuays].filter(id=>!byQuay.has(id));
+const ambiguousCatalogQuays=[...sourceQuays].filter(id=>{
+ const ids=byQuay.get(id)?.routeDirections?.[route1.id]?.directionIds||[];
+ return ids.length!==1;
+});
+console.log('LINE1_SOURCE_CATALOG_AUDIT '+JSON.stringify({
+ sourcePatterns:sourcePatterns.length,uniqueSourceQuays:sourceQuays.size,
+ missingCatalogCount:missingQuays.length,missingQuays:missingQuays.slice(0,15),
+ ambiguousCatalogCount:ambiguousCatalogQuays.length,
+ ambiguousQuays:ambiguousCatalogQuays.slice(0,15),
+ note:'This is a coverage audit, not a verified direction mapping or permission to activate any LED'
+}));
+
 const targets=new Map();
 let initial=await fetchSample(),requestId=1;
 for(const line of ['1','11']){
@@ -179,7 +219,8 @@ for(let poll=0;poll<SAMPLE_COUNT;poll++){
     });
     if(gate.accepted){providerIndex=index;providerAt=report.recordedAt;
      stats.providerValidStops++;providerAccepted++;
-    }else{count(stats.providerRejected,gate.reason);providerRejected++;}
+    }else{count(stats.providerRejected,gate.reason);providerRejected++;
+     recordDirectionFailure(gate.reason,report,gps,target,byQuay.get(report.quayId));}
    }
   }
   const result=observeSourceQuaySequence(target.state,{
@@ -211,6 +252,14 @@ const summary=Object.fromEntries(['1','11'].map(code=>{
   tracksWithThreeGpsQuays:targeted.filter(t=>t.state.gps?.length>=3).length,
   tracksWithTwoProviderQuays:targeted.filter(t=>t.state.provider?.length>=2).length,
   tracksWithThreeProviderQuays:targeted.filter(t=>t.state.provider?.length>=3).length}];
+}));
+console.log('LINE1_DIRECTION_REJECTIONS '+JSON.stringify({
+ grouped:[...directionFailures.values()].slice(0,30).map(x=>({
+  ...x.detail,rawObservations:x.rawObservations,uniqueEvents:x.uniqueEvents.size
+ })),
+ totalRaw:[...directionFailures.values()].reduce((n,x)=>n+x.rawObservations,0),
+ totalUniqueEvents:[...directionFailures.values()].reduce((n,x)=>n+x.uniqueEvents.size,0),
+ note:'Only public Quay/headsign/config information. Aggregates may include the same report in multiple polling rounds. No vehicle IDs, raw GPS or trip IDs.'
 }));
 console.log('SEQUENCE_SHADOW_FINAL '+JSON.stringify({
  sampled:SAMPLE_COUNT,lines:summary,
