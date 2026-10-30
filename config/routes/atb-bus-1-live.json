@@ -30,7 +30,7 @@
     },
     {
       "id": "north",
-      "label": "mot Ranheim",
+      "label": "nordover",
       "destinationMatches": [
         "Ranheim",
         "Strindheim"
