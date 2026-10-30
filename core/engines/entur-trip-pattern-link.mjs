@@ -96,3 +96,23 @@ export function inferSharedQuaySequence({lineCode,visitedQuays}){
   directionType:first.directionType,quays:[...first.quays],
   tripIdentityConfirmed:false,providerStopConfirmed:false};
 }
+
+/** Only a matching, fresh SIRI vehicle reference can connect GPS to an
+ * exact Transit Data DatedServiceJourney; nothing here validates an LED. */
+export function joinSiriVehicleToDatedTrip({
+ siri,vehicle,datedJourney,operatingDay,now=Date.now()
+}){
+ const reject=reason=>({status:'unresolved',reason,quays:[]});
+ if(siri?.source!=='entur-siri-vm'||!siri.vehicleRef||
+   siri.vehicleRef!==vehicle?.id)return reject('vehicle-id-not-exact');
+ const lineCode=String(vehicle.publicCode||'');
+ if(siri.lineRef!==`ATB:Line:2_${lineCode}`)return reject('vehicle-line-not-exact');
+ const at=Date.parse(siri.recordedAt||''),gpsAt=Date.parse(vehicle.timestamp||'');
+ if(!Number.isFinite(at)||!Number.isFinite(gpsAt)||at>now+5000||gpsAt>now+5000||
+   now-at>30000||now-gpsAt>30000||Math.abs(at-gpsAt)>20000)
+   return reject('unsynchronized-siri-gps');
+ return resolveExactDatedJourney({
+  lineCode,datedVehicleJourneyRef:siri.datedVehicleJourneyRef,
+  datedJourney,serviceDate:operatingDay,vehicleLineRef:siri.lineRef
+ });
+}
