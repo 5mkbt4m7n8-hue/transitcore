@@ -19,6 +19,7 @@ import {handleLinearPublish} from "./linear-publish.mjs";
 import {dayHistoryStorage,handleTrondheimHistory,recordScheduledTrondheimFrame} from "./trondheim-history.mjs";
 import {trondheimCatalogProfiles} from "./trondheim-catalog-profiles.mjs";
 import {catalogIndex} from "../core/engines/catalog-index.mjs";
+import {createTonstadSourceProbe,addTonstadSourceToFrame} from "./tonstad-live-source.mjs";
 
 export const SIGNAL_POLICY = Object.freeze({
   version: 1,
@@ -58,6 +59,7 @@ const LIVE_VEHICLE_TTL_MS = 8 * 1000;
 const metroForecastCache = new Map();
 const METRO_FORECAST_CACHE_MS = 20000;
 const enturProvider = createEnturProvider({fetchJson,clientName:CLIENT_NAME,ttlMs:LIVE_VEHICLE_TTL_MS});
+const tonstadSourceProbe=createTonstadSourceProbe();
 
 const statusJson = (body, status = 200) => new Response(
   JSON.stringify(body, null, 2) + "\n",
@@ -1012,7 +1014,18 @@ async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
     // vehicle-position route subset on mixed GPS/ETA catalog boards.
     const gpsBoard=vehicleProfiles.length===profiles.length?board:
       {...board,routes:vehicleProfiles.map(profile=>profile.id)};
-    frames.push(buildPixelFrame(frameContext({ board:gpsBoard, profiles: vehicleProfiles, hardware, vehicles, now })));
+    let gpsFrame=buildPixelFrame(frameContext({ board:gpsBoard, profiles: vehicleProfiles, hardware, vehicles, now }));
+    // Prototype: supplement just the shared Tonstadkrysset Quay with an
+    // explicitly current, joined SIRI/GPS/source-Journey stop. Failure keeps
+    // the legacy live GPS frame completely intact for all bus lines.
+    if(board.id==='trondheim-city-lines-catalog'&&
+       vehicleProfiles.some(p=>p.id==='atb-bus-1-live')){
+      try{
+        const evidence=await tonstadSourceProbe({board:gpsBoard,profiles:vehicleProfiles,vehicles,now});
+        gpsFrame=addTonstadSourceToFrame(gpsFrame,evidence,now);
+      }catch{ /* source is optional; never hide valid existing bus observations */ }
+    }
+    frames.push(gpsFrame);
   }
   if (arrivalProfiles.length) {
     board.hardware = hardware;
