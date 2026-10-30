@@ -4,7 +4,8 @@
 // identity, provider-reported stop, or eligibility for a physical LED.
 // No raw VehicleRef, trip ID, coordinates or SIRI XML are printed.
 import {parsePilotSiriJourneyRefs} from '../core/providers/entur/siri-vm-journey-parser.mjs';
-import {patternInventory} from '../core/engines/entur-trip-pattern-link.mjs';
+import {patternInventory,joinSiriVehicleToServiceJourney} from '../core/engines/entur-trip-pattern-link.mjs';
+import {fetchAtbFleetGps} from '../worker/atb-fleet-gps.mjs';
 
 const base='https://api.entur.io/transit-data/v1beta/mcp';
 const client='transitcore-journey-ref-audit';
@@ -65,9 +66,10 @@ for(const row of refs){
  }
  const found=byLine[code];
  if(!found.has(row.datedVehicleJourneyRef))found.set(row.datedVehicleJourneyRef,{
-  recent:Number.isFinite(age)&&age>=0&&age<=120000,recordedAt:row.recordedAt
+  recent:Number.isFinite(age)&&age>=0&&age<=120000,recordedAt:row.recordedAt,siri:row
  });
- else if(Number.isFinite(age)&&age>=0&&age<=120000)found.get(row.datedVehicleJourneyRef).recent=true;
+ else if(Date.parse(row.recordedAt)>Date.parse(found.get(row.datedVehicleJourneyRef).recordedAt))
+  found.set(row.datedVehicleJourneyRef,{recent:Number.isFinite(age)&&age>=0&&age<=120000,recordedAt:row.recordedAt,siri:row});
 }
 console.log('SIRI_REFERENCE_SAMPLE '+JSON.stringify({
  datasetId:'ATB',activities:totalActivities,parsedPilotObservations:refs.length,
@@ -75,12 +77,16 @@ console.log('SIRI_REFERENCE_SAMPLE '+JSON.stringify({
   distinctServiceJourneyRefs:byLine[code].size,unrecognizedReferenceObservations:unusual[code],
   observationsRecordedWithin120s:recent[code]}]))
 }));
+const fleet=await fetchAtbFleetGps({now:Date.now(),clientName:client});
+const gpsByLineAndId=new Map(fleet.vehicles.map(v=>[v.line+'|'+v.id,v]));
+console.log('GPS_SHADOW_SAMPLE '+JSON.stringify({gpsVehicles:fleet.vehicles.length,note:'IDs and positions are not emitted'}));
 let requestId=10;
 for(const code of ['1','11']){
  const sampled=[...byLine[code].entries()].sort((a,b)=>Number(b[1].recent)-Number(a[1].recent)).slice(0,3);
  const stats={line:code,sampled:sampled.length,exactServiceJourneyMatches:0,
    routePatternsVerified:0,sourceQuaySequencesVerified:0,freshReferenceMatches:0,
    calendarChecks:0,scheduledOnObservedDate:0,calendarUnverified:0,
+   gpsIdAndTimeMatches:0,gpsUnresolved:{},
    unresolved:{},operatingDayVerified:false,gpsVehicleJoinVerified:false,physicalStopVerified:false};
  const reject=reason=>stats.unresolved[reason]=(stats.unresolved[reason]||0)+1;
  for(const [id,metadata] of sampled){
@@ -94,6 +100,15 @@ for(const code of ['1','11']){
   if(!p){reject('pattern-not-in-snapshot');continue;}
   if(service.journeyPattern?.directionType!==p.directionType){reject('pattern-direction-conflict');continue;}
   stats.routePatternsVerified++;
+  const observedVehicle=gpsByLineAndId.get(code+'|'+metadata.siri.vehicleRef);
+  if(!observedVehicle)stats.gpsUnresolved['gps-id-not-exact']=(stats.gpsUnresolved['gps-id-not-exact']||0)+1;
+  else {
+   const identity=joinSiriVehicleToServiceJourney({siri:metadata.siri,
+    vehicle:{id:observedVehicle.id,publicCode:observedVehicle.line,timestamp:observedVehicle.lastUpdated},
+    serviceJourney:service,now:Date.now()});
+   if(identity.status==='route-pattern-supported')stats.gpsIdAndTimeMatches++;
+   else stats.gpsUnresolved[identity.reason]=(stats.gpsUnresolved[identity.reason]||0)+1;
+  }
   if(p.quays.length>=2){
    stats.sourceQuaySequencesVerified++;
    if(metadata.recent)stats.freshReferenceMatches++;
@@ -105,9 +120,10 @@ for(const code of ['1','11']){
    }
   }
  }
+ stats.gpsVehicleJoinVerified=stats.gpsIdAndTimeMatches>0;
  console.log('SERVICE_JOURNEY_PATTERN_PILOT '+JSON.stringify(stats));
 }
 console.log('PILOT_RELEASE_GATE '+JSON.stringify({
  status:'NO_GO',sourceReferenceType:'ATB:ServiceJourney',
- note:'ServiceJourney pattern and calendar evidence do NOT prove a dated vehicle journey. No GPS-to-vehicle join, stop evidence, or LED writes. Keep PR as draft.'
+ note:'ServiceJourney pattern and calendar evidence do NOT prove a dated vehicle journey. GPS identity matching (if any) is only a same-ID/time check; no stop proof or LED writes. Keep PR as draft.'
 }));
