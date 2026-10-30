@@ -392,6 +392,40 @@ tar 8 prøver med 20 sekunders mellomrom; det spesifikke klokkeslettet
 Dette er kun observasjon og gir ikke tillatelse til fysisk
 LED-aktivering. PR #279 forblir **draft/NO-GO**, ingen produksjonsutrulling.
 
+## Offline tavlesimulering med ekte frame-renderer (31.10.2026)
+
+En **isoleret skyggetest** beregner nå et mulig LED-resultat med den
+samme `interpretStrictStationGps` + `renderStationFrame` som
+tavlefeeden bruker, men kun inne i GitHub Actions-prosessen. Dette er
+**ikke en utplassert Cloudflare staging-Worker** og heller ikke en
+fysisk LED-test.
+
+Implementert i `scripts/shared-quay-frame-shadow.mjs`.
+Input er hele, innleste `trondheim-city-lines-catalog`,
+ekte linje-1-profil og eksplisitte SIRI current-stop rapporter fra
+`NSR:Quay:102733`. Streng `ServiceJourney`-kobling og fersk GPS
+må være tilgjengelig for samme hendelse. Tilsvarende 8-polllers
+skrivebeskyttet test `scripts/probe-entur-shared-quay-shadow.mjs`
+loggfører `SHARED_QUAY_FRAME_SHADOW` ved hver poll.
+
+**Personvern:** Den interne frame-strukturen inneholder rå ID-er
+og koordinater og skal aldri returneres eller logges.
+Oppsummeringen viser bare offentlig Quay/LED-nummer, antall
+kildestøttede `AT_STOP`-okkupanter og om dette *ville blitt*
+vist i det lokale testbildet. Ingen mottakere, Worker bindings,
+Edge-ruter eller ESP-enheter er involvert. `eligibleForProduction`
+og `physicalStopIndependentlyVerified` er alltid `false`.
+
+Regresjonstesten `scripts/test-shared-quay-frame-shadow.mjs` bruker
+hele kildekatalogen, både retninger, kortturer, to busser på samme
+LED, manglende referanse, gammel kilde, feil Quay, feil headsign,
+GPS-avvik og dublett i tavlekatalogen. Testen krever at tvetydige
+data **ikke** simulerer bekreftet `AT_STOP` for Tonstadkrysset.
+
+Før faktisk staging/deploy må Entur-inntak, cache, rategrenser,
+målefeil og riktig fysisk LED-kartlegging gjennomgås særskilt.
+**NO-GO** for merge og produksjon.
+
 ## Neste release gate
 
 1. Kjør én manuelt kontrollert SIRI- og Transit Data-match i
