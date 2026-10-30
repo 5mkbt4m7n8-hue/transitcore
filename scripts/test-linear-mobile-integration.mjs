@@ -11,6 +11,7 @@ const html=read('web/linear/index.html');
 assert.match(html,/<a id="geographicMode" href="\.\/geo\/"/,'Geographic editor must be discoverable from the existing Linear mode selector');
 // Real shared client: server PASSED is retained, never inferred; expiry becomes OFF.
 const Frames=createRequire(import.meta.url)('../web/shared/canonical-frame-client.js');
+const TonstadTest=createRequire(import.meta.url)('../web/linear/network/tonstad-live-test.js');
 for(const [id,count] of [['trondheim-bus-board',147],['trondheim-shared-stops-board',147],['trondheim-city-lines-catalog',1282],['trondheim-flybuss-live',46],['trondheim-bus-1-gps-staging',147]]){
  let now=Date.now(),tick=0,payload,fail=false;const urls=[];
  const client=Frames.create({boardId:id,ledCount:count,origin:'https://gateway.test',clock:()=>now,monotonic:()=>tick,
@@ -54,9 +55,10 @@ const publishedRead=read;
 for(const match of html.matchAll(/(?:src|href)="(\.\.\/shared\/[^"]+)"/g))assert(publishedRead('web/'+match[1].slice(3)));
 assert(publishedRead('web/shared/board-client-model.js'));
 const script=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].at(-1)[1];
-const elements=new Map([['source',sourceElement]]);const el=id=>{if(!elements.has(id))elements.set(id,{value:'',checked:false,textContent:'',innerHTML:'',classList:{remove(){}},style:{}});return elements.get(id);};
+const elements=new Map([['source',sourceElement]]);const el=id=>{if(!elements.has(id))elements.set(id,{value:'',checked:false,textContent:'',innerHTML:'',dataset:{},classList:{remove(){}},style:{}});return elements.get(id);};
 const clients=[],context={URLSearchParams,location:{search:'?v=110'},performance,console,
  TransitCoreSignals:{applyCssVariables(){}},TransitCoreFrames:{create:opts=>{clients.push(opts);return {refresh:async()=>({frame:null,algorithm:'test',sample:{sequence:1,ageSeconds:0,status:'NO_FRAME'}})};}},
+ InTransitTonstadLiveTest:TonstadTest,
  document:{getElementById:el,querySelectorAll:()=>[],addEventListener(){},hidden:false},setInterval(){},setTimeout(){},clearTimeout(){},
  fetch:async url=>({ok:true,json:async()=>JSON.parse(publishedRead(url.replace('../../','')))})};
 vm.createContext(context);vm.runInContext(script,context);await new Promise(resolve=>setImmediate(resolve));
@@ -85,7 +87,7 @@ for(const [search,expected] of [['?v=110&route=atb-bus-1-live&source=staging','t
  ['?v=110&route=atb-bus-1-live','trondheim-city-lines-catalog'],
  ['?v=110&route=atb-bus-1-live&source=https://evil.test','trondheim-city-lines-catalog']]){
  const entries=new Map(),seen=[];
- const get=id=>{if(!entries.has(id))entries.set(id,{value:'',checked:false,textContent:'',innerHTML:'',classList:{remove(){}},style:{}});return entries.get(id);};
+ const get=id=>{if(!entries.has(id))entries.set(id,{value:'',checked:false,textContent:'',innerHTML:'',dataset:{},classList:{remove(){}},style:{}});return entries.get(id);};
  const boot={...context,location:{search},document:{getElementById:get,querySelectorAll:()=>[],addEventListener(){},hidden:false},
   TransitCoreFrames:{create:opts=>{seen.push(opts);return {refresh:async()=>({frame:null,algorithm:'test',sample:{sequence:1,ageSeconds:0,status:'NO_FRAME'}})};}}};
  vm.createContext(boot);vm.runInContext(script,boot);await new Promise(resolve=>setImmediate(resolve));
