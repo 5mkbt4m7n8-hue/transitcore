@@ -76,6 +76,40 @@ Syntetiske positive og negative kasus og de 15 faktiske Quay-mønstrene
 er testet grønt i GitHub Actions (route-progress-tests), men det
 beviser ikke at fremtidig live referanseformat vil være identisk.
 
+## Trafikktidsprøve: eksakt ServiceJourney (30.10.2026 09:50 UTC)
+
+Den avgrensede SIRI VM-prøven med `datasetId=ATB` returnerte 401
+kjøretøyaktiviteter, hvorav parseren fant 24 pilotobservasjoner med gyldig
+turreferanse (17 ulike ServiceJourney-referanser på linje 1, 7 på linje 11).
+Denne gangen var referansene eksplisitt av typen `ATB:ServiceJourney:...`
+inne i SIRI-feltet `DatedVehicleJourneyRef` – **ikke** daterte
+ServiceJourney-ID-er. Ingen ID-prefikser ble omskrevet.
+
+Tre ferske referanser per linje ble slått opp enkeltvis med Enturs
+`serviceJourney(id)`. Resultatet var **3/3 direkte ID-treff og 3/3
+kjente JourneyPattern-ID-er på hver linje**, med kildebestemt retning og
+ordinær Quay-sekvens fra vår tidsstemplede Entur-katalog. Resultatene
+er gjengitt i GitHub Actions, kjøring `41036305907`. Testen har
+ingen rå VehicleRef- eller GPS-utskrifter.
+
+Den separate, rent diagnostiske funksjonen
+`resolveExactServiceJourneyPattern` og
+`joinSiriVehicleToServiceJourney` er **shadow-only**. Sistnevnte
+krever identiske VehicleRef/linje-ID-er og tidsstempler fra SIRI og
+GPS-observasjon, men er ennå bare syntetisk testet. Den returnerer
+`route-pattern-supported`, ikke `linked` eller `AT_STOP`.
+`operatingDayVerified=false`, `datedTripIdentityConfirmed=false`
+og `eligibleForLed=false` forblir eksplisitt.
+
+Konkret gjenstående: verifiser turens **operasjonsdato** med en
+kilde som faktisk uttrykker gyldige datoer for ServiceJourney
+eller en dokumentert kobling til DatedServiceJourney. Entur MCP
+tilbyr ikke eksperimentell `activeDates` som felt. En
+`RecordedAtTime` fra SIRI alene er ikke bevis på korrekt
+operasjonsdato, spesielt ved midnatt. Deretter må en *faktisk*
+SIRI↔GPS-identitetsmatch og stoppsekvens over tid verifiseres før
+LED-konsekvenser vurderes. Inntil det er gjort: NO-GO.
+
 ## Neste release gate
 
 1. Kjør én manuelt kontrollert SIRI- og Transit Data-match i
