@@ -180,7 +180,8 @@ assert.equal(el('routeBadgeMode').value,'details','Display choice survives tempo
 vm.runInContext('paint('+JSON.stringify({...frame,leds:[]})+')',context);
 assert.match(el('legend').innerHTML,/background:#ef5350/);
 assert.match(el('legend').innerHTML,/background:#66bb6a/,'Painting must preserve the northbound direction color');
-assert.match(el('legend').innerHTML,/mot Ranheim\/Strindheim/);
+assert.match(el('legend').innerHTML,/sørover/,'GPS-only legend must not claim a short-turn terminal');
+assert.match(el('legend').innerHTML,/nordover/,'GPS-only legend must not claim a short-turn terminal');
 el('route').value='flybuss-trondheim-fb73-live';el('route').onchange();await new Promise(resolve=>setImmediate(resolve));
 assert.equal(el('routeViewOptions').hidden,true,'Flybuss cannot activate multi-route view');
 
