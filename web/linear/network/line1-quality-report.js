@@ -126,10 +126,11 @@
    live.set(key,data);seenFrame.add(key);liveCount++;prune(now);save();
    return true;
   }
-  function ingestEvents(events,now=clock()){
+  function ingestEvents(events,{source='production',now=clock()}={}){
    if(!Array.isArray(events)||!Number.isFinite(now))return 0;
    let added=0;
    for(const e of events){
+    if(e?.source!==(source==='staging'?'staging':'production'))continue;
     if(!['NOT_VISIBLE','GAP','CONFLICT'].includes(e?.type)||!VALID.test(e.quay||'')||
       !quays.has(e.quay))continue;
     const at=Date.parse(e.at);
@@ -137,7 +138,7 @@
     const bus=typeof e.bus==='string'?e.bus.slice(0,32):'';
     const key=at+'|'+bus+'|'+e.type+'|'+e.quay;
     if(seenEvent.has(key))continue;
-    transitions.set(key,{at,quay:e.quay,type:e.type,bus});seenEvent.add(key);added++;
+    transitions.set(key,{at,quay:e.quay,type:e.type,bus,source:e.source});seenEvent.add(key);added++;
    }
    if(added){prune(now);save();}
    return added;
@@ -166,7 +167,7 @@
    prune(now);
    const selected=source==='staging'?'staging':'production';
    const frames=[...live.values()].filter(v=>v.source===selected);
-   const observations=[...transitions.values()];
+   const observations=[...transitions.values()].filter(e=>e.source===selected);
    return {mode:'live',source:selected,samples:frames.length,invalid,
     first:frames[0]?nowIso(frames[0].at):null,last:frames.at(-1)?nowIso(frames.at(-1).at):null,
     rows:mergeRows(frames,observations),events:observations.length,
