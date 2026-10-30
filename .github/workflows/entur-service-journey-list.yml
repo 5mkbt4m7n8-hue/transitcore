@@ -1,9 +1,5 @@
 name: Entur service-journey lookup pilot (read only)
 on:
-  pull_request:
-    paths:
-      - 'scripts/probe-entur-service-journey-list.mjs'
-      - '.github/workflows/entur-service-journey-list.yml'
   workflow_dispatch:
 permissions:
   contents: read
