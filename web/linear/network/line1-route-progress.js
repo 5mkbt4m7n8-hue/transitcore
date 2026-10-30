@@ -51,7 +51,8 @@
   };
   const save=()=>{try{storage?.setItem(keyName,JSON.stringify(events));}catch{}};
   const emit=(t,type,at,detail)=>{
-   events.push({at:stamp(at),bus:t.label,type,detail:String(detail).slice(0,110)});
+   events.push({at:stamp(at),bus:t.label,type,source:t.source,quay:t.quay||null,
+    detail:String(detail).slice(0,110)});
    prune(at);save();
   };
   const possibilities=(visited,limit=200)=>allowed.filter(p=>{

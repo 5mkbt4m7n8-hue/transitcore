@@ -26,6 +26,12 @@ try{
  await page.route('https://transitcore-linear-staging.lgb84.workers.dev/**',r=>r.fulfill({status:503,body:'test staging unavailable'}));
  await page.goto(`http://127.0.0.1:${server.address().port}/web/linear/index.html`);
  await page.waitForFunction(()=>document.querySelectorAll('#rows .row').length>0);
+ await page.locator('#line1Quality summary').click();
+ await page.waitForFunction(()=>document.querySelector('#qualityRows')?.children?.length>0);
+ assert.equal(await page.locator('#qualityMode').count(),1);
+ assert.equal(await page.locator('#qualityExport').count(),1);
+ assert.equal(await page.locator('#qualityClear').count(),1);
+ assert.match(await page.locator('#qualityStatus').textContent(),/gyldige frames|Venter på første|Siste 24 timer/);
  await page.locator('#line1Progress summary').click();
  await page.waitForFunction(()=>document.querySelector('#line1Tracks')?.textContent?.length>0);
  assert.equal(await page.locator('#line1Export').count(),1,'Line 1 route history can be exported');
