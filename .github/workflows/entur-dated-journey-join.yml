@@ -1,9 +1,5 @@
 name: Entur exact dated-journey linkage pilot (read only)
 on:
-  pull_request:
-    paths:
-      - 'scripts/probe-entur-dated-journey-join.mjs'
-      - '.github/workflows/entur-dated-journey-join.yml'
   workflow_dispatch:
 permissions:
   contents: read
