@@ -75,7 +75,9 @@ assert.equal(line1StopEvidence(reverse.quayId).reason,'destination-direction-mis
 for(const quayId of ['NSR:Quay:102733','NSR:Quay:102721']){
  const ambiguous=board.nodes.find(n=>n.quayId===quayId);
  assert(ambiguous?.routeDirections?.[line1.id]?.directionIds?.length!==1);
- assert.equal(line1StopEvidence(quayId).reason,'ambiguous-quay-direction',
-  'Known shared/ambiguous Quay still fails closed');
+ const expected=quayId==='NSR:Quay:102733'?
+  'shared-quay-source-journey-unverified':'ambiguous-quay-direction';
+ assert.equal(line1StopEvidence(quayId).reason,expected,
+  'No shared Quay can bypass the exact source-journey proof gate');
 }
 console.log('Verified source line 1 Østre Lund alias accepts only exact outbound Quays; inbound and ambiguous Quays remain rejected PASS');
