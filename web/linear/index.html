@@ -425,20 +425,20 @@ function updateQualityReport(frame=null){
  $("qualityFrames").textContent=String(report.samples);
  $("qualitySiri").textContent=report.mode==="history"?"–":String(sum("siri"));
  $("qualityGps").textContent=report.mode==="history"?"–":String(sum("gps"));
- $("qualityUnresolved").textContent=report.mode==="history"?"–":String(sum("unresolved"));
+ $("qualityUnresolved").textContent=report.diagnosticSamples===0?"–":String(sum("unresolved"));
  $("qualityIssues").textContent=String(sum("lost")+sum("conflict")+sum("gap")+(report.mode==="history"?0:sum("unresolved")));
  $("qualityStatus").textContent=report.mode==="history"
   ?"5-minuttersopptak "+report.day+": "+report.samples+" gyldige / "+report.total+
     " registreringer, "+report.errors+" feil og "+report.gaps+" tidsluker. SIRI/GPS-grunnlag er ikke lagret."
   :"Siste 24 timer i denne nettleseren, opptil 400 frames. "+report.samples+
    " gyldige frames; valgt kilde: "+(stagingSelected()?"STAGING":"produksjon")+
-   ". Antall treff er ikke antall busser eller gjennomførte stopp.";
+   ". GPS-diagnostikk tilgjengelig i "+report.diagnosticSamples+"/"+report.samples+" frames. Antall treff er ikke antall busser eller gjennomførte stopp.";
  const statusLabel={review:"Undersøk",source:"SIRI observert",gps:"GPS observert",
   led:"LED observert", "no-sample":"Ingen observasjon"};
  $("qualityRows").innerHTML=rows.map(r=>'<tr><td>'+esc(r.name)+
   ' <small>('+esc(r.quay)+')</small></td><td class="quality-status '+esc(r.status)+'">'+
   esc(statusLabel[r.status]||r.status)+'</td><td>'+r.siri+'</td><td>'+r.gps+
-  '</td><td>'+r.ledOnly+'</td><td>'+r.unresolved+'</td><td>'+r.lost+
+  '</td><td>'+r.ledOnly+'</td><td>'+(report.diagnosticSamples===0?'–':r.unresolved)+'</td><td>'+r.lost+
   '</td><td>'+(r.conflict+r.gap)+'</td></tr>').join("");
 }
 async function loadQualityHistory(){
