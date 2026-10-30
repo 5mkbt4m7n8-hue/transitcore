@@ -172,7 +172,7 @@ console.log('SEQUENCE_SHADOW_START '+JSON.stringify({
  samples:SAMPLE_COUNT,intervalSeconds:INTERVAL_MS/1000,
  initialPilots:initial.activities,knownQuayCoordinates:positionList.length,
  selectedLine1:lineStats['1'].selected,selectedLine11:lineStats['11'].selected,
- note:'Only exact SIRI/GPS/ServiceJourney source identities; GPS is not proof of stop.'
+ note:'Uses the checked-out route profile including candidate alias; only exact SIRI/GPS/ServiceJourney source identities. GPS is not proof of stop.'
 }));
 for(let poll=0;poll<SAMPLE_COUNT;poll++){
  // First observation uses the SAME snapshot that selected the target vehicles.
