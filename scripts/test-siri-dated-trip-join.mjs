@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {parsePilotSiriJourneyRefs} from '../core/providers/entur/siri-vm-journey-parser.mjs';
-import {joinSiriVehicleToDatedTrip,patternInventory} from '../core/engines/entur-trip-pattern-link.mjs';
+import {joinSiriVehicleToDatedTrip,patternInventory,resolveExactServiceJourneyPattern,joinSiriVehicleToServiceJourney} from '../core/engines/entur-trip-pattern-link.mjs';
 const date='2026-10-30',now=Date.parse('2026-10-30T12:00:00Z');
 const iso=new Date(now-2000).toISOString();
 const ref='ATB:DatedServiceJourney:pilot-test-only';
@@ -46,3 +46,42 @@ bad(x=>x.siri.datedVehicleJourneyRef='ATB:DatedVehicleJourney:pilot-test-only','
 bad(x=>x.datedJourney.serviceJourney.line.id='ATB:Line:2_1','service-journey-line-unverified');
 bad(x=>x.datedJourney.id='ATB:DatedServiceJourney:wrong','dated-id-unverified');
 console.log('SIRI VehicleRef -> exact DatedServiceJourney -> verified source Quay sequence, strict identity/timing/schedule fail-closed PASS');
+
+const serviceRef='ATB:ServiceJourney:pilot-test-only';
+const service={id:serviceRef,line:{id:inv.lineId},
+ journeyPattern:{id:pattern.id,directionType:pattern.directionType}};
+const serviceSiri=parsePilotSiriJourneyRefs(xml('ATB:Line:2_11',serviceRef))[0];
+const serviceArgs={siri:serviceSiri,vehicle,serviceJourney:service,now};
+const source=resolveExactServiceJourneyPattern({
+ lineCode:'11',datedVehicleJourneyRef:serviceRef,serviceJourney:service,
+ vehicleLineRef:'ATB:Line:2_11'});
+assert.equal(source.status,'route-pattern-supported');
+assert.deepEqual(source.quays,pattern.quays);
+assert.equal(source.operatingDayVerified,false);
+assert.equal(source.vehicleIdentityConfirmed,false);
+assert.equal(source.datedTripIdentityConfirmed,false);
+assert.equal(source.eligibleForLed,false);
+const joined=joinSiriVehicleToServiceJourney(serviceArgs);
+assert.equal(joined.status,'route-pattern-supported');
+assert.equal(joined.vehicleIdentityConfirmed,true);
+assert.equal(joined.operatingDayVerified,false);
+assert.equal(joined.eligibleForLed,false);
+function serviceBad(edit,reason){
+ const args=structuredClone(serviceArgs);edit(args);
+ const result=joinSiriVehicleToServiceJourney(args);
+ assert.equal(result.status,'unresolved');
+ assert.equal(result.reason,reason);
+ assert.deepEqual(result.quays,[]);
+}
+serviceBad(x=>x.vehicle.id='another','vehicle-id-not-exact');
+serviceBad(x=>x.vehicle.publicCode='1','vehicle-line-not-exact');
+serviceBad(x=>x.siri.recordedAt=new Date(now-120000).toISOString(),'unsynchronized-siri-gps');
+serviceBad(x=>x.vehicle.timestamp=new Date(now-120000).toISOString(),'unsynchronized-siri-gps');
+serviceBad(x=>x.siri.datedVehicleJourneyRef='ATB:DatedServiceJourney:pilot-test-only','siri-ref-not-atb-service-journey');
+serviceBad(x=>x.serviceJourney.id='ATB:ServiceJourney:wrong','service-journey-id-not-exact');
+serviceBad(x=>x.serviceJourney.line.id='ATB:Line:2_1','service-journey-line-unverified');
+serviceBad(x=>x.serviceJourney.journeyPattern.id='ATB:JourneyPattern:unknown','pattern-not-in-verified-snapshot');
+serviceBad(x=>x.serviceJourney.journeyPattern.directionType=
+ x.serviceJourney.journeyPattern.directionType==='inbound'?'outbound':'inbound',
+ 'journey-pattern-direction-conflict');
+console.log('Live-reference-shaped ServiceJourney route pattern joined conservatively; GPS identity/time required; operating date and LED remains unverified PASS');
