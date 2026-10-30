@@ -8,7 +8,9 @@ const quarantinedQuays=new Set([
   'NSR:Quay:102735','NSR:Quay:103687',
   'NSR:Quay:73377','NSR:Quay:73378'
 ]);
-export function projectEnturReportedStops({board,profiles,vehicles,now,reports,interpreted}) {
+export function projectEnturReportedStops({
+ board,profiles,vehicles,now,reports,interpreted,sharedQuayJourneys=null
+}) {
   if(!reports?.length)return interpreted;
   const nodes=new Map(board.nodes.map(n=>[n.quayId,n]));
   const byLine=new Map();
@@ -42,7 +44,17 @@ export function projectEnturReportedStops({board,profiles,vehicles,now,reports,i
     const profile=byLine.get(String(vehicle.publicCode));
     const node=nodes.get(report.quayId);
     if(quarantinedQuays.has(report.quayId))continue;
-    const accepted=evaluateEnturStopEvidence({report,vehicle,profile,node,now});
+    // A shared physical Quay must correspond to EXACTLY one board node/LED,
+    // never an arbitrary Map winner for duplicate Quay definitions.
+    if(report.quayId==='NSR:Quay:102733'&&
+      board.nodes.filter(n=>n.quayId===report.quayId).length!==1)continue;
+    // This map is optional, and only the caller that has looked up and
+    // verified the exact source ServiceJourney should populate it.
+    const sharedQuayJourney=sharedQuayJourneys instanceof Map?
+      sharedQuayJourneys.get(vehicle.id):null;
+    const accepted=evaluateEnturStopEvidence({
+      report,vehicle,profile,node,now,sharedQuayJourney
+    });
     if(!accepted.accepted)continue;
     const meters=distance({lat:vehicle.latitude,lon:vehicle.longitude},node);
     // Remove any weaker GPS-only assignment for this same vehicle before
@@ -62,7 +74,9 @@ export function projectEnturReportedStops({board,profiles,vehicles,now,reports,i
       destination:vehicle.destination,state:'AT_STOP',meters,lat:vehicle.latitude,lon:vehicle.longitude,
       positionType:'entur-siri-provider-stop',routeListedHere:true,
       platformEvidence:'entur-provider-reported-at-stop',platformConfirmed:true,
-      providerReportedAtStop:true,nearestQuayLed:node.led,nearestQuayDistanceMeters:meters,
+      providerReportedAtStop:true,sharedQuaySameLed:accepted.sharedQuaySameLed,
+      plannedSourceDirection:accepted.plannedSourceDirection,
+      nearestQuayLed:node.led,nearestQuayDistanceMeters:meters,
       withinStopRadius:meters<=(board.render.arrivalRadiusMeters??85),
       quayId:node.quayId,stopPlaceId:node.stationId};
     const group=occupantsByLed.get(item.id)||[];
