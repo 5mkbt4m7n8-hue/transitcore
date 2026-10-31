@@ -17,6 +17,7 @@ on:
       - 'scripts/test-line1-incident-evidence.mjs'
       - 'scripts/test-multiline-route-progress.mjs'
       - 'scripts/test-gps-v2-route-shadow.mjs'
+      - 'scripts/test-gps-v21-multiple-quays.mjs'
       - 'web/linear/network/gps-v2-shadow.js'
       - 'scripts/test-verified-entur-patterns.mjs'
       - 'scripts/test-multiline-scheduled-quality.mjs'
@@ -68,6 +69,7 @@ on:
       - 'scripts/test-line1-incident-evidence.mjs'
       - 'scripts/test-multiline-route-progress.mjs'
       - 'scripts/test-gps-v2-route-shadow.mjs'
+      - 'scripts/test-gps-v21-multiple-quays.mjs'
       - 'web/linear/network/gps-v2-shadow.js'
       - 'scripts/test-verified-entur-patterns.mjs'
       - 'config/gps/**'
@@ -129,6 +131,9 @@ jobs:
 
       - name: Verify browser-only V2 GPS route-ordered Quay shadow
         run: node scripts/test-gps-v2-route-shadow.mjs
+
+      - name: Verify V2.1 retained Quay candidates and delayed source-order disambiguation
+        run: node scripts/test-gps-v21-multiple-quays.mjs
 
       - name: Verify source-certified Line 1 and 11 route tracking and privacy
         run: node scripts/test-multiline-route-progress.mjs
