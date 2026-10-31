@@ -15,6 +15,7 @@ on:
       - 'scripts/test-tonstad-live-test.mjs'
       - 'scripts/test-line1-route-progress.mjs'
       - 'scripts/test-line1-incident-evidence.mjs'
+      - 'scripts/test-multiline-route-progress.mjs'
       - 'scripts/test-line1-quality-report.mjs'
       - 'scripts/test-line1-corridor-quality.mjs'
       - 'web/linear/network/line1-corridor-quality.js'
@@ -47,6 +48,7 @@ on:
       - 'scripts/test-tonstad-live-test.mjs'
       - 'scripts/test-line1-route-progress.mjs'
       - 'scripts/test-line1-incident-evidence.mjs'
+      - 'scripts/test-multiline-route-progress.mjs'
       - 'scripts/test-line1-quality-report.mjs'
       - 'scripts/test-line1-corridor-quality.mjs'
       - 'web/linear/network/line1-corridor-quality.js'
@@ -102,6 +104,9 @@ jobs:
 
       - name: Verify explainable GPS/SIRI tracking-break evidence and two-frame threshold
         run: node scripts/test-line1-incident-evidence.mjs
+
+      - name: Verify source-certified Line 1 and 11 route tracking and privacy
+        run: node scripts/test-multiline-route-progress.mjs
 
       - name: Verify Line 1 quality counts and five-minute recording coverage
         run: node scripts/test-line1-quality-report.mjs
