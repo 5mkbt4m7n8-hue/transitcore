@@ -21,8 +21,14 @@ nettleseren er åpen. Brukerens GPS-lokasjon leses ikke.
 ### Hva er bevis og hva er ikke bevis?
 
 - **GPS nær Quay:** `gps-nearest-stop` fra original
-  PixelFrame, med eksakt led-indeks til én Quay. Dette er en
-  nærhetsobservasjon, **ikke** fysisk bekreftet stopp.
+  PixelFrame, med eksakt led-indeks til én Quay. Et eksplisitt
+  `withinStopRadius=false` avvises. Eldre feeds uten dette
+  feltet kan fremdeles brukes som nærhetsbevis. Alternativt kan
+  `gps-route-quay` med eksakt kartlagt Quay brukes.
+  Dette er **ikke** fysisk bekreftet stopp.
+- **Ingen sporingsbevis:** `estimated-station-call`, ukjent
+  `positionType`, uverifisert SIRI eller en løs `quayId`
+  alene kan ikke flytte bussen til neste holdeplass.
 - **SIRI-bekreftet:** `entur-siri-provider-stop`,
   `providerReportedAtStop=true`, eksakt Quay og
   `AT_STOP`, etter feedens egen kildevalidering.
