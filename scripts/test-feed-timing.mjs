@@ -56,8 +56,8 @@ try {
     } })
   } };
   const wrangler=(await fs.readFile(new URL('worker/wrangler.toml',root),'utf8'));
-  assert.match(wrangler,/crons = \["\*\/5 \* \* \* \*", "1-59\/5 \* \* \* \*"\]/,
-    'Both five-minute cron expressions must be deployed');
+   assert(wrangler.includes('crons = ["*/5 * * * *", "1-59/5 * * * *", "2-59/5 * * * *"]'),
+     'Both original five-minute schedules and the isolated Line 1 extra cron must be deployed');
 
   await worker.scheduled({ scheduledTime: Date.now(),cron:"*/5 * * * *" },env);
   const historyRequests=externalCalls.slice();
