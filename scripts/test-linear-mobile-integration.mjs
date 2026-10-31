@@ -58,7 +58,7 @@ const publishedRead=read;
 for(const match of html.matchAll(/(?:src|href)="(\.\.\/shared\/[^"]+)"/g))assert(publishedRead('web/'+match[1].slice(3)));
 assert(publishedRead('web/shared/board-client-model.js'));
 const script=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].at(-1)[1];
-const elements=new Map([['source',sourceElement]]);const el=id=>{if(!elements.has(id))elements.set(id,{value:'',checked:false,textContent:'',innerHTML:'',dataset:{},classList:{remove(){}},style:{}});return elements.get(id);};
+const elements=new Map([['source',sourceElement]]);const el=id=>{if(!elements.has(id))elements.set(id,{value:'',checked:false,textContent:'',innerHTML:'',dataset:{},classList:{remove(){}},style:{},querySelector(){return {disabled:false}}});return elements.get(id);};
 const clients=[],context={URLSearchParams,location:{search:'?v=110'},performance,console,
  TransitCoreSignals:{applyCssVariables(){}},TransitCoreFrames:{create:opts=>{clients.push(opts);return {refresh:async()=>({frame:null,algorithm:'test',sample:{sequence:1,ageSeconds:0,status:'NO_FRAME'}})};}},
  InTransitTonstadLiveTest:TonstadTest,
@@ -93,7 +93,7 @@ for(const [search,expected] of [['?v=110&route=atb-bus-1-live&source=staging','t
  ['?v=110&route=atb-bus-1-live','trondheim-city-lines-catalog'],
  ['?v=110&route=atb-bus-1-live&source=https://evil.test','trondheim-city-lines-catalog']]){
  const entries=new Map(),seen=[];
- const get=id=>{if(!entries.has(id))entries.set(id,{value:'',checked:false,textContent:'',innerHTML:'',dataset:{},classList:{remove(){}},style:{}});return entries.get(id);};
+ const get=id=>{if(!entries.has(id))entries.set(id,{value:'',checked:false,textContent:'',innerHTML:'',dataset:{},classList:{remove(){}},style:{},querySelector(){return {disabled:false}}});return entries.get(id);};
  const boot={...context,location:{search},document:{getElementById:get,querySelectorAll:()=>[],addEventListener(){},hidden:false},
   TransitCoreFrames:{create:opts=>{seen.push(opts);return {refresh:async()=>({frame:null,algorithm:'test',sample:{sequence:1,ageSeconds:0,status:'NO_FRAME'}})};}}};
  vm.createContext(boot);vm.runInContext(script,boot);await new Promise(resolve=>setImmediate(resolve));

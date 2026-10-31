@@ -1,4 +1,5 @@
-// Line 1 A -> B -> C observation tracker. Browser-only, no extra Entur calls.
+// Source-verified Line 1 / Line 11 A -> B -> C observation tracker.
+// Browser-only, no extra Entur calls. No route inference without patterns.
 // Source patterns describe scheduled order, NOT proof of passing any stop.
 // Never manufacture an intermediate stop or infer an actual arrival from GPS.
 (function(root,factory){
@@ -8,21 +9,29 @@
 })(globalThis,function(){
  'use strict';
  const QUAY=/^NSR:Quay:\d+$/,DAY=86400000;
- function create({board,patterns,profile,storage=null,clock=Date.now}={}){
-  const allowed=(patterns?.lines?.['1']?.patterns||[]).filter(p=>
+ function create({board,patterns,profile,lineCode='1',storage=null,clock=Date.now}={}){
+  if(!/^(1|11)$/.test(lineCode))throw Error('unsupported-route-pattern');
+  const allowed=(patterns?.lines?.[lineCode]?.patterns||[]).filter(p=>
    ['inbound','outbound'].includes(p.directionType)&&Array.isArray(p.quays)&&
    p.quays.length>=2&&p.quays.every(q=>QUAY.test(q)));
   if(board?.id!=='trondheim-city-lines-catalog'||!allowed.length)
    throw Error('line1-patterns-unavailable');
+  const eligibleQuays=new Set(allowed.flatMap(p=>p.quays));
   const byLed=new Map(),names=new Map((profile?.stops||[]).map(s=>[s.id,s.name]));
+  const quaysOf=n=>[...new Set([n?.quayId,...(Array.isArray(n?.stopIds)?n.stopIds:[])]
+   .filter(q=>eligibleQuays.has(q)))];
   for(const n of board.nodes||[]){
-   if(!n?.quayId||!Number.isInteger(n.led))continue;
-   const arr=byLed.get(n.led)||[];arr.push(n.quayId);byLed.set(n.led,arr);
+   if(!Number.isInteger(n?.led))continue;
+   const arr=byLed.get(n.led)||[];
+   for(const q of quaysOf(n))if(!arr.includes(q))arr.push(q);
+   if(arr.length)byLed.set(n.led,arr);
   }
   // The checked-in line 1 profile usually lists one platform side.
   // Name opposite-direction Quays via their shared StopPlace, not by
   // guessing proximity from coordinates or changing the underlying map.
-  const nodeByQuay=new Map((board.nodes||[]).map(n=>[n.quayId,n]));
+  const nodeByQuay=new Map();
+  for(const n of board.nodes||[])for(const q of quaysOf(n))
+   if(!nodeByQuay.has(q))nodeByQuay.set(q,n);
   const stationNames=new Map();
   for(const stop of profile?.stops||[]){
    const stationId=nodeByQuay.get(stop.id)?.stationId;
@@ -34,7 +43,8 @@
   const name=q=>names.get(q)||q;
   const tracks=new Map(),events=[],processedFrames=new Map();
   let lastSource='',serial=0;
-  const keyName='intransit-line1-progress-v1';
+  const keyName=lineCode==='1'?'intransit-line1-progress-v1':
+   'intransit-line'+lineCode+'-progress-v1';
   try{
    const prior=JSON.parse(storage?.getItem(keyName)||'[]');
    if(Array.isArray(prior))events.push(...prior.filter(x=>x&&
@@ -90,7 +100,7 @@
     const occupants=led.occupants?.length?led.occupants:
      led.vehicle?[{...led.vehicle,state:led.state}]:[];
     for(const v of occupants){
-     if(String(v?.line)!=='1'||typeof v.id!=='string'||!v.id||
+     if(String(v?.line)!==lineCode||typeof v.id!=='string'||!v.id||
       Number.isFinite(v.ageSeconds)&&v.ageSeconds>45)continue;
      let quay=null;
      if(QUAY.test(v.quayId)&&mapped.includes(v.quayId))quay=v.quayId;
@@ -227,7 +237,7 @@
      t.missing=true;t.status='NOT_VISIBLE';
      const hasDiagnostics=Array.isArray(frame.gpsObservations);
      const ownDiagnostic=hasDiagnostics?frame.gpsObservations.find(v=>
-      String(v?.line)==='1'&&v.status==='unresolved'&&
+      String(v?.line)===lineCode&&v.status==='unresolved'&&
       (v.id===t.vehicleId||v.vehicleRef===t.vehicleId)):null;
      const knownReasons=new Set(['route-or-direction-unresolved',
       'no-route-match','wrong-direction','ambiguous-route',
@@ -258,16 +268,34 @@
      sequence:t.visited.slice(-6).map(name)
     }));
    prune(now);
-   return {active,events:events.slice(-30).reverse().map(x=>({...x})),
+   return {lineCode,active,events:events.slice(-30).reverse().map(x=>({...x})),
     source:lastSource,observedFrameOnly:true};
   }
   function clear(){events.length=0;tracks.clear();processedFrames.clear();serial=0;save();}
   function exportJson(now=clock()){
-   return JSON.stringify({format:'intransit-line1-sequence-v1',
+   return JSON.stringify({format:'intransit-line'+lineCode+'-sequence-v1',
+    lineCode,
     caveat:'GPS-near is NOT a confirmed physical stop. Gaps are unknown. Browser only.',
     ...summary(now)},null,2);
   }
   return {ingest,summary,clear,exportJson};
  }
- return {create};
+ // Only published source-pattern lines have route-sequence diagnostics.
+ // A catalog route without source patterns remains displayable, not tracked.
+ function availableLines({board,patterns}={}){
+  if(board?.id!=='trondheim-city-lines-catalog')return [];
+  const mapped=new Set((board.nodes||[]).flatMap(n=>[n.quayId,...(Array.isArray(n.stopIds)?n.stopIds:[])]).filter(q=>QUAY.test(q)));
+  return ['1','11'].map(lineCode=>{
+   const valid=(patterns?.lines?.[lineCode]?.patterns||[]).filter(p=>
+    ['inbound','outbound'].includes(p.directionType)&&Array.isArray(p.quays)&&
+    p.quays.length>=2&&p.quays.every(q=>QUAY.test(q)));
+   const quays=new Set(valid.flatMap(p=>p.quays));
+   const mappedQuays=[...quays].filter(q=>mapped.has(q));
+   const usable=valid.some(p=>p.quays.some((q,i)=>
+    i<p.quays.length-1&&mapped.has(q)&&mapped.has(p.quays[i+1])));
+   return {lineCode,mappedQuays:mappedQuays.length,sourceQuays:quays.size,
+    patterns:valid.length,usable};
+  });
+ }
+ return {create,availableLines};
 });

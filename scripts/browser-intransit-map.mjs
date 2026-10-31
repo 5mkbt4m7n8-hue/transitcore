@@ -51,6 +51,18 @@ try{
  assert.match(await page.locator('#line1IncidentCards').textContent(),
   /Ingen sporingsbrudd|Sporingshendelse|gyldige tavleframes/);
  assert.equal(await page.locator('#line1Clear').count(),1,'Line 1 route history can be cleared');
+ assert.equal(await page.locator('#trackedRoute').count(),1);
+ assert.equal(await page.locator('#trackedRoute option[value="1"]').count(),1);
+ assert.equal(await page.locator('#trackedRoute option[value="11"]').count(),1);
+ assert.match(await page.locator('#trackedRouteCoverage').textContent(),/Linje 1/);
+ if(!(await page.locator('#trackedRoute option[value="11"]').isDisabled())){
+   await page.locator('#trackedRoute').selectOption('11');
+   assert.match(await page.locator('#trackedRouteCoverage').textContent(),/Linje 11/);
+   assert.match(await page.locator('#line1Tracks').textContent(),/Ingen linje 11|Buss /);
+   await page.locator('#trackedRoute').selectOption('1');
+   assert.match(await page.locator('#trackedRouteCoverage').textContent(),/Linje 1/);
+ }
+
  assert.match(await page.locator('#line1Tracks').textContent(),/Ingen linje 1|Buss /,
   'Route tracker must show an honest empty state or observed buses');
  await page.locator('#tonstadTest summary').click();
