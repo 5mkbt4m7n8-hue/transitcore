@@ -47,6 +47,20 @@ export function inspectIndex(index,{now=Date.now()}={}){
   renderedScopeFrames:lineQualityOk(multi)&&isCount(multi.renderedScopeSamples)?multi.renderedScopeSamples:0,
   gpsReconciliationFrames:lineQualityOk(multi)&&isCount(multi.sourceReconciliation?.samples)?multi.sourceReconciliation.samples:0,
   gpsReconciliationRows:lineQualityOk(multi)&&isCount(multi.sourceReconciliation?.sourceRows)?multi.sourceReconciliation.sourceRows:0,
+  strictShadowFrames:lineQualityOk(multi)&&isCount(multi.sourceReconciliation?.strictShadow?.samples)?
+   multi.sourceReconciliation.strictShadow.samples:0,
+  strictFocus:Object.fromEntries(['1','11'].map(code=>{
+   const x=lineQualityOk(multi)?multi.sourceReconciliation?.strictShadow?.lines?.[code]:null;
+   return [code,x?{
+    liveRendered:isCount(x.liveRendered)?x.liveRendered:0,
+    liveRejected60:isCount(x.liveRejectedByStrict60)?x.liveRejectedByStrict60:0,
+    sideUnresolved:isCount(x.liveSideUnresolved)?x.liveSideUnresolved:0,
+    differentLed60:isCount(x.liveDifferentLedStrict60)?x.liveDifferentLedStrict60:0,
+    matched60:isCount(x.matched)?x.matched:0,
+    matched85:isCount(x.strict85Match)?x.strict85Match:0,
+    gain85:isCount(x.radiusOnlyGain85)?x.radiusOnlyGain85:0
+   }:null];
+  })),
   // Bounded, anonymized counts for the two initially targeted test lines.
   focusSourceLines:lineQualityOk(multi)&&multi.sourceReconciliation?.samples>0?
    Object.fromEntries(['1','11'].map(code=>{
@@ -165,6 +179,11 @@ export async function probe(){
    ['GPS source-to-render frames',summary.gpsReconciliationFrames??'–'],
    ['GPS provider rows reconciled',summary.gpsReconciliationRows??'–'],
    ['Latest GPS source reconciliation',summary.recentGpsReconciliation===true?'Active':'Not verified'],
+   ['Strict 60/85 shadow frames',summary.strictShadowFrames??'–'],
+   ['Line 1: live GPS rejected by strict 60',summary.strictFocus?.['1']?.liveRejected60??'–'],
+   ['Line 1: strict matches gained with 85',summary.strictFocus?.['1']?.gain85??'–'],
+   ['Line 11: live GPS rejected by strict 60',summary.strictFocus?.['11']?.liveRejected60??'–'],
+   ['Line 11: strict matches gained with 85',summary.strictFocus?.['11']?.gain85??'–'],
    ['Line 1: near but not rendered',summary.focusSourceLines?.['1']?.nearButNotRendered??'–'],
    ['Line 1: distinct near frames',summary.focusSourceLines?.['1']?.separateNearFrames??'–'],
    ['Line 11: near but not rendered',summary.focusSourceLines?.['11']?.nearButNotRendered??'–'],
