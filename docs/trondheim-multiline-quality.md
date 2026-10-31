@@ -326,3 +326,45 @@ bekreftelse av riktig trafikkside.
 
 Diagnostikk: `node scripts/probe-trondheim-strict-root-causes-live.mjs`.
 Regresjon: `node scripts/test-trondheim-strict-root-causes.mjs`.
+
+## GPS V2 – kildeorden og retningslås, nettleserbasert skyggetest
+
+`web/linear/network/gps-v2-shadow.js` er en *separat* eksperimentell
+matcher for linje **1 og 11**. Den leser bare den allerede mottatte
+PixelFrame og Enturs sjekkede JourneyPattern-snapshot,
+`config/gps/atb-journey-patterns-1-11.json`. Den bruker utelukkende
+`led.vehicle` når denne inneholder faktiske GPS-koordinater og identitet.
+Andre samtidige `occupants` har ikke egne koordinater i den samme
+katalogframen og blir **ikke** feilaktig gitt primærbussens GPS.
+
+Første entydige geometriske Quay-kandidat registreres som en **observasjon,
+ikke en bekreftet plattform**. Først etter en annen særskilt frame med en
+annen entydig Quay og samme kortlivede bussidentitet kan samme dokumenterte
+JourneyPattern og én retning støtte en retningslås. Hull i kilde-sekvensen
+på maksimalt seks Quays kan være uobserverte; mellomliggende Quays
+bekreftes ikke passert. Ved motsatt kildeorden, uventet destinasjon eller
+manglende entydig Quay godkjennes ingen ny plattform.
+
+Et korrekt merket, ferskt og kildeverifisert SIRI-at-stop i framen kan
+støtte retning for samme buss; den krever eksplisitt `providerReportedAtStop`,
+`plannedSourceDirection`, og Quay i valgt kilderetning. Et planlagt
+JourneyPattern er **ikke** en GPS-bekreftelse på riktig veikant, en fysisk
+passering eller en bestemt DatedServiceJourney.
+
+Når retning allerede har separat kilde-/sekvensstøtte, filtrerer V2
+kandidater til kompatible JourneyPatterns før geometrien vurderes. Derfor
+kan en Quay med motsatt retning bare 10–35 m unna ignoreres som
+konkurrent i *skyggerapporten*; dette får aldri tenne/flytte en LED.
+Er flere Quays fremdeles mulige, forblir status uavklart. Kandidatens
+radius er foreløpig 85 m, ikke en anbefalt ny produksjonsgrense.
+
+Skyggetesten er **kun aktiv når Linear-nettsiden er åpen** og får nye,
+ferske frames. Den lagrer ikke GPS-historikk eller kjøretøy-ID-er,
+leverer bare summer for siste frame og nullstiller spor ved bytte mellom
+produksjon/staging eller når en buss ikke er sett på tre minutter.
+Den eksisterende uavhengige femminutters 60/85-målingen fortsetter som før.
+Dette er ikke dokumentasjon på faktisk bedre fysisk plassering:
+Neste go/no-go krever relevante live-posisjoner og source-bekreftet kontroll
+ved Lerkendal og Tonstadkrysset.
+
+Test: `node scripts/test-gps-v2-route-shadow.mjs`.

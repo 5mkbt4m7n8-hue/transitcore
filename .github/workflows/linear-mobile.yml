@@ -16,6 +16,8 @@ on:
       - 'scripts/test-line1-route-progress.mjs'
       - 'scripts/test-line1-incident-evidence.mjs'
       - 'scripts/test-multiline-route-progress.mjs'
+      - 'scripts/test-gps-v2-route-shadow.mjs'
+      - 'web/linear/network/gps-v2-shadow.js'
       - 'scripts/test-verified-entur-patterns.mjs'
       - 'scripts/test-multiline-scheduled-quality.mjs'
       - 'scripts/test-trondheim-anomaly-radar.mjs'
@@ -65,6 +67,8 @@ on:
       - 'scripts/test-line1-route-progress.mjs'
       - 'scripts/test-line1-incident-evidence.mjs'
       - 'scripts/test-multiline-route-progress.mjs'
+      - 'scripts/test-gps-v2-route-shadow.mjs'
+      - 'web/linear/network/gps-v2-shadow.js'
       - 'scripts/test-verified-entur-patterns.mjs'
       - 'config/gps/**'
       - 'scripts/test-line1-quality-report.mjs'
@@ -122,6 +126,9 @@ jobs:
 
       - name: Verify explainable GPS/SIRI tracking-break evidence and two-frame threshold
         run: node scripts/test-line1-incident-evidence.mjs
+
+      - name: Verify browser-only V2 GPS route-ordered Quay shadow
+        run: node scripts/test-gps-v2-route-shadow.mjs
 
       - name: Verify source-certified Line 1 and 11 route tracking and privacy
         run: node scripts/test-multiline-route-progress.mjs
