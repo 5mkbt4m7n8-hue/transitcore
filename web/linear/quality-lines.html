@@ -53,6 +53,17 @@ tbody tr:hover td:first-child{background:#243347}
 <p id="status" role="status">Henter historikkmetadata …</p>
 <div id="stats" class="statgrid"></div>
 </section>
+<section id="gpsSourceSection" aria-label="GPS posisjoner som ikke vises på kartet">
+<h2>📡 Hva skjedde med Enturs GPS-posisjoner?</h2>
+<p class="note">Eksisterende Entur-svar sammenlignes med det ferdige Trondheim-kartet, én gang per femminuttersmåling. Tallene viser kategorier for *kildeposisjoner* – ikke busser som nødvendigvis skulle passert et stopp. «Innenfor kartområdet, ikke vist» betyr at vi mangler en sikker forklaring på hvorfor observasjonen ikke ble gjengitt.</p>
+<p id="gpsSourceStatus" role="status">Venter på kilde-til-kart-målinger.</p>
+<div class="statgrid" id="gpsSourceStats"></div>
+<div class="scroll"><table>
+<thead><tr><th>Linje</th><th>Vist i kartet</th><th>Mangler posisjon</th><th>Ugyldig tid</th><th>Gammel posisjon</th><th>Utenfor radius</th><th>Nær kart, ikke vist</th><th>Mangler kjøretøyidentitet</th></tr></thead>
+<tbody id="gpsSourceRows"><tr><td colspan="8">Ingen målinger ennå.</td></tr></tbody>
+</table></div>
+<p class="note">Dette er ikke en GPS-feilrate. Ingen Quay eller faktisk stopp blir utledet fra disse tellingene. «Utenfor radius» betyr utenfor katalogens *visningsradius*, ikke at GPS-posisjonen er feil. Resultatene lagres uten kjøretøy-ID-er eller koordinater og teller samme ID maksimalt én gang per måling. Dagene kan ha ulik dekning.</p>
+</section>
 <section id="radarSection" aria-label="Avviksradar for GPS">
 <h2>🔎 Avviksradar · dokumenterte GPS-avvik</h2>
 <p class="note">Diagnostikken kan være begrenset til eksplisitte retningskonflikter ved GPS som allerede vises på kartet, ikke alle rå GPS-meldinger som ble avvist. En kandidat krever minst seks målinger med GPS-diagnostikk, og uavklart GPS i minst to forskjellige gyldige frames for samme linje eller Quay. Merket «To dager» krever at dette er observert både på valgt dato og den direkte foregående kalenderdagen, med tilstrekkelig kildedekning begge dager. Dette er <strong>ikke</strong> feilprosent eller bevis for faktisk passering.</p>
@@ -104,7 +115,7 @@ function previous(day){return days.filter(x=>x.day<day).sort((a,b)=>b.day.locale
 function metrics(day){return day?.multiLineQuality?.version===1?day.multiLineQuality:null}
 function render(){
  const selected=latest(),m=metrics(selected),prior=$('compare').checked?previous(selected?.day||''):null,p=metrics(prior);
- if(!selected){$('status').textContent='Ingen lagrede døgn er tilgjengelige.';$('rows').innerHTML='<tr><td colspan="9">Ingen data</td></tr>';$('stats').innerHTML='';renderRadar();return}
+ if(!selected){$('status').textContent='Ingen lagrede døgn er tilgjengelige.';$('rows').innerHTML='<tr><td colspan="9">Ingen data</td></tr>';$('stats').innerHTML='';renderSourceDisposition(null,null);renderRadar();return}
  const source=m?.sourceSamples||0;
  $('status').textContent=selected.day+': '+n(selected.count)+' mottatte tidsluker, '+n(selected.errors)+' kildefeil. '+(source?n(source)+' kildeklassifiserte frames.':'Ingen kildeklassifiserte frames ennå.');
  $('stats').innerHTML=[
@@ -133,7 +144,35 @@ function render(){
       p&&last?Math.max(0,p.sourceSamples-last.observedFrames):null))+'</td></tr>';
  }).join(''):'<tr><td colspan="9">Ingen kildeklassifiserte målinger ennå. Eldre opptak påvirkes ikke.</td></tr>';
  if(prior&&p)$('coverage').textContent+=' Tabellen viser valgt dag / forrige dag. Forskjellig antall frames betyr at råtallene ikke kan tolkes som en forbedring eller forverring.';
+ renderSourceDisposition(m,p);
  renderRadar();
+}
+function renderSourceDisposition(m,p){
+ const current=m?.sourceReconciliation?.samples>0?m.sourceReconciliation:null;
+ const previous=$('compare').checked&&p?.sourceReconciliation?.samples>0?p.sourceReconciliation:null;
+ if(!current){
+  $('gpsSourceStatus').textContent='Ingen innsamlede kilde-til-kart-prøver for denne datoen. Et fravær av data er ikke et GPS-avvik.';
+  $('gpsSourceStats').innerHTML='';
+  $('gpsSourceRows').innerHTML='<tr><td colspan="8">Venter på første kilde-til-kart-opptak.</td></tr>';
+  return;
+ }
+ $('gpsSourceStatus').textContent=n(current.samples)+' av '+n(m.sourceSamples)+' kildeberikede frames har posisjonsfordeling.'+
+  (previous?' Viser valgt dag / forrige dag.':'');
+ $('gpsSourceStats').innerHTML=[
+  ['Analyserte frames',current.samples],['Entur-posisjoner mottatt',current.sourceRows],
+  ['Unike identifiserbare observasjoner',current.uniqueKnownVehicles],
+  ['Ukjent eller ikke-katalogført linje',current.unlistedCode]
+ ].map(([label,value])=>'<div class="stat"><small>'+esc(label)+'</small><b>'+n(value)+'</b></div>').join('');
+ const kinds=['rendered','missingPosition','invalidTimestamp','stalePosition',
+  'outsideCatalogRadius','unrenderedNearCatalog','unverifiableIdentity'];
+ const codes=Object.keys(current.lines||{}).filter(code=>/^\d{1,3}$/.test(code))
+  .sort((a,b)=>Number(a)-Number(b));
+ const numberPair=(now,old)=>n(now)+(previous?' / '+(old==null?'–':n(old)):'');
+ $('gpsSourceRows').innerHTML=codes.length?codes.map(code=>{
+  const a=current.lines[code],b=previous?.lines?.[code];
+  return '<tr><td><strong>Linje '+esc(code)+'</strong></td>'+
+   kinds.map(key=>'<td>'+esc(numberPair(a[key],b?.[key]))+'</td>').join('')+'</tr>';
+ }).join(''):'<tr><td colspan="8">Ingen linjer med målegrunnlag.</td></tr>';
 }
 function alertCard(item){
  const label=item.status==='TWO_DAYS'?'Gjennomgående funn · to dager':'Gjentatte funn · valgt dag';

@@ -2,6 +2,7 @@
 import {summarizeLine1ScheduledFrame,validatedLine1ScheduledQuality} from "./trondheim-line1-quality.mjs";
 import {summarizeMultiLineFrame,validatedMultiLineQuality,rollupMultiLineQuality} from "./trondheim-multiline-quality.mjs";
 import {renderedGpsConflicts,SCOPE as RENDERED_SCOPE} from "./trondheim-rendered-gps-conflicts.mjs";
+import {validatedGpsReconciliation} from "./trondheim-gps-source-reconciliation.mjs";
 // Recording runs in the EXISTING five-minute Worker cron, not in a browser.
 const BOARD="trondheim-city-lines-catalog";
 const PREFIX="trondheim-history:v1:";
@@ -180,7 +181,7 @@ export async function handleTrondheimHistory(request,env,authenticate){
   return new Response(result.body,{status:result.status,headers:HEADERS});
  }catch(error){console.error("history storage error",error);return reply({error:"history_storage_error"},503)}
 }
-export async function recordScheduledTrondheimFrame(env,frame,error="",at=new Date().toISOString(),board=null){
+export async function recordScheduledTrondheimFrame(env,frame,error="",at=new Date().toISOString(),board=null,gpsSource=null){
  if(!env.DEVICE_STATUS)return {recorded:false,error:"history_storage_unavailable"};
  const stub=env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName("__trondheim-day-history__"));
  // The regular PixelFrame has no raw gpsObservations field. Only the private
@@ -190,10 +191,14 @@ export async function recordScheduledTrondheimFrame(env,frame,error="",at=new Da
   renderedGpsConflicts(frame,board):null;
  const evidenceFrame=frame&&issues!==null?
   {...frame,gpsObservations:issues,gpsObservationScope:RENDERED_SCOPE}:frame;
+ const baseQuality=evidenceFrame?summarizeMultiLineFrame(evidenceFrame,board):null;
+ const sourceQuality=baseQuality?validatedGpsReconciliation(gpsSource):null;
+ const multiQuality=baseQuality&&sourceQuality?{
+  ...baseQuality,sourceDisposition:sourceQuality}:baseQuality;
  const result=await stub.fetch("https://status.internal/trondheim-history",{method:"POST",
   headers:{"content-type":"application/json"},body:JSON.stringify({action:"record",capturedAt:at,frame,error,
    quality:evidenceFrame?summarizeLine1ScheduledFrame(evidenceFrame,board):null,
-   lineQuality:evidenceFrame?summarizeMultiLineFrame(evidenceFrame,board):null})});
+   lineQuality:multiQuality})});
  if(!result.ok)throw Error("history_write_http_"+result.status);
  return result.json();
 }

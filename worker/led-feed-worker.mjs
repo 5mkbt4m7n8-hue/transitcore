@@ -17,6 +17,7 @@ import { boundedOperation, boundedFetchJson, FRAME_BUDGET_MS, MONITOR_TIMEOUT_MS
 import { handleLinearDraft,linearDraftStorage } from "./linear-draft.mjs";
 import {handleLinearPublish} from "./linear-publish.mjs";
 import {dayHistoryStorage,handleTrondheimHistory,recordScheduledTrondheimFrame} from "./trondheim-history.mjs";
+import {reconcileTrondheimGpsSource} from "./trondheim-gps-source-reconciliation.mjs";
 import {summarizeLine1ScheduledFrame} from "./trondheim-line1-quality.mjs";
 import {fastLine1Storage,recordScheduledFastLine1,handleFastLine1History} from "./trondheim-line1-fast.mjs";
 import {trondheimCatalogProfiles} from "./trondheim-catalog-profiles.mjs";
@@ -1030,7 +1031,7 @@ function frameFromStationArrivals(board, hardware, estimatedCalls, now) {
   return buildPixelFrame(frameContext({board, hardware, estimatedCalls, now}), {strategy: "estimated-calls"});
 }
 
-async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
+async function liveFrameForConfiguration(board, profiles, hardware, now, env, reportGpsQuality=null) {
   if(usesStopAccuracy(board)) {
     if(!env?.DEVICE_STATUS)throw Error("Stop accuracy requires durable history");
     const vehicles=await liveVehiclesForProfiles(profiles);
@@ -1060,6 +1061,15 @@ async function liveFrameForConfiguration(board, profiles, hardware, now, env) {
         gpsFrame=addTonstadSourceToFrame(gpsFrame,evidence,now);
       }catch{ /* source is optional; never hide valid existing bus observations */ }
     }
+    // Only the five-minute history requests a source reconciliation.
+    // This uses the SAME already-fetched provider batch, not another API call.
+    if(reportGpsQuality&&board.id==='trondheim-city-lines-catalog'){
+      try{reportGpsQuality(reconcileTrondheimGpsSource({
+        board:gpsBoard,profiles:vehicleProfiles,vehicles,frame:gpsFrame,now
+      }));}
+      catch(error){console.warn('trondheim_source_reconciliation_unavailable',
+        error?.name||'Error');}
+    }
     frames.push(gpsFrame);
   }
   if (arrivalProfiles.length) {
@@ -1083,10 +1093,12 @@ async function boardFrameResponse(boardId, env, source) {
     stage = name;
     return boundedOperation(name, operation, deadline - Date.now(), { boardId, source });
   };
-  let result, sample, historyFrame=null, historyBoard=null;
+  let result, sample, historyFrame=null, historyBoard=null, historyGpsQuality=null;
   try {
     const { board, profiles, hardware } = await step("configuration", () => configuration(boardId, now));
-    const rawFrame = await step("live_data", () => liveFrameForConfiguration(board, profiles, hardware, now, env));
+    const rawFrame = await step("live_data", () => liveFrameForConfiguration(board, profiles, hardware, now, env,
+      source==="history"&&boardId==="trondheim-city-lines-catalog"
+       ?value=>{historyGpsQuality=value}:null));
     const frame = usesStopAccuracy(board)?rawFrame:await step("motion", () => stabilizeMotionFrame(env, board, rawFrame, now));
     sample = { ...validFrameSummary(frame, boardId), source };
     if(source==="history"&&boardId==="trondheim-city-lines-catalog"){historyFrame=frame;historyBoard=board;}
@@ -1103,7 +1115,7 @@ async function boardFrameResponse(boardId, env, source) {
   // Failed fetches become explicit timeline gaps, never fake empty traffic.
   if(source==="history"&&boardId==="trondheim-city-lines-catalog"){
    try{await boundedOperation("trondheim_history",()=>recordScheduledTrondheimFrame(
-     env,historyFrame,historyFrame?"":sample.detail,new Date(now).toISOString(),historyBoard),1500,{boardId,source});}
+     env,historyFrame,historyFrame?"":sample.detail,new Date(now).toISOString(),historyBoard,historyGpsQuality),1500,{boardId,source});}
    catch(error){console.error("trondheim_history_write_failed",error.message);}
   }
   // A monitoring-storage problem must not discard a valid LED frame.
