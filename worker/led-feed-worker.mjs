@@ -17,6 +17,8 @@ import { boundedOperation, boundedFetchJson, FRAME_BUDGET_MS, MONITOR_TIMEOUT_MS
 import { handleLinearDraft,linearDraftStorage } from "./linear-draft.mjs";
 import {handleLinearPublish} from "./linear-publish.mjs";
 import {dayHistoryStorage,handleTrondheimHistory,recordScheduledTrondheimFrame} from "./trondheim-history.mjs";
+import {summarizeLine1ScheduledFrame} from "./trondheim-line1-quality.mjs";
+import {fastLine1Storage,recordScheduledFastLine1,handleFastLine1History} from "./trondheim-line1-fast.mjs";
 import {trondheimCatalogProfiles} from "./trondheim-catalog-profiles.mjs";
 import {catalogIndex} from "../core/engines/catalog-index.mjs";
 import {createTonstadSourceProbe,addTonstadSourceToFrame} from "./tonstad-live-source.mjs";
@@ -470,6 +472,10 @@ export class DeviceStatus {
 
   async fetch(request) {
     const url = new URL(request.url);
+    if (url.pathname === "/line1-fast-history")
+      return this.state.blockConcurrencyWhile
+        ?this.state.blockConcurrencyWhile(()=>fastLine1Storage(this.state.storage,request))
+        :fastLine1Storage(this.state.storage,request);
     if (url.pathname === "/trondheim-history" || url.pathname === "/trondheim-history/pin")
       return this.state.blockConcurrencyWhile
         ?this.state.blockConcurrencyWhile(()=>dayHistoryStorage(this.state.storage,request))
@@ -754,6 +760,35 @@ function validFrameSummary(frame, boardId) {
   };
 }
 
+// Collect just line 1 vehicle GPS at the 2-minute offset of every
+// five-minute cycle. The full 1282-LED catalog, Oslo boards and extra SIRI
+// journey calls are not polled again. Source sampling is GPS-near only.
+async function runFastLine1Sample(env,now=Date.now()){
+ let quality=null,error='';
+ try{
+  const {board,profiles,hardware}=await boundedOperation('line1_config',
+    ()=>configuration('trondheim-city-lines-catalog',now),5000,{source:'line1-fast'});
+  const profile=profiles.find(p=>p.id==='atb-bus-1-live');
+  if(!profile)throw Error('line1_profile_unavailable');
+  const vehicles=await boundedOperation('line1_gps',
+    ()=>liveVehicles(profile.provider.vehicleEndpoint,profile.provider.codespaceId),
+    5000,{source:'line1-fast'});
+  const onlyLine1=vehicles.filter(v=>String(v.publicCode)==='1');
+  const gpsBoard={...board,routes:[profile.id]};
+  const frame=buildPixelFrame(frameContext({
+   board:gpsBoard,profiles:[profile],hardware,vehicles:onlyLine1,now
+  }));
+  quality=summarizeLine1ScheduledFrame(frame,board);
+  if(!quality)throw Error('line1_quality_unavailable');
+ }catch(cause){
+  error=String(cause?.code||cause?.message||'feed_unavailable').slice(0,100);
+  console.warn('line1_fast_source_error',error);
+ }
+ try{
+  await boundedOperation('line1_fast_store',()=>recordScheduledFastLine1(
+   env,quality,error,new Date(now).toISOString()),1800,{source:'line1-fast'});
+ }catch(cause){console.error('line1_fast_history_write_failed',cause.message);}
+}
 async function runBackgroundChecks(env) {
   await Promise.all([...BOARD_IDS].map(async boardId => {
     // Run the same pipeline directly; workers.dev self-fetches can return 404.
@@ -1305,6 +1340,8 @@ const worker = {
     console.log("Scheduled board check started",new Date(controller.scheduledTime).toISOString(),cron);
     if(cron==="*/5 * * * *"){
       await boardFrameResponse("trondheim-city-lines-catalog",env,"history");
+    }else if(cron==="2-59/5 * * * *"){
+      await runFastLine1Sample(env,controller.scheduledTime);
     }else if(cron==="1-59/5 * * * *"){
       await runBackgroundChecks(env);
     }else{
@@ -1341,6 +1378,8 @@ const worker = {
     }
     if (url.pathname === "/v1/admin/linear-draft") return handleLinearDraft(request,env,secureTokenEquals);
     if (url.pathname === "/v1/admin/linear-publish") return handleLinearPublish(request,env,secureTokenEquals,(path,options)=>githubApi(env,path,options));
+    if (url.pathname === "/v1/trondheim/line1-fast")
+      return handleFastLine1History(request,env);
     if (url.pathname === "/v1/trondheim/history" || url.pathname === "/v1/admin/trondheim/history/demo")
       return handleTrondheimHistory(request,env,secureTokenEquals);
     if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
