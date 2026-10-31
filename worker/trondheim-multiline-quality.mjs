@@ -144,7 +144,11 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
  result.issueCoverageSamples??=0;result.quayIssues??={};
  result.renderedScopeSamples??=0;
  result.sourceReconciliation??={version:1,samples:0,sourceRows:0,
-  unlistedCode:0,uniqueKnownVehicles:0,lines:{}};
+  unlistedCode:0,uniqueKnownVehicles:0,lines:{},reasonFrames:{}};
+ // Old samples predate frame-frequency evidence. They are not backfilled:
+ // only new source-enriched slots contribute to the per-reason frame counts.
+ const existingFrameProvenance=result.sourceReconciliation.reasonFrames!=null;
+ result.sourceReconciliation.reasonFrames??={};
  for(const [sample,delta] of [[oldSample,-1],[newSample,1]]){
   if(sample?.status!=='OK')continue;
   const quality=validatedMultiLineQuality(sample.lineQuality);
@@ -161,7 +165,15 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
    for(const [code,values] of Object.entries(src.lines)){
     const target=aggregate.lines[code]||(aggregate.lines[code]=
      Object.fromEntries(REASONS.map(reason=>[reason,0])));
-    for(const reason of REASONS)target[reason]+=delta*values[reason];
+    const frameCounts=aggregate.reasonFrames[code]||(
+     aggregate.reasonFrames[code]=Object.fromEntries(REASONS.map(reason=>[reason,0])));
+    for(const reason of REASONS){
+     target[reason]+=delta*values[reason];
+     // A legacy aggregate may lack per-reason frame provenance. Correct
+     // its raw counts but never subtract frame counts that were never saved.
+     if(values[reason]>0&&(delta>0||existingFrameProvenance))
+      frameCounts[reason]+=delta;
+    }
    }
   }
   if(quality.issuesComplete){
@@ -189,7 +201,9 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
   ['samples','sourceRows','unlistedCode','uniqueKnownVehicles'].some(k=>
    result.sourceReconciliation[k]<0)||
   Object.values(result.sourceReconciliation.lines).some(item=>
-   REASONS.some(reason=>item[reason]<0)))
+   REASONS.some(reason=>item[reason]<0))||
+  Object.values(result.sourceReconciliation.reasonFrames).some(item=>
+   REASONS.some(reason=>item[reason]<0||item[reason]>result.sourceReconciliation.samples)))
   throw Error('negative_multiline_rollup');
  return result;
 }

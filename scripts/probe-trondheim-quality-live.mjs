@@ -47,6 +47,19 @@ export function inspectIndex(index,{now=Date.now()}={}){
   renderedScopeFrames:lineQualityOk(multi)&&isCount(multi.renderedScopeSamples)?multi.renderedScopeSamples:0,
   gpsReconciliationFrames:lineQualityOk(multi)&&isCount(multi.sourceReconciliation?.samples)?multi.sourceReconciliation.samples:0,
   gpsReconciliationRows:lineQualityOk(multi)&&isCount(multi.sourceReconciliation?.sourceRows)?multi.sourceReconciliation.sourceRows:0,
+  // Bounded, anonymized counts for the two initially targeted test lines.
+  focusSourceLines:lineQualityOk(multi)&&multi.sourceReconciliation?.samples>0?
+   Object.fromEntries(['1','11'].map(code=>{
+    const total=multi.sourceReconciliation.lines?.[code]||{};
+    const observed=multi.sourceReconciliation.reasonFrames?.[code];
+    return [code,{
+     nearButNotRendered:isCount(total.unrenderedNearCatalog)?total.unrenderedNearCatalog:0,
+     separateNearFrames:isCount(observed?.unrenderedNearCatalog)?observed.unrenderedNearCatalog:null,
+     outsideDisplayRadius:isCount(total.outsideCatalogRadius)?total.outsideCatalogRadius:0,
+     stalePosition:isCount(total.stalePosition)?total.stalePosition:0,
+     rendered:isCount(total.rendered)?total.rendered:0
+    }];
+   })):null,
   lineCount:lineQualityOk(multi)?Object.keys(multi.lines).length:0,
   activeAt:new Date(now).toISOString()
  };
@@ -152,6 +165,10 @@ export async function probe(){
    ['GPS source-to-render frames',summary.gpsReconciliationFrames??'–'],
    ['GPS provider rows reconciled',summary.gpsReconciliationRows??'–'],
    ['Latest GPS source reconciliation',summary.recentGpsReconciliation===true?'Active':'Not verified'],
+   ['Line 1: near but not rendered',summary.focusSourceLines?.['1']?.nearButNotRendered??'–'],
+   ['Line 1: distinct near frames',summary.focusSourceLines?.['1']?.separateNearFrames??'–'],
+   ['Line 11: near but not rendered',summary.focusSourceLines?.['11']?.nearButNotRendered??'–'],
+   ['Line 11: distinct near frames',summary.focusSourceLines?.['11']?.separateNearFrames??'–'],
    ['Measured lines',summary.lineCount??'–'],
    ['Latest slot enriched',summary.state==='ACTIVE'?'Yes':'Not verified']
   ];

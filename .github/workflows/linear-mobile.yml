@@ -21,6 +21,8 @@ on:
       - 'scripts/test-trondheim-anomaly-radar.mjs'
       - 'scripts/test-trondheim-rendered-gps-conflicts.mjs'
       - 'scripts/test-trondheim-gps-source-reconciliation.mjs'
+      - 'scripts/test-trondheim-source-repeated-triage.mjs'
+      - 'web/linear/network/source-reconciliation-triage.js'
       - 'worker/trondheim-gps-source-reconciliation.mjs'
       - 'worker/trondheim-rendered-gps-conflicts.mjs'
       - 'web/linear/network/anomaly-radar.js'
@@ -135,6 +137,9 @@ jobs:
 
       - name: Verify source-to-render GPS disposition and bounded history rollup
         run: node scripts/test-trondheim-gps-source-reconciliation.mjs
+
+      - name: Verify source-to-render repeated-frame triage and calendar-day integrity
+        run: node scripts/test-trondheim-source-repeated-triage.mjs
 
       - name: Verify Line 1 quality counts and five-minute recording coverage
         run: node scripts/test-line1-quality-report.mjs
