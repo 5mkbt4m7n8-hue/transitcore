@@ -63,7 +63,7 @@ for(const [code,line] of Object.entries(patternData.lines)){
   const ledA=[...(mapped.get(from)||[])],ledB=[...(mapped.get(to)||[])];
   if(ledA.length===1&&ledB.length===1&&ledA[0]!==ledB[0]&&
     byLed.get(ledA[0])?.size===1&&byLed.get(ledB[0])?.size===1){
-   usablePairs++;goodPair??={from,to,ledA:ledA[0],ledB:ledB[0]};
+   usablePairs++;goodPair??={from,to,ledA:ledA[0],ledB:ledB[0],direction:p.directionType};
   }
  }
  assert(usablePairs>=2,'Too few genuinely unambiguous adjacent GPS Quays for '+code);
@@ -115,7 +115,7 @@ for(const [code,line] of Object.entries(patternData.lines)){
  for(const [evidence,attributes,state] of [
   ['explicit GPS',{quayId:goodPair.from,positionType:'gps-route-quay'},'APPROACHING'],
   ['verified SIRI',{quayId:goodPair.from,positionType:'entur-siri-provider-stop',
-   providerReportedAtStop:true,plannedSourceDirection:'inbound'},'AT_STOP']
+   providerReportedAtStop:true,plannedSourceDirection:goodPair.direction},'AT_STOP']
  ]){
   const isolated=create({board,patterns:patternData,profile:route,lineCode:code,clock:()=>now});
   const input={...frame,leds:[{id:goodPair.ledA,state,occupants:[{
