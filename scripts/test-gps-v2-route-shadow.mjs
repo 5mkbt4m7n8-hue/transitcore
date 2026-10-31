@@ -115,6 +115,38 @@ const shared=create({board,patterns:{lines:{...patterns.lines,'11':{patterns:[
 shared.ingest(e1,{now:t0+1000});
 assert.equal(shared.ingest(e2,{now:t0+11000}).lines['11'].acceptedBySourceSequence,0,
  'An identical A→B order possible in both directions cannot lock either direction');
+// Use real checked-in Entur Quay IDs and actual catalog coordinates for the
+// two named review sites. A single frame there must never prove a direction,
+// a stop or a physical traffic side even if GPS is exactly on a Quay.
+const actualBoard=JSON.parse(readFileSync(new URL(
+ '../config/boards/trondheim-city-lines-catalog.json',import.meta.url),'utf8'));
+const actualPatterns=JSON.parse(readFileSync(new URL(
+ '../config/gps/atb-journey-patterns-1-11.json',import.meta.url),'utf8'));
+const realPilot=create({board:actualBoard,patterns:actualPatterns});
+for(const [id,line] of [['NSR:Quay:102720','1'],['NSR:Quay:73421','11'],
+ ['NSR:Quay:102733','1']]){
+ const node=actualBoard.nodes.find(x=>x.quayId===id);
+ assert(node&&Number.isInteger(node.led)&&Number.isFinite(node.lat),
+  'Named pilot site must resolve to public verified Quay '+id);
+ assert(actualPatterns.lines[line].patterns.some(p=>p.quays.includes(id)),
+  'Named site must have documented source route '+id);
+ const one=make(t0+40000+Number(node.led),node,{
+  code:line,latitude:node.lat,longitude:node.lon,id:'REAL-PILOT-PRIVATE'});
+ one.leds[0].id=node.led;
+ const separate=create({board:actualBoard,patterns:actualPatterns});
+ const observed=separate.ingest(one,{now:Date.parse(one.generatedAt)+1000});
+ assert.equal(observed.lines[line].acceptedBySourceSequence,0,
+  'No single-frame direction/side approval at named site '+id);
+ assert(!JSON.stringify(observed).includes(id));
+ assert(!JSON.stringify(observed).includes('REAL-PILOT-PRIVATE'));
+}
+const dual=make(t0,a);
+dual.leds[0].occupants=[{id:'SECOND-BUS-SHARES-LED',line:'1',
+ positionType:'gps-nearest-stop'}];
+const onlyPrimary=create({board,patterns}).ingest(dual,{now:t0+1000});
+assert.equal(onlyPrimary.lines['1'].comparedGps,1,
+ 'Do not attribute primary vehicle GPS to other occupants on the same LED');
+
 const js=readFileSync(new URL('../web/linear/index.html',import.meta.url),'utf8');
 assert(js.includes('InTransitGpsV2Shadow.create('));
 assert(js.includes('gpsV2Shadow.ingest(frame,{source})'));
