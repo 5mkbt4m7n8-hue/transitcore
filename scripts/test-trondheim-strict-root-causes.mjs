@@ -116,7 +116,7 @@ const config={
  profiles:[{line:{publicCode:'11'},stops:[
  {id:'NSR:Quay:123456',name:'Lerkendal'},
  {id:'NSR:Quay:123999',name:'Lerkendal gård'}]}],
- competitors:{quays:[['NSR:Quay:123499','NSR:StopPlace:123',63.42,10.3801]}
+ competitors:{quays:[['NSR:Quay:123499','NSR:StopPlace:123',63.42,10.3801]]}
 };
 const focus=inspectNamedQuays(config);
 assert.equal(focus[0].place,'Lerkendal');
