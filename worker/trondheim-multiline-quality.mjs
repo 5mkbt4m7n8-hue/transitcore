@@ -89,7 +89,8 @@ export function summarizeMultiLineFrame(frame,board){
  // are withheld rather than silently truncated and presented as complete.
  const issuesComplete=diagnosticAvailable&&quayIssues.size<=200;
  return {version:1,kind:'trondheim-multiline-quality-v1',
-  diagnosticAvailable,lines:counts,issuesComplete,
+  diagnosticAvailable,lines:counts,
+  ...(frame.gpsObservationScope==='rendered-direction-conflict-only'?{diagnosticScope:frame.gpsObservationScope}:{}),issuesComplete,
   issues:issuesComplete?[...quayIssues].map(([key,hits])=>{
    const cut=key.indexOf('|');return [key.slice(0,cut),key.slice(cut+1),hits];
   }):[]};
@@ -124,6 +125,7 @@ export function validatedMultiLineQuality(value){
   }
  }
  return {version:1,kind:value.kind,diagnosticAvailable:value.diagnosticAvailable,
+  ...(value.diagnosticScope==='rendered-direction-conflict-only'?{diagnosticScope:value.diagnosticScope}:{}),
   lines:safe,issuesComplete,issues};
 }
 
@@ -135,12 +137,14 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
  if(result.version!==1)throw Error('invalid_multiline_rollup');
  // Existing daily metadata from older versions has no Quay counters.
  result.issueCoverageSamples??=0;result.quayIssues??={};
+ result.renderedScopeSamples??=0;
  for(const [sample,delta] of [[oldSample,-1],[newSample,1]]){
   if(sample?.status!=='OK')continue;
   const quality=validatedMultiLineQuality(sample.lineQuality);
   if(!quality)continue;
   result.sourceSamples+=delta;
   if(quality.diagnosticAvailable)result.diagnosticSamples+=delta;
+  if(quality.diagnosticScope==='rendered-direction-conflict-only')result.renderedScopeSamples+=delta;
   if(quality.issuesComplete){
    result.issueCoverageSamples+=delta;
    for(const [code,quay,hits] of quality.issues){
@@ -160,7 +164,7 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
   }
  }
  if(result.sourceSamples<0||result.diagnosticSamples<0||
-  result.issueCoverageSamples<0||
+  result.issueCoverageSamples<0||result.renderedScopeSamples<0||
   Object.values(result.lines).some(item=>Object.values(item).some(x=>x<0))||
   Object.values(result.quayIssues).some(item=>item.hits<0||item.frames<0))
   throw Error('negative_multiline_rollup');
