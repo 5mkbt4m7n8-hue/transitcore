@@ -175,8 +175,9 @@
     rows:mergeRows(frames,observations),events:observations.length,
     disclaimer:'Counts are observations in sampled frames, not successful/missed real stops.'};
   }
-  function historyReport(records,{day=null}={}){
+  function historyReport(records,{day=null,fastRecords=[]}={}){
    if(!Array.isArray(records))throw Error('invalid-history-records');
+   if(!Array.isArray(fastRecords))throw Error('invalid-fast-records');
    const selected=records.slice().sort((a,b)=>a.slot-b.slot),frames=[];
    let errors=0,gaps=0,previous=null,sourceQualitySamples=0,diagnosticSamples=0;
    for(const sample of selected){
@@ -209,10 +210,40 @@
     frames.push({at:Date.parse(sample.capturedAt),source:'recording',
       items:items||count(sample.frame,{mode:'history'})});
    }
+   let fastSamples=0,fastErrors=0;
+   const seenFast=new Set();
+   for(const extra of fastRecords){
+    if(!Number.isFinite(extra?.slot)||!Number.isFinite(Date.parse(extra.capturedAt))||
+      seenFast.has(extra.slot))throw Error('invalid-fast-time');
+    seenFast.add(extra.slot);
+    if(extra.status!=='OK'){fastErrors++;continue;}
+    const proof=extra.quality;
+    if(proof?.version!==1||proof.kind!=='scheduled-line1-quay-snapshot'||
+      !Array.isArray(proof.items)||proof.items.length>180){fastErrors++;continue;}
+    const entries=new Map();let valid=true;
+    for(const row of proof.items){
+     const quay=row?.[0],counts=row?.[1];
+     if(!quays.has(quay)||!byQuay.has(quay)||entries.has(quay)||!counts||
+       !['siri','gps','ledOnly','unresolved'].every(k=>
+         Number.isSafeInteger(counts[k])&&counts[k]>=0&&counts[k]<=5000)){
+      valid=false;break;
+     }
+     entries.set(quay,{siri:counts.siri,gps:counts.gps,
+      ledOnly:counts.ledOnly,unresolved:counts.unresolved,
+      lost:0,conflict:0,gap:0});
+    }
+    if(!valid){fastErrors++;continue;}
+    frames.push({at:Date.parse(extra.capturedAt),source:'line1-fast',items:[...entries]});
+    sourceQualitySamples++;fastSamples++;
+    if(proof.diagnosticsAvailable===true)diagnosticSamples++;
+   }
+   frames.sort((a,b)=>a.at-b.at);
    return {mode:'history',source:'recording',day,samples:frames.length,
     sourceQualitySamples,diagnosticSamples,
-    total:selected.length,errors,gaps,rows:mergeRows(frames),
-    first:selected[0]?.capturedAt||null,last:selected.at(-1)?.capturedAt||null,
+    total:selected.length+fastRecords.length,errors:errors+fastErrors,gaps,
+    fastSamples,fastTotal:fastRecords.length,fastErrors,rows:mergeRows(frames),
+    first:frames[0]?nowIso(frames[0].at):selected[0]?.capturedAt||null,
+    last:frames.at(-1)?nowIso(frames.at(-1).at):selected.at(-1)?.capturedAt||null,
     disclaimer:sourceQualitySamples
       ?'Five-minute server snapshots include per-Quay source evidence only for newer records. No continuous stop or GPS path tracking.'
       :'Older five-minute recordings contain LED-only frames; they cannot establish SIRI/GPS stop evidence.'};
