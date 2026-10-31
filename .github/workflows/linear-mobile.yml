@@ -21,6 +21,9 @@ on:
       - 'scripts/test-trondheim-anomaly-radar.mjs'
       - 'scripts/test-trondheim-rendered-gps-conflicts.mjs'
       - 'scripts/test-trondheim-gps-source-reconciliation.mjs'
+      - 'scripts/test-trondheim-strict-gps-shadow.mjs'
+      - 'worker/trondheim-strict-shadow.mjs'
+      - 'config/gps/trondheim-quay-competitors-shadow.json'
       - 'scripts/test-trondheim-source-repeated-triage.mjs'
       - 'web/linear/network/source-reconciliation-triage.js'
       - 'worker/trondheim-gps-source-reconciliation.mjs'
@@ -137,6 +140,9 @@ jobs:
 
       - name: Verify source-to-render GPS disposition and bounded history rollup
         run: node scripts/test-trondheim-gps-source-reconciliation.mjs
+
+      - name: Shadow test PR279 strict 60 vs 85 metres and competing Quays
+        run: node scripts/test-trondheim-strict-gps-shadow.mjs
 
       - name: Verify source-to-render repeated-frame triage and calendar-day integrity
         run: node scripts/test-trondheim-source-repeated-triage.mjs
