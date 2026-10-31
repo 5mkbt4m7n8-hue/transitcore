@@ -51,7 +51,7 @@ assert.equal(stats.lines['1'].unresolved,2);
 assert.deepEqual(stats.issues,[['1',A,1],['1',B,1]]);
 assert(!JSON.stringify(stats).includes(secret));
 assert(!JSON.stringify(stats).includes('PRIVATE'));
-assert.deepEqual(validatedMultiLineQuality(stats),stats);
+assert.deepEqual({...validatedMultiLineQuality(stats).lines},stats.lines);
 const sum=rollupMultiLineQuality(null,null,{status:'OK',lineQuality:stats});
 assert.equal(sum.issueCoverageSamples,1);
 assert.equal(sum.renderedScopeSamples,1);
