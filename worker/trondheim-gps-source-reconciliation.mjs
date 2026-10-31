@@ -3,6 +3,7 @@
 // tracking/matching engine: only explain observable source-to-render outcomes.
 // Do not persist identities, coordinates, destinations or raw provider records.
 import {distance} from '../core/frame/mapping-support.mjs';
+import {validateStrictShadow} from './trondheim-strict-shadow.mjs';
 import {catalogIndex} from '../core/engines/catalog-index.mjs';
 
 export const SCOPE='provider-input-render-reconciliation-v1';
@@ -94,7 +95,11 @@ export function validatedGpsReconciliation(input){
   total+=REASONS.reduce((sum,k)=>sum+row[k],0);
  }
  if(total!==input.uniqueKnownVehicles)return null;
+ // Preserve the previously verified source counters even if an optional
+ // strict-shadow measurement is malformed or unavailable.
+ const shadow=validateStrictShadow(input.strictShadow);
  return {version:1,scope:SCOPE,sourceRows:input.sourceRows,
   unlistedCode:input.unlistedCode,uniqueKnownVehicles:input.uniqueKnownVehicles,
+  ...(shadow&&shadow.sourceRows===input.sourceRows?{strictShadow:shadow}:{}),
   lines:clean};
 }
