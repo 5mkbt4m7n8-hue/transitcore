@@ -45,6 +45,8 @@ export function inspectIndex(index,{now=Date.now()}={}){
   diagnosticFrames:lineQualityOk(multi)?multi.diagnosticSamples:0,
   quayCoverageFrames:lineQualityOk(multi)?multi.issueCoverageSamples:0,
   renderedScopeFrames:lineQualityOk(multi)&&isCount(multi.renderedScopeSamples)?multi.renderedScopeSamples:0,
+  gpsReconciliationFrames:lineQualityOk(multi)&&isCount(multi.sourceReconciliation?.samples)?multi.sourceReconciliation.samples:0,
+  gpsReconciliationRows:lineQualityOk(multi)&&isCount(multi.sourceReconciliation?.sourceRows)?multi.sourceReconciliation.sourceRows:0,
   lineCount:lineQualityOk(multi)?Object.keys(multi.lines).length:0,
   activeAt:new Date(now).toISOString()
  };
@@ -84,6 +86,8 @@ export function inspectLatest(summary,page){
   sampleStatus:'OK',latestSlotAgeMinutes:lastAge,
   recentDiagnosticScope:line.diagnosticScope==='rendered-direction-conflict-only'?
    'rendered-direction-conflict-only':'unspecified-or-upstream',
+  recentGpsReconciliation:line.sourceDisposition?.scope===
+    'provider-input-render-reconciliation-v1',
   recentQuayCoverage:line.issuesComplete===true,
   recentGpsDiagnostics:line.diagnosticAvailable===true};
 }
@@ -145,6 +149,9 @@ export async function probe(){
    ['Complete Quay diagnostic frames',summary.quayCoverageFrames??'–'],
    ['Frames with limited rendered GPS conflict scope',summary.renderedScopeFrames??'–'],
    ['Latest diagnostic scope',summary.recentDiagnosticScope??'–'],
+   ['GPS source-to-render frames',summary.gpsReconciliationFrames??'–'],
+   ['GPS provider rows reconciled',summary.gpsReconciliationRows??'–'],
+   ['Latest GPS source reconciliation',summary.recentGpsReconciliation===true?'Active':'Not verified'],
    ['Measured lines',summary.lineCount??'–'],
    ['Latest slot enriched',summary.state==='ACTIVE'?'Yes':'Not verified']
   ];
