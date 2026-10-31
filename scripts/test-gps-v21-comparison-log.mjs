@@ -22,12 +22,11 @@ const board={id:'trondheim-city-lines-catalog',nodes:[a,b,c,x,y],
 const patterns={lines:{
  '1':{patterns:[
   {directionType:'inbound',quays:[a.quayId,c.quayId]},
-  {directionType:'outbound',quays:[b.quayId]}
+  {directionType:'outbound',quays:[b.quayId,'NSR:Quay:901004']}
  ]},
  '11':{patterns:[{directionType:'inbound',quays:[x.quayId,y.quayId]},
   {directionType:'outbound',quays:[y.quayId,x.quayId]}]}
 }};
-patterns.lines['1'].patterns[1].quays.push(c.quayId);
 const SECRET='NEVER-STORE-BUS-ID',SRC='production';
 function make(t,node,opts={}){
  const vehicle={id:opts.id||SECRET,line:opts.line||'1',
