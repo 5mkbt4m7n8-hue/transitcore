@@ -118,9 +118,9 @@
       <p class="quality-muted">* Ordinære opptak hvert femte minutt kan inneholde SIRI-bevis. Mellommålinger for linje 1 er GPS-only på minutter 2, 7, 12 osv. Eldre data er LED-only. Ingen av seriene beviser alle faktiske holdeplassbesøk.</p>
     </div>
   </details>
-  <details class="diagnostics" id="line1Progress"><summary>🚌 Linje 1 / 11 · spor A → B → C (test)</summary>
+  <details class="diagnostics" id="line1Progress"><summary>🚌 Trondheim · kildeverifisert A → B → C-sporing (test)</summary>
     <div class="diagbody">
-      <p class="tonstad-note">Sporede rutemønstre: linje 1 og 11 (når Quays er kartlagt). Retningen kan utledes fra GPS-rekkefølge, men blir ikke kildebekreftet uten eksplisitt SIRI-bevis. Andre Trondheim-linjer forblir synlige på kartet uten spekulativ stoppsekvensdiagnose.</p>
+      <p class="tonstad-note">Velg en linje med dokumentert JourneyPattern og Quay-rekkefølge fra Entur. Retning fra GPS-sekvens er bare utledet; eksplisitt SIRI-bevis kreves for kildebekreftet stopp. Kun valgt ekstra linje følges mens fanen er åpen, slik at mobilen ikke må spore alle busslinjer samtidig.</p>
       <div class="tools"><label>Velg linje <select id="trackedRoute"><option value="1">Linje 1</option><option value="11">Linje 11</option></select></label></div>
       <p id="trackedRouteCoverage" class="tonstad-note">Sjekker kildemønstre og Quay-kartlegging.</p>
       <div id="line1Tracks" aria-live="polite"><p class="tonstad-note">Venter på første gyldige buss-frame.</p></div>
@@ -181,7 +181,7 @@ const SIGNALS=TransitCoreSignals;SIGNALS.applyCssVariables(document);
 const $=id=>document.getElementById(id),BASE="../../config/",FLYBUSS="flybuss-trondheim-fb73-live";
 let frameClient,frameClientId,board,hardware,flyBoard,flyHardware,catalogBoard,catalogHardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,diagnosticTakeovers=0,diagnosticVehicles=new Map,diagnosticOneSided=new Map,colorCycleTimer=null;
 let refreshGeneration=0;
-let line1Tracker=null,line11Tracker=null,line11Coverage=null;
+let line1Tracker=null,line11Tracker=null,line11Coverage=null,trackedPatterns=null,trackedCoverage=new Map(),extraTracker=null,extraTrackerCode=null;
 let line1Quality=null,qualityHistoryReport=null,qualityReportCache=null,qualityDaysLoaded=false;
 let line1Corridors=null,qualityComparisonReport=null,qualityAvailableDays=[];
 let lastFeedStatus="WAITING",lastFeedError="",lastFeedBoardId="";
@@ -405,27 +405,45 @@ function showInfo(led){
  $("info").classList.add("show");
 }
 function selectedRouteTracker(){
-  return $("trackedRoute").value==="11"?line11Tracker:line1Tracker;
+  const code=$("trackedRoute").value;
+  if(code==="1")return line1Tracker;
+  if(code==="11")return line11Tracker;
+  if(!trackedCoverage.get(code)?.usable||!trackedPatterns?.lines?.[code])return null;
+  if(extraTrackerCode!==code){
+    // Recreating the tracker when switching routes prevents artificial
+    // NOT_VISIBLE incidents after a long inactive period. History survives
+    // in its own browser key, but no vehicle ID survives the switch.
+    const profile=profiles.find(p=>p.id==="atb-bus-"+code+"-live");
+    if(!profile)return null;
+    extraTracker=InTransitLine1Progress.create({
+      board:catalogBoard,patterns:trackedPatterns,profile,lineCode:code,
+      storage:typeof localStorage==="undefined"?null:localStorage
+    });
+    extraTrackerCode=code;
+  }
+  return extraTracker;
 }
 function updateLine1Progress(frame=null){
   if(!line1Tracker)return;
   const source=stagingSelected()?"staging":"production";
-  // Both lines read the same already-fetched PixelFrame: no extra Entur work.
+  // Only one additional route is active to keep mobile CPU bounded.
+  // All selected routes reuse the same already-fetched PixelFrame.
+  const selected=$("trackedRoute").value;
+  const tracker=selectedRouteTracker();
   if(frame){
     line1Tracker.ingest(frame,{source});
     line11Tracker?.ingest(frame,{source});
+    if(tracker&&tracker!==line1Tracker&&tracker!==line11Tracker)tracker.ingest(frame,{source});
   }
-  const selected=$("trackedRoute").value;
-  const tracker=selectedRouteTracker();
   const snapshot=tracker?tracker.summary():
     {lineCode:selected,active:[],events:[],observedFrameOnly:true};
-  $("trackedRouteCoverage").textContent=selected==="11"
-    ?line11Tracker
-      ?"Linje 11: "+line11Coverage.mappedQuays+"/"+line11Coverage.sourceQuays+
-        " Quays i kildekatalogen er på katalogtavlen, "+line11Coverage.patterns+
-        " rutemønstre. Kun observerte, entydige Quays spores."
-      :"Linje 11 har ikke nok dokumenterte Quay-koblinger til sikker rutefølgesporing. Ingen avvik utledes."
-    :"Linje 1 har eksisterende kildebasert A → B → C-diagnose. Kvalitetsrapporten over gjelder foreløpig bare linje 1.";
+  const coverage=trackedCoverage.get(selected);
+  $("trackedRouteCoverage").textContent=tracker&&coverage
+    ?"Linje "+selected+": "+coverage.mappedQuays+"/"+coverage.sourceQuays+
+      " kilde-Quays kartlagt; "+coverage.patterns+" Entur-rutemønstre. "+
+      (selected==="1"?"Automatisk kvalitetsrapport gjelder kun linje 1.":
+       "Sporing gjelder bare observerte Quays mens siden er åpen. Ingen ekstra Entur-kall.")
+    :"Ingen sikre source-pattern-/Quay-koblinger for valgt linje. Ingen ruteavvik utledes.";
   const names={SOURCE_STOP:"SIRI-bekreftet ved stopp",GPS_NEAR:"GPS nær holdeplass",
     CONFLICT:"Rutesekvens i konflikt",NOT_VISIBLE:"Ikke lenger i mottatt frame"};
   $("line1Tracks").innerHTML=snapshot.active.length?snapshot.active.map(item=>{
@@ -798,15 +816,25 @@ async function setMapMode(network){
  }
 }
 $("linearMode").onclick=()=>setMapMode(false);$("networkMode").onclick=()=>setMapMode(true);
-Promise.all([json(`${BASE}boards/trondheim-flybuss-live.json`),json(`${BASE}hardware/trondheim-flybuss-live-hardware.json`),json(`${BASE}boards/trondheim-city-lines-catalog.json`),json(`${BASE}gps/atb-journey-patterns-1-11.json`)]).then(async values=>{let line1Patterns;[flyBoard,flyHardware,catalogBoard,line1Patterns]=values;catalogHardware={leds:{count:catalogBoard.leds.count},assignments:catalogBoard.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))};board=catalogBoard;hardware=catalogHardware;profiles=await Promise.all([...new Set([...catalogBoard.routes,FLYBUSS])].map(id=>json(`${BASE}routes/${id}.json`)));line1Tracker=InTransitLine1Progress.create({board:catalogBoard,patterns:line1Patterns,profile:profiles.find(p=>p.id==="atb-bus-1-live"),storage:typeof localStorage==="undefined"?null:localStorage});
-line11Coverage=InTransitLine1Progress.availableLines({board:catalogBoard,patterns:line1Patterns}).find(info=>info.lineCode==="11");
+Promise.all([json(`${BASE}boards/trondheim-flybuss-live.json`),json(`${BASE}hardware/trondheim-flybuss-live-hardware.json`),json(`${BASE}boards/trondheim-city-lines-catalog.json`),json(`${BASE}gps/atb-journey-patterns-1-11.json`),...[1,2,3,4,5].map(i=>json(`${BASE}gps/atb-verified-patterns-${String(i).padStart(2,"0")}.json`))]).then(async values=>{let line1Patterns;const [fullFly,fullHardware,fullBoard,oldPatterns,...extraFiles]=values;[flyBoard,flyHardware,catalogBoard,line1Patterns]=[fullFly,fullHardware,fullBoard,oldPatterns];trackedPatterns={...line1Patterns,lines:{...Object.assign({},...extraFiles.map(f=>f.lines)),...line1Patterns.lines}};catalogHardware={leds:{count:catalogBoard.leds.count},assignments:catalogBoard.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))};board=catalogBoard;hardware=catalogHardware;profiles=await Promise.all([...new Set([...catalogBoard.routes,FLYBUSS])].map(id=>json(`${BASE}routes/${id}.json`)));line1Tracker=InTransitLine1Progress.create({board:catalogBoard,patterns:line1Patterns,profile:profiles.find(p=>p.id==="atb-bus-1-live"),storage:typeof localStorage==="undefined"?null:localStorage});
+const approved=InTransitLine1Progress.availableLines({board:catalogBoard,patterns:trackedPatterns});
+trackedCoverage=new Map(approved.map(info=>[info.lineCode,info]));
+const enabled=approved.filter(info=>info.usable&&profiles.some(p=>p.id==="atb-bus-"+info.lineCode+"-live"));
+$("trackedRoute").innerHTML=enabled.map(info=>'<option value="'+esc(info.lineCode)+
+  '">Linje '+esc(info.lineCode)+'</option>').join("");
+line11Coverage=trackedCoverage.get("11");
 if(line11Coverage?.usable&&profiles.some(p=>p.id==="atb-bus-11-live")){
   line11Tracker=InTransitLine1Progress.create({board:catalogBoard,patterns:line1Patterns,
     profile:profiles.find(p=>p.id==="atb-bus-11-live"),lineCode:"11",
     storage:typeof localStorage==="undefined"?null:localStorage});
 }
 $("trackedRoute").querySelector('option[value="11"]').disabled=!line11Tracker;
-updateLine1Progress();line1Corridors=InTransitLine1Corridors.create({patterns:line1Patterns,profile:profiles.find(p=>p.id==="atb-bus-1-live")});line1Quality=InTransitLine1Quality.create({board:catalogBoard,patterns:line1Patterns,profile:profiles.find(p=>p.id==="atb-bus-1-live"),storage:typeof localStorage==="undefined"?null:localStorage});updateQualityReport();$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");const params=new URLSearchParams(location.search),requested=params.get("route");if(params.get("tonstad")==="1")$("tonstadTest").open=true;if(params.get("line1")==="1")$("line1Progress").open=true;if(params.get("track")==="11"&&line11Tracker){$("trackedRoute").value="11";$("line1Progress").open=true;updateLine1Progress();}if(params.get("quality")==="1")$("line1Quality").open=true;if(profiles.some(p=>p.id===requested))$("route").value=requested;$("source").value=params.get("source")==="staging"?"staging":"production";build();refresh();if(params.get("view")==="network"){await setMapMode(true);if(params.get("stop"))networkMap?.focusStop(params.get("stop"));}}).catch(error=>$("status").textContent=error.message);
+updateLine1Progress();line1Corridors=InTransitLine1Corridors.create({patterns:line1Patterns,profile:profiles.find(p=>p.id==="atb-bus-1-live")});line1Quality=InTransitLine1Quality.create({board:catalogBoard,patterns:line1Patterns,profile:profiles.find(p=>p.id==="atb-bus-1-live"),storage:typeof localStorage==="undefined"?null:localStorage});updateQualityReport();$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");const params=new URLSearchParams(location.search),requested=params.get("route");if(params.get("tonstad")==="1")$("tonstadTest").open=true;if(params.get("line1")==="1")$("line1Progress").open=true;if(trackedCoverage.get(params.get("track"))?.usable&&profiles.some(p=>
+  p.id==="atb-bus-"+params.get("track")+"-live")){
+  $("trackedRoute").value=params.get("track");
+  $("line1Progress").open=true;
+  updateLine1Progress();
+}if(params.get("quality")==="1")$("line1Quality").open=true;if(profiles.some(p=>p.id===requested))$("route").value=requested;$("source").value=params.get("source")==="staging"?"staging":"production";build();refresh();if(params.get("view")==="network"){await setMapMode(true);if(params.get("stop"))networkMap?.focusStop(params.get("stop"));}}).catch(error=>$("status").textContent=error.message);
 </script></body></html>
 
 
