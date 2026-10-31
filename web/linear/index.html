@@ -99,7 +99,7 @@
       </section>
       <section id="qualityCorridors" class="quality-priority" aria-label="Strekningsanalyse">
         <h3>Strekninger å undersøke (maks 10)</h3>
-        <p class="corridor-note">Basert på avvik ved endeholdеplassene i Enturs rutemønster, ikke på bekreftet kjøring mellom dem. Retningen er planlagt rutemønster – ikke verifisert retning for observasjonene.</p>
+        <p class="corridor-note">Basert på avvik ved endeholdeplassene i Enturs rutemønster, ikke på bekreftet kjøring mellom dem. Retningen er planlagt rutemønster – ikke verifisert retning for observasjonene.</p>
         <div class="tools"><button id="qualityCompareDay" type="button">Sammenlign med forrige lagrede dag</button></div>
         <p id="qualityComparisonStatus" class="corridor-note">Ingen sammenligningsdag valgt.</p>
         <p id="qualityCorridorNote" class="corridor-note">Venter på måledata.</p>
@@ -513,56 +513,87 @@ function updateQualityReport(frame=null){
   '</td><td>'+r.ledOnly+'</td><td>'+(report.diagnosticSamples===0?'–':r.unresolved)+'</td><td>'+r.lost+
   '</td><td>'+(r.conflict+r.gap)+'</td></tr>').join("");
 }
+async function fetchQualityDay(day){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(day))throw Error("Velg en dato");
+ let cursor=null,records=[],pages=0;
+ do{
+  if(++pages>12)throw Error("For mange historikksider");
+  const query=new URLSearchParams({day,limit:"40"});
+  if(cursor)query.set("cursor",cursor);
+  const page=await qualityJson("/v1/trondheim/history?"+query);
+  if(page.day!==day||!Array.isArray(page.records))throw Error("Ugyldig historikksvar");
+  records.push(...page.records);
+  cursor=page.nextCursor||null;
+ }while(cursor);
+ let fastRecords=[],fastWarning="";
+ try{
+  let fastCursor=null,fastPages=0;
+  do{
+   if(++fastPages>12)throw Error("For mange hurtigmålingssider");
+   const query=new URLSearchParams({day,limit:"40"});
+   if(fastCursor)query.set("cursor",fastCursor);
+   const extra=await qualityJson("/v1/trondheim/line1-fast?"+query);
+   if(extra.day!==day||!Array.isArray(extra.records))
+    throw Error("Ugyldig svar fra hurtigmålinger");
+   fastRecords.push(...extra.records);
+   fastCursor=extra.nextCursor||null;
+  }while(fastCursor);
+ }catch(error){fastWarning="Mellommålinger mangler: "+error.message;fastRecords=[];}
+ return {report:line1Quality.historyReport(records,{day,fastRecords}),warning:fastWarning};
+}
 async function loadQualityHistory(){
  if(!line1Quality)return;
  $("qualityLoad").disabled=true;
  try{
   if(!qualityDaysLoaded){
    const index=await qualityJson("/v1/trondheim/history");
-   const days=Array.isArray(index.days)?index.days:[];
-   $("qualityDay").innerHTML='<option value="">Velg dato</option>'+days.map(d=>
-    '<option value="'+esc(d.day)+'">'+esc(d.day)+' · '+d.count+' målinger</option>').join("");
+   qualityAvailableDays=(Array.isArray(index.days)?index.days:[])
+    .filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d.day)).map(d=>d.day).sort().reverse();
+   $("qualityDay").innerHTML='<option value="">Velg dato</option>'+
+    (index.days||[]).filter(d=>qualityAvailableDays.includes(d.day))
+    .map(d=>'<option value="'+esc(d.day)+'">'+esc(d.day)+' · '+d.count+' målinger</option>').join("");
    qualityDaysLoaded=true;
    $("qualityMode").value="history";
    updateQualityReport();
-   $("qualityStatus").textContent=days.length?"Velg dato og trykk Analyser valgt dato.":"Ingen serveropptak tilgjengelig ennå.";
+   $("qualityStatus").textContent=qualityAvailableDays.length?
+    "Velg dato og trykk Analyser valgt dato.":"Ingen serveropptak tilgjengelig ennå.";
    return;
   }
   const day=$("qualityDay").value;
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(day))throw Error("Velg en dato");
-  let cursor=null,records=[],pages=0;
-  do{
-   if(++pages>12)throw Error("For mange historikksider");
-   const query=new URLSearchParams({day,limit:"40"});
-   if(cursor)query.set("cursor",cursor);
-   const page=await qualityJson("/v1/trondheim/history?"+query);
-   if(page.day!==day||!Array.isArray(page.records))throw Error("Ugyldig historikksvar");
-   records.push(...page.records);
-   cursor=page.nextCursor||null;
-  }while(cursor);
-  // Additional GPS-only snapshots at minute 2,7,… supplement the regular
-  // minute 0,5,… full board recording. An older Worker may not serve this yet.
-  let fastRecords=[],fastWarning="";
-  try{
-   let fastCursor=null,fastPages=0;
-   do{
-    if(++fastPages>12)throw Error("For mange hurtigmålingssider");
-    const query=new URLSearchParams({day,limit:"40"});
-    if(fastCursor)query.set("cursor",fastCursor);
-    const extra=await qualityJson("/v1/trondheim/line1-fast?"+query);
-    if(extra.day!==day||!Array.isArray(extra.records))throw Error("Ugyldig svar fra hurtigmålinger");
-    fastRecords.push(...extra.records);
-    fastCursor=extra.nextCursor||null;
-   }while(fastCursor);
-  }catch(error){
-   fastWarning=" · Mellommålinger ikke tilgjengelige: "+error.message;
-   fastRecords=[];
-  }
-  qualityHistoryReport=line1Quality.historyReport(records,{day,fastRecords});
+  const loaded=await fetchQualityDay(day);
+  qualityHistoryReport=loaded.report;
+  qualityComparisonReport=null;
+  $("qualityComparisonStatus").textContent="Ingen sammenligningsdag valgt.";
   updateQualityReport();
-  if(fastWarning)$("qualityStatus").textContent+=fastWarning;
+  if(loaded.warning)$("qualityStatus").textContent+=" · "+loaded.warning;
  }catch(error){$("qualityStatus").textContent="Historikk: "+error.message;}
  finally{$("qualityLoad").disabled=false;}
+}
+async function compareQualityPreviousDay(){
+ if(!qualityHistoryReport?.day)return;
+ const day=qualityHistoryReport.day;
+ const previous=qualityAvailableDays.find(candidate=>candidate<day);
+ if(!previous){
+  $("qualityComparisonStatus").textContent="Ingen eldre lagret dag tilgjengelig for sammenligning.";
+  return;
+ }
+ $("qualityCompareDay").disabled=true;
+ $("qualityComparisonStatus").textContent="Henter "+previous+" …";
+ try{
+  const loaded=await fetchQualityDay(previous);
+  qualityComparisonReport=loaded.report;
+  updateQualityReport();
+  const a=qualityHistoryReport,b=qualityComparisonReport;
+  $("qualityComparisonStatus").textContent=
+   "Sammenligner "+a.day+" ("+a.diagnosticSamples+" diagnoseframes) med "+
+   b.day+" ("+b.diagnosticSamples+" diagnoseframes). "+
+   "Rå antall er ikke justert for forskjellig måledekning."+
+   (loaded.warning?" · "+loaded.warning:"");
+ }catch(error){
+  qualityComparisonReport=null;
+  updateQualityReport();
+  $("qualityComparisonStatus").textContent="Sammenligning ikke tilgjengelig: "+error.message;
+ }finally{$("qualityCompareDay").disabled=false;}
 }
 function updateTonstadPanel(record=false){
   const info=InTransitTonstadLiveTest.inspect({
@@ -622,6 +653,21 @@ $("source").onchange=()=>{resetSourceView();build();return refresh();};
 $("tonstadFocus").onclick=async()=>{await setMapMode(true);networkMap?.focusStop(InTransitTonstadLiveTest.MAP_STOP)};
 $("tonstadRefresh").onclick=()=>refresh();
 $("line1Clear").onclick=()=>{line1Tracker?.clear();updateLine1Progress();};
+$("qualityCorridorList").onclick=async event=>{
+ const target=event?.target?.closest?.("[data-corridor-quay]");
+ if(!target)return;
+ const quay=target.dataset.corridorQuay;
+ if(!/^NSR:Quay:\d+$/.test(quay))return;
+ try{
+  const layout=await json("network/trondheim-layout.json");
+  const stops=(layout.stops||[]).filter(stop=>stop.bindings?.some(b=>
+   b.boardId==="trondheim-city-lines-catalog"&&b.stopId===quay));
+  if(stops.length!==1)throw Error("Ingen entydig stoppmarkør for Quay i originalkartet");
+  await setMapMode(true);
+  if(!networkMap?.focusStop(stops[0].id))throw Error("Stoppet kunne ikke fokuseres");
+  $("qualityCorridorNote").textContent="Viser "+stops[0].name+" på originalkartet. "+line1Corridors.analyze(qualityReportCache).note;
+ }catch(error){$("qualityCorridorNote").textContent="Kan ikke vise stoppet: "+error.message;}
+};
 $("qualityPriorityList").onclick=async event=>{
  const target=event?.target?.closest?.("[data-quality-quay]");
  if(!target)return;
@@ -640,7 +686,8 @@ $("qualityPriorityList").onclick=async event=>{
 };
 $("qualityMode").onchange=()=>updateQualityReport();
 $("qualityLoad").onclick=()=>loadQualityHistory();
-$("qualityDay").onchange=()=>{qualityHistoryReport=null;updateQualityReport();};
+$("qualityCompareDay").onclick=()=>compareQualityPreviousDay();
+$("qualityDay").onchange=()=>{qualityHistoryReport=null;qualityComparisonReport=null;$("qualityComparisonStatus").textContent="Ingen sammenligningsdag valgt.";updateQualityReport();};
 $("qualityExport").onclick=()=>{
  if(!qualityReportCache||!line1Quality)return;
  const output=line1Quality.exportJson(qualityReportCache),blob=new Blob([output],{type:"application/json"}),
