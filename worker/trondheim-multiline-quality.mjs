@@ -2,7 +2,8 @@
 // Trondheim PixelFrame. No new provider requests and no per-vehicle history.
 // Quay and route membership come only from the actual catalog board.
 import {validatedGpsReconciliation,REASONS} from './trondheim-gps-source-reconciliation.mjs';
-import {SCOPE as STRICT_SCOPE,REASONS as STRICT_REASONS,EXTRA as STRICT_EXTRA}
+import {SCOPE as STRICT_SCOPE,REASONS as STRICT_REASONS,EXTRA as STRICT_EXTRA,
+ LIVE_REJECT_REASONS}
  from './trondheim-strict-shadow.mjs';
 const BOARD='trondheim-city-lines-catalog';
 const QUAY=/^NSR:Quay:\d+$/;
@@ -153,6 +154,9 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
  result.sourceReconciliation.reasonFrames??={};
  result.sourceReconciliation.strictShadow??={version:1,scope:STRICT_SCOPE,
   samples:0,lines:{}};
+ // Count only frames that actually collected source-to-render reason splits.
+ // Older frames did not, so do NOT divide old sums by the new sample count.
+ result.sourceReconciliation.strictShadow.liveReasonSamples??=0;
  for(const [sample,delta] of [[oldSample,-1],[newSample,1]]){
   if(sample?.status!=='OK')continue;
   const quality=validatedMultiLineQuality(sample.lineQuality);
@@ -169,11 +173,20 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
    if(src.strictShadow){
     const strict=aggregate.strictShadow;
     strict.samples+=delta;
+    const hasLiveReasons=Object.values(src.strictShadow.lines).every(
+     row=>row.liveRejectReasons60!=null);
+    if(hasLiveReasons)strict.liveReasonSamples+=delta;
     for(const [code,values] of Object.entries(src.strictShadow.lines)){
      const sums=strict.lines[code]||(strict.lines[code]=
       Object.fromEntries([...STRICT_REASONS,...STRICT_EXTRA].map(k=>[k,0])));
      for(const key of [...STRICT_REASONS,...STRICT_EXTRA])
       sums[key]+=delta*values[key];
+     if(values.liveRejectReasons60){
+      sums.liveRejectReasons60??=Object.fromEntries(
+       LIVE_REJECT_REASONS.map(k=>[k,0]));
+      for(const key of LIVE_REJECT_REASONS)
+       sums.liveRejectReasons60[key]+=delta*values.liveRejectReasons60[key];
+     }
     }
    }
    for(const [code,values] of Object.entries(src.lines)){
@@ -220,8 +233,13 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
    REASONS.some(reason=>item[reason]<0||item[reason]>result.sourceReconciliation.samples))||
   result.sourceReconciliation.strictShadow.samples<0||
   result.sourceReconciliation.strictShadow.samples>result.sourceReconciliation.samples||
+  result.sourceReconciliation.strictShadow.liveReasonSamples<0||
+  result.sourceReconciliation.strictShadow.liveReasonSamples>
+   result.sourceReconciliation.strictShadow.samples||
   Object.values(result.sourceReconciliation.strictShadow.lines).some(item=>
-   [...STRICT_REASONS,...STRICT_EXTRA].some(reason=>item[reason]<0)))
+   [...STRICT_REASONS,...STRICT_EXTRA].some(reason=>item[reason]<0)||
+   item.liveRejectReasons60&&LIVE_REJECT_REASONS.some(reason=>
+    item.liveRejectReasons60[reason]<0)))
   throw Error('negative_multiline_rollup');
  return result;
 }
