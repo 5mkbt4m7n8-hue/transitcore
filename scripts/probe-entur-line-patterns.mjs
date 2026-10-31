@@ -8,7 +8,7 @@ const query=`query Probe($id: String!) {
       id
       name
       directionType
-      quays { id }
+      quays { nodes { id } pageInfo { hasNextPage endCursor } }
     }
   }
 }`;
