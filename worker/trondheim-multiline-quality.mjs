@@ -69,6 +69,7 @@ export function summarizeMultiLineFrame(frame,board){
  }
  for(const evidence of seen.values())counts[evidence.code][evidence.kind]++;
  const diagnosticAvailable=Array.isArray(frame.gpsObservations);
+ const quayIssues=new Map();
  if(diagnosticAvailable){
   const unresolvedSeen=new Set();
   frame.gpsObservations.forEach((v,i)=>{
@@ -79,10 +80,19 @@ export function summarizeMultiLineFrame(frame,board){
     typeof v.vehicleRef==='string'&&v.vehicleRef?v.vehicleRef:'entry:'+i);
    if(unresolvedSeen.has(key))return;
    unresolvedSeen.add(key);counts[code].unresolved++;
+   const issueKey=code+'|'+q;
+   quayIssues.set(issueKey,(quayIssues.get(issueKey)||0)+1);
   });
  }
+ // A complete, bounded set is required before per-Quay history is published.
+ // In unusually crowded frames the line totals remain, but Quay candidates
+ // are withheld rather than silently truncated and presented as complete.
+ const issuesComplete=diagnosticAvailable&&quayIssues.size<=200;
  return {version:1,kind:'trondheim-multiline-quality-v1',
-  diagnosticAvailable,lines:counts};
+  diagnosticAvailable,lines:counts,issuesComplete,
+  issues:issuesComplete?[...quayIssues].map(([key,hits])=>{
+   const cut=key.indexOf('|');return [key.slice(0,cut),key.slice(cut+1),hits];
+  }):[]};
 }
 
 // Do not trust arbitrary fields or IDs sent to Durable Object storage.
@@ -100,7 +110,21 @@ export function validatedMultiLineQuality(value){
     !KINDS.every(kind=>isCount(counts[kind])))return null;
   safe[code]=Object.fromEntries(KINDS.map(kind=>[kind,counts[kind]]));
  }
- return {version:1,kind:value.kind,diagnosticAvailable:value.diagnosticAvailable,lines:safe};
+ const issuesComplete=value.issuesComplete===true&&value.diagnosticAvailable;
+ const issues=[];
+ if(issuesComplete){
+  if(!Array.isArray(value.issues)||value.issues.length>200)return null;
+  const keys=new Set();
+  for(const entry of value.issues){
+   if(!Array.isArray(entry)||entry.length!==3)return null;
+   const [code,quay,hits]=entry,key=code+'|'+quay;
+   if(!Object.hasOwn(safe,code)||!QUAY.test(quay)||!isCount(hits)||
+      hits===0||keys.has(key))return null;
+   keys.add(key);issues.push([code,quay,hits]);
+  }
+ }
+ return {version:1,kind:value.kind,diagnosticAvailable:value.diagnosticAvailable,
+  lines:safe,issuesComplete,issues};
 }
 
 const emptyLine=()=>({...zero(),gpsFrames:0,siriFrames:0,
@@ -109,12 +133,23 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
  const result=prior?structuredClone(prior):{version:1,sourceSamples:0,
   diagnosticSamples:0,lines:{}};
  if(result.version!==1)throw Error('invalid_multiline_rollup');
+ // Existing daily metadata from older versions has no Quay counters.
+ result.issueCoverageSamples??=0;result.quayIssues??={};
  for(const [sample,delta] of [[oldSample,-1],[newSample,1]]){
   if(sample?.status!=='OK')continue;
   const quality=validatedMultiLineQuality(sample.lineQuality);
   if(!quality)continue;
   result.sourceSamples+=delta;
   if(quality.diagnosticAvailable)result.diagnosticSamples+=delta;
+  if(quality.issuesComplete){
+   result.issueCoverageSamples+=delta;
+   for(const [code,quay,hits] of quality.issues){
+    const key=code+'|'+quay,record=result.quayIssues[key]||{hits:0,frames:0};
+    record.hits+=delta*hits;record.frames+=delta;
+    if(record.hits===0&&record.frames===0)delete result.quayIssues[key];
+    else result.quayIssues[key]=record;
+   }
+  }
   for(const [code,count] of Object.entries(quality.lines)){
    const target=result.lines[code]||(result.lines[code]=emptyLine());
    for(const kind of KINDS)target[kind]+=delta*count[kind];
@@ -125,7 +160,9 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
   }
  }
  if(result.sourceSamples<0||result.diagnosticSamples<0||
-  Object.values(result.lines).some(item=>Object.values(item).some(x=>x<0)))
+  result.issueCoverageSamples<0||
+  Object.values(result.lines).some(item=>Object.values(item).some(x=>x<0))||
+  Object.values(result.quayIssues).some(item=>item.hits<0||item.frames<0))
   throw Error('negative_multiline_rollup');
  return result;
 }
