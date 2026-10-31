@@ -40,7 +40,7 @@ export function inspectIndex(index,{now=Date.now()}={}){
  const multi=active.multiLineQuality;
  const summary={
   day:active.day,daySamples:active.count,dayErrors:isCount(active.errors)?active.errors:null,
-  latestAgeMinutes:ageMinutes,days:days.length,
+  latestAgeMinutes:ageMinutes,lastCapturedAt:latest,days:days.length,
   enrichedFrames:lineQualityOk(multi)?multi.sourceSamples:0,
   diagnosticFrames:lineQualityOk(multi)?multi.diagnosticSamples:0,
   quayCoverageFrames:lineQualityOk(multi)?multi.issueCoverageSamples:0,
@@ -87,7 +87,7 @@ export function inspectLatest(summary,page){
 
 export function lastSlotQuery(summary){
  if(!DAY.test(summary.day))throw Error('invalid_day');
- const index=Date.parse(summary.activeAt)-Math.max(0,summary.latestAgeMinutes||0)*60000;
+ const index=Date.parse(summary.lastCapturedAt);
  if(!Number.isFinite(index))throw Error('invalid_time');
  // Start one slot behind the last persisted frame. No broad frame history
  // download; the raw frame in this response is inspected only in memory.
