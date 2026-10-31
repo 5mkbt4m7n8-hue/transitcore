@@ -152,6 +152,7 @@
      tracks.set(k,t);
     }
     if(now<t.lastSeen)continue;
+    const wasMissing=t.missing;
     t.lastSeen=now;t.missing=false;t.missingFrames=0;
     t.destination=event.destination||t.destination;
     const prior=t.lastQuay,changed=event.quay!==prior;
@@ -208,6 +209,10 @@
     }
     const compatible=candidates.filter(p=>!t.direction||p.directionType===t.direction);
     t.nextQuay=t.status==='CONFLICT'?null:nextOf(compatible,event.quay);
+    if(wasMissing)emit(t,'REAPPEARED',now,'Bussen ble igjen observert i en gyldig frame',
+     proof(t,'REAPPEARED_IN_RENDERED_FRAME',now,{frameAt:frame.generatedAt,
+      reappearedQuay:event.quay,
+      reappearedEvidence:event.confirmed?'SIRI_AT_STOP':'GPS_NEAR'}));
     t.lastEvidence=event.confirmed?'SIRI_AT_STOP':'GPS_NEAR';
     t.lastObservedAt=now;
    }
@@ -224,8 +229,11 @@
      const ownDiagnostic=hasDiagnostics?frame.gpsObservations.find(v=>
       String(v?.line)==='1'&&v.status==='unresolved'&&
       (v.id===t.vehicleId||v.vehicleRef===t.vehicleId)):null;
-     const sourceReason=ownDiagnostic&&typeof ownDiagnostic.reason==='string'
-      ?ownDiagnostic.reason.replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64):null;
+     const knownReasons=new Set(['route-or-direction-unresolved',
+      'no-route-match','wrong-direction','ambiguous-route',
+      'stale-gps','too-far-from-quay','distance-too-far','unresolved']);
+     const sourceReason=ownDiagnostic&&knownReasons.has(ownDiagnostic.reason)
+      ?ownDiagnostic.reason:ownDiagnostic?'other-unresolved':null;
      emit(t,'NOT_VISIBLE',now,'Bussen er ikke lenger i mottatte frames (ikke bekreftet avreise)',
       proof(t,ownDiagnostic?'UNRESOLVED_GPS_FOR_SAME_BUS':'MISSING_FROM_VALID_FRAMES',
        now,{frameAt:frame.generatedAt,missingFrames:t.missingFrames,
