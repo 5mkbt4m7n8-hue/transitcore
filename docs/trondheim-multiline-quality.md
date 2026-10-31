@@ -291,3 +291,38 @@ at 85 m er riktigere. Sammenligningen vises per linje i
 produksjonsstatus for linje 1/11.
 
 Testsuite: `node scripts/test-trondheim-strict-gps-shadow.mjs`.
+
+## Nøyaktige avvisningsårsaker for GPS som faktisk vises
+
+Den første 60/85-meters skyggetesten viste store forskjeller mellom
+dagens kart og den strengere GPS-kandidaten. Disse totalsummene er
+**ikke** årsakssummer per vist buss: de omfatter også GPS-kilder
+som aldri var vist. Fra og med denne endringen teller derfor
+`strictShadow.lines[code].liveRejectReasons60` **kun** busser som
+var synlige i eksisterende GPS-LED-frame, men ble avvist av
+den strengere 60-metersregelen. Årsaker er gjensidig utelukkende:
+ugyldig/stale GPS-tid, stor avstand, manglende/ukjent destinasjon
+eller retning, to for tette Quays, usikkerhet og andre grunner.
+Dette er sikkerhetsreglenes første avvisningsårsak, ikke bevis
+for feil veikant eller for at en buss ikke passerte.
+
+`sourceReconciliation.strictShadow.liveReasonSamples` viser nøyaktig
+hvor mange femminuttersframes som har *denne nye detaljdekningen*.
+Historikk uten disse detaljene forblir ukjent; den får ikke
+falske nuller. Ved oppdatering av samme tidsluke blir historikken
+korrigert før ny telling. Ingen kjøretøy-ID, posisjon eller
+GPS-tidspunkt blir lagret i disse feltene.
+
+`scripts/probe-trondheim-strict-root-causes-live.mjs` er en
+**read-only** kontroll i GitHub Actions som leser offentlig
+døgnmetadata og rapporterer dekning og aggregerte årsaker
+for linje 1 og 11. Den undersøker dessuten statisk Quay-geometri
+for planlagte stopp kalt «Lerkendal» og «Tonstadkrysset»
+i eksisterende ruteprofil og katalog: antall nærliggende Quays,
+korteste katalogavstand, retning i konfigurasjonen og om en Quay
+ikke finnes i LED-katalogen. Ingen av disse statiske dataene
+er en sanntidsobservasjon av en faktisk buss eller en ekstern
+bekreftelse av riktig trafikkside.
+
+Diagnostikk: `node scripts/probe-trondheim-strict-root-causes-live.mjs`.
+Regresjon: `node scripts/test-trondheim-strict-root-causes.mjs`.

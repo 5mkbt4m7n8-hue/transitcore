@@ -73,6 +73,13 @@ tbody tr:hover td:first-child{background:#243347}
 <tbody id="strictShadowRows"><tr><td colspan="8">Ingen skyggetestmålinger ennå.</td></tr></tbody>
 </table></div>
 <p class="note">Ingen streng kandidat blir automatisk satt på tavlen. Differanser kan skyldes usikker retning, tettstående Quays, gammel data eller geometrien – ikke nødvendigvis en feil i dagens visning. Resultater fra samme kjøretøy i flere frames teller flere ganger.</p>
+<h3>Hvorfor en GPS-posisjon som faktisk ble vist, ville blitt avvist ved 60 m</h3>
+<p id="strictReasonCoverage" class="note">Årsaksfordelingen blir målt fra neste skyggetestopptak. Eldre opptak kan ikke etterklassifiseres.</p>
+<div class="scroll"><table>
+<thead><tr><th>Linje</th><th>Gammel/ugyldig GPS-tid</th><th>For stor avstand</th><th>Retning/rute ukjent</th><th>Konkurrerende Quays</th><th>GPS-usikkerhet</th><th>Andre strenge avvisninger</th></tr></thead>
+<tbody id="strictRejectReasonRows"><tr><td colspan="7">Ingen detaljer ennå.</td></tr></tbody>
+</table></div>
+<p class="note">Tallene i denne tabellen gjelder bare GPS-visninger med dokumentert avvisningsårsak. Eldre totalsummer i tabellen over omfatter opptak før vi begynte å måle denne fordelingen og skal ikke blandes inn i prosentberegninger.</p>
 </section>
 <section id="sourceTriage" aria-label="Gjennomgående årsaker til manglende GPS i kartet">
 <h2>🔬 Gjentatte kilde-til-kart-funn</h2>
@@ -203,6 +210,8 @@ function renderStrictShadow(m){
  if(!active){
   $('strictShadowStatus').textContent='Ingen strenge sammenligningsmålinger ennå. Vi endrer ikke dagens kart.';
   $('strictShadowRows').innerHTML='<tr><td colspan="8">Venter på første skyggetestopptak.</td></tr>';
+  $('strictRejectReasonRows').innerHTML='<tr><td colspan="7">Ingen skyggeårsaker tilgjengelig ennå.</td></tr>';
+  $('strictReasonCoverage').textContent='Ingen målinger med detaljerte avvisningsårsaker.';
   return;
  }
  $('strictShadowStatus').textContent=n(shadow.samples)+
@@ -217,6 +226,22 @@ function renderStrictShadow(m){
    'liveDifferentLedStrict60','matched','strict85Match','radiusOnlyGain85']
    .map(key=>'<td>'+n(x[key])+'</td>').join('')+'</tr>';
  }).join('')||'<tr><td colspan="8">Ingen sammenlignbare linjer.</td></tr>';
+ const coverage=Number(shadow.liveReasonSamples)||0;
+ $('strictReasonCoverage').textContent=coverage
+  ?n(coverage)+' av '+n(shadow.samples)+' skyggeframes har eksakte avvisningsårsaker for GPS-visninger.'
+  :'Eldre skyggeframes mangler denne årsaksfordelingen. Ingen årsaker etterkonstrueres.';
+ const focus=codes.filter(code=>['1','11'].includes(code));
+ $('strictRejectReasonRows').innerHTML=coverage?focus.map(code=>{
+  const reason=shadow.lines[code].liveRejectReasons60;
+  if(!reason)return '<tr><td>Linje '+esc(code)+'</td><td colspan="6">Ukjent årsaksdekning.</td></tr>';
+  const sum=keys=>keys.reduce((s,k)=>s+(reason[k]||0),0);
+  const other=sum(['invalidGps','identityConflict','ambiguousOrUnknownRoute',
+   'outdatedCatalogQuay','missingQuayIdentity','quayNotOnBoard']);
+  const values=[reason.invalidOrStaleTime,reason.outsideRadius,
+   reason.routeOrDirectionUnresolved,reason.competingQuay,reason.uncertainGps,other];
+  return '<tr><td>Linje '+esc(code)+'</td>'+values.map(x=>'<td>'+n(x)+'</td>').join('')+'</tr>';
+ }).join(''):
+ '<tr><td colspan="7">Venter på første opptak med eksakte avvisningsårsaker.</td></tr>';
 }
 function sourceTriageCard(item){
  const phrase=item.status==='TWO_DAYS'?'Gjennomgående kandidat · to dager':
