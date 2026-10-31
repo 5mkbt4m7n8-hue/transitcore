@@ -78,6 +78,9 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+      - name: Probe Entur Transit Data response shape (diagnostic only)
+        run: node scripts/probe-entur-line-patterns.mjs
+
       - name: Verify Linear production defaults and opt-in Bus1 GPS Debug
         run: node scripts/test-linear-mobile-integration.mjs
 
