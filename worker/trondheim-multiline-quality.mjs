@@ -1,6 +1,7 @@
 // Server-side, source-aware per-line counters from the EXISTING five-minute
 // Trondheim PixelFrame. No new provider requests and no per-vehicle history.
 // Quay and route membership come only from the actual catalog board.
+import {validatedGpsReconciliation,REASONS} from './trondheim-gps-source-reconciliation.mjs';
 const BOARD='trondheim-city-lines-catalog';
 const QUAY=/^NSR:Quay:\d+$/;
 const ROUTE=/^atb-bus-(\d{1,3})-live$/;
@@ -124,8 +125,12 @@ export function validatedMultiLineQuality(value){
    keys.add(key);issues.push([code,quay,hits]);
   }
  }
+ const sourceDisposition=value.sourceDisposition==null?null:
+  validatedGpsReconciliation(value.sourceDisposition);
+ if(value.sourceDisposition!=null&&!sourceDisposition)return null;
  return {version:1,kind:value.kind,diagnosticAvailable:value.diagnosticAvailable,
   ...(value.diagnosticScope==='rendered-direction-conflict-only'?{diagnosticScope:value.diagnosticScope}:{}),
+  ...(sourceDisposition?{sourceDisposition}:{}),
   lines:safe,issuesComplete,issues};
 }
 
@@ -138,6 +143,8 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
  // Existing daily metadata from older versions has no Quay counters.
  result.issueCoverageSamples??=0;result.quayIssues??={};
  result.renderedScopeSamples??=0;
+ result.sourceReconciliation??={version:1,samples:0,sourceRows:0,
+  unlistedCode:0,uniqueKnownVehicles:0,lines:{}};
  for(const [sample,delta] of [[oldSample,-1],[newSample,1]]){
   if(sample?.status!=='OK')continue;
   const quality=validatedMultiLineQuality(sample.lineQuality);
@@ -145,6 +152,18 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
   result.sourceSamples+=delta;
   if(quality.diagnosticAvailable)result.diagnosticSamples+=delta;
   if(quality.diagnosticScope==='rendered-direction-conflict-only')result.renderedScopeSamples+=delta;
+  if(quality.sourceDisposition){
+   const src=quality.sourceDisposition,aggregate=result.sourceReconciliation;
+   aggregate.samples+=delta;
+   aggregate.sourceRows+=delta*src.sourceRows;
+   aggregate.unlistedCode+=delta*src.unlistedCode;
+   aggregate.uniqueKnownVehicles+=delta*src.uniqueKnownVehicles;
+   for(const [code,values] of Object.entries(src.lines)){
+    const target=aggregate.lines[code]||(aggregate.lines[code]=
+     Object.fromEntries(REASONS.map(reason=>[reason,0])));
+    for(const reason of REASONS)target[reason]+=delta*values[reason];
+   }
+  }
   if(quality.issuesComplete){
    result.issueCoverageSamples+=delta;
    for(const [code,quay,hits] of quality.issues){
@@ -166,7 +185,11 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
  if(result.sourceSamples<0||result.diagnosticSamples<0||
   result.issueCoverageSamples<0||result.renderedScopeSamples<0||
   Object.values(result.lines).some(item=>Object.values(item).some(x=>x<0))||
-  Object.values(result.quayIssues).some(item=>item.hits<0||item.frames<0))
+  Object.values(result.quayIssues).some(item=>item.hits<0||item.frames<0)||
+  ['samples','sourceRows','unlistedCode','uniqueKnownVehicles'].some(k=>
+   result.sourceReconciliation[k]<0)||
+  Object.values(result.sourceReconciliation.lines).some(item=>
+   REASONS.some(reason=>item[reason]<0)))
   throw Error('negative_multiline_rollup');
  return result;
 }
