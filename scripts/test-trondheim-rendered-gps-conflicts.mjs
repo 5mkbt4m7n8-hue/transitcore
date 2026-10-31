@@ -88,8 +88,8 @@ const stored=await dayHistoryStorage(store,new Request(
  'https://status.internal/trondheim-history?day='+day)).then(r=>r.json());
 assert.equal(stored.records[0].lineQuality.diagnosticScope,SCOPE);
 assert.equal(stored.records[0].lineQuality.issuesComplete,true);
-assert(!JSON.stringify(stored.records[0]).includes(secret),
- 'Raw test vehicle IDs are forbidden in quality-only fields, but compact LED history legitimately retains IDs');
+assert(!JSON.stringify(stored.records[0].lineQuality).includes(secret),
+ 'No raw test vehicle ID can reach the new quality fields');
 assert.deepEqual(stored.records[0].lineQuality.issues,[['1',A,1],['1',B,1]]);
 // A different helper proof: a valid empty GPS frame still has inspected scope,
 // but nobody can infer a physical departure from no visible occupants.
