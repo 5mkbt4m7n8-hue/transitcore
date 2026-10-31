@@ -10,8 +10,9 @@
  'use strict';
  const QUAY=/^NSR:Quay:\d+$/,DAY=86400000;
  function create({board,patterns,profile,lineCode='1',storage=null,clock=Date.now}={}){
-  if(!/^\d{1,3}$/.test(lineCode)||!patterns?.lines?.[lineCode])
-   throw Error('unsupported-route-pattern');
+  if(!/^\d{1,3}$/.test(lineCode))throw Error('unsupported-route-pattern');
+  if(!patterns?.lines?.[lineCode])
+   throw Error(lineCode==='1'||lineCode==='11'?'line1-patterns-unavailable':'unsupported-route-pattern');
   const allowed=(patterns?.lines?.[lineCode]?.patterns||[]).filter(p=>
    ['inbound','outbound'].includes(p.directionType)&&Array.isArray(p.quays)&&
    p.quays.length>=2&&p.quays.every(q=>QUAY.test(q)));
