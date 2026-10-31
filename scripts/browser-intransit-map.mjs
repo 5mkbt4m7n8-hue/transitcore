@@ -46,6 +46,10 @@ try{
  await page.locator('#line1Progress summary').click();
  await page.waitForFunction(()=>document.querySelector('#line1Tracks')?.textContent?.length>0);
  assert.equal(await page.locator('#line1Export').count(),1,'Line 1 route history can be exported');
+ assert.equal(await page.locator('#line1Incidents').count(),1);
+ assert.equal(await page.locator('#line1IncidentCards').count(),1);
+ assert.match(await page.locator('#line1IncidentCards').textContent(),
+  /Ingen sporingsbrudd|Sporingshendelse|gyldige tavleframes/);
  assert.equal(await page.locator('#line1Clear').count(),1,'Line 1 route history can be cleared');
  assert.match(await page.locator('#line1Tracks').textContent(),/Ingen linje 1|Buss /,
   'Route tracker must show an honest empty state or observed buses');
