@@ -18,6 +18,9 @@ on:
       - 'scripts/test-multiline-route-progress.mjs'
       - 'scripts/test-gps-v2-route-shadow.mjs'
       - 'scripts/test-gps-v21-multiple-quays.mjs'
+      - 'scripts/test-gps-v21-comparison-log.mjs'
+      - 'web/linear/network/gps-v20-baseline.js'
+      - 'web/linear/network/gps-v2-comparison-log.js'
       - 'web/linear/network/gps-v2-shadow.js'
       - 'scripts/test-verified-entur-patterns.mjs'
       - 'scripts/test-multiline-scheduled-quality.mjs'
@@ -70,6 +73,9 @@ on:
       - 'scripts/test-multiline-route-progress.mjs'
       - 'scripts/test-gps-v2-route-shadow.mjs'
       - 'scripts/test-gps-v21-multiple-quays.mjs'
+      - 'scripts/test-gps-v21-comparison-log.mjs'
+      - 'web/linear/network/gps-v20-baseline.js'
+      - 'web/linear/network/gps-v2-comparison-log.js'
       - 'web/linear/network/gps-v2-shadow.js'
       - 'scripts/test-verified-entur-patterns.mjs'
       - 'config/gps/**'
@@ -134,6 +140,9 @@ jobs:
 
       - name: Verify V2.1 retained Quay candidates and delayed source-order disambiguation
         run: node scripts/test-gps-v21-multiple-quays.mjs
+
+      - name: Compare original V2.0 and V2.1 against the same live frame and anonymous 24h rollups
+        run: node scripts/test-gps-v21-comparison-log.mjs
 
       - name: Verify source-certified Line 1 and 11 route tracking and privacy
         run: node scripts/test-multiline-route-progress.mjs
