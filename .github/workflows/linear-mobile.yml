@@ -16,6 +16,8 @@ on:
       - 'scripts/test-line1-route-progress.mjs'
       - 'scripts/test-line1-quality-report.mjs'
       - 'scripts/test-trondheim-day-history.mjs'
+      - 'scripts/test-line1-scheduled-quality.mjs'
+      - 'worker/trondheim-line1-quality.mjs'
       - 'worker/trondheim-history.mjs'
       - 'worker/linear-draft.mjs'
       - 'worker/linear-publish.mjs'
@@ -40,6 +42,8 @@ on:
       - 'scripts/test-line1-route-progress.mjs'
       - 'scripts/test-line1-quality-report.mjs'
       - 'scripts/test-trondheim-day-history.mjs'
+      - 'scripts/test-line1-scheduled-quality.mjs'
+      - 'worker/trondheim-line1-quality.mjs'
       - 'worker/trondheim-history.mjs'
       - 'worker/linear-draft.mjs'
       - 'worker/linear-publish.mjs'
@@ -89,6 +93,9 @@ jobs:
 
       - name: Verify Trondheim one-day history and pinned demo
         run: node scripts/test-trondheim-day-history.mjs
+
+      - name: Verify unattended Line 1 source evidence in five-minute scheduled history
+        run: node scripts/test-line1-scheduled-quality.mjs
 
       - name: Audit schematic route coverage without fetching live data
         env:

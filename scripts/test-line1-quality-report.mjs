@@ -111,7 +111,8 @@ assert.equal(history.rows.find(r=>r.quay===C).evidence,0,
 assert(!JSON.stringify(history).includes('PRIVATE-HISTORY-ID'));
 assert.throws(()=>quality.historyReport([records[0],records[0]]),/invalid-history-order/);
 const exported=quality.exportJson(history);
-assert(exported.includes('5-minute recordings omit detailed SIRI/GPS proof'));
+assert(exported.includes('Older five-minute recordings contain LED-only frames'),
+ 'Pre-upgrade records must still be labelled as missing SIRI/GPS proof');
 assert(!exported.includes('PRIVATE'));
 copied.clear();
 assert.equal(copied.liveReport({now}).samples,0);

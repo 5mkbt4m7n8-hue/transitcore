@@ -71,7 +71,7 @@
       <div class="tools">
         <label>Datagrunnlag <select id="qualityMode">
           <option value="live">Detaljert LIVE – mens siden er åpen</option>
-          <option value="history">Lagret døgn – 5 minutters LED-frames</option>
+          <option value="history">Lagret døgn – automatisk 5-minuttersmåling</option>
         </select></label>
         <label id="qualityHistorySelector" hidden>Dato <select id="qualityDay"><option value="">Velg dato</option></select></label>
         <button id="qualityLoad" type="button">Hent datoer</button>
@@ -95,7 +95,7 @@
         <thead><tr><th>Holdeplass / Quay</th><th>Vurdering</th><th>SIRI</th><th>GPS</th><th>LED*</th><th>Uavklart</th><th>Forsvunnet</th><th>Konflikt / hull</th></tr></thead>
         <tbody id="qualityRows"></tbody>
       </table></div>
-      <p class="quality-muted">* LED = observert posisjon i femminuttersopptak uten lagret SIRI/GPS-dokumentasjon. Flere frames kan representere samme buss. Døgnrapporten kan ikke fastslå om alle avganger har stoppet.</p>
+      <p class="quality-muted">* Nye femminuttersopptak lagrer kildeklassifiserte SIRI-/GPS-/uavklart-treff. Eldre opptak viser bare LED. Mange korte stopp faller mellom femminuttersmålingene; dette er ikke en komplett turhistorikk.</p>
     </div>
   </details>
   <details class="diagnostics" id="line1Progress"><summary>🚌 Linje 1 · spor A → B → C (test)</summary>
@@ -450,13 +450,15 @@ function updateQualityReport(frame=null){
  });
  const sum=k=>rows.reduce((n,r)=>n+(r[k]||0),0);
  $("qualityFrames").textContent=String(report.samples);
- $("qualitySiri").textContent=report.mode==="history"?"–":String(sum("siri"));
- $("qualityGps").textContent=report.mode==="history"?"–":String(sum("gps"));
+ $("qualitySiri").textContent=report.mode==="history"&&report.sourceQualitySamples===0?"–":String(sum("siri"));
+ $("qualityGps").textContent=report.mode==="history"&&report.sourceQualitySamples===0?"–":String(sum("gps"));
  $("qualityUnresolved").textContent=report.diagnosticSamples===0?"–":String(sum("unresolved"));
  $("qualityIssues").textContent=String(sum("lost")+sum("conflict")+sum("gap")+(report.mode==="history"?0:sum("unresolved")));
  $("qualityStatus").textContent=report.mode==="history"
-  ?"5-minuttersopptak "+report.day+": "+report.samples+" gyldige / "+report.total+
-    " registreringer, "+report.errors+" feil og "+report.gaps+" tidsluker. SIRI/GPS-grunnlag er ikke lagret."
+  ?"Automatiske femminuttersmålinger "+report.day+": "+report.samples+" gyldige / "+report.total+
+    " registreringer; "+report.sourceQualitySamples+" med lagret Quay-kildebevis, "+report.diagnosticSamples+
+    " med GPS-avvisningsdetaljer, "+report.errors+" feil og "+report.gaps+
+    " tidsluker. Dette er et utvalg, ikke alle holdeplassbesøk."
   :"Siste 24 timer i denne nettleseren, opptil 400 frames. "+report.samples+
    " gyldige frames; valgt kilde: "+(stagingSelected()?"STAGING":"produksjon")+
    ". GPS-diagnostikk tilgjengelig i "+report.diagnosticSamples+"/"+report.samples+" frames. Antall treff er ikke antall busser eller gjennomførte stopp.";

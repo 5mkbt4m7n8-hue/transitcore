@@ -1,4 +1,5 @@
 // Read-only public Trondheim playback plus admin-pinned one-day demo.
+import {summarizeLine1ScheduledFrame,validatedLine1ScheduledQuality} from "./trondheim-line1-quality.mjs";
 // Recording runs in the EXISTING five-minute Worker cron, not in a browser.
 const BOARD="trondheim-city-lines-catalog";
 const PREFIX="trondheim-history:v1:";
@@ -44,7 +45,7 @@ export function compactFrame(frame){
   generatedAt:frame.generatedAt,ttlSeconds:frame.ttlSeconds,
   sequence:frame.sequence,leds};
 }
-export async function recordDaySample(storage,{capturedAt,frame=null,error=""}){
+export async function recordDaySample(storage,{capturedAt,frame=null,error="",quality=null}){
  const at=Date.parse(capturedAt);
  if(!Number.isFinite(at)||Math.abs(Date.now()-at)>48*3600*1000)throw Error("invalid_record_time");
  const day=localDay(at),slot=String(Math.floor(at/300000)*300000);
@@ -53,8 +54,10 @@ export async function recordDaySample(storage,{capturedAt,frame=null,error=""}){
  try{if(frame)snapshot=compactFrame(frame);else reason=safeString(error||"feed_unavailable",120)}
  catch(e){reason=e.message}
  if(snapshot&&JSON.stringify(snapshot).length>512000){snapshot=null;reason="frame_too_large"}
+ const safeQuality=snapshot?validatedLine1ScheduledQuality(quality):null;
  const sample={version:1,day,slot:Number(slot),capturedAt:new Date(at).toISOString(),
-  status:snapshot?"OK":"ERROR",frame:snapshot,error:snapshot?null:reason};
+  status:snapshot?"OK":"ERROR",frame:snapshot,error:snapshot?null:reason,
+  ...(safeQuality?{quality:safeQuality}:{})};
  const existing=await storage.get(key);
  // A retry may upgrade an error to a valid sample but never downgrade it.
  if(existing?.status==="OK"&&sample.status!=="OK")return {recorded:false,day,status:"ALREADY_OK"};
@@ -169,11 +172,12 @@ export async function handleTrondheimHistory(request,env,authenticate){
   return new Response(result.body,{status:result.status,headers:HEADERS});
  }catch(error){console.error("history storage error",error);return reply({error:"history_storage_error"},503)}
 }
-export async function recordScheduledTrondheimFrame(env,frame,error="",at=new Date().toISOString()){
+export async function recordScheduledTrondheimFrame(env,frame,error="",at=new Date().toISOString(),board=null){
  if(!env.DEVICE_STATUS)return {recorded:false,error:"history_storage_unavailable"};
  const stub=env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName("__trondheim-day-history__"));
  const result=await stub.fetch("https://status.internal/trondheim-history",{method:"POST",
-  headers:{"content-type":"application/json"},body:JSON.stringify({action:"record",capturedAt:at,frame,error})});
+  headers:{"content-type":"application/json"},body:JSON.stringify({action:"record",capturedAt:at,frame,error,
+   quality:frame?summarizeLine1ScheduledFrame(frame,board):null})});
  if(!result.ok)throw Error("history_write_http_"+result.status);
  return result.json();
 }
