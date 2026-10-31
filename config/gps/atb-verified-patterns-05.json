@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "source": "Entur Transit Data v1beta GraphQL, line.journeyPatterns.quays.nodes",
+  "sourceURL": "https://api.entur.io/transit-data/v1beta/graphql",
+  "retrievedDate": "2026-10-31",
+  "usage": "Web-only verified route-order patterns; no physical stop proof or GPS radius changes",
+  "lines": {
+    "86": {
+      "lineId": "ATB:Line:2_86",
+      "patterns": [
+        {
+          "id": "ATB:JourneyPattern:86_Outbound_251215112494093_251215112489847",
+          "name": "2 Hommelvik- Sveberg- Vikhammer",
+          "directionType": "outbound",
+          "quays": [
+            "NSR:Quay:71578",
+            "NSR:Quay:71586",
+            "NSR:Quay:72847",
+            "NSR:Quay:72637",
+            "NSR:Quay:75190",
+            "NSR:Quay:73383",
+            "NSR:Quay:73372",
+            "NSR:Quay:73377",
+            "NSR:Quay:109165",
+            "NSR:Quay:72241",
+            "NSR:Quay:72253"
+          ]
+        },
+        {
+          "id": "ATB:JourneyPattern:86_Outbound_251215112494095_251215112489847",
+          "name": "3 Sveberg- Vikhammer",
+          "directionType": "outbound",
+          "quays": [
+            "NSR:Quay:75196",
+            "NSR:Quay:75190",
+            "NSR:Quay:73383",
+            "NSR:Quay:73372",
+            "NSR:Quay:73366",
+            "NSR:Quay:109165",
+            "NSR:Quay:72241",
+            "NSR:Quay:72253"
+          ]
+        },
+        {
+          "id": "ATB:JourneyPattern:86_Outbound_251215112494096_251215112489847",
+          "name": "1 Hommelvik st.- Sjøsiden- Sveberg- Vikhammer",
+          "directionType": "outbound",
+          "quays": [
+            "NSR:Quay:71578",
+            "NSR:Quay:71586",
+            "NSR:Quay:71571",
+            "NSR:Quay:71565",
+            "NSR:Quay:73813",
+            "NSR:Quay:72637",
+            "NSR:Quay:75190",
+            "NSR:Quay:73383",
+            "NSR:Quay:73372",
+            "NSR:Quay:73377",
+            "NSR:Quay:109165",
+            "NSR:Quay:72241",
+            "NSR:Quay:72253"
+          ]
+        },
+        {
+          "id": "ATB:JourneyPattern:86_Inbound_251215112494094_251215112489847",
+          "name": "5 Vikhammerl.- Svebergh.",
+          "directionType": "inbound",
+          "quays": [
+            "NSR:Quay:72254",
+            "NSR:Quay:73361",
+            "NSR:Quay:72637",
+            "NSR:Quay:75190",
+            "NSR:Quay:73383",
+            "NSR:Quay:73372"
+          ]
+        },
+        {
+          "id": "ATB:JourneyPattern:86_Inbound_251215112494097_251215112489847",
+          "name": "7 Vikhammerl. - Sveberg - Hommelvik st.",
+          "directionType": "inbound",
+          "quays": [
+            "NSR:Quay:72254",
+            "NSR:Quay:73361",
+            "NSR:Quay:72637",
+            "NSR:Quay:75190",
+            "NSR:Quay:73383",
+            "NSR:Quay:73372",
+            "NSR:Quay:73378",
+            "NSR:Quay:73814",
+            "NSR:Quay:73813",
+            "NSR:Quay:71579"
+          ]
+        },
+        {
+          "id": "ATB:JourneyPattern:86_Inbound_251215112494098_251215112489847",
+          "name": "6 Vikhammerl.- Sveberg- Sjøsiden- Hommelvik st.",
+          "directionType": "inbound",
+          "quays": [
+            "NSR:Quay:72254",
+            "NSR:Quay:73361",
+            "NSR:Quay:72637",
+            "NSR:Quay:75190",
+            "NSR:Quay:73383",
+            "NSR:Quay:73372",
+            "NSR:Quay:73378",
+            "NSR:Quay:73814",
+            "NSR:Quay:71562",
+            "NSR:Quay:108591",
+            "NSR:Quay:71579"
+          ]
+        }
+      ]
+    }
+  }
+}
