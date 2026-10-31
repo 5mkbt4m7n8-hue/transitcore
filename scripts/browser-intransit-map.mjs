@@ -54,6 +54,18 @@ try{
  assert.equal(await page.locator('#trackedRoute').count(),1);
  assert.equal(await page.locator('#trackedRoute option[value="1"]').count(),1);
  assert.equal(await page.locator('#trackedRoute option[value="11"]').count(),1);
+ assert.equal(await page.locator('#trackedRoute option').count(),43,
+  'Only Entur-approved route patterns are available for tracking');
+ for(const code of ['2','3','10','12','13','14','16','18','20','70','80','86'])
+  assert.equal(await page.locator('#trackedRoute option[value="'+code+'"]').count(),1,
+   'Published Entur source-pattern line '+code+' is selectable');
+ for(const code of ['53','54','91','92'])
+  assert.equal(await page.locator('#trackedRoute option[value="'+code+'"]').count(),0,
+   'One-way/unverified pattern line '+code+' must not appear');
+ await page.locator('#trackedRoute').selectOption('2');
+ assert.match(await page.locator('#trackedRouteCoverage').textContent(),/Linje 2:.*rutemønstre/);
+ assert.match(await page.locator('#line1Tracks').textContent(),/Ingen linje 2|Buss /);
+ await page.locator('#trackedRoute').selectOption('1');
  assert.match(await page.locator('#trackedRouteCoverage').textContent(),/Linje 1/);
  if(!(await page.locator('#trackedRoute option[value="11"]').isDisabled())){
    await page.locator('#trackedRoute').selectOption('11');
