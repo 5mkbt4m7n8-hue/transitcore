@@ -5,6 +5,11 @@ import {summarizeMultiLineFrame,validatedMultiLineQuality,rollupMultiLineQuality
 import {recordDaySample,dayHistoryStorage,recordScheduledTrondheimFrame}
  from '../worker/trondheim-history.mjs';
 
+const actual=JSON.parse(readFileSync(new URL('../config/boards/trondheim-city-lines-catalog.json',import.meta.url)));
+const emptyCatalog=summarizeMultiLineFrame({boardProfile:actual.id,leds:[]},actual);
+assert.equal(Object.keys(emptyCatalog.lines).length,47,'All actual catalog lines receive source-quality counters');
+for(const code of ['1','2','11','53','54','91','92'])
+ assert(emptyCatalog.lines[code],'Source counts do not imply route-sequence approval');
 const board={id:'trondheim-city-lines-catalog',leds:{count:1282},
  routes:['atb-bus-1-live','atb-bus-2-live','atb-bus-11-live'],
  nodes:[
