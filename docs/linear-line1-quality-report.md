@@ -121,6 +121,37 @@ uavklart GPS prioriteres når de nødvendige
 diagnosefeltene faktisk følger med fra kilden. Listen
 er en undersøkelsesliste, aldri en feilprosent.
 
+## Strekningsanalyse og sammenligning mellom to dager
+
+Den nye delen «Strekninger å undersøke» bruker **faktiske
+tilstøtende Quays** fra Enturs inncheckede JourneyPatterns for linje 1.
+Rutevarianter med likt nabopar telles ikke flere ganger; inbound
+og outbound holdes atskilt som **planlagte rutemønstre**, ikke som
+bevist retning for GPS-observasjonene.
+
+Når det finnes observerte `unresolved`-GPS-matcher i dagrapporten,
+eller konkrete `NOT_VISIBLE`/`GAP`/`CONFLICT`-hendelser fra den
+åpne nettleseren, listes inntil ti aktuelle nabopar. Hvert avvik
+er knyttet til **endepunktets Quay**, ikke til en dokumentert
+busspassering på selve strekningen. Én Quay kan være endepunkt
+i to ulike nabopar, slik at samme avvik vises flere steder.
+Nummereringen er kun en prioriteringsliste; den er **ikke**
+en feilprosent eller bekreftede feilaktige stopp.
+
+Klikk «Vis første stopp på kartet» for å fokusere eksisterende
+markør når den har én entydig Quay-binding i originalkartet.
+Ved manglende binding gjettes det ikke et kartpunkt.
+
+For to tilgjengelige serverdager kan du velge nyeste dag og
+trykke **«Sammenlign med forrige lagrede dag»**. Rapporten
+leser samme offentlige historikk-endepunkter for begge dager.
+Rå antall uavklarte GPS-matcher ved de to endepunktene vises
+side om side, med **antall frames som faktisk inneholder
+GPS-diagnostikk i begge tidsutvalg**. Forskjellige
+måledekninger kan ikke sammenlignes som forbedring eller
+forverring uten videre. Ved manglende kildebevis eller
+tidligere dag vises ingen oppdiktet sammenligning.
+
 ## Slik tolkes tabellen
 
 - **SIRI:** antall positive, kildestøttede observasjoner på Quay,

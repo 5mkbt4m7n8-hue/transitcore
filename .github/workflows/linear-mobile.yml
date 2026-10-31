@@ -15,6 +15,8 @@ on:
       - 'scripts/test-tonstad-live-test.mjs'
       - 'scripts/test-line1-route-progress.mjs'
       - 'scripts/test-line1-quality-report.mjs'
+      - 'scripts/test-line1-corridor-quality.mjs'
+      - 'web/linear/network/line1-corridor-quality.js'
       - 'scripts/test-trondheim-day-history.mjs'
       - 'scripts/test-line1-scheduled-quality.mjs'
       - 'scripts/test-line1-fast-history.mjs'
@@ -44,6 +46,8 @@ on:
       - 'scripts/test-tonstad-live-test.mjs'
       - 'scripts/test-line1-route-progress.mjs'
       - 'scripts/test-line1-quality-report.mjs'
+      - 'scripts/test-line1-corridor-quality.mjs'
+      - 'web/linear/network/line1-corridor-quality.js'
       - 'scripts/test-trondheim-day-history.mjs'
       - 'scripts/test-line1-scheduled-quality.mjs'
       - 'scripts/test-line1-fast-history.mjs'
@@ -96,6 +100,9 @@ jobs:
 
       - name: Verify Line 1 quality counts and five-minute recording coverage
         run: node scripts/test-line1-quality-report.mjs
+
+      - name: Verify Line 1 pattern-section hotspot ranking and historical day comparison
+        run: node scripts/test-line1-corridor-quality.mjs
 
       - name: Verify Trondheim one-day history and pinned demo
         run: node scripts/test-trondheim-day-history.mjs

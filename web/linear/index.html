@@ -43,6 +43,12 @@
     .quality-status{font-weight:700}.quality-status.review{color:var(--warn)}.quality-status.source{color:var(--ok)}
     .quality-status.no-sample{color:var(--muted)}.quality-muted{font-size:12px;color:var(--muted);line-height:1.55}
     #qualityStatus{font-size:12px;color:var(--muted);margin:10px 0}
+    .corridor-note{font-size:12px;line-height:1.5;color:var(--muted);margin:8px 0}
+    #qualityCorridorList li{font-size:12px;padding:8px 0;border-top:1px solid #344151}
+    #qualityCorridorList li:first-child{border-top:none}
+    #qualityCorridorList li small{display:block;margin:4px 0;color:var(--muted)}
+    #qualityCorridorList li button{padding:4px 8px;margin:3px 0}
+
     .quality-priority{margin:10px 0 12px;border:1px solid #344454;border-radius:10px;padding:12px}
     .quality-priority h3{font-size:14px;margin:0 0 5px}
     .quality-priority li{padding:9px 0;border-top:1px solid #2e3b48;font-size:12px}
@@ -90,6 +96,14 @@
         <h3>Stopp å undersøke først (maks 10)</h3>
         <p id="qualityPriorityNote" class="quality-muted">Venter på gyldige observasjoner.</p>
         <ol id="qualityPriorityList"></ol>
+      </section>
+      <section id="qualityCorridors" class="quality-priority" aria-label="Strekningsanalyse">
+        <h3>Strekninger å undersøke (maks 10)</h3>
+        <p class="corridor-note">Basert på avvik ved endeholdeplassene i Enturs rutemønster, ikke på bekreftet kjøring mellom dem. Retningen er planlagt rutemønster – ikke verifisert retning for observasjonene.</p>
+        <div class="tools"><button id="qualityCompareDay" type="button">Sammenlign med forrige lagrede dag</button></div>
+        <p id="qualityComparisonStatus" class="corridor-note">Ingen sammenligningsdag valgt.</p>
+        <p id="qualityCorridorNote" class="corridor-note">Venter på måledata.</p>
+        <ol id="qualityCorridorList" aria-live="polite"></ol>
       </section>
       <div class="quality-wrap"><table class="quality-table">
         <thead><tr><th>Holdeplass / Quay</th><th>Vurdering</th><th>SIRI</th><th>GPS</th><th>LED*</th><th>Uavklart</th><th>Forsvunnet</th><th>Konflikt / hull</th></tr></thead>
@@ -148,7 +162,7 @@
 </main>
 <aside class="info" id="info"><button class="close" id="close">Lukk</button><h2 id="infoTitle"></h2><div id="infoBody"></div></aside>
 <script src="../shared/board-client-model.js"></script><script src="../shared/canonical-frame-client.js"></script><script src="../shared/signal-policy.js"></script><script src="../shared/route-occupancy.js"></script><script src="network/model.js"></script><script src="network/editor.js"></script>
-<script src="network/layout-ops.js"></script><script src="network/live-monitor.js"></script><script src="network/tonstad-live-test.js"></script><script src="network/line1-route-progress.js"></script><script src="network/line1-quality-report.js"></script><script src="network/history-ui.js"></script><script src="network/cloud-draft.js"></script><script src="geo/model.js"></script><script src="geo/stop-links.js"></script><script src="network/map.js"></script><script>
+<script src="network/layout-ops.js"></script><script src="network/live-monitor.js"></script><script src="network/tonstad-live-test.js"></script><script src="network/line1-route-progress.js"></script><script src="network/line1-quality-report.js"></script><script src="network/line1-corridor-quality.js"></script><script src="network/history-ui.js"></script><script src="network/cloud-draft.js"></script><script src="geo/model.js"></script><script src="geo/stop-links.js"></script><script src="network/map.js"></script><script>
 "use strict";
 const SIGNALS=TransitCoreSignals;SIGNALS.applyCssVariables(document);
 const $=id=>document.getElementById(id),BASE="../../config/",FLYBUSS="flybuss-trondheim-fb73-live";
@@ -156,6 +170,7 @@ let frameClient,frameClientId,board,hardware,flyBoard,flyHardware,catalogBoard,c
 let refreshGeneration=0;
 let line1Tracker=null;
 let line1Quality=null,qualityHistoryReport=null,qualityReportCache=null,qualityDaysLoaded=false;
+let line1Corridors=null,qualityComparisonReport=null,qualityAvailableDays=[];
 let lastFeedStatus="WAITING",lastFeedError="",lastFeedBoardId="";
 const stagingSelected=()=>$("source").value==="staging";
 const STAGING_ORIGIN="https://transitcore-linear-staging.lgb84.workers.dev";
@@ -410,6 +425,31 @@ function qualitySelectedReport(){
  return $("qualityMode").value==="history"?qualityHistoryReport:
   line1Quality.liveReport({source:stagingSelected()?"staging":"production"});
 }
+function updateQualityCorridors(report){
+ if(!line1Corridors)return;
+ const comparison=report?.mode==='history'?qualityComparisonReport:null;
+ const result=line1Corridors.analyze(report,{previous:comparison,limit:10});
+ $("qualityCompareDay").disabled=report?.mode!=='history'||!report?.day;
+ $("qualityCorridorNote").textContent=result.note;
+ const labels={unresolved:'uavklarte GPS',conflict:'rutekonflikter',
+  lost:'forsvunnet fra feeden',gap:'hull i observasjoner'};
+ $("qualityCorridorList").innerHTML=result.sections.map((item,index)=>{
+  const reasons=Object.entries(item.evidence).filter(([,count])=>count>0)
+   .map(([type,count])=>count+' '+labels[type]).join(' · ');
+  const name=''+(index+1)+'. '+item.fromName+' → '+item.toName;
+  const direction=item.direction==='inbound'?'Inbound (rutemønster)':'Outbound (rutemønster)';
+  const baseline=item.previous
+   ?' · forrige dag '+item.previous.unresolved+' uavklarte ved endepunktene i '+
+    item.previous.diagnosticSamples+' diagnoseframes'
+   :'';
+  return '<li><strong>'+esc(name)+'</strong><small>'+esc(direction+
+    ' · '+reasons)+'</small><small>'+esc('Quays: '+item.from+' → '+item.to+
+    ' · nå '+item.diagnosticSamples+' diagnoseframes / '+item.samples+
+    ' gyldige frames'+baseline)+'</small>'+
+    '<button type="button" data-corridor-quay="'+esc(item.from)+
+    '">Vis første stopp på kartet</button></li>';
+ }).join('');
+}
 function updateQualityReport(frame=null){
  if(!line1Quality)return;
  if(frame){
@@ -425,6 +465,7 @@ function updateQualityReport(frame=null){
  if(!report){
   $("qualityStatus").textContent="Velg dato og last opptak; historiske frames er ikke kontinuerlig GPS-sporing.";
   $("qualityRows").innerHTML="";
+  updateQualityCorridors(null);
   $("qualityPriorityList").innerHTML="";
   $("qualityPriorityNote").textContent="Ingen rapport med nok detaljer til å rangere holdeplasser.";
   ["qualityFrames","qualitySiri","qualityGps","qualityUnresolved","qualityIssues"].forEach(id=>$(id).textContent="0");
@@ -453,7 +494,7 @@ function updateQualityReport(frame=null){
  $("qualitySiri").textContent=report.mode==="history"&&report.sourceQualitySamples===0?"–":String(sum("siri"));
  $("qualityGps").textContent=report.mode==="history"&&report.sourceQualitySamples===0?"–":String(sum("gps"));
  $("qualityUnresolved").textContent=report.diagnosticSamples===0?"–":String(sum("unresolved"));
- $("qualityIssues").textContent=String(sum("lost")+sum("conflict")+sum("gap")+(report.mode==="history"?0:sum("unresolved")));
+ $("qualityIssues").textContent=String(sum("lost")+sum("conflict")+sum("gap")+(report.diagnosticSamples>0?sum("unresolved"):0));
  $("qualityStatus").textContent=report.mode==="history"
   ?"Automatiske femminuttersmålinger "+report.day+": "+report.samples+" gyldige / "+report.total+
     " registreringer; "+report.sourceQualitySamples+" med lagret Quay-kildebevis, "+report.diagnosticSamples+
@@ -465,11 +506,40 @@ function updateQualityReport(frame=null){
    ". GPS-diagnostikk tilgjengelig i "+report.diagnosticSamples+"/"+report.samples+" frames. Antall treff er ikke antall busser eller gjennomførte stopp.";
  const statusLabel={review:"Undersøk",source:"SIRI observert",gps:"GPS observert",
   led:"LED observert", "no-sample":"Ingen observasjon"};
+ updateQualityCorridors(report);
  $("qualityRows").innerHTML=rows.map(r=>'<tr><td>'+esc(r.name)+
   ' <small>('+esc(r.quay)+')</small></td><td class="quality-status '+esc(r.status)+'">'+
   esc(statusLabel[r.status]||r.status)+'</td><td>'+r.siri+'</td><td>'+r.gps+
   '</td><td>'+r.ledOnly+'</td><td>'+(report.diagnosticSamples===0?'–':r.unresolved)+'</td><td>'+r.lost+
   '</td><td>'+(r.conflict+r.gap)+'</td></tr>').join("");
+}
+async function fetchQualityDay(day){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(day))throw Error("Velg en dato");
+ let cursor=null,records=[],pages=0;
+ do{
+  if(++pages>12)throw Error("For mange historikksider");
+  const query=new URLSearchParams({day,limit:"40"});
+  if(cursor)query.set("cursor",cursor);
+  const page=await qualityJson("/v1/trondheim/history?"+query);
+  if(page.day!==day||!Array.isArray(page.records))throw Error("Ugyldig historikksvar");
+  records.push(...page.records);
+  cursor=page.nextCursor||null;
+ }while(cursor);
+ let fastRecords=[],fastWarning="";
+ try{
+  let fastCursor=null,fastPages=0;
+  do{
+   if(++fastPages>12)throw Error("For mange hurtigmålingssider");
+   const query=new URLSearchParams({day,limit:"40"});
+   if(fastCursor)query.set("cursor",fastCursor);
+   const extra=await qualityJson("/v1/trondheim/line1-fast?"+query);
+   if(extra.day!==day||!Array.isArray(extra.records))
+    throw Error("Ugyldig svar fra hurtigmålinger");
+   fastRecords.push(...extra.records);
+   fastCursor=extra.nextCursor||null;
+  }while(fastCursor);
+ }catch(error){fastWarning="Mellommålinger mangler: "+error.message;fastRecords=[];}
+ return {report:line1Quality.historyReport(records,{day,fastRecords}),warning:fastWarning};
 }
 async function loadQualityHistory(){
  if(!line1Quality)return;
@@ -477,50 +547,53 @@ async function loadQualityHistory(){
  try{
   if(!qualityDaysLoaded){
    const index=await qualityJson("/v1/trondheim/history");
-   const days=Array.isArray(index.days)?index.days:[];
-   $("qualityDay").innerHTML='<option value="">Velg dato</option>'+days.map(d=>
-    '<option value="'+esc(d.day)+'">'+esc(d.day)+' · '+d.count+' målinger</option>').join("");
+   qualityAvailableDays=(Array.isArray(index.days)?index.days:[])
+    .filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d.day)).map(d=>d.day).sort().reverse();
+   $("qualityDay").innerHTML='<option value="">Velg dato</option>'+
+    (index.days||[]).filter(d=>qualityAvailableDays.includes(d.day))
+    .map(d=>'<option value="'+esc(d.day)+'">'+esc(d.day)+' · '+d.count+' målinger</option>').join("");
    qualityDaysLoaded=true;
    $("qualityMode").value="history";
    updateQualityReport();
-   $("qualityStatus").textContent=days.length?"Velg dato og trykk Analyser valgt dato.":"Ingen serveropptak tilgjengelig ennå.";
+   $("qualityStatus").textContent=qualityAvailableDays.length?
+    "Velg dato og trykk Analyser valgt dato.":"Ingen serveropptak tilgjengelig ennå.";
    return;
   }
   const day=$("qualityDay").value;
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(day))throw Error("Velg en dato");
-  let cursor=null,records=[],pages=0;
-  do{
-   if(++pages>12)throw Error("For mange historikksider");
-   const query=new URLSearchParams({day,limit:"40"});
-   if(cursor)query.set("cursor",cursor);
-   const page=await qualityJson("/v1/trondheim/history?"+query);
-   if(page.day!==day||!Array.isArray(page.records))throw Error("Ugyldig historikksvar");
-   records.push(...page.records);
-   cursor=page.nextCursor||null;
-  }while(cursor);
-  // Additional GPS-only snapshots at minute 2,7,… supplement the regular
-  // minute 0,5,… full board recording. An older Worker may not serve this yet.
-  let fastRecords=[],fastWarning="";
-  try{
-   let fastCursor=null,fastPages=0;
-   do{
-    if(++fastPages>12)throw Error("For mange hurtigmålingssider");
-    const query=new URLSearchParams({day,limit:"40"});
-    if(fastCursor)query.set("cursor",fastCursor);
-    const extra=await qualityJson("/v1/trondheim/line1-fast?"+query);
-    if(extra.day!==day||!Array.isArray(extra.records))throw Error("Ugyldig svar fra hurtigmålinger");
-    fastRecords.push(...extra.records);
-    fastCursor=extra.nextCursor||null;
-   }while(fastCursor);
-  }catch(error){
-   fastWarning=" · Mellommålinger ikke tilgjengelige: "+error.message;
-   fastRecords=[];
-  }
-  qualityHistoryReport=line1Quality.historyReport(records,{day,fastRecords});
+  const loaded=await fetchQualityDay(day);
+  qualityHistoryReport=loaded.report;
+  qualityComparisonReport=null;
+  $("qualityComparisonStatus").textContent="Ingen sammenligningsdag valgt.";
   updateQualityReport();
-  if(fastWarning)$("qualityStatus").textContent+=fastWarning;
+  if(loaded.warning)$("qualityStatus").textContent+=" · "+loaded.warning;
  }catch(error){$("qualityStatus").textContent="Historikk: "+error.message;}
  finally{$("qualityLoad").disabled=false;}
+}
+async function compareQualityPreviousDay(){
+ if(!qualityHistoryReport?.day)return;
+ const day=qualityHistoryReport.day;
+ const previous=qualityAvailableDays.find(candidate=>candidate<day);
+ if(!previous){
+  $("qualityComparisonStatus").textContent="Ingen eldre lagret dag tilgjengelig for sammenligning.";
+  return;
+ }
+ $("qualityCompareDay").disabled=true;
+ $("qualityComparisonStatus").textContent="Henter "+previous+" …";
+ try{
+  const loaded=await fetchQualityDay(previous);
+  qualityComparisonReport=loaded.report;
+  updateQualityReport();
+  const a=qualityHistoryReport,b=qualityComparisonReport;
+  $("qualityComparisonStatus").textContent=
+   "Sammenligner "+a.day+" ("+a.diagnosticSamples+" diagnoseframes) med "+
+   b.day+" ("+b.diagnosticSamples+" diagnoseframes). "+
+   "Rå antall er ikke justert for forskjellig måledekning."+
+   (loaded.warning?" · "+loaded.warning:"");
+ }catch(error){
+  qualityComparisonReport=null;
+  updateQualityReport();
+  $("qualityComparisonStatus").textContent="Sammenligning ikke tilgjengelig: "+error.message;
+ }finally{$("qualityCompareDay").disabled=false;}
 }
 function updateTonstadPanel(record=false){
   const info=InTransitTonstadLiveTest.inspect({
@@ -580,6 +653,21 @@ $("source").onchange=()=>{resetSourceView();build();return refresh();};
 $("tonstadFocus").onclick=async()=>{await setMapMode(true);networkMap?.focusStop(InTransitTonstadLiveTest.MAP_STOP)};
 $("tonstadRefresh").onclick=()=>refresh();
 $("line1Clear").onclick=()=>{line1Tracker?.clear();updateLine1Progress();};
+$("qualityCorridorList").onclick=async event=>{
+ const target=event?.target?.closest?.("[data-corridor-quay]");
+ if(!target)return;
+ const quay=target.dataset.corridorQuay;
+ if(!/^NSR:Quay:\d+$/.test(quay))return;
+ try{
+  const layout=await json("network/trondheim-layout.json");
+  const stops=(layout.stops||[]).filter(stop=>stop.bindings?.some(b=>
+   b.boardId==="trondheim-city-lines-catalog"&&b.stopId===quay));
+  if(stops.length!==1)throw Error("Ingen entydig stoppmarkør for Quay i originalkartet");
+  await setMapMode(true);
+  if(!networkMap?.focusStop(stops[0].id))throw Error("Stoppet kunne ikke fokuseres");
+  $("qualityCorridorNote").textContent="Viser "+stops[0].name+" på originalkartet. "+line1Corridors.analyze(qualityReportCache).note;
+ }catch(error){$("qualityCorridorNote").textContent="Kan ikke vise stoppet: "+error.message;}
+};
 $("qualityPriorityList").onclick=async event=>{
  const target=event?.target?.closest?.("[data-quality-quay]");
  if(!target)return;
@@ -598,7 +686,8 @@ $("qualityPriorityList").onclick=async event=>{
 };
 $("qualityMode").onchange=()=>updateQualityReport();
 $("qualityLoad").onclick=()=>loadQualityHistory();
-$("qualityDay").onchange=()=>{qualityHistoryReport=null;updateQualityReport();};
+$("qualityCompareDay").onclick=()=>compareQualityPreviousDay();
+$("qualityDay").onchange=()=>{qualityHistoryReport=null;qualityComparisonReport=null;$("qualityComparisonStatus").textContent="Ingen sammenligningsdag valgt.";updateQualityReport();};
 $("qualityExport").onclick=()=>{
  if(!qualityReportCache||!line1Quality)return;
  const output=line1Quality.exportJson(qualityReportCache),blob=new Blob([output],{type:"application/json"}),
@@ -637,7 +726,7 @@ async function setMapMode(network){
  }
 }
 $("linearMode").onclick=()=>setMapMode(false);$("networkMode").onclick=()=>setMapMode(true);
-Promise.all([json(`${BASE}boards/trondheim-flybuss-live.json`),json(`${BASE}hardware/trondheim-flybuss-live-hardware.json`),json(`${BASE}boards/trondheim-city-lines-catalog.json`),json(`${BASE}gps/atb-journey-patterns-1-11.json`)]).then(async values=>{let line1Patterns;[flyBoard,flyHardware,catalogBoard,line1Patterns]=values;catalogHardware={leds:{count:catalogBoard.leds.count},assignments:catalogBoard.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))};board=catalogBoard;hardware=catalogHardware;profiles=await Promise.all([...new Set([...catalogBoard.routes,FLYBUSS])].map(id=>json(`${BASE}routes/${id}.json`)));line1Tracker=InTransitLine1Progress.create({board:catalogBoard,patterns:line1Patterns,profile:profiles.find(p=>p.id==="atb-bus-1-live"),storage:typeof localStorage==="undefined"?null:localStorage});updateLine1Progress();line1Quality=InTransitLine1Quality.create({board:catalogBoard,patterns:line1Patterns,profile:profiles.find(p=>p.id==="atb-bus-1-live"),storage:typeof localStorage==="undefined"?null:localStorage});updateQualityReport();$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");const params=new URLSearchParams(location.search),requested=params.get("route");if(params.get("tonstad")==="1")$("tonstadTest").open=true;if(params.get("line1")==="1")$("line1Progress").open=true;if(params.get("quality")==="1")$("line1Quality").open=true;if(profiles.some(p=>p.id===requested))$("route").value=requested;$("source").value=params.get("source")==="staging"?"staging":"production";build();refresh();if(params.get("view")==="network"){await setMapMode(true);if(params.get("stop"))networkMap?.focusStop(params.get("stop"));}}).catch(error=>$("status").textContent=error.message);
+Promise.all([json(`${BASE}boards/trondheim-flybuss-live.json`),json(`${BASE}hardware/trondheim-flybuss-live-hardware.json`),json(`${BASE}boards/trondheim-city-lines-catalog.json`),json(`${BASE}gps/atb-journey-patterns-1-11.json`)]).then(async values=>{let line1Patterns;[flyBoard,flyHardware,catalogBoard,line1Patterns]=values;catalogHardware={leds:{count:catalogBoard.leds.count},assignments:catalogBoard.nodes.map(n=>({logicalLed:n.led,physicalLed:n.led}))};board=catalogBoard;hardware=catalogHardware;profiles=await Promise.all([...new Set([...catalogBoard.routes,FLYBUSS])].map(id=>json(`${BASE}routes/${id}.json`)));line1Tracker=InTransitLine1Progress.create({board:catalogBoard,patterns:line1Patterns,profile:profiles.find(p=>p.id==="atb-bus-1-live"),storage:typeof localStorage==="undefined"?null:localStorage});updateLine1Progress();line1Corridors=InTransitLine1Corridors.create({patterns:line1Patterns,profile:profiles.find(p=>p.id==="atb-bus-1-live")});line1Quality=InTransitLine1Quality.create({board:catalogBoard,patterns:line1Patterns,profile:profiles.find(p=>p.id==="atb-bus-1-live"),storage:typeof localStorage==="undefined"?null:localStorage});updateQualityReport();$("route").innerHTML=profiles.map(item=>`<option value="${esc(item.id)}">${esc(item.line.publicCode)} - ${esc(item.name)}</option>`).join("");const params=new URLSearchParams(location.search),requested=params.get("route");if(params.get("tonstad")==="1")$("tonstadTest").open=true;if(params.get("line1")==="1")$("line1Progress").open=true;if(params.get("quality")==="1")$("line1Quality").open=true;if(profiles.some(p=>p.id===requested))$("route").value=requested;$("source").value=params.get("source")==="staging"?"staging":"production";build();refresh();if(params.get("view")==="network"){await setMapMode(true);if(params.get("stop"))networkMap?.focusStop(params.get("stop"));}}).catch(error=>$("status").textContent=error.message);
 </script></body></html>
 
 

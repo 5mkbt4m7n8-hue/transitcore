@@ -33,6 +33,13 @@ try{
  assert.equal(await page.locator('#qualityClear').count(),1);
  assert.equal(await page.locator('#qualityPrioritySection').count(),1);
  assert.equal(await page.locator('#qualityPriorityList').count(),1);
+ assert.equal(await page.locator('#qualityCorridors').count(),1);
+ assert.equal(await page.locator('#qualityCorridorList').count(),1);
+ assert.equal(await page.locator('#qualityCompareDay').count(),1);
+ assert.match(await page.locator('#qualityCorridorNote').textContent(),
+  /Ingen rutehendelser|Ingen uavklarte|Ingen gyldige|Døgnmålingene|Avvik er observert/);
+ assert.equal(await page.locator('#qualityCompareDay').isDisabled(),true,
+  'Comparison is only enabled after a historical day has been loaded');
  assert.match(await page.locator('#qualityPriorityNote').textContent(),/Ingen ruteavvik|Ingen gyldige|mangler detaljert/);
  
  assert.match(await page.locator('#qualityStatus').textContent(),/gyldige frames|Venter på første|Siste 24 timer/);
