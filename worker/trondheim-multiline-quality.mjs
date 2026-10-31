@@ -147,6 +147,7 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
   unlistedCode:0,uniqueKnownVehicles:0,lines:{},reasonFrames:{}};
  // Old samples predate frame-frequency evidence. They are not backfilled:
  // only new source-enriched slots contribute to the per-reason frame counts.
+ const existingFrameProvenance=result.sourceReconciliation.reasonFrames!=null;
  result.sourceReconciliation.reasonFrames??={};
  for(const [sample,delta] of [[oldSample,-1],[newSample,1]]){
   if(sample?.status!=='OK')continue;
@@ -168,7 +169,10 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
      aggregate.reasonFrames[code]=Object.fromEntries(REASONS.map(reason=>[reason,0])));
     for(const reason of REASONS){
      target[reason]+=delta*values[reason];
-     if(values[reason]>0)frameCounts[reason]+=delta;
+     // A legacy aggregate may lack per-reason frame provenance. Correct
+     // its raw counts but never subtract frame counts that were never saved.
+     if(values[reason]>0&&(delta>0||existingFrameProvenance))
+      frameCounts[reason]+=delta;
     }
    }
   }
