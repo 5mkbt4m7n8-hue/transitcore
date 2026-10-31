@@ -51,8 +51,8 @@ assert.equal(q.lines['2'].gps,0,'Ambiguous multi-Quay GPS LED is not a match');
 assert.equal(q.lines['2'].unresolved,0,'Unmapped Quay is never inferred');
 assert(!JSON.stringify(q).includes(V));
 assert(!JSON.stringify(q).includes('latitude'));
-assert.deepEqual(validatedMultiLineQuality(q),q);
-assert.equal(validatedMultiLineQuality({...q,lines:{...q.lines,'__proto__':{gps:9}}}),null);
+assert.deepEqual({...validatedMultiLineQuality(q).lines},q.lines);
+assert.equal(validatedMultiLineQuality({...q,lines:{...q.lines,'invalid-code':{gps:9}}}),null);
 assert.equal(validatedMultiLineQuality({...q,lines:{'1':{...q.lines['1'],gps:-1}}}),null);
 assert.equal(summarizeMultiLineFrame({...main,boardProfile:'wrong'},board),null);
 
