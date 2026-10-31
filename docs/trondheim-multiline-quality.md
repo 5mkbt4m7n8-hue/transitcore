@@ -81,3 +81,33 @@ Kvalitetsoversikten har et panel for avviksprioritering basert på **det eksiste
 Ingen endringer i rutekart, eksisterende fysiske tavler (ingen bygget), LED-render, provider-forespørsler eller datalagringens retensjon.
 
 Kjør `node scripts/test-trondheim-anomaly-radar.mjs` for regresjonene.
+
+## Bevis for at Cloudflare-innsamlingen faktisk kjører
+
+GitHub Action `Trondheim quality production proof (read-only)` kjører ved
+endringer i kontrollen, manuelt og klokken 06:12, 14:12 og 22:12 UTC.
+Den bruker **kun offentlige GET** mot den eksisterende Workerens
+`/v1/trondheim/history` og siste relevante femminuttersluke.
+Det sendes ingen Entur-kall og ingen Cloudflare-oppdateringer.
+
+Workflowens **Step summary** viser én eksplisitt tilstand:
+
+- `ACTIVE`: gyldige aggregerte data **og** et ferskt, kildeberiket opptak
+  er lest tilbake fra den faktiske produksjons-Workeren.
+- `OLD_WORKER_OR_NOT_YET_ENRICHED`: fersk historikk, men ikke nye aggregater.
+- `NO_ENRICHED_FRAMES`: aggregat finnes, men ennå ingen kildeberikede frames.
+- `RECENT_SLOT_UNENRICHED`: døgnaggregatet finnes, men siste lagrede opptak
+  mangler feltet `lineQuality`; ikke påstå at nye målinger fremdeles kjører.
+- `STALE`, `NO_SAMPLES`, `LATEST_SOURCE_ERROR`, `HISTORY_HTTP_ERROR`,
+  `NETWORK_UNAVAILABLE` eller `LATEST_SAMPLE_UNVERIFIED` ved begrenset bevis.
+
+Kontrollen skriver **ikke** ut kjøretøy-ID-er, GPS-koordinater, tokens
+eller rå PixelFrames. Måledekning og antall linjer oppgis i rapporten.
+Dette er en diagnose av programvarens innsamling og kildebevis – ikke
+en attestasjon på fysisk passering eller GPS-nøyaktighet.
+
+Åpen PR og historikk: 
+https://github.com/5mkbt4m7n8-hue/transitcore/actions/workflows/trondheim-quality-proof.yml
+
+Kjør lokalt: `node scripts/test-trondheim-quality-proof.mjs` og
+`node scripts/probe-trondheim-quality-live.mjs` (sistnevnte krever nett).
