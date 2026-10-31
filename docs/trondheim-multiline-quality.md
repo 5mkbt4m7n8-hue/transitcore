@@ -428,7 +428,7 @@ anonyme tellerne og den **ferske** PixelFrame som allerede ble hentet
 av Linear. Den lager anonyme minutt-bøtter for linje 1 og 11 per kilde
 (produksjon/staging). Korrigert tidsstempel, TTL, kildebytte og dupliserte
 frames vurderes; gjentatt tegning av samme frame gir ikke ekstra
-observasjoner. Begrensning er siste 24 timer og maks 1 500 bøtter i
+observasjoner. Begrensning er siste 24 timer og maks 6 000 bøtter i
 \`localStorage\` (ikke cloud/Worker); ingen rå GPS-koordinater,
 VehicleRef, Quay-ID, destinasjon, individuell historikk eller rutefølge
 blir serialisert. Lokale logger kan eksporteres anonymt til CSV/JSON
