@@ -137,3 +137,51 @@ Kun per-linje/Quay-tellere lagres i kvalitetsfeltene. Den eksisterende
 lagrede kompakte frame-historikken og offentlig LED-svar er uendret.
 
 Regresjon: `node scripts/test-trondheim-rendered-gps-conflicts.mjs`.
+
+## Analyse av GPS-posisjoner som ikke når kartet
+
+Den opprinnelige kvalitetsradaren registrerte bare det som kom inn i
+PixelFrame. Derfor var ikke et manglende LED-treff en tilstrekkelig
+feilforklaring. Den nye `provider-input-render-reconciliation-v1` analyserer
+**det samme Entur-svaret** som Worker allerede bruker til å bygge
+Trondheim-katalogen, uten flere nettverksforespørsler.
+
+For katalogførte rutekoder dedupliseres siste kildeoppdatering per
+kjøretøy i arbeidsminnet og klassifiseres konservativt:
+
+- `rendered`: kjøretøyidentiteten er funnet i samme linjes PixelFrame.
+- `missingPosition`: koordinater mangler eller er ugyldige.
+- `invalidTimestamp`: kildeoppdateringen mangler en gyldig tidsangivelse.
+- `stalePosition`: eldre enn katalogens konfigurerte ferskhetsgrense.
+- `outsideCatalogRadius`: gyldig, fersk posisjon er utenfor katalogens
+  tilnærmingsradius rundt alle kartpunkter. Dette betyr **ikke** at
+  GPS-posisjonen er feil.
+- `unrenderedNearCatalog`: gyldig, fersk posisjon er innenfor
+  katalogradius, men den konkrete ID-en finnes ikke i tilhørende frame.
+  Den nøyaktige årsaken er **ikke bekreftet**.
+- `unverifiableIdentity`: manglende entydig kjøretøyidentitet; ingen
+  påstand om at en gyldig busstur ble utelatt.
+
+Kildeposter med offentlig linjekode som ikke finnes i den valgte
+GPS-katalogen telles separat som `unlistedCode`, ikke som feil på
+en av de 47 linjene. Reconciliationen gjelder GPS-kildegrunnlaget,
+ikke ruteestimater for flybusser eller Oslo Metro.
+
+Kun 47-linjers aggregerte tall pluss samlet kildeantall lagres som
+`lineQuality.sourceDisposition` og døgnmetadata
+`multiLineQuality.sourceReconciliation`. Det lagres **ingen** rå
+`VehicleRef`, koordinater, tidspunkter per buss, destinasjoner eller
+stopp-passeringer i disse nye feltene. Ved omkjøring av en tidsluke
+trekkes den gamle oppsummeringen fra før en ny lagres.
+
+Kvalitetsoversikten viser kildeårsaker og separate dagssummer, mens
+GPS-radaren fortsatt bruker bare bekreftede uavklarte
+retnings-/Quay-bevis. Et kildeutfall utenfor radius eller manglende
+GPS-tid gir **ikke** automatisk en feilalarm for et stopp.
+
+GitHub Actions-proben viser `gpsReconciliationFrames` og
+`recentGpsReconciliation`. Først når sistnevnte er sant i et faktisk
+Cloudflare-opptak er denne funksjonen dokumentert aktiv, uavhengig
+av at koden er slått sammen og statiske sider er publisert.
+
+Test: `node scripts/test-trondheim-gps-source-reconciliation.mjs`.
