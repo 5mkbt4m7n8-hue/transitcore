@@ -1048,13 +1048,13 @@ async function boardFrameResponse(boardId, env, source) {
     stage = name;
     return boundedOperation(name, operation, deadline - Date.now(), { boardId, source });
   };
-  let result, sample, historyFrame=null;
+  let result, sample, historyFrame=null, historyBoard=null;
   try {
     const { board, profiles, hardware } = await step("configuration", () => configuration(boardId, now));
     const rawFrame = await step("live_data", () => liveFrameForConfiguration(board, profiles, hardware, now, env));
     const frame = usesStopAccuracy(board)?rawFrame:await step("motion", () => stabilizeMotionFrame(env, board, rawFrame, now));
     sample = { ...validFrameSummary(frame, boardId), source };
-    if(source==="history"&&boardId==="trondheim-city-lines-catalog")historyFrame=frame;
+    if(source==="history"&&boardId==="trondheim-city-lines-catalog"){historyFrame=frame;historyBoard=board;}
     result = response(frame);
     result.headers.set("x-transitcore-stop-algorithm",usesStopAccuracy(board)?"motion-v1":"legacy");
     result.headers.set("access-control-expose-headers","x-transitcore-stop-algorithm");
@@ -1068,7 +1068,7 @@ async function boardFrameResponse(boardId, env, source) {
   // Failed fetches become explicit timeline gaps, never fake empty traffic.
   if(source==="history"&&boardId==="trondheim-city-lines-catalog"){
    try{await boundedOperation("trondheim_history",()=>recordScheduledTrondheimFrame(
-     env,historyFrame,historyFrame?"":sample.detail,new Date(now).toISOString()),1500,{boardId,source});}
+     env,historyFrame,historyFrame?"":sample.detail,new Date(now).toISOString(),historyBoard),1500,{boardId,source});}
    catch(error){console.error("trondheim_history_write_failed",error.message);}
   }
   // A monitoring-storage problem must not discard a valid LED frame.
