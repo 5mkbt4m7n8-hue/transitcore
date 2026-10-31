@@ -54,6 +54,33 @@ som faktisk har tilgjengelig GPS-avvisningsdiagnostikk.
 Tomme felter merkes «–» i stedet for falske nullverdier.
 Døgnets tidsluker og mislykkede frames er synlige.
 
+**Hyppigere GPS-kontroll av linje 1 (fra denne versjonen):**
+Eksisterende hovedopptak kjøres fremdeles på minutt 0, 5, 10 osv.
+En ekstra, separat Worker-cron kjører på minutt 2, 7, 12 osv.,
+men **bare linje 1**. Den henter ett Entur vehiclePositions-utvalg
+for AtB, filtrerer til linje 1 og beregner eksisterende
+Quay/LED-matching. Ingen ekstra SIRI-/ServiceJourney-oppslag
+eller ny polling av øvrige linjer, flybuss og T-bane.
+
+Mellommålingen lagrer bare aggregerte GPS/Quay-tellerdata,
+eller en eksplisitt feilmelding, i samme Durable Object med
+separat nøkkelrom. Hovedhistorikken og femminutters-demoen
+endres ikke. De to opptaksseriene gir til sammen normalt
+**ett målepunkt hvert 2.–3. minutt**, rundt 24 målinger per time
+hvis oppgavene faktisk kjører og Entur svarer.
+
+Døgnrapporten laster automatisk begge serier, teller
+antall brukbare mellommålinger og viser serverfeil og
+diagnostikkdekning. De ekstra GPS-målingene er ikke
+SIRI-stoppbekreftelser. Dette er fremdeles diskrete
+observasjoner; mellomliggende stopp og fysisk passering
+skal aldri fylles inn på gjetning.
+
+Oppsett: `worker/wrangler.toml` har tre cron-uttrykk,
+med ekstra `2-59/5 * * * *`. Etter GitHub-merge må den
+nye Worker-versjonen være aktiv i Cloudflare før målingene
+faktisk starter. Ingen fysiske tavler berøres.
+
 **Automatisk prioritering:** Ved opplagte
 kilde-diagnostikkdata kan opptakene rangere Quays
 med faktisk uavklart GPS. Historiske femminuttersopptak

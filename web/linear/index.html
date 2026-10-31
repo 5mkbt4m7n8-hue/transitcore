@@ -71,7 +71,7 @@
       <div class="tools">
         <label>Datagrunnlag <select id="qualityMode">
           <option value="live">Detaljert LIVE – mens siden er åpen</option>
-          <option value="history">Lagret døgn – automatisk 5-minuttersmåling</option>
+          <option value="history">Lagret døgn – 5-min tavle + 2–3-min linje 1</option>
         </select></label>
         <label id="qualityHistorySelector" hidden>Dato <select id="qualityDay"><option value="">Velg dato</option></select></label>
         <button id="qualityLoad" type="button">Hent datoer</button>
@@ -95,7 +95,7 @@
         <thead><tr><th>Holdeplass / Quay</th><th>Vurdering</th><th>SIRI</th><th>GPS</th><th>LED*</th><th>Uavklart</th><th>Forsvunnet</th><th>Konflikt / hull</th></tr></thead>
         <tbody id="qualityRows"></tbody>
       </table></div>
-      <p class="quality-muted">* Nye femminuttersopptak lagrer kildeklassifiserte SIRI-/GPS-/uavklart-treff. Eldre opptak viser bare LED. Mange korte stopp faller mellom femminuttersmålingene; dette er ikke en komplett turhistorikk.</p>
+      <p class="quality-muted">* Ordinære opptak hvert femte minutt kan inneholde SIRI-bevis. Mellommålinger for linje 1 er GPS-only på minutter 2, 7, 12 osv. Eldre data er LED-only. Ingen av seriene beviser alle faktiske holdeplassbesøk.</p>
     </div>
   </details>
   <details class="diagnostics" id="line1Progress"><summary>🚌 Linje 1 · spor A → B → C (test)</summary>
@@ -458,7 +458,8 @@ function updateQualityReport(frame=null){
   ?"Automatiske femminuttersmålinger "+report.day+": "+report.samples+" gyldige / "+report.total+
     " registreringer; "+report.sourceQualitySamples+" med lagret Quay-kildebevis, "+report.diagnosticSamples+
     " med GPS-avvisningsdetaljer, "+report.errors+" feil og "+report.gaps+
-    " tidsluker. Dette er et utvalg, ikke alle holdeplassbesøk."
+    " tidsluker · "+(report.fastSamples||0)+"/"+(report.fastTotal||0)+
+   " ekstra linje 1-GPS-målinger. Dette er et utvalg, ikke alle holdeplassbesøk."
   :"Siste 24 timer i denne nettleseren, opptil 400 frames. "+report.samples+
    " gyldige frames; valgt kilde: "+(stagingSelected()?"STAGING":"produksjon")+
    ". GPS-diagnostikk tilgjengelig i "+report.diagnosticSamples+"/"+report.samples+" frames. Antall treff er ikke antall busser eller gjennomførte stopp.";
@@ -497,8 +498,27 @@ async function loadQualityHistory(){
    records.push(...page.records);
    cursor=page.nextCursor||null;
   }while(cursor);
-  qualityHistoryReport=line1Quality.historyReport(records,{day});
+  // Additional GPS-only snapshots at minute 2,7,… supplement the regular
+  // minute 0,5,… full board recording. An older Worker may not serve this yet.
+  let fastRecords=[],fastWarning="";
+  try{
+   let fastCursor=null,fastPages=0;
+   do{
+    if(++fastPages>12)throw Error("For mange hurtigmålingssider");
+    const query=new URLSearchParams({day,limit:"40"});
+    if(fastCursor)query.set("cursor",fastCursor);
+    const extra=await qualityJson("/v1/trondheim/line1-fast?"+query);
+    if(extra.day!==day||!Array.isArray(extra.records))throw Error("Ugyldig svar fra hurtigmålinger");
+    fastRecords.push(...extra.records);
+    fastCursor=extra.nextCursor||null;
+   }while(fastCursor);
+  }catch(error){
+   fastWarning=" · Mellommålinger ikke tilgjengelige: "+error.message;
+   fastRecords=[];
+  }
+  qualityHistoryReport=line1Quality.historyReport(records,{day,fastRecords});
   updateQualityReport();
+  if(fastWarning)$("qualityStatus").textContent+=fastWarning;
  }catch(error){$("qualityStatus").textContent="Historikk: "+error.message;}
  finally{$("qualityLoad").disabled=false;}
 }
