@@ -450,3 +450,58 @@ GPS-\`occupants\` telles separat og blir ikke feilaktig knyttet
 til hovedbussens posisjon. SIRI-prognoser behandles ikke som GPS.
 
 Regresjon: \`node scripts/test-gps-v21-comparison-log.mjs\`.
+
+## GPS V2.2 – automatiske, anonyme døgnmålinger i Cloudflare
+
+V2.2 bruker **bare de eksisterende cron-samlingene**:
+- \`*/5 * * * *\`: full Trondheim-katalog for linje 1 og 11
+- \`2-59/5 * * * *\`: allerede eksisterende ekstra GPS-prøve på linje 1
+- Ingen nye planlagte jobber, ingen ekstra Entur-forspørsler, ingen endring
+  av LED- eller GPS-matching i produksjonen
+
+\`worker/trondheim-gps-v22.mjs\` sammenligner den faktisk mottatte
+PixelFrame med samme opprinnelige V2.0- og V2.1-algoritme som Linear
+bruker i nettleseren. Dette er en skyggeanalyse med kun anonyme
+tellinger for hvert eksisterende samlingsintervall og hvert datakilde-
+felt. Det finnes en egen \`DeviceStatus\` Durable Object-instans,
+\`__trondheim-gps-v22__\`, men **ingen migrering eller nye bindinger**.
+Kun et strengt validerte tellerobjekt og en eksplisitt
+\`SOURCE_UNAVAILABLE\` ved målefeil blir skrevet til Durable Object-lagring.
+
+Det aktive kjøretøynavnet, kildereferansen og GPS-posisjonen i
+PixelFrame sendes internt til Durable Object for algoritmeberegningen,
+men blir **aldri lagret** i V2.2-tabellene eller returnert i API-et.
+Rutemønsterhypotesene og kortvarig kjøretøykobling er i DO-instansens
+volatile minne. Ved kaldstart, instansbytte eller lange intervaller
+starter algoritmene på nytt. Dette må IKKE omtales som vedvarende
+sporing av individuelle bussreiser. V2.0/V2.1 krever i utgangspunktet
+kort sammenhengende observasjonsrekke; fem minutter mellom prøver,
+særlig for linje 11, er derfor normalt for glissent til å hevde
+bekreftet A→B→C-passering eller retning.
+
+API-et \`GET /v1/trondheim/gps-v22\` er kun lesebasert og
+gir inneværende Oslo-dag som standard, eller dagen før med
+\`?day=YYYY-MM-DD\`. V2.2-siderapporten ligger på
+\`web/linear/gps-v22-quality.html\`, med lenker fra Linear og
+den eksisterende kvalitetsoversikten. Den viser datadekning,
+V2.0/2.1-vurderte GPS-kandidater, støttede/uavklarte tilfeller,
+og \`SOURCE_UNAVAILABLE\` som egen feilstatus.
+
+Lerkendal linje 1 (\`NSR:Quay:102720\`), Lerkendal linje 11
+(\`NSR:Quay:73421\`) og Tonstadkrysset linje 1
+(\`NSR:Quay:102733\`) får **separate geografiske tellere**
+for GPS-observasjoner i 85 m-radius og antall observasjoner med
+flere Quays nærmere enn radiusen. Dette er **bare nærhet**, ikke
+bevis på at bussen stoppet på akkurat denne siden av veien,
+eller at V2.1 valgte riktig Quay.
+
+Den eksisterende faste DO-lagringen håndterer opptak per
+femminuttersluke med idempotent oppdatering, også når Worker får
+samme planlagte oppdrag på nytt. Retensjon er inneværende og
+foregående Oslo-kalenderdag; ingen demoarkivering av V2.2.
+Gamle Worker-utgaver som mangler dette API-et gir eksplisitt
+manglende data og skal ikke omtales som aktiv innsamling.
+Først etter en **faktisk ny, gyldig Cloudflare-innspilling** og
+bekreftet GET kan V2.2 kalles aktiv i produksjon.
+
+Regresjon: \`node scripts/test-trondheim-gps-v22.mjs\`.
