@@ -50,10 +50,10 @@ tbody tr:hover td:first-child{background:#243347}
 <h2>Kildeobservasjoner per busslinje</h2>
 <p id="coverage" class="note">Tidligere opptak kan mangle kildeklassifisering. Da vises ikke falske nullverdier.</p>
 <div class="scroll"><table>
-<thead><tr><th>Linje</th><th>GPS-nærhet</th><th>SIRI ved stopp</th><th>Uavklart GPS</th><th>ETA-estimat</th><th>Uklassifisert LED</th><th>Frames med GPS</th><th>Frames med GPS/SIRI</th></tr></thead>
-<tbody id="rows"><tr><td colspan="8">Ingen målinger lastet.</td></tr></tbody>
+<thead><tr><th>Linje</th><th>GPS-nærhet</th><th>SIRI ved stopp</th><th>Uavklart GPS</th><th>ETA-estimat</th><th>Uklassifisert LED</th><th>Frames med GPS</th><th>Frames med GPS/SIRI</th><th>Frames uten GPS/SIRI</th></tr></thead>
+<tbody id="rows"><tr><td colspan="9">Ingen målinger lastet.</td></tr></tbody>
 </table></div>
-<p class="note">Tallene er rå tellinger. Høy verdi kan bety flere busser eller gjentatte observasjoner av samme buss. En linje uten målinger er ikke dokumentert som feil. Uavklart GPS er bare sammenlignbar når kildediagnostikk finnes. Linje 53, 54, 91 og 92 har ikke godkjent A→B→C-rutesekvens, men kan fortsatt ha kildeobservasjoner i denne rapporten. Ekstra GPS-mellommålinger kjøres fortsatt bare for linje 1 og er <em>ikke</em> med i denne felles femminuttersammenligningen.</p>
+<p class="note">Tallene er rå tellinger. Høy verdi kan bety flere busser eller gjentatte observasjoner av samme buss. Frames uten GPS/SIRI er gyldige målinger uten slike observasjoner, ikke bevis på feil eller passerte stopp. En linje uten målinger er ikke dokumentert som feil. Uavklart GPS er bare sammenlignbar når kildediagnostikk finnes. Linje 53, 54, 91 og 92 har ikke godkjent A→B→C-rutesekvens, men kan fortsatt ha kildeobservasjoner i denne rapporten. Ekstra GPS-mellommålinger kjøres fortsatt bare for linje 1 og er <em>ikke</em> med i denne felles femminuttersammenligningen.</p>
 </section>
 </main>
 <script>
@@ -68,7 +68,7 @@ function previous(day){return days.filter(x=>x.day<day).sort((a,b)=>b.day.locale
 function metrics(day){return day?.multiLineQuality?.version===1?day.multiLineQuality:null}
 function render(){
  const selected=latest(),m=metrics(selected),prior=$('compare').checked?previous(selected?.day||''):null,p=metrics(prior);
- if(!selected){$('status').textContent='Ingen lagrede døgn er tilgjengelige.';$('rows').innerHTML='<tr><td colspan="8">Ingen data</td></tr>';$('stats').innerHTML='';return}
+ if(!selected){$('status').textContent='Ingen lagrede døgn er tilgjengelige.';$('rows').innerHTML='<tr><td colspan="9">Ingen data</td></tr>';$('stats').innerHTML='';return}
  const source=m?.sourceSamples||0;
  $('status').textContent=selected.day+': '+n(selected.count)+' mottatte tidsluker, '+n(selected.errors)+' kildefeil. '+(source?n(source)+' kildeklassifiserte frames.':'Ingen kildeklassifiserte frames ennå.');
  $('stats').innerHTML=[
@@ -89,8 +89,11 @@ function render(){
   const suffix=['53','54','91','92'].includes(code)?' · rutemønster uavklart':'';
   return '<tr><td><strong>Linje '+esc(code)+'</strong><small>'+esc(suffix)+'</small></td>'+
    ['gps','siri','unresolved','estimated','ledOnly','gpsFrames','observedFrames']
-    .map(k=>'<td>'+esc(value(k))+'</td>').join('')+'</tr>';
- }).join(''):'<tr><td colspan="8">Ingen kildeklassifiserte målinger ennå. Eldre opptak påvirkes ikke.</td></tr>';
+    .map(k=>'<td>'+esc(k==='unresolved'&&p?.diagnosticSamples===0&&m.diagnosticSamples>0
+     ?n(c[k])+' / –':value(k))+'</td>').join('')+
+     '<td>'+esc(ratioText(Math.max(0,m.sourceSamples-c.observedFrames),
+      p&&last?Math.max(0,p.sourceSamples-last.observedFrames):null))+'</td></tr>';
+ }).join(''):'<tr><td colspan="9">Ingen kildeklassifiserte målinger ennå. Eldre opptak påvirkes ikke.</td></tr>';
  if(prior&&p)$('coverage').textContent+=' Tabellen viser valgt dag / forrige dag. Forskjellig antall frames betyr at råtallene ikke kan tolkes som en forbedring eller forverring.';
 }
 async function load(){
