@@ -28,7 +28,7 @@ const mk=(id,node=station,x={})=>({
 });
 const vehicles=[
  mk('a'), // within competitor gap, live and rejected
- mk('b',rival,{destination:'Stavset'}), // wrong direction & live
+ mk('b',rival,{destination:'Blakli'}), // nearest Quay serves opposite direction
  mk('c',isolated), // matched live
  mk('d',isolated,{timestamp:new Date(now-90000).toISOString()}), // old live
  mk('e',isolated,{latitude:isolated.lat+.00063}), // radius 60 reject / 85 match
