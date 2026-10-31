@@ -126,17 +126,20 @@
       <p id="trackedRouteCoverage" class="tonstad-note">Sjekker kildemønstre og Quay-kartlegging.</p>
       <div id="line1Tracks" aria-live="polite"><p class="tonstad-note">Venter på første gyldige buss-frame.</p></div>
       <section id="gpsV2Shadow" aria-label="GPS V2 skyggetest">
-        <h3>🧪 V2 · retning og Quay – skyggetest</h3>
-        <p class="tonstad-note">Kun linje 1 og 11. Reelle GPS-posisjoner fra allerede hentede frames vurderes mot Enturs dokumenterte stopp-rekkefølge. Retning låses først av to ulike, kildekompatible Quay-observasjoner eller eksplisitt SIRI-stoppsignal. Når Quays konkurrerer uten slik støtte, forblir valg uavklart. Ingen LED eller produksjons-GPS endres. Sporingen finnes bare mens denne nettsiden er åpen.</p>
+        <h3>🧪 V2.1 · flere Quay-kandidater – skyggetest</h3>
+        <p class="tonstad-note">Kun linje 1 og 11. Reelle GPS-posisjoner fra allerede hentede frames vurderes mot Enturs dokumenterte stopp-rekkefølge. Retning låses først av to ulike, kildekompatible Quay-observasjoner eller eksplisitt SIRI-stoppsignal. Nå bevares flere mulige Quay-/rutemønsterkombinasjoner i kortvarig minne. Senere, ulike GPS-observasjoner kan utelukke muligheter; samme Quay eller en gjentatt frame låser ikke retning. Hvis flere alternativer gjenstår, forblir resultatet uavklart. Ingen LED eller produksjons-GPS endres. Sporingen finnes bare mens denne nettsiden er åpen.</p>
         <p id="gpsV2Status" class="tonstad-note" aria-live="polite">Venter på to selvstendige observasjoner.</p>
         <div class="diaggrid">
           <div class="diagitem"><span>GPS-posisjoner vurdert</span><b id="gpsV2Compared">0</b></div>
           <div class="diagitem"><span>Med støttet ruteretning</span><b id="gpsV2Sequence">0</b></div>
           <div class="diagitem"><span>Quay-konkurranse</span><b id="gpsV2Competing">0</b></div>
+          <div class="diagitem"><span>Flere alternativer bevart</span><b id="gpsV21Retained">0</b></div>
+          <div class="diagitem"><span>Innsnevret ved neste observasjon</span><b id="gpsV21Narrowed">0</b></div>
+          <div class="diagitem"><span>Entydig etter flere observasjoner</span><b id="gpsV21Resolved">0</b></div>
           <div class="diagitem"><span>Uavklart</span><b id="gpsV2Unresolved">0</b></div>
           <div class="diagitem"><span>Ulik dagens LED-kandidat</span><b id="gpsV2Different">0</b></div>
         </div>
-        <p class="tonstad-note">Tallene gjelder siste gyldige frame, ikke kumulativ trafikk. «Støttet» betyr algoritmens rutemønster-kandidat, ikke bekreftet veikant, stopp eller faktisk passering.</p>
+        <p class="tonstad-note">Tallene gjelder siste gyldige frame, ikke kumulativ trafikk. «Støttet» betyr algoritmens rutemønster-kandidat, ikke bekreftet veikant, stopp eller faktisk passering. «Entydig» betyr kun én gjenværende kandidat i kilde- og GPS-modellen, ikke fysisk bekreftet plattform. Ingen kjøretøy-ID-er eller koordinater vises.</p>
       </section>
       <div class="tools"><strong>Hendelser i nettleseren</strong><button id="line1Export" type="button">Eksporter JSON</button><button id="line1Clear" type="button">Tøm historikk</button></div>
       <ol id="line1Events"></ol>
@@ -455,10 +458,12 @@ function updateLine1Progress(frame=null){
   const v2=gpsV2Shadow?.summary();
   const metrics=v2?.lines?.[selected]||{};
   $('gpsV2Status').textContent=gpsV2Shadow&&v2?.status==='ACTIVE_BROWSER_SHADOW'
-   ?'Analysert '+v2.frames+' forskjellige ferske frames mens siden er åpen. Retning betyr kildekompatibel kandidat, ikke bekreftet stopp.'
+   ?'Analysert '+v2.frames+' forskjellige ferske frames mens siden er åpen. V2.1 holder mulige Quays åpne til flere ulike observasjoner kan snevre dem inn. Ikke bekreftet stopp.'
    :'Ingen gyldig V2-skyggeframe ennå. Åpne kartet med en aktiv livekilde.';
   for(const [id,key] of [['gpsV2Compared','comparedGps'],['gpsV2Sequence','acceptedBySourceSequence'],
-   ['gpsV2Competing','competingQuays'],['gpsV2Unresolved','unresolved'],
+   ['gpsV2Competing','competingQuays'],['gpsV21Retained','ambiguousCandidatesRetained'],
+   ['gpsV21Narrowed','ambiguityNarrowed'],['gpsV21Resolved','ambiguityResolvedAfterFollowup'],
+   ['gpsV2Unresolved','unresolved'],
    ['gpsV2Different','differentFromLive']]){
     $(id).textContent=String(metrics[key]||0);
   }
