@@ -18,16 +18,20 @@
    throw Error('line1-patterns-unavailable');
   const eligibleQuays=new Set(allowed.flatMap(p=>p.quays));
   const byLed=new Map(),names=new Map((profile?.stops||[]).map(s=>[s.id,s.name]));
+  const quaysOf=n=>[...new Set([n?.quayId,...(Array.isArray(n?.stopIds)?n.stopIds:[])]
+   .filter(q=>eligibleQuays.has(q)))];
   for(const n of board.nodes||[]){
-   if(!eligibleQuays.has(n?.quayId)||!Number.isInteger(n.led))continue;
+   if(!Number.isInteger(n?.led))continue;
    const arr=byLed.get(n.led)||[];
-   if(!arr.includes(n.quayId))arr.push(n.quayId);
-   byLed.set(n.led,arr);
+   for(const q of quaysOf(n))if(!arr.includes(q))arr.push(q);
+   if(arr.length)byLed.set(n.led,arr);
   }
   // The checked-in line 1 profile usually lists one platform side.
   // Name opposite-direction Quays via their shared StopPlace, not by
   // guessing proximity from coordinates or changing the underlying map.
-  const nodeByQuay=new Map((board.nodes||[]).map(n=>[n.quayId,n]));
+  const nodeByQuay=new Map();
+  for(const n of board.nodes||[])for(const q of quaysOf(n))
+   if(!nodeByQuay.has(q))nodeByQuay.set(q,n);
   const stationNames=new Map();
   for(const stop of profile?.stops||[]){
    const stationId=nodeByQuay.get(stop.id)?.stationId;
@@ -280,7 +284,7 @@
  // A catalog route without source patterns remains displayable, not tracked.
  function availableLines({board,patterns}={}){
   if(board?.id!=='trondheim-city-lines-catalog')return [];
-  const mapped=new Set((board.nodes||[]).map(n=>n.quayId).filter(Boolean));
+  const mapped=new Set((board.nodes||[]).flatMap(n=>[n.quayId,...(Array.isArray(n.stopIds)?n.stopIds:[])]).filter(q=>QUAY.test(q)));
   return ['1','11'].map(lineCode=>{
    const valid=(patterns?.lines?.[lineCode]?.patterns||[]).filter(p=>
     ['inbound','outbound'].includes(p.directionType)&&Array.isArray(p.quays)&&
