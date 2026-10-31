@@ -14,15 +14,16 @@ const b=n(500002,2,63.4020,10.30,'1');
 const c=n(500003,3,63.4040,10.30,'1','NSR:StopPlace:500003');
 const opposite=n(500004,4,63.4040,10.30012,'1','NSR:StopPlace:500003');
 const d=n(500005,5,63.4100,10.30,'1');
+const onlyOutbound=n(500009,9,63.4140,10.30,'1');
 const x=n(500006,6,63.4200,10.30,'11');
 const y=n(500007,7,63.4220,10.30,'11');
 const z=n(500008,8,63.4240,10.30,'11');
 const board={id:'trondheim-city-lines-catalog',
- nodes:[a,b,c,opposite,d,x,y,z]};
+ nodes:[a,b,c,opposite,d,onlyOutbound,x,y,z]};
 const patterns={lines:{
  '1':{patterns:[
   {directionType:'inbound',quays:[a.quayId,b.quayId,c.quayId,d.quayId]},
-  {directionType:'outbound',quays:[d.quayId,opposite.quayId,a.quayId]}
+  {directionType:'outbound',quays:[d.quayId,opposite.quayId,onlyOutbound.quayId,a.quayId]}
  ]},
  '11':{patterns:[
   {directionType:'outbound',quays:[x.quayId,y.quayId,z.quayId]},
@@ -59,8 +60,8 @@ assert.equal(result.lines['1'].acceptedBySourceSequence,1);
 assert.equal(result.lines['1'].differentFromLive,1,
  'Shadow may flag a different candidate, but MUST NOT modify LED');
 assert.equal(result.lines['1'].sourceReportedStop,0);
-result=read(make(t0+30000,opposite));
-assert.equal(result.lines['1'].unresolved,0,'Do not auto-switch direction');
+result=read(make(t0+30000,onlyOutbound));
+assert.equal(result.lines['1'].unresolved,1,'Do not auto-switch direction');
 assert.equal(result.lines['1'].sourceDirectionConflict,1,
  'Wrong-side candidate must be rejected, not reassign the vehicle');
 assert(!JSON.stringify(result).includes(marker));
@@ -105,8 +106,15 @@ const eleven=create({board,patterns});
 const e1=make(t0,x,{code:'11',id:marker});
 const e2=make(t0+10000,y,{code:'11',id:marker});
 assert.equal(eleven.ingest(e1,{now:t0+1000}).lines['11'].acceptedBySourceSequence,0);
-assert.equal(eleven.ingest(e2,{now:t0+11000}).lines['11'].acceptedBySourceSequence,0,
- 'Reverse and forward patterns both supporting identical A/B must not infer a direction');
+assert.equal(eleven.ingest(e2,{now:t0+11000}).lines['11'].acceptedBySourceSequence,1,
+ 'Documented forward A→B sequence can lock line 11 independently');
+const shared=create({board,patterns:{lines:{...patterns.lines,'11':{patterns:[
+ {directionType:'outbound',quays:[x.quayId,y.quayId,z.quayId]},
+ {directionType:'inbound',quays:[x.quayId,y.quayId,z.quayId]}
+]}}}});
+shared.ingest(e1,{now:t0+1000});
+assert.equal(shared.ingest(e2,{now:t0+11000}).lines['11'].acceptedBySourceSequence,0,
+ 'An identical A→B order possible in both directions cannot lock either direction');
 const js=readFileSync(new URL('../web/linear/index.html',import.meta.url),'utf8');
 assert(js.includes('InTransitGpsV2Shadow.create('));
 assert(js.includes('gpsV2Shadow.ingest(frame,{source})'));
