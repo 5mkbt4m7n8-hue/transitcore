@@ -16,6 +16,8 @@ on:
       - 'scripts/test-line1-route-progress.mjs'
       - 'scripts/test-line1-incident-evidence.mjs'
       - 'scripts/test-multiline-route-progress.mjs'
+      - 'scripts/test-verified-entur-patterns.mjs'
+      - 'config/gps/**'
       - 'scripts/test-line1-quality-report.mjs'
       - 'scripts/test-line1-corridor-quality.mjs'
       - 'web/linear/network/line1-corridor-quality.js'
@@ -49,6 +51,8 @@ on:
       - 'scripts/test-line1-route-progress.mjs'
       - 'scripts/test-line1-incident-evidence.mjs'
       - 'scripts/test-multiline-route-progress.mjs'
+      - 'scripts/test-verified-entur-patterns.mjs'
+      - 'config/gps/**'
       - 'scripts/test-line1-quality-report.mjs'
       - 'scripts/test-line1-corridor-quality.mjs'
       - 'web/linear/network/line1-corridor-quality.js'
@@ -107,6 +111,9 @@ jobs:
 
       - name: Verify source-certified Line 1 and 11 route tracking and privacy
         run: node scripts/test-multiline-route-progress.mjs
+
+      - name: Verify 43 Entur sourced lines with exact Quay adjacency and safe exclusions
+        run: node scripts/test-verified-entur-patterns.mjs
 
       - name: Verify Line 1 quality counts and five-minute recording coverage
         run: node scripts/test-line1-quality-report.mjs
