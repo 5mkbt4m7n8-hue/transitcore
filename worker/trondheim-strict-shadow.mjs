@@ -11,7 +11,13 @@ export const REASONS=['matched','invalidGps','invalidOrStaleTime','identityConfl
  'missingQuayIdentity','routeOrDirectionUnresolved','competingQuay','quayNotOnBoard'];
 export const EXTRA=['liveRendered','liveRejectedByStrict60','liveDifferentLedStrict60',
  'strict60NotLive','strict85Match','radiusOnlyGain85','liveSideUnresolved'];
-const zero=()=>Object.fromEntries([...REASONS,...EXTRA].map(k=>[k,0]));
+// These are *only* reasons for a bus that was in the actual GPS PixelFrame.
+// Do not mix these with REASONS, which also include unrendered provider rows.
+export const LIVE_REJECT_REASONS=REASONS.filter(reason=>reason!=='matched');
+const zero=()=>({
+ ...Object.fromEntries([...REASONS,...EXTRA].map(k=>[k,0])),
+ liveRejectReasons60:Object.fromEntries(LIVE_REJECT_REASONS.map(reason=>[reason,0]))
+});
 const count=x=>Number.isSafeInteger(x)&&x>=0&&x<=5000;
 const aud=new Map([
  ['NSR:Quay:102735',[63.44047,10.1979]], ['NSR:Quay:103687',[63.44005,10.19803]],
@@ -152,8 +158,10 @@ export function evaluateStrictShadow({board,profiles,vehicles,frame,now=Date.now
   const live=shown.get(code+'|'+v.id);
   if(live?.size){
    counts.liveRendered++;
-   if(a.reason!=='matched')counts.liveRejectedByStrict60++;
-   else if(!live.has(a.led))counts.liveDifferentLedStrict60++;
+   if(a.reason!=='matched'){
+    counts.liveRejectedByStrict60++;
+    counts.liveRejectReasons60[a.reason]++;
+   }else if(!live.has(a.led))counts.liveDifferentLedStrict60++;
    if(['competingQuay','routeOrDirectionUnresolved','quayNotOnBoard'].includes(a.reason))
     counts.liveSideUnresolved++;
   }else if(a.reason==='matched')counts.strict60NotLive++;
@@ -176,6 +184,17 @@ export function validateStrictShadow(input){
   if(counts.liveRejectedByStrict60+counts.liveDifferentLedStrict60>counts.liveRendered||
    counts.strict85Match>num||counts.radiusOnlyGain85>counts.strict85Match||
    counts.strict60NotLive>counts.matched||counts.liveSideUnresolved>counts.liveRejectedByStrict60)return null;
+  // Optional: historical shadow frames predate this measured-live reason
+  // distribution. Their true causes are UNKNOWN, not fabricated zeros.
+  if(values.liveRejectReasons60!=null){
+   if(typeof values.liveRejectReasons60!=='object'||
+     Array.isArray(values.liveRejectReasons60)||
+     !LIVE_REJECT_REASONS.every(key=>count(values.liveRejectReasons60[key]))||
+     LIVE_REJECT_REASONS.reduce((sum,key)=>sum+values.liveRejectReasons60[key],0)!==
+       counts.liveRejectedByStrict60)return null;
+   counts.liveRejectReasons60=Object.fromEntries(LIVE_REJECT_REASONS
+     .map(key=>[key,values.liveRejectReasons60[key]]));
+  }
   lines[code]=counts;
  }
  if(total!==input.identified)return null;
