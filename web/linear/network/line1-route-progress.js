@@ -103,13 +103,19 @@
     for(const v of occupants){
      if(String(v?.line)!==lineCode||typeof v.id!=='string'||!v.id||
       Number.isFinite(v.ageSeconds)&&v.ageSeconds>45)continue;
+     // A Quay ID in a frame is not sufficient evidence of a GPS visit.
+     // Timetable estimates and unknown position types must never move A→B→C.
+     const confirmedSource=v.positionType==='entur-siri-provider-stop'&&
+      v.providerReportedAtStop===true&&v.state==='AT_STOP'&&led.state==='AT_STOP';
+     const exactGps=v.positionType==='gps-route-quay';
+     const nearbyGps=v.positionType==='gps-nearest-stop'&&
+      v.nearestQuayLed===led.id&&v.withinStopRadius!==false;
      let quay=null;
-     if(QUAY.test(v.quayId)&&mapped.includes(v.quayId))quay=v.quayId;
-     else if(v.positionType==='gps-nearest-stop'&&
-      v.nearestQuayLed===led.id&&mapped.length===1)quay=mapped[0];
+     if((confirmedSource||exactGps)&&QUAY.test(v.quayId)&&mapped.includes(v.quayId))
+      quay=v.quayId;
+     else if(nearbyGps&&mapped.length===1)quay=mapped[0];
      if(!quay)continue;
-     const confirmed=v.quayId===quay&&v.providerReportedAtStop===true&&
-      v.positionType==='entur-siri-provider-stop'&&v.state==='AT_STOP'&&led.state==='AT_STOP';
+     const confirmed=confirmedSource;
      const ev={id:v.id,quay,confirmed,
       sourceDirection:confirmed&&['inbound','outbound'].includes(v.plannedSourceDirection)
         ?v.plannedSourceDirection:null,
