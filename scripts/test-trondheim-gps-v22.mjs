@@ -48,7 +48,8 @@ assert.equal(result.lines['11'].v21Compared,1);
 assert.equal(result.lines['11'].v21Supported,0,'Single GPS observation does not prove movement');
 assert(!JSON.stringify(result).includes(secret));
 assert(!JSON.stringify(result).includes('latitude'));
-assert(!JSON.stringify(result).includes('Quay'));
+assert(!JSON.stringify(result).includes('NSR:Quay:'),
+ 'Anonymous counters may name overlap categories, but cannot contain Quay IDs');
 const safe=validateV22(result);
 assert(safe&&safe.scope==='scheduled-v22-shadow');
 assert.equal(safe.lines['1'].gpsPrimary,1);
