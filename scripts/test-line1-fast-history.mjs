@@ -12,7 +12,12 @@ const profile=JSON.parse(readFileSync(new URL('../config/routes/atb-bus-1-live.j
 const quay='NSR:Quay:102733';
 const node=board.nodes.find(n=>n.quayId===quay);
 assert(node&&Number.isInteger(node.led));
-const now=Date.now(),at=new Date(now-1000).toISOString();
+// Two sample slots belong to one Oslo day, even if CI runs at midnight.
+// Noon UTC works as a stable local daytime anchor in both CET and CEST.
+const osloDay=new Intl.DateTimeFormat('en-CA',{
+ timeZone:'Europe/Oslo',year:'numeric',month:'2-digit',day:'2-digit'
+}).format(new Date());
+const now=Date.parse(osloDay+'T12:00:00Z'),at=new Date(now-1000).toISOString();
 class Storage{
  data=new Map();
  async get(k){return this.data.get(k)}
