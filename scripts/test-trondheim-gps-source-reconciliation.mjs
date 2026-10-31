@@ -114,6 +114,8 @@ assert(html.includes('gpsSourceSection')&&html.includes('renderSourceDisposition
 const wf=readFileSync(new URL('../.github/workflows/linear-mobile.yml',import.meta.url),'utf8');
 assert(wf.includes('node scripts/test-trondheim-gps-source-reconciliation.mjs'));
 const worker=readFileSync(new URL('../worker/led-feed-worker.mjs',import.meta.url),'utf8');
-assert(worker.includes('reportGpsQuality(reconcileTrondheimGpsSource'));
+assert(worker.includes('reconcileTrondheimGpsSource({'));
+assert(worker.includes('reportGpsQuality(strictShadow?'),
+ 'Original source reconciliation must still reach history with optional shadow diagnostics');
 assert(worker.includes('source==="history"&&boardId==="trondheim-city-lines-catalog"'));
 console.log('Trondheim GPS source-to-render: 7 reasons, no extra calls, no raw ID storage, idempotent DO history, unchanged frame PASS');
