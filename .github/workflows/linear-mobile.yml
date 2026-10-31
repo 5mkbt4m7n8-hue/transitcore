@@ -17,6 +17,9 @@ on:
       - 'scripts/test-line1-incident-evidence.mjs'
       - 'scripts/test-multiline-route-progress.mjs'
       - 'scripts/test-verified-entur-patterns.mjs'
+      - 'scripts/test-multiline-scheduled-quality.mjs'
+      - 'worker/trondheim-multiline-quality.mjs'
+      - 'worker/trondheim-history.mjs'
       - 'config/gps/**'
       - 'scripts/test-line1-quality-report.mjs'
       - 'scripts/test-line1-corridor-quality.mjs'
@@ -114,6 +117,9 @@ jobs:
 
       - name: Verify 43 Entur sourced lines with exact Quay adjacency and safe exclusions
         run: node scripts/test-verified-entur-patterns.mjs
+
+      - name: Verify unattended multi-line quality rollups and source isolation
+        run: node scripts/test-multiline-scheduled-quality.mjs
 
       - name: Verify Line 1 quality counts and five-minute recording coverage
         run: node scripts/test-line1-quality-report.mjs
