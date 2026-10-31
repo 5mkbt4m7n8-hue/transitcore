@@ -44,6 +44,7 @@ export function inspectIndex(index,{now=Date.now()}={}){
   enrichedFrames:lineQualityOk(multi)?multi.sourceSamples:0,
   diagnosticFrames:lineQualityOk(multi)?multi.diagnosticSamples:0,
   quayCoverageFrames:lineQualityOk(multi)?multi.issueCoverageSamples:0,
+  renderedScopeFrames:lineQualityOk(multi)&&isCount(multi.renderedScopeSamples)?multi.renderedScopeSamples:0,
   lineCount:lineQualityOk(multi)?Object.keys(multi.lines).length:0,
   activeAt:new Date(now).toISOString()
  };
@@ -81,6 +82,8 @@ export function inspectLatest(summary,page){
  return {...summary,state:'ACTIVE',
   reason:'Recent source-enriched slot and corrected daily rollups verified',
   sampleStatus:'OK',latestSlotAgeMinutes:lastAge,
+  recentDiagnosticScope:line.diagnosticScope==='rendered-direction-conflict-only'?
+   'rendered-direction-conflict-only':'unspecified-or-upstream',
   recentQuayCoverage:line.issuesComplete===true,
   recentGpsDiagnostics:line.diagnosticAvailable===true};
 }
@@ -140,6 +143,8 @@ export async function probe(){
    ['Errors',summary.dayErrors??'–'],['Enriched frames',summary.enrichedFrames??'–'],
    ['Frames with GPS diagnostic',summary.diagnosticFrames??'–'],
    ['Complete Quay diagnostic frames',summary.quayCoverageFrames??'–'],
+   ['Frames with limited rendered GPS conflict scope',summary.renderedScopeFrames??'–'],
+   ['Latest diagnostic scope',summary.recentDiagnosticScope??'–'],
    ['Measured lines',summary.lineCount??'–'],
    ['Latest slot enriched',summary.state==='ACTIVE'?'Yes':'Not verified']
   ];
