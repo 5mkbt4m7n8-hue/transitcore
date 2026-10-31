@@ -24,6 +24,7 @@ try {
   let blockedMonitor = false;
   const monitors = [];
   const historyWrites = [];
+  const fastWrites = [];
   const externalCalls = [];
   const arrivalQueries = [];
   globalThis.fetch = async (url, options) => {
@@ -45,6 +46,10 @@ try {
     get: id => ({ fetch: async (url, options) => {
       const body = JSON.parse(options.body);
       if (url.endsWith('/motion')) return Response.json(body.frame);
+      if (url.endsWith('/line1-fast-history')){
+       fastWrites.push(body);
+       return Response.json({recorded:true});
+      }
       if (url.endsWith('/trondheim-history')){
        historyWrites.push(body);
        return Response.json({recorded:true});
@@ -69,6 +74,17 @@ try {
   assert.equal(historyWrites[0].action,'record');
   assert.equal(historyWrites[0].frame.boardProfile,'trondheim-city-lines-catalog');
 
+  const fastRequestStart=externalCalls.length;
+  await worker.scheduled({scheduledTime:Date.now(),cron:"2-59/5 * * * *"},env);
+  const fastRequests=externalCalls.slice(fastRequestStart);
+  assert(fastRequests.length<=3,'Midpoint only one line: bounded external fetches');
+  assert.equal(fastWrites.length,1,'One lightweight Line 1 quality sample stored');
+  assert.equal(fastWrites[0].action,'record');
+  assert.equal(fastWrites[0].quality?.kind,'scheduled-line1-quay-snapshot');
+  assert.equal(fastWrites[0].quality?.diagnosticsAvailable,false,
+    'GPS-only sampling must not fabricate SIRI stop data');
+  assert.equal(monitors.length,1,'Midpoint must not trigger regular board health checks');
+  assert.equal(historyWrites.length,1,'Midpoint must never overwrite full five-minute history');
   const monitorStart=externalCalls.length;
   await worker.scheduled({scheduledTime:Date.now(),cron:"1-59/5 * * * *"},env);
   const monitorRequests=externalCalls.slice(monitorStart);
