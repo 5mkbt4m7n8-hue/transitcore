@@ -34,6 +34,7 @@ const vehicles=[
  vehicle('same-station-ambiguous',sideA),
  vehicle('wrong-direction-quay',sideB),
  vehicle('wrong-led',isolated),
+ vehicle('not-visible',isolated),
  vehicle('old-gps',isolated,{timestamp:new Date(now-90000).toISOString()})
 ];
 const frame={schemaVersion:1,boardProfile:board.id,generatedAt:stamp,
@@ -49,7 +50,7 @@ const before=JSON.stringify(frame);
 const summary=evaluateStrictShadow({board,profiles,vehicles,frame,now});
 assert.equal(JSON.stringify(frame),before,'Shadow must not change the live PixelFrame');
 assert.equal(summary.scope,SCOPE);
-assert.equal(summary.identified,6);
+assert.equal(summary.identified,7);
 const c=summary.lines['1'];
 assert.equal(c.matched,3,'Isolated, 70m source radius, and wrong-led are strictly matchable');
 assert.equal(c.outsideRadius,1);
