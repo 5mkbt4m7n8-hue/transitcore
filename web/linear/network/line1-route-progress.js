@@ -1,4 +1,4 @@
-// Source-verified Line 1 / Line 11 A -> B -> C observation tracker.
+// Source-verified Trondheim route A -> B -> C observation tracker.
 // Browser-only, no extra Entur calls. No route inference without patterns.
 // Source patterns describe scheduled order, NOT proof of passing any stop.
 // Never manufacture an intermediate stop or infer an actual arrival from GPS.
@@ -10,7 +10,8 @@
  'use strict';
  const QUAY=/^NSR:Quay:\d+$/,DAY=86400000;
  function create({board,patterns,profile,lineCode='1',storage=null,clock=Date.now}={}){
-  if(!/^(1|11)$/.test(lineCode))throw Error('unsupported-route-pattern');
+  if(!/^\d{1,3}$/.test(lineCode)||!patterns?.lines?.[lineCode])
+   throw Error('unsupported-route-pattern');
   const allowed=(patterns?.lines?.[lineCode]?.patterns||[]).filter(p=>
    ['inbound','outbound'].includes(p.directionType)&&Array.isArray(p.quays)&&
    p.quays.length>=2&&p.quays.every(q=>QUAY.test(q)));
@@ -43,8 +44,7 @@
   const name=q=>names.get(q)||q;
   const tracks=new Map(),events=[],processedFrames=new Map();
   let lastSource='',serial=0;
-  const keyName=lineCode==='1'?'intransit-line1-progress-v1':
-   'intransit-line'+lineCode+'-progress-v1';
+  const keyName='intransit-line'+lineCode+'-progress-v1';
   try{
    const prior=JSON.parse(storage?.getItem(keyName)||'[]');
    if(Array.isArray(prior))events.push(...prior.filter(x=>x&&
@@ -280,19 +280,23 @@
   }
   return {ingest,summary,clear,exportJson};
  }
- // Only published source-pattern lines have route-sequence diagnostics.
+ // Only source-approved pattern lines may get route-sequence diagnostics.
  // A catalog route without source patterns remains displayable, not tracked.
  function availableLines({board,patterns}={}){
   if(board?.id!=='trondheim-city-lines-catalog')return [];
   const mapped=new Set((board.nodes||[]).flatMap(n=>[n.quayId,...(Array.isArray(n.stopIds)?n.stopIds:[])]).filter(q=>QUAY.test(q)));
-  return ['1','11'].map(lineCode=>{
+  const codes=[...new Set(['1','11',...Object.keys(patterns?.lines||{})])]
+   .filter(c=>/^\d{1,3}$/.test(c)).sort((a,b)=>Number(a)-Number(b));
+  return codes.map(lineCode=>{
    const valid=(patterns?.lines?.[lineCode]?.patterns||[]).filter(p=>
     ['inbound','outbound'].includes(p.directionType)&&Array.isArray(p.quays)&&
     p.quays.length>=2&&p.quays.every(q=>QUAY.test(q)));
    const quays=new Set(valid.flatMap(p=>p.quays));
    const mappedQuays=[...quays].filter(q=>mapped.has(q));
-   const usable=valid.some(p=>p.quays.some((q,i)=>
-    i<p.quays.length-1&&mapped.has(q)&&mapped.has(p.quays[i+1])));
+   const availableDirections=new Set(valid.map(p=>p.directionType));
+   const usable=valid.length>=2&&availableDirections.size===2&&
+    valid.some(p=>p.quays.some((q,i)=>
+     i<p.quays.length-1&&mapped.has(q)&&mapped.has(p.quays[i+1])));
    return {lineCode,mappedQuays:mappedQuays.length,sourceQuays:quays.size,
     patterns:valid.length,usable};
   });
