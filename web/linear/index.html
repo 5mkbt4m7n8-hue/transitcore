@@ -125,6 +125,19 @@
       <div class="tools"><label>Velg linje <select id="trackedRoute"><option value="1">Linje 1</option><option value="11">Linje 11</option></select></label></div>
       <p id="trackedRouteCoverage" class="tonstad-note">Sjekker kildemønstre og Quay-kartlegging.</p>
       <div id="line1Tracks" aria-live="polite"><p class="tonstad-note">Venter på første gyldige buss-frame.</p></div>
+      <section id="gpsV2Shadow" aria-label="GPS V2 skyggetest">
+        <h3>🧪 V2 · retning og Quay – skyggetest</h3>
+        <p class="tonstad-note">Kun linje 1 og 11. Reelle GPS-posisjoner fra allerede hentede frames vurderes mot Enturs dokumenterte stopp-rekkefølge. Retning låses først av to ulike, kildekompatible Quay-observasjoner eller eksplisitt SIRI-stoppsignal. Når Quays konkurrerer uten slik støtte, forblir valg uavklart. Ingen LED eller produksjons-GPS endres. Sporingen finnes bare mens denne nettsiden er åpen.</p>
+        <p id="gpsV2Status" class="tonstad-note" aria-live="polite">Venter på to selvstendige observasjoner.</p>
+        <div class="diaggrid">
+          <div class="diagitem"><span>GPS-posisjoner vurdert</span><b id="gpsV2Compared">0</b></div>
+          <div class="diagitem"><span>Med støttet ruteretning</span><b id="gpsV2Sequence">0</b></div>
+          <div class="diagitem"><span>Quay-konkurranse</span><b id="gpsV2Competing">0</b></div>
+          <div class="diagitem"><span>Uavklart</span><b id="gpsV2Unresolved">0</b></div>
+          <div class="diagitem"><span>Ulik dagens LED-kandidat</span><b id="gpsV2Different">0</b></div>
+        </div>
+        <p class="tonstad-note">Tallene gjelder siste gyldige frame, ikke kumulativ trafikk. «Støttet» betyr algoritmens rutemønster-kandidat, ikke bekreftet veikant, stopp eller faktisk passering.</p>
+      </section>
       <div class="tools"><strong>Hendelser i nettleseren</strong><button id="line1Export" type="button">Eksporter JSON</button><button id="line1Clear" type="button">Tøm historikk</button></div>
       <ol id="line1Events"></ol>
       <section id="line1Incidents" aria-label="Forklaringer på sporingsavvik">
@@ -176,13 +189,13 @@
 </main>
 <aside class="info" id="info"><button class="close" id="close">Lukk</button><h2 id="infoTitle"></h2><div id="infoBody"></div></aside>
 <script src="../shared/board-client-model.js"></script><script src="../shared/canonical-frame-client.js"></script><script src="../shared/signal-policy.js"></script><script src="../shared/route-occupancy.js"></script><script src="network/model.js"></script><script src="network/editor.js"></script>
-<script src="network/layout-ops.js"></script><script src="network/live-monitor.js"></script><script src="network/tonstad-live-test.js"></script><script src="network/line1-route-progress.js"></script><script src="network/line1-quality-report.js"></script><script src="network/line1-corridor-quality.js"></script><script src="network/history-ui.js"></script><script src="network/cloud-draft.js"></script><script src="geo/model.js"></script><script src="geo/stop-links.js"></script><script src="network/map.js"></script><script>
+<script src="network/layout-ops.js"></script><script src="network/live-monitor.js"></script><script src="network/tonstad-live-test.js"></script><script src="network/line1-route-progress.js"></script><script src="network/gps-v2-shadow.js"></script><script src="network/line1-quality-report.js"></script><script src="network/line1-corridor-quality.js"></script><script src="network/history-ui.js"></script><script src="network/cloud-draft.js"></script><script src="geo/model.js"></script><script src="geo/stop-links.js"></script><script src="network/map.js"></script><script>
 "use strict";
 const SIGNALS=TransitCoreSignals;SIGNALS.applyCssVariables(document);
 const $=id=>document.getElementById(id),BASE="../../config/",FLYBUSS="flybuss-trondheim-fb73-live";
 let frameClient,frameClientId,board,hardware,flyBoard,flyHardware,catalogBoard,catalogHardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,diagnosticTakeovers=0,diagnosticVehicles=new Map,diagnosticOneSided=new Map,colorCycleTimer=null;
 let refreshGeneration=0;
-let line1Tracker=null,line11Tracker=null,line11Coverage=null,trackedPatterns=null,trackedCoverage=new Map(),extraTracker=null,extraTrackerCode=null;
+let line1Tracker=null,line11Tracker=null,line11Coverage=null,trackedPatterns=null,trackedCoverage=new Map(),extraTracker=null,extraTrackerCode=null,gpsV2Shadow=null;
 let line1Quality=null,qualityHistoryReport=null,qualityReportCache=null,qualityDaysLoaded=false;
 let line1Corridors=null,qualityComparisonReport=null,qualityAvailableDays=[];
 let lastFeedStatus="WAITING",lastFeedError="",lastFeedBoardId="";
@@ -432,12 +445,23 @@ function updateLine1Progress(frame=null){
   const selected=$("trackedRoute").value;
   const tracker=selectedRouteTracker();
   if(frame){
+    if(gpsV2Shadow)gpsV2Shadow.ingest(frame,{source});
     line1Tracker.ingest(frame,{source});
     line11Tracker?.ingest(frame,{source});
     if(tracker&&tracker!==line1Tracker&&tracker!==line11Tracker)tracker.ingest(frame,{source});
   }
   const snapshot=tracker?tracker.summary():
     {lineCode:selected,active:[],events:[],observedFrameOnly:true};
+  const v2=gpsV2Shadow?.summary();
+  const metrics=v2?.lines?.[selected]||{};
+  $('gpsV2Status').textContent=gpsV2Shadow&&v2?.status==='ACTIVE_BROWSER_SHADOW'
+   ?'Analysert '+v2.frames+' forskjellige ferske frames mens siden er åpen. Retning betyr kildekompatibel kandidat, ikke bekreftet stopp.'
+   :'Ingen gyldig V2-skyggeframe ennå. Åpne kartet med en aktiv livekilde.';
+  for(const [id,key] of [['gpsV2Compared','comparedGps'],['gpsV2Sequence','acceptedBySourceSequence'],
+   ['gpsV2Competing','competingQuays'],['gpsV2Unresolved','unresolved'],
+   ['gpsV2Different','differentFromLive']]){
+    $(id).textContent=String(metrics[key]||0);
+  }
   const coverage=trackedCoverage.get(selected);
   $("trackedRouteCoverage").textContent=tracker&&coverage
     ?"Linje "+selected+": "+coverage.mappedQuays+"/"+coverage.sourceQuays+
@@ -738,7 +762,7 @@ async function refresh(){
 }
 setInterval(()=>{if(!testing&&!document.hidden&&frameClient){const result=frameClient.snapshot();if(result.sample.status==="EXPIRED"&&result.frame)paint(result.frame);}},1000);
 document.addEventListener("visibilitychange",()=>{++refreshGeneration;clearTimeout(timer);if(!document.hidden)refresh()});
-function resetSourceView(){lastFeedStatus="WAITING";lastFeedError="";lastFeedBoardId="";networkMap?.clear();++refreshGeneration;clearTimeout(timer);testing=false;$("test").textContent="LED-test";frameClient=null;frameClientId=null;lastFrame=null;diagnosticVehicles.clear();diagnosticOneSided.clear();diagnosticTakeovers=0;$("info").classList.remove("show");$("activeCount").textContent="0";$("quality").textContent="Venter på valgt kilde";updateTonstadPanel();updateLine1Progress();updateQualityReport();}
+function resetSourceView(){gpsV2Shadow?.clear();lastFeedStatus="WAITING";lastFeedError="";lastFeedBoardId="";networkMap?.clear();++refreshGeneration;clearTimeout(timer);testing=false;$("test").textContent="LED-test";frameClient=null;frameClientId=null;lastFrame=null;diagnosticVehicles.clear();diagnosticOneSided.clear();diagnosticTakeovers=0;$("info").classList.remove("show");$("activeCount").textContent="0";$("quality").textContent="Venter på valgt kilde";updateTonstadPanel();updateLine1Progress();updateQualityReport();}
 $("source").onchange=()=>{resetSourceView();build();return refresh();};
 $("tonstadFocus").onclick=async()=>{await setMapMode(true);networkMap?.focusStop(InTransitTonstadLiveTest.MAP_STOP)};
 $("tonstadRefresh").onclick=()=>refresh();
@@ -823,6 +847,7 @@ trackedCoverage=new Map(approved.map(info=>[info.lineCode,info]));
 const enabled=approved.filter(info=>info.usable&&profiles.some(p=>p.id==="atb-bus-"+info.lineCode+"-live"));
 $("trackedRoute").innerHTML=enabled.map(info=>'<option value="'+esc(info.lineCode)+
   '">Linje '+esc(info.lineCode)+'</option>').join("");
+gpsV2Shadow=InTransitGpsV2Shadow.create({board:catalogBoard,patterns:line1Patterns});
 line11Coverage=trackedCoverage.get("11");
 if(line11Coverage?.usable&&profiles.some(p=>p.id==="atb-bus-11-live")){
   line11Tracker=InTransitLine1Progress.create({board:catalogBoard,patterns:line1Patterns,
