@@ -32,7 +32,7 @@
    if(!names.has(node.quayId)&&stationNames.has(node.stationId))
     names.set(node.quayId,stationNames.get(node.stationId));
   const name=q=>names.get(q)||q;
-  const tracks=new Map(),events=[];
+  const tracks=new Map(),events=[],processedFrames=new Map();
   let lastSource='',serial=0;
   const keyName='intransit-line1-progress-v1';
   try{
@@ -50,11 +50,22 @@
    if(events.length>100)events.splice(0,events.length-100);
   };
   const save=()=>{try{storage?.setItem(keyName,JSON.stringify(events));}catch{}};
-  const emit=(t,type,at,detail)=>{
+  // Evidence is deliberately structured, bounded and ID-free. Raw vehicle
+  // references are only used for ephemeral in-memory linking and never saved.
+  const emit=(t,type,at,detail,evidence=null)=>{
    events.push({at:stamp(at),bus:t.label,type,source:t.source,quay:t.quay||null,
-    detail:String(detail).slice(0,110)});
+    detail:String(detail).slice(0,110),...(evidence?{evidence}:{})});
    prune(at);save();
   };
+  const proof=(t,code,at,extra={})=>({
+   code,at:stamp(at),lastQuay:t.quay||null,
+   lastObservedAt:t.lastObservedAt?stamp(t.lastObservedAt):null,
+   lastEvidence:t.lastEvidence||'UNKNOWN',
+   direction:t.direction||'unknown',
+   directionBasis:t.directionBasis,
+   nextPlannedQuay:t.nextQuay||null,
+   ...extra
+  });
   const possibilities=(visited,limit=200)=>allowed.filter(p=>{
    let last=-1;
    for(const quay of visited){
@@ -104,24 +115,46 @@
    if(!Number.isFinite(now)||!frame||frame.boardProfile!==board.id)return summary(now);
    const age=now-Date.parse(frame.generatedAt),ttl=Number(frame.ttlSeconds);
    if(!Number.isFinite(age)||age<0||!Number.isFinite(ttl)||ttl<=0||
-    age>ttl*1000)return summary(now);
+    age>ttl*1000||!Array.isArray(frame.leds))return summary(now);
    const selected=source==='staging'?'staging':'production';
-   if(lastSource&&lastSource!==selected)tracks.clear();
+   if(lastSource&&lastSource!==selected){
+    tracks.clear();processedFrames.clear();
+   }
    lastSource=selected;
+   // Multiple UI paints or repeated HTTP responses must not masquerade as
+   // independently observed missing frames.
+   const generated=Date.parse(frame.generatedAt);
+   if(processedFrames.has(selected)&&generated<=processedFrames.get(selected))
+    return summary(now);
+   processedFrames.set(selected,generated);
    const input=observations(frame);
    const present=new Set();
    for(const event of input){
-    if(event.conflict)continue; // same vehicle on 2 Quays is not valid progress
-    const k=selected+'|'+event.id;present.add(k);
+    const k=selected+'|'+event.id;
+    if(event.conflict){
+     const existing=tracks.get(k);
+     if(existing){
+      present.add(k);
+      emit(existing,'CONFLICT',now,'Samme buss vises ved flere Quays i én frame',
+       proof(existing,'DUPLICATE_QUAY_IN_FRAME',now,{frameAt:frame.generatedAt,
+        diagnosticsAvailable:Array.isArray(frame.gpsObservations)}));
+     }
+     continue; // never advance on ambiguous Quay evidence
+    }
+    present.add(k);
     let t=tracks.get(k);
     if(!t){
-     t={label:'Buss '+(++serial),destination:event.destination,lastQuay:null,
-      visited:[],direction:null,directionBasis:'unknown',status:'OBSERVED',
-      lastSeen:now,missing:false,source:selected,nextQuay:null,quay:null};
+     t={label:'Buss '+(++serial),vehicleId:event.id,destination:event.destination,
+      lastQuay:null,visited:[],direction:null,directionBasis:'unknown',
+      status:'OBSERVED',lastSeen:now,missing:false,missingFrames:0,
+      source:selected,nextQuay:null,quay:null,lastEvidence:null,
+      lastObservedAt:null};
      tracks.set(k,t);
     }
     if(now<t.lastSeen)continue;
-    t.lastSeen=now;t.missing=false;t.destination=event.destination||t.destination;
+    const wasMissing=t.missing;
+    t.lastSeen=now;t.missing=false;t.missingFrames=0;
+    t.destination=event.destination||t.destination;
     const prior=t.lastQuay,changed=event.quay!==prior;
     let sequenceConflict=false;
     if(changed){
@@ -130,13 +163,18 @@
       if(!candidates.length){
        // Do not infer a reversal or fake an intermediate stop.
        sequenceConflict=true;t.direction=null;t.directionBasis='unknown';
-       emit(t,'CONFLICT',now,'Ny '+name(event.quay)+' passer ikke observert stoppsekvens');
+       emit(t,'CONFLICT',now,'Ny '+name(event.quay)+' passer ikke observert stoppsekvens',
+        proof(t,'ROUTE_SEQUENCE_CONFLICT',now,{fromQuay:prior,toQuay:event.quay,
+         compatiblePatterns:0,frameAt:frame.generatedAt}));
        t.visited=[event.quay];
       }else{
        const skipped=new Set(candidates.map(p=>p.quays.indexOf(event.quay)-
         p.quays.indexOf(prior)-1));
        if([...skipped].some(x=>x>0))
-        emit(t,'GAP',now,'Mellomliggende stopp ikke observert, ikke bekreftet passert');
+        emit(t,'GAP',now,'Mellomliggende stopp ikke observert, ikke bekreftet passert',
+         proof(t,'UNOBSERVED_INTERMEDIATE_QUAYS',now,{fromQuay:prior,toQuay:event.quay,
+          skippedStopsMinimum:Math.min(...skipped),skippedStopsMaximum:Math.max(...skipped),
+          compatiblePatterns:candidates.length,frameAt:frame.generatedAt}));
        t.visited.push(event.quay);
       }
      }else t.visited=[event.quay];
@@ -150,7 +188,9 @@
     const candidates=possibilities(t.visited);
     if(event.sourceDirection){
      if(t.direction&&t.direction!==event.sourceDirection){
-      emit(t,'CONFLICT',now,'SIRI-kilderetning motsier tidligere rute');
+      emit(t,'CONFLICT',now,'SIRI-kilderetning motsier tidligere rute',
+       proof(t,'SOURCE_DIRECTION_CONFLICT',now,{reportedDirection:event.sourceDirection,
+        frameAt:frame.generatedAt}));
       t.status='CONFLICT';t.direction=null;t.directionBasis='unknown';
      }else{
       t.direction=event.sourceDirection;t.directionBasis='source';
@@ -162,17 +202,46 @@
     }
     if(t.direction&&!candidates.some(p=>p.directionType===t.direction)){
      if(t.status!=='CONFLICT')emit(t,'CONFLICT',now,
-      'Observasjon passer ikke låst '+t.direction+'-retning');
+      'Observasjon passer ikke låst '+t.direction+'-retning',
+      proof(t,'LOCKED_DIRECTION_CONFLICT',now,{fromQuay:prior,
+       toQuay:event.quay,frameAt:frame.generatedAt}));
      t.status='CONFLICT';
     }
     const compatible=candidates.filter(p=>!t.direction||p.directionType===t.direction);
     t.nextQuay=t.status==='CONFLICT'?null:nextOf(compatible,event.quay);
+    if(wasMissing)emit(t,'REAPPEARED',now,'Bussen ble igjen observert i en gyldig frame',
+     proof(t,'REAPPEARED_IN_RENDERED_FRAME',now,{frameAt:frame.generatedAt,
+      reappearedQuay:event.quay,
+      reappearedEvidence:event.confirmed?'SIRI_AT_STOP':'GPS_NEAR'}));
+    t.lastEvidence=event.confirmed?'SIRI_AT_STOP':'GPS_NEAR';
+    t.lastObservedAt=now;
    }
    for(const [k,t] of tracks){
     if(t.source!==selected)continue;
-    if(!present.has(k)&&!t.missing&&now-t.lastSeen>=45000){
+    if(!present.has(k)){
+     t.missingFrames=(t.missingFrames||0)+1;
+    }
+    // Two *distinct fresh frames* and 45s are minimum evidence of a lost
+    // *rendered observation*, not proof of a missed stop or departed bus.
+    if(!present.has(k)&&!t.missing&&t.missingFrames>=2&&now-t.lastSeen>=45000){
      t.missing=true;t.status='NOT_VISIBLE';
-     emit(t,'NOT_VISIBLE',now,'Bussen er ikke lenger i mottatte frames (ikke bekreftet avreise)');
+     const hasDiagnostics=Array.isArray(frame.gpsObservations);
+     const ownDiagnostic=hasDiagnostics?frame.gpsObservations.find(v=>
+      String(v?.line)==='1'&&v.status==='unresolved'&&
+      (v.id===t.vehicleId||v.vehicleRef===t.vehicleId)):null;
+     const knownReasons=new Set(['route-or-direction-unresolved',
+      'no-route-match','wrong-direction','ambiguous-route',
+      'stale-gps','too-far-from-quay','distance-too-far','unresolved']);
+     const sourceReason=ownDiagnostic&&knownReasons.has(ownDiagnostic.reason)
+      ?ownDiagnostic.reason:ownDiagnostic?'other-unresolved':null;
+     emit(t,'NOT_VISIBLE',now,'Bussen er ikke lenger i mottatte frames (ikke bekreftet avreise)',
+      proof(t,ownDiagnostic?'UNRESOLVED_GPS_FOR_SAME_BUS':'MISSING_FROM_VALID_FRAMES',
+       now,{frameAt:frame.generatedAt,missingFrames:t.missingFrames,
+        secondsSinceLastObserved:Math.max(0,Math.floor((now-t.lastSeen)/1000)),
+        diagnosticsAvailable:hasDiagnostics,
+        ...(sourceReason?{sourceReason}:{}),
+        ...(ownDiagnostic&&QUAY.test(ownDiagnostic.nearestQuayId)
+         ?{diagnosticNearestQuay:ownDiagnostic.nearestQuayId}:{})}));
     }
     if(now-t.lastSeen>600000)tracks.delete(k);
    }
@@ -192,7 +261,7 @@
    return {active,events:events.slice(-30).reverse().map(x=>({...x})),
     source:lastSource,observedFrameOnly:true};
   }
-  function clear(){events.length=0;tracks.clear();serial=0;save();}
+  function clear(){events.length=0;tracks.clear();processedFrames.clear();serial=0;save();}
   function exportJson(now=clock()){
    return JSON.stringify({format:'intransit-line1-sequence-v1',
     caveat:'GPS-near is NOT a confirmed physical stop. Gaps are unknown. Browser only.',

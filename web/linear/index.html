@@ -37,6 +37,12 @@
     .line1-track strong{display:block}.line1-track small{display:block;color:var(--muted);line-height:1.5;margin-top:4px}
     #line1Events{max-height:260px;overflow:auto;padding-left:20px}
     #line1Events li{margin:6px 0;font-size:12px;color:#cad5e4}
+    .incident-list{display:grid;gap:8px;margin:10px 0}
+    .incident-list details{padding:9px 11px;border:1px solid #394454;border-radius:8px;background:#151e29}
+    .incident-list summary{font-size:13px;cursor:pointer}
+    .incident-list p{font-size:12px;color:var(--muted);margin:5px 0;line-height:1.5}
+    .incident-list code{font-size:11px}
+
     .quality-wrap{overflow:auto;max-height:390px}.quality-table{border-collapse:collapse;width:100%;min-width:680px;font-size:12px}
     .quality-table th,.quality-table td{padding:8px;border-bottom:1px solid #344151;text-align:right;white-space:nowrap}
     .quality-table td:first-child,.quality-table th:first-child{text-align:left;position:sticky;left:0;background:#141d27}
@@ -118,6 +124,11 @@
       <div id="line1Tracks" aria-live="polite"><p class="tonstad-note">Venter på første gyldige buss-frame.</p></div>
       <div class="tools"><strong>Hendelser i nettleseren</strong><button id="line1Export" type="button">Eksporter JSON</button><button id="line1Clear" type="button">Tøm historikk</button></div>
       <ol id="line1Events"></ol>
+      <section id="line1Incidents" aria-label="Forklaringer på sporingsavvik">
+        <h3>Hvorfor ble sporingen uavklart?</h3>
+        <p class="tonstad-note">Dette er en forklaring på observerte frames og rutesekvenser, ikke en sikker diagnose av Enturs GPS eller fysisk passering.</p>
+        <div id="line1IncidentCards" class="incident-list" aria-live="polite"></div>
+      </section>
       <p class="tonstad-note">Bare observasjoner mens siden er åpen. «Ikke lenger synlig» betyr at bussen mangler i mottatte frames, ikke at den faktisk forlot holdeplassen. Historikk lagres lokalt i ett døgn, ikke på serveren.</p>
     </div>
   </details>
@@ -412,6 +423,46 @@ function updateLine1Progress(frame=null){
       hour:"2-digit",minute:"2-digit",second:"2-digit"});
     return '<li>'+esc(at)+' · '+esc(item.bus)+' · '+esc(item.detail)+'</li>';
   }).join("")||'<li>Ingen ruteobservasjoner ennå.</li>';
+  // Incident evidence contains only bounded public Quay names, timestamps,
+  // source confidence and diagnostic codes — never VehicleRef or coordinates.
+  const issues=snapshot.events.filter(e=>["NOT_VISIBLE","CONFLICT","GAP","REAPPEARED"].includes(e.type));
+  const codes={
+    MISSING_FROM_VALID_FRAMES:"Bussen mangler i påfølgende gyldige tavleframes",
+    UNRESOLVED_GPS_FOR_SAME_BUS:"Samme buss har en eksplisitt uavklart GPS-melding",
+    UNOBSERVED_INTERMEDIATE_QUAYS:"Et eller flere planlagte mellomstopp ble ikke observert",
+    ROUTE_SEQUENCE_CONFLICT:"Observerte Quays passer ikke rutefølgen",
+    SOURCE_DIRECTION_CONFLICT:"Kilde-retning motsier tidligere registrering",
+    LOCKED_DIRECTION_CONFLICT:"Ny observasjon motsier tidligere rutefølge",
+    DUPLICATE_QUAY_IN_FRAME:"Samme buss er vist ved flere Quays samtidig",
+    REAPPEARED_IN_RENDERED_FRAME:"Bussen er igjen synlig i en gyldig frame"
+  };
+  $("line1IncidentCards").innerHTML=issues.length?issues.slice(0,12).map((event,i)=>{
+    const e=event.evidence||{},time=new Date(event.at).toLocaleString("no-NO",{
+      timeZone:"Europe/Oslo",day:"2-digit",month:"2-digit",
+      hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    const title=codes[e.code]||"Sporingshendelse uten detaljert kildebevis";
+    const details=[
+      "Sist observert Quay: "+(e.lastQuay||event.quay||"ukjent"),
+      "Siste bevis: "+(e.lastEvidence||"ikke lagret"),
+      "Sist sett: "+(e.lastObservedAt||"ukjent"),
+      "Forventet neste planlagte Quay: "+(e.nextPlannedQuay||"uavklart"),
+      "Retning: "+(e.direction||"uavklart")+" ("+(e.directionBasis||"ukjent grunnlag")+")",
+      "Ny frame: "+(e.frameAt||"ikke lagret")
+    ];
+    if(Number.isInteger(e.missingFrames))details.push("Forskjellige frames uten bussen: "+e.missingFrames);
+    if(Number.isInteger(e.secondsSinceLastObserved))details.push("Sekunder siden siste treff: "+e.secondsSinceLastObserved);
+    if(e.fromQuay&&e.toQuay)details.push("Observert Quay-endring: "+e.fromQuay+" → "+e.toQuay);
+    if(Number.isInteger(e.skippedStopsMinimum))details.push(
+      "Planlagte mellomstopp uten observasjon: "+e.skippedStopsMinimum+"–"+e.skippedStopsMaximum);
+    if(e.reappearedQuay)details.push("Nytt observert Quay: "+e.reappearedQuay);
+    if(e.diagnosticsAvailable===false)details.push("GPS-avvisningsdetaljer: mangler i mottatt frame");
+    if(e.diagnosticsAvailable===true)details.push("GPS-avvisningsdetaljer: feltet finnes i mottatt frame");
+    if(e.sourceReason)details.push("Kildens diagnosekode: "+e.sourceReason);
+    if(e.diagnosticNearestQuay)details.push("Kildens nærmeste Quay: "+e.diagnosticNearestQuay);
+    return '<details'+(i===0?' open':'')+'><summary>'+esc(time+" · "+event.bus+" · "+title)+
+      '</summary><p>'+esc(event.detail)+'</p><p>'+details.map(esc).join('<br>')+
+      '</p><p>Konklusjon: ikke nok bevis for fysisk avgang eller faktisk feil på holdeplassen.</p></details>';
+  }).join(""):'<p class="tonstad-note">Ingen sporingsbrudd eller ruteavvik registrert i nettleseren ennå.</p>';
 }
 const QUALITY_API="https://transitcore-led-feed.lgb84.workers.dev";
 async function qualityJson(path){

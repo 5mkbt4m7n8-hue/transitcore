@@ -56,6 +56,40 @@ GPS-koordinater, kjøretøy-ID-er eller tur-ID-er i loggen.
 Aktive spor og ID-koblinger er bare i nettleserens
 minne og forsvinner ved omlasting.
 
+## Forklarbare sporingshendelser (test)
+
+Under A→B→C-sporingen vises nå «Hvorfor ble sporingen
+uavklart?» med utfoldbare bevisposter. Et **NOT_VISIBLE**
+registreres først etter både **45 sekunder** og **minst to
+forskjellige gyldige frames uten samme buss**. Gjentatte
+svar med samme genereringstid, utdatert frame eller
+nettverksfeil kan ikke alene utløse et brudd. Varselet
+betyr **ikke** at bussen fysisk forlot holdeplassen.
+
+Bevisposten viser siste observerte Quay, eventuelt
+eksplisitt SIRI-stopp eller GPS-nærhet, siste tidspunkt,
+neste planlagte Quay, faktisk tilgjengelig datafelt for
+GPS-avvisningsdiagnostikk og om samme kjøretøy-ID (kun
+sammenkoblet **i minnet**) hadde en eksplisitt
+`unresolved`-melding i den aktuelle frame-en. Bare
+kjente diagnostikkoder føres videre, aldri vilkårlig
+kildetekst. Rå VehicleRef, tur-ID, koordinater og
+kildemeldinger lagres **ikke** i nettleserhistorikken.
+
+Ved uobservert mellomstopp (`GAP`) oppgis den
+observerte overgangen og antall mulige mellomliggende
+Quays fra kompatible rutemønstre; disse markeres
+ikke automatisk som besøkt. Ved `CONFLICT` oppgis
+kildemotstrid, retning eller duplisert Quay-observasjon.
+En `REAPPEARED`-hendelse betyr bare at bussen kom
+tilbake i mottatt frame – ikke bekreftet fysisk ankomst.
+Alt vises også i eksisterende JSON-eksport.
+
+Motoren er fortsatt nettleserbasert og observerer bare
+frames mens Linear er åpen. De serverlagrede femminutters-
+og ekstramålingene inneholder aggregerte Quay-tall og
+kan ikke etterkonstruere hendelser for én bestemt buss.
+
 ## Viktige begrensninger
 
 Dette er en **observasjonsmodell**, ikke en server-side
