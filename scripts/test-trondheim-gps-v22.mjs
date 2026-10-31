@@ -116,7 +116,10 @@ assert.equal((await obs.json()).status,'OK');
 assert(!JSON.stringify([...isolated]).includes(secret));
 assert(!JSON.stringify([...isolated]).includes('latitude'));
 assert(!JSON.stringify([...isolated]).includes('longitude'));
-const duplicate=await observeV22Internal(state,request,mem,now);
+const duplicate=await observeV22Internal(state,new Request('https://internal/gps-v22/observe',{
+ method:'POST',headers:{'content-type':'application/json'},
+ body:JSON.stringify({at:new Date(t0).toISOString(),lane:'catalog',frame,board})
+}),mem,now);
 assert.equal((await duplicate.json()).status,'ALREADY_OK');
 assert.equal((await v22Storage(state,new Request('https://internal/gps-v22')).then(r=>r.json())).lines['1'].gpsPrimary,1);
 const worker=readFileSync(new URL('../worker/led-feed-worker.mjs',import.meta.url),'utf8');
