@@ -1,0 +1,39 @@
+name: Trondheim quality production proof (read-only)
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/trondheim-quality-proof.yml'
+      - 'scripts/probe-trondheim-quality-live.mjs'
+      - 'scripts/test-trondheim-quality-proof.mjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/trondheim-quality-proof.yml'
+      - 'scripts/probe-trondheim-quality-live.mjs'
+      - 'scripts/test-trondheim-quality-proof.mjs'
+  # Three lightweight public GET checks per day; no new Entur polling.
+  schedule:
+    - cron: '12 6,14,22 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-quality-proof:
+    name: Read production history and verify latest source evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Offline proof contract regression
+        run: node scripts/test-trondheim-quality-proof.mjs
+      - name: Verify actual live multi-line and Quay source data
+        # This check reports source outages and old Worker deployments as
+        # explicit evidence in the step summary, not as source-code CI failures.
+        run: node scripts/probe-trondheim-quality-live.mjs
