@@ -66,3 +66,18 @@ node scripts/test-line1-scheduled-quality.mjs
 node scripts/test-trondheim-day-history.mjs
 node scripts/test-line1-fast-history.mjs
 ```
+
+## Avviksradar
+
+Kvalitetsoversikten har et panel for avviksprioritering basert på **det eksisterende** offentlige døgnsammendraget. Ingen ekstra Entur-kall eller cron-jobb.
+
+- **Linjeavvik**: minst 6 frames med GPS-diagnostikk, og en eksplisitt `unresolved`-observasjon i minst 2 forskjellige gyldige frames. Mange treff i én enkelt frame oppfyller ikke kravet.
+- **Quay-avvik**: kjente `nearestQuayId` i den spesifikke busslinjens katalog. `lineQuality.issues` lagrer opptil 200 unike linje–Quay-par per frame, samt `issuesComplete`. Hvis grensen overskrides, publiseres bare komplette linjetall; ingen feilaktig partiell Quay-statistikk.
+- **Dekning**: døgnmetadata inneholder `issueCoverageSamples` og `quayIssues` med antall treff og distinkte frames. Uten minst 6 fullstendige Quay-diagnoseframes vises ikke Quay-avvik.
+- **To dager**: samme type uavklarte GPS-observasjon må forekomme i minst 2 frames på både valgt dag og direkte foregående kalenderdag med tilstrekkelig diagnosegrunnlag. En eldre pinned demo teller aldri som forrige dag.
+- **Strekninger**: hvis et Quay-avvik kan kobles til en kildeverifisert JourneyPattern, vises inntil to tilstøtende planlagte nabostrekninger per mønster. De er forslag til undersøkelse, ikke dokumentasjon på at en buss passerte der eller faktisk kjørte i planlagt retning.
+- **Ingen gjetning**: lave GPS-tall, uteblitte meldinger, ETA-estimater, kun LED og eldre opptak uten kildediagnostikk kan aldri alene trigge et sporingsavvik. Det beregnes ingen feilprosent.
+
+Ingen endringer i rutekart, eksisterende fysiske tavler (ingen bygget), LED-render, provider-forespørsler eller datalagringens retensjon.
+
+Kjør `node scripts/test-trondheim-anomaly-radar.mjs` for regresjonene.
