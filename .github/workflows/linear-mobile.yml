@@ -18,6 +18,8 @@ on:
       - 'scripts/test-multiline-route-progress.mjs'
       - 'scripts/test-verified-entur-patterns.mjs'
       - 'scripts/test-multiline-scheduled-quality.mjs'
+      - 'scripts/test-trondheim-anomaly-radar.mjs'
+      - 'web/linear/network/anomaly-radar.js'
       - 'worker/trondheim-multiline-quality.mjs'
       - 'worker/trondheim-history.mjs'
       - 'config/gps/**'
@@ -120,6 +122,9 @@ jobs:
 
       - name: Verify unattended multi-line quality rollups and source isolation
         run: node scripts/test-multiline-scheduled-quality.mjs
+
+      - name: Verify Trondheim multi-line anomaly radar and source-only route sections
+        run: node scripts/test-trondheim-anomaly-radar.mjs
 
       - name: Verify Line 1 quality counts and five-minute recording coverage
         run: node scripts/test-line1-quality-report.mjs
