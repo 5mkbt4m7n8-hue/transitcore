@@ -9,7 +9,7 @@
 })(globalThis,function(){
  'use strict';
  const KEY='intransit-trondheim-gps-v21-anonymous-minutes-v1';
- const MINUTE=60000,MAX_AGE=24*60*MINUTE,MAX_BUCKETS=1500;
+ const MINUTE=60000,MAX_AGE=24*60*MINUTE,MAX_BUCKETS=6000;
  const codes=['1','11'];
  const keys=['livePrimaryGps','liveOtherGpsNoCoordinates','v20Compared',
   'v20Supported','v20Unresolved','v20DifferentLed',
