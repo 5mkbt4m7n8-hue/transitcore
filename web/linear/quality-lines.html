@@ -64,6 +64,16 @@ tbody tr:hover td:first-child{background:#243347}
 </table></div>
 <p class="note">Dette er ikke en GPS-feilrate. Ingen Quay eller faktisk stopp blir utledet fra disse tellingene. «Utenfor radius» betyr utenfor katalogens *visningsradius*, ikke at GPS-posisjonen er feil. Resultatene lagres uten kjøretøy-ID-er eller koordinater og teller samme ID maksimalt én gang per måling. Dagene kan ha ulik dekning.</p>
 </section>
+<section id="sourceTriage" aria-label="Gjennomgående årsaker til manglende GPS i kartet">
+<h2>🔬 Gjentatte kilde-til-kart-funn</h2>
+<p class="note">Denne analysen prioriterer bare posisjoner som er ferske, innenfor kartets GPS-radius, men likevel ikke vist i samme frame. Et funn må opptre i minst <strong>to forskjellige målinger</strong>, og det må finnes minst <strong>seks målinger</strong> med full kilde-til-kart-analyse. Det dokumenterer ikke feil plassering, uteblitt fysisk stopp eller bestemt årsak til at posisjonen mangler.</p>
+<p id="sourceTriageStatus" role="status">Venter på målegrunnlag …</p>
+<h3>Spesielt kontrollert: linje 1 og 11</h3>
+<div id="sourceTriageFocus" class="alertgrid"></div>
+<h3>Andre linjer det kan være verdt å undersøke</h3>
+<div id="sourceTriageCandidates" class="alertgrid"></div>
+<p class="note" id="sourceTriageNotes"></p>
+</section>
 <section id="radarSection" aria-label="Avviksradar for GPS">
 <h2>🔎 Avviksradar · dokumenterte GPS-avvik</h2>
 <p class="note">Diagnostikken kan være begrenset til eksplisitte retningskonflikter ved GPS som allerede vises på kartet, ikke alle rå GPS-meldinger som ble avvist. En kandidat krever minst seks målinger med GPS-diagnostikk, og uavklart GPS i minst to forskjellige gyldige frames for samme linje eller Quay. Merket «To dager» krever at dette er observert både på valgt dato og den direkte foregående kalenderdagen, med tilstrekkelig kildedekning begge dager. Dette er <strong>ikke</strong> feilprosent eller bevis for faktisk passering.</p>
@@ -90,6 +100,7 @@ tbody tr:hover td:first-child{background:#243347}
 </section>
 </main>
 <script src="./network/anomaly-radar.js"></script>
+<script src="./network/source-reconciliation-triage.js"></script>
 <script>
 'use strict';
 const API='https://transitcore-led-feed.lgb84.workers.dev/v1/trondheim/history';
@@ -115,7 +126,7 @@ function previous(day){return days.filter(x=>x.day<day).sort((a,b)=>b.day.locale
 function metrics(day){return day?.multiLineQuality?.version===1?day.multiLineQuality:null}
 function render(){
  const selected=latest(),m=metrics(selected),prior=$('compare').checked?previous(selected?.day||''):null,p=metrics(prior);
- if(!selected){$('status').textContent='Ingen lagrede døgn er tilgjengelige.';$('rows').innerHTML='<tr><td colspan="9">Ingen data</td></tr>';$('stats').innerHTML='';renderSourceDisposition(null,null);renderRadar();return}
+ if(!selected){$('status').textContent='Ingen lagrede døgn er tilgjengelige.';$('rows').innerHTML='<tr><td colspan="9">Ingen data</td></tr>';$('stats').innerHTML='';renderSourceDisposition(null,null);renderSourceTriage();renderRadar();return}
  const source=m?.sourceSamples||0;
  $('status').textContent=selected.day+': '+n(selected.count)+' mottatte tidsluker, '+n(selected.errors)+' kildefeil. '+(source?n(source)+' kildeklassifiserte frames.':'Ingen kildeklassifiserte frames ennå.');
  $('stats').innerHTML=[
@@ -145,6 +156,7 @@ function render(){
  }).join(''):'<tr><td colspan="9">Ingen kildeklassifiserte målinger ennå. Eldre opptak påvirkes ikke.</td></tr>';
  if(prior&&p)$('coverage').textContent+=' Tabellen viser valgt dag / forrige dag. Forskjellig antall frames betyr at råtallene ikke kan tolkes som en forbedring eller forverring.';
  renderSourceDisposition(m,p);
+ renderSourceTriage();
  renderRadar();
 }
 function renderSourceDisposition(m,p){
@@ -173,6 +185,40 @@ function renderSourceDisposition(m,p){
   return '<tr><td><strong>Linje '+esc(code)+'</strong></td>'+
    kinds.map(key=>'<td>'+esc(numberPair(a[key],b?.[key]))+'</td>').join('')+'</tr>';
  }).join(''):'<tr><td colspan="8">Ingen linjer med målegrunnlag.</td></tr>';
+}
+function sourceTriageCard(item){
+ const phrase=item.status==='TWO_DAYS'?'Gjennomgående kandidat · to dager':
+  item.status==='REPEATED'?'Gjentatt i flere frames':
+  item.status==='NO_FRAME_PROVENANCE'?'Råtall uten frame-dokumentasjon':
+  item.status==='LOW_COVERAGE'?'For lite målegrunnlag':'Ingen bekreftet gjentakelse';
+ const count=item.counts.unrenderedNearCatalog;
+ const frames=item.frames.unrenderedNearCatalog;
+ const details=frames==null?'Ukjent antall separate frames':n(frames)+' separate frames';
+ const label='Linje '+item.code+(item.focus?' · kontrollrute':'');
+ const url='./?view=network&route=atb-bus-'+encodeURIComponent(item.code)+
+  '-live&track='+encodeURIComponent(item.code);
+ const extra='Utenfor radius: '+n(item.counts.outsideCatalogRadius)+
+  ' · gamle GPS-posisjoner: '+n(item.counts.stalePosition)+
+  ' · mangler koordinater: '+n(item.counts.missingPosition)+
+  ' (ulike årsaker; ikke alle er feil).';
+ return '<article class="alertcard"><span class="tag">'+esc(phrase)+
+  '</span><br><strong>'+esc(label)+'</strong>'+
+  '<p>'+n(count)+' kildeposter nær kartet, men ikke gjengitt · '+esc(details)+
+  ' av '+n(item.observedFrames)+' analyserte målinger.</p><p>'+esc(extra)+
+  '</p><a href="'+url+'">Se linjen i Linear</a></article>';
+}
+function renderSourceTriage(){
+ const result=InTransitSourceTriage.analyze(days,{day:$('day').value||null});
+ $('sourceTriageStatus').textContent=(result.day?result.day+' · ':'')+result.message;
+ $('sourceTriageFocus').innerHTML=result.focus.length?
+  result.focus.map(sourceTriageCard).join(''):
+  '<p>Linje 1 og 11 har ennå ikke separate kilde-til-kart-målinger i den valgte perioden.</p>';
+ const others=result.candidates.filter(x=>!x.focus);
+ $('sourceTriageCandidates').innerHTML=others.length?
+  others.map(sourceTriageCard).join(''):
+  '<p>Ingen andre linjer oppfyller kravene til gjentatte funn med tilgjengelige data.</p>';
+ $('sourceTriageNotes').textContent=result.sourceNotes.join(' ')+
+  ' Rangeringen viser ikke GPS-feilrate eller dokumenterte stopp-hendelser.';
 }
 function alertCard(item){
  const label=item.status==='TWO_DAYS'?'Gjennomgående funn · to dager':'Gjentatte funn · valgt dag';
