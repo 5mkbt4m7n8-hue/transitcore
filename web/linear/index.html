@@ -43,6 +43,13 @@
     .incident-list p{font-size:12px;color:var(--muted);margin:5px 0;line-height:1.5}
     .incident-list code{font-size:11px}
 
+    /* Keep the 13-column test report inside its own horizontal scroller
+       instead of enlarging the mobile viewport and original map. */
+    #gpsV2Shadow{min-width:0;max-width:100%;overflow:hidden}
+    #gpsV2Shadow .scroll{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+    #gpsV2Shadow .scroll table{border-collapse:collapse;min-width:1100px;font-size:12px}
+    #gpsV2Shadow .scroll th,#gpsV2Shadow .scroll td{border-bottom:1px solid #344151;
+      padding:8px;text-align:left;white-space:normal;min-width:70px}
     .quality-wrap{overflow:auto;max-height:390px}.quality-table{border-collapse:collapse;width:100%;min-width:680px;font-size:12px}
     .quality-table th,.quality-table td{padding:8px;border-bottom:1px solid #344151;text-align:right;white-space:nowrap}
     .quality-table td:first-child,.quality-table th:first-child{text-align:left;position:sticky;left:0;background:#141d27}
