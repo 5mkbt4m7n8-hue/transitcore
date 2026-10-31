@@ -14,6 +14,7 @@ const Frames=createRequire(import.meta.url)('../web/shared/canonical-frame-clien
 const TonstadTest=createRequire(import.meta.url)('../web/linear/network/tonstad-live-test.js');
 const Line1Tracker=createRequire(import.meta.url)('../web/linear/network/line1-route-progress.js');
 const Line1Quality=createRequire(import.meta.url)('../web/linear/network/line1-quality-report.js');
+const Line1Corridors=createRequire(import.meta.url)('../web/linear/network/line1-corridor-quality.js');
 for(const [id,count] of [['trondheim-bus-board',147],['trondheim-shared-stops-board',147],['trondheim-city-lines-catalog',1282],['trondheim-flybuss-live',46],['trondheim-bus-1-gps-staging',147]]){
  let now=Date.now(),tick=0,payload,fail=false;const urls=[];
  const client=Frames.create({boardId:id,ledCount:count,origin:'https://gateway.test',clock:()=>now,monotonic:()=>tick,
@@ -63,6 +64,7 @@ const clients=[],context={URLSearchParams,location:{search:'?v=110'},performance
  InTransitTonstadLiveTest:TonstadTest,
  InTransitLine1Progress:Line1Tracker,
  InTransitLine1Quality:Line1Quality,
+ InTransitLine1Corridors:Line1Corridors,
  document:{getElementById:el,querySelectorAll:()=>[],addEventListener(){},hidden:false},setInterval(){},setTimeout(){},clearTimeout(){},
  fetch:async url=>({ok:true,json:async()=>JSON.parse(publishedRead(url.replace('../../','')))})};
 vm.createContext(context);vm.runInContext(script,context);await new Promise(resolve=>setImmediate(resolve));
