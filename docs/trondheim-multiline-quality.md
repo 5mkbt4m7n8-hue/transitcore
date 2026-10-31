@@ -249,3 +249,45 @@ automatiske endringer i sporingsmotoren.
 
 Offline regression:
 `node scripts/test-trondheim-source-priority-live.mjs`.
+
+## Skyggetest av streng rute-/Quay-matching fra PR #279
+
+PR #279 endrer produksjonsmatching, har et eldre utgangspunkt og er
+fortsatt åpen. Denne testen **slår ikke sammen PR #279** og endrer
+ikke gjeldende LED-visning, Quay-plassering eller GPS-radius.
+
+`worker/trondheim-strict-shadow.mjs` er en separat, eksplisitt avgrenset
+kopi av **GPS-delens regler**, kjørt på samme kildebatch som den
+eksisterende femminutters-Worker allerede henter. Koden bruker
+katalogens eksakte linje-/destinasjonsregler, én nærmeste Quay,
+konkurrerende Quay (inkludert kildesnapshot fra PR #279),
+Quay-ID og StopPlace, minst 60 m margin til andre Quays,
+maksimalt 30 s GPS-alder og en forutsetning om opptil 25 m usikkerhet.
+Dagens LED-frame blir aldri endret av skyggetesten.
+
+Reglene beregnes med to maksimalradier, **60 m** og **85 m**,
+men samme Quay-konkurransemargin. 85 m gir ikke tillatelse
+til å gjette et annet stopp eller feil retning. Målegrunnlaget er
+PR #279s **GPS-rute-/Quay-kjerne**, ikke PR-ens SIRI-projeksjon,
+kjøretøyhistorikk, ruteprogresjon eller en fysisk sensortest.
+En match er derfor en **regelmatch**, aldri bevis på faktisk
+holdeplasspassering eller korrekt veikant.
+
+Den anonyme `sourceDisposition.strictShadow` lagres per tidsluke,
+og `sourceReconciliation.strictShadow` oppsummeres per døgn.
+Alle resultatene er tellinger per linje, f.eks. `matched`,
+`competingQuay`, `routeOrDirectionUnresolved`,
+`liveRejectedByStrict60`, `liveDifferentLedStrict60`,
+`liveSideUnresolved`, `strict85Match` og `radiusOnlyGain85`.
+Ingen kjøretøy-ID, destinasjon, koordinater eller kildetid
+lagres i de nye feltene. Gjentatt kjøring av samme tidsluke
+oppdaterer tellingene uten å telle dobbelt.
+
+Et nåværende karttreff som ville blitt avvist av en streng regel
+er en **kandidat til manuell inspeksjon**, ikke et bevist feilplassert
+kjøretøy. Et 85 m-treff som 60 m avviser, bekrefter heller ikke
+at 85 m er riktigere. Sammenligningen vises per linje i
+`web/linear/quality-lines.html` og i anonymisert
+produksjonsstatus for linje 1/11.
+
+Testsuite: `node scripts/test-trondheim-strict-gps-shadow.mjs`.

@@ -18,6 +18,7 @@ import { handleLinearDraft,linearDraftStorage } from "./linear-draft.mjs";
 import {handleLinearPublish} from "./linear-publish.mjs";
 import {dayHistoryStorage,handleTrondheimHistory,recordScheduledTrondheimFrame} from "./trondheim-history.mjs";
 import {reconcileTrondheimGpsSource} from "./trondheim-gps-source-reconciliation.mjs";
+import {evaluateStrictShadow} from "./trondheim-strict-shadow.mjs";
 import {summarizeLine1ScheduledFrame} from "./trondheim-line1-quality.mjs";
 import {fastLine1Storage,recordScheduledFastLine1,handleFastLine1History} from "./trondheim-line1-fast.mjs";
 import {trondheimCatalogProfiles} from "./trondheim-catalog-profiles.mjs";
@@ -1064,10 +1065,21 @@ async function liveFrameForConfiguration(board, profiles, hardware, now, env, re
     // Only the five-minute history requests a source reconciliation.
     // This uses the SAME already-fetched provider batch, not another API call.
     if(reportGpsQuality&&board.id==='trondheim-city-lines-catalog'){
-      try{reportGpsQuality(reconcileTrondheimGpsSource({
-        board:gpsBoard,profiles:vehicleProfiles,vehicles,frame:gpsFrame,now
-      }));}
-      catch(error){console.warn('trondheim_source_reconciliation_unavailable',
+      try{
+        const source=reconcileTrondheimGpsSource({
+          board:gpsBoard,profiles:vehicleProfiles,vehicles,frame:gpsFrame,now
+        });
+        // GPS-only shadow comparison against the existing rendered frame.
+        // It cannot switch a single LED, and never triggers another API call.
+        let strictShadow=null;
+        try{strictShadow=evaluateStrictShadow({
+          board:gpsBoard,profiles:vehicleProfiles,vehicles,frame:gpsFrame,now
+        });}catch(error){
+          console.warn('trondheim_strict_shadow_unavailable',error?.name||'Error');
+        }
+        if(source)reportGpsQuality(strictShadow?
+         {...source,strictShadow}:source);
+      }catch(error){console.warn('trondheim_source_reconciliation_unavailable',
         error?.name||'Error');}
     }
     frames.push(gpsFrame);

@@ -64,6 +64,16 @@ tbody tr:hover td:first-child{background:#243347}
 </table></div>
 <p class="note">Dette er ikke en GPS-feilrate. Ingen Quay eller faktisk stopp blir utledet fra disse tellingene. «Utenfor radius» betyr utenfor katalogens *visningsradius*, ikke at GPS-posisjonen er feil. Resultatene lagres uten kjøretøy-ID-er eller koordinater og teller samme ID maksimalt én gang per måling. Dagene kan ha ulik dekning.</p>
 </section>
+<section id="strictShadow" aria-label="Skyggetest av streng GPS-matching">
+<h2>🧪 Skyggetest: strengere rute- og Quay-matching</h2>
+<p class="note">GPS-delen av PR #279 testes <strong>uten å påvirke kartet</strong>, med eksisterende GPS-data. Kandidaten krever eksakt linje og destinasjon, entydig Quay, og mer enn 60 m forskjell til konkurrerende Quays. Vi sammenligner en radius på 60 m mot 85 m. Resultatene er regelutfall, <strong>ikke bevis for feil veikant, reell stopp-passering eller bedre GPS-nøyaktighet</strong>. SIRI-/rutesekvensfunksjoner i PR #279 er ikke med.</p>
+<p id="strictShadowStatus" role="status">Venter på skyggetestmålinger.</p>
+<div class="scroll"><table>
+<thead><tr><th>Linje</th><th>Vist på kartet (GPS)</th><th>Ville avvist ved 60 m</th><th>Retning/Quay uavklart</th><th>Annen LED enn 60 m-kandidat</th><th>Godkjent ved 60 m</th><th>Godkjent ved 85 m</th><th>Kun godkjent ved 85 m</th></tr></thead>
+<tbody id="strictShadowRows"><tr><td colspan="8">Ingen skyggetestmålinger ennå.</td></tr></tbody>
+</table></div>
+<p class="note">Ingen streng kandidat blir automatisk satt på tavlen. Differanser kan skyldes usikker retning, tettstående Quays, gammel data eller geometrien – ikke nødvendigvis en feil i dagens visning. Resultater fra samme kjøretøy i flere frames teller flere ganger.</p>
+</section>
 <section id="sourceTriage" aria-label="Gjennomgående årsaker til manglende GPS i kartet">
 <h2>🔬 Gjentatte kilde-til-kart-funn</h2>
 <p class="note">Denne analysen prioriterer bare posisjoner som er ferske, innenfor kartets GPS-radius, men likevel ikke vist i samme frame. Et funn må opptre i minst <strong>to forskjellige målinger</strong>, og det må finnes minst <strong>seks målinger</strong> med full kilde-til-kart-analyse. Det dokumenterer ikke feil plassering, uteblitt fysisk stopp eller bestemt årsak til at posisjonen mangler.</p>
@@ -126,7 +136,7 @@ function previous(day){return days.filter(x=>x.day<day).sort((a,b)=>b.day.locale
 function metrics(day){return day?.multiLineQuality?.version===1?day.multiLineQuality:null}
 function render(){
  const selected=latest(),m=metrics(selected),prior=$('compare').checked?previous(selected?.day||''):null,p=metrics(prior);
- if(!selected){$('status').textContent='Ingen lagrede døgn er tilgjengelige.';$('rows').innerHTML='<tr><td colspan="9">Ingen data</td></tr>';$('stats').innerHTML='';renderSourceDisposition(null,null);renderSourceTriage();renderRadar();return}
+ if(!selected){$('status').textContent='Ingen lagrede døgn er tilgjengelige.';$('rows').innerHTML='<tr><td colspan="9">Ingen data</td></tr>';$('stats').innerHTML='';renderSourceDisposition(null,null);renderStrictShadow(null);renderSourceTriage();renderRadar();return}
  const source=m?.sourceSamples||0;
  $('status').textContent=selected.day+': '+n(selected.count)+' mottatte tidsluker, '+n(selected.errors)+' kildefeil. '+(source?n(source)+' kildeklassifiserte frames.':'Ingen kildeklassifiserte frames ennå.');
  $('stats').innerHTML=[
@@ -156,6 +166,7 @@ function render(){
  }).join(''):'<tr><td colspan="9">Ingen kildeklassifiserte målinger ennå. Eldre opptak påvirkes ikke.</td></tr>';
  if(prior&&p)$('coverage').textContent+=' Tabellen viser valgt dag / forrige dag. Forskjellig antall frames betyr at råtallene ikke kan tolkes som en forbedring eller forverring.';
  renderSourceDisposition(m,p);
+ renderStrictShadow(m);
  renderSourceTriage();
  renderRadar();
 }
@@ -185,6 +196,27 @@ function renderSourceDisposition(m,p){
   return '<tr><td><strong>Linje '+esc(code)+'</strong></td>'+
    kinds.map(key=>'<td>'+esc(numberPair(a[key],b?.[key]))+'</td>').join('')+'</tr>';
  }).join(''):'<tr><td colspan="8">Ingen linjer med målegrunnlag.</td></tr>';
+}
+function renderStrictShadow(m){
+ const shadow=m?.sourceReconciliation?.strictShadow;
+ const active=shadow?.scope==='trondheim-strict-route-gps-shadow-v1'&&shadow.samples>0;
+ if(!active){
+  $('strictShadowStatus').textContent='Ingen strenge sammenligningsmålinger ennå. Vi endrer ikke dagens kart.';
+  $('strictShadowRows').innerHTML='<tr><td colspan="8">Venter på første skyggetestopptak.</td></tr>';
+  return;
+ }
+ $('strictShadowStatus').textContent=n(shadow.samples)+
+  ' femminuttersframes er sammenlignet mot både 60 og 85 meter, uten at LED-visningen ble endret.';
+ const codes=Object.keys(shadow.lines||{}).filter(s=>/^\d{1,3}$/.test(s))
+  .sort((a,b)=>(['1','11'].includes(a)?-1:0)-(['1','11'].includes(b)?-1:0)||
+   Number(b==='1')-Number(a==='1')||Number(a)-Number(b));
+ $('strictShadowRows').innerHTML=codes.map(code=>{
+  const x=shadow.lines[code];
+  return '<tr><td><strong>Linje '+esc(code)+'</strong></td>'+
+  ['liveRendered','liveRejectedByStrict60','liveSideUnresolved',
+   'liveDifferentLedStrict60','matched','strict85Match','radiusOnlyGain85']
+   .map(key=>'<td>'+n(x[key])+'</td>').join('')+'</tr>';
+ }).join('')||'<tr><td colspan="8">Ingen sammenlignbare linjer.</td></tr>';
 }
 function sourceTriageCard(item){
  const phrase=item.status==='TWO_DAYS'?'Gjennomgående kandidat · to dager':

@@ -2,6 +2,8 @@
 // Trondheim PixelFrame. No new provider requests and no per-vehicle history.
 // Quay and route membership come only from the actual catalog board.
 import {validatedGpsReconciliation,REASONS} from './trondheim-gps-source-reconciliation.mjs';
+import {SCOPE as STRICT_SCOPE,REASONS as STRICT_REASONS,EXTRA as STRICT_EXTRA}
+ from './trondheim-strict-shadow.mjs';
 const BOARD='trondheim-city-lines-catalog';
 const QUAY=/^NSR:Quay:\d+$/;
 const ROUTE=/^atb-bus-(\d{1,3})-live$/;
@@ -149,6 +151,8 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
  // only new source-enriched slots contribute to the per-reason frame counts.
  const existingFrameProvenance=result.sourceReconciliation.reasonFrames!=null;
  result.sourceReconciliation.reasonFrames??={};
+ result.sourceReconciliation.strictShadow??={version:1,scope:STRICT_SCOPE,
+  samples:0,lines:{}};
  for(const [sample,delta] of [[oldSample,-1],[newSample,1]]){
   if(sample?.status!=='OK')continue;
   const quality=validatedMultiLineQuality(sample.lineQuality);
@@ -162,6 +166,16 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
    aggregate.sourceRows+=delta*src.sourceRows;
    aggregate.unlistedCode+=delta*src.unlistedCode;
    aggregate.uniqueKnownVehicles+=delta*src.uniqueKnownVehicles;
+   if(src.strictShadow){
+    const strict=aggregate.strictShadow;
+    strict.samples+=delta;
+    for(const [code,values] of Object.entries(src.strictShadow.lines)){
+     const sums=strict.lines[code]||(strict.lines[code]=
+      Object.fromEntries([...STRICT_REASONS,...STRICT_EXTRA].map(k=>[k,0])));
+     for(const key of [...STRICT_REASONS,...STRICT_EXTRA])
+      sums[key]+=delta*values[key];
+    }
+   }
    for(const [code,values] of Object.entries(src.lines)){
     const target=aggregate.lines[code]||(aggregate.lines[code]=
      Object.fromEntries(REASONS.map(reason=>[reason,0])));
@@ -203,7 +217,11 @@ export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null)
   Object.values(result.sourceReconciliation.lines).some(item=>
    REASONS.some(reason=>item[reason]<0))||
   Object.values(result.sourceReconciliation.reasonFrames).some(item=>
-   REASONS.some(reason=>item[reason]<0||item[reason]>result.sourceReconciliation.samples)))
+   REASONS.some(reason=>item[reason]<0||item[reason]>result.sourceReconciliation.samples))||
+  result.sourceReconciliation.strictShadow.samples<0||
+  result.sourceReconciliation.strictShadow.samples>result.sourceReconciliation.samples||
+  Object.values(result.sourceReconciliation.strictShadow.lines).some(item=>
+   [...STRICT_REASONS,...STRICT_EXTRA].some(reason=>item[reason]<0)))
   throw Error('negative_multiline_rollup');
  return result;
 }
