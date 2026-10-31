@@ -28,17 +28,39 @@ i nettleseren, beholder opptil 400 frames og maksimalt ett døgn
 av data; alle identiske frames og rutehendelser dedupliseres.
 Produksjon og staging telles separat.
 
-**Lagret døgn:** Fra «Datagrunnlag → Lagret døgn → Hent datoer»
-velges en dato, deretter «Analyser valgt dato». Panelet leser
-eksisterende `/v1/trondheim/history` med paginering, altså
-ingen ny provider-polling. Dette er serverens planlagte
-**fem-minuttersopptak**, ikke kontinuerlig logging.
-Historikkens kompakte LED-records har ikke lenger alle
-detaljfeltene som trengs for å bevise SIRI-stopp,
-GPS-nærhet eller avvisningsgrunner. Alle treff fra dette
-opptaket føres derfor som **LED-observasjoner** (ingen SIRI/GPS
-garanteres), og manglende serverframes vises som tidsluker
-og feil – aldri som bevis for at en bestemt buss ikke kjørte.
+**Lagret døgn (automatisk):** Fra «Datagrunnlag → Lagret døgn
+→ Hent datoer» velges en dato, deretter «Analyser valgt dato».
+Panelet leser eksisterende `/v1/trondheim/history` med
+paginering, uten ekstra provider-polling. Den eksisterende
+Trondheim-Workeren lagrer fortsatt et øyeblikksbilde
+**hvert femte minutt** i en Durable Object, uansett
+om nettleseren er åpen.
+
+**Nye opptak:** Fra denne versjonen blir også et lite
+`quality`-sammendrag tatt direkte fra den *rå* gyldige
+PixelFrame-en **før** den komprimeres for lagring:
+`NSR:Quay` og antall SIRI-bekreftelser, GPS-nærhet,
+LED-only og eventuelle uavklarte GPS-treff. Kilde-ID-er,
+vehicle ID-er og GPS-koordinater følger ikke med i dette
+sammendraget. Kun eksakte Quays fra kildekatalogen blir
+telt. Feil i originalfeeden lagres som historikkfeil;
+ingen feil konverteres til «tom holdeplass».
+
+**Eldre opptak:** Tidligere femminuttersopptak
+mangler kildebevis og vises fortsatt som **LED-only**.
+Rapporten opplyser hvor mange av dagens gyldige
+målinger som har kildeberikede Quay-tall, og hvor mange
+som faktisk har tilgjengelig GPS-avvisningsdiagnostikk.
+Tomme felter merkes «–» i stedet for falske nullverdier.
+Døgnets tidsluker og mislykkede frames er synlige.
+
+**Automatisk prioritering:** Ved opplagte
+kilde-diagnostikkdata kan opptakene rangere Quays
+med faktisk uavklart GPS. Historiske femminuttersopptak
+brukes **ikke** til å rekonstruere uobserverte stopp,
+spore kontinuerlige turer eller påstå fysiske avreiser.
+Hvis avvisningsdiagnostikken mangler, vises ingen
+oppdiktet «verste holdeplasser»-liste.
 
 ## Toppliste – stopp som bør undersøkes først
 
@@ -65,10 +87,12 @@ ikke et gjettet stopp.
 Dersom ingen ekte avvik ble observert, vises
 **ingen toppliste**. Ved utilgjengelig detaljdiagnostikk
 vises en uttrykkelig advarsel om begrenset grunnlag.
-Fem-minutters serveropptak kan ikke rangere spesifikke
-GPS-/SIRI-avvik, siden detaljbevis er fjernet; panelet
-sier derfor klart fra om dette istedenfor å lage en
-misvisende «verste holdeplasser»-liste.
+Fem-minutters serveropptak fra **før** dette
+tillegget kan ikke rangere spesifikke GPS-/SIRI-avvik.
+For **nye** opptak kan Quays med dokumentert
+uavklart GPS prioriteres når de nødvendige
+diagnosefeltene faktisk følger med fra kilden. Listen
+er en undersøkelsesliste, aldri en feilprosent.
 
 ## Slik tolkes tabellen
 
