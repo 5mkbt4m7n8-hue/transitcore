@@ -63,7 +63,7 @@ for(const [code,line] of Object.entries(patternData.lines)){
   const ledA=[...(mapped.get(from)||[])],ledB=[...(mapped.get(to)||[])];
   if(ledA.length===1&&ledB.length===1&&ledA[0]!==ledB[0]&&
     byLed.get(ledA[0])?.size===1&&byLed.get(ledB[0])?.size===1){
-   usablePairs++;goodPair??={from,to,ledA:ledA[0],ledB:ledB[0]};
+   usablePairs++;goodPair??={from,to,ledA:ledA[0],ledB:ledB[0],direction:p.directionType};
   }
  }
  assert(usablePairs>=2,'Too few genuinely unambiguous adjacent GPS Quays for '+code);
@@ -79,6 +79,52 @@ for(const [code,line] of Object.entries(patternData.lines)){
  assert.equal(observation.active.length,1,'Exact mapped Quay must give one observation for '+code);
  assert.equal(observation.active[0].quay,goodPair.from);
  assert(!JSON.stringify(observation).includes('PRIVATE-BUS'));
+ // Verify actual A -> B progression for every approved source line, not
+ // just the first Quay. An inferred direction may remain unknown if variants
+ // overlap, but a genuine adjacent sequence must never be a conflict.
+ const continued=tracker.ingest({...frame,generatedAt:new Date(now+10000).toISOString(),
+  leds:[{id:goodPair.ledB,state:'APPROACHING',occupants:[{
+   id:'PRIVATE-BUS',line:code,positionType:'gps-nearest-stop',
+   nearestQuayLed:goodPair.ledB,withinStopRadius:true,
+   state:'APPROACHING'}]}]},{now:now+10000});
+ assert.equal(continued.active[0].sequence.length,2,'A -> B must work for '+code);
+ assert.notEqual(continued.active[0].status,'CONFLICT',
+  'Documented adjacent Quays must not be rejected for '+code);
+ // Only source-verified SIRI or explicit GPS can advance a sequence.
+ // An estimated call with a real-looking Quay must not become a GPS event.
+ const untrusted=[
+  ['estimated call',{quayId:goodPair.from,positionType:'estimated-station-call'}],
+  ['unknown type',{quayId:goodPair.from,positionType:'unknown'}],
+  ['missing provenance',{quayId:goodPair.from}],
+  ['outside stop radius',{positionType:'gps-nearest-stop',
+   nearestQuayLed:goodPair.ledA,withinStopRadius:false}],
+  ['wrong nearest LED',{quayId:goodPair.from,positionType:'gps-nearest-stop',
+   nearestQuayLed:goodPair.ledB}],
+  ['unconfirmed SIRI',{quayId:goodPair.from,
+   positionType:'entur-siri-provider-stop',providerReportedAtStop:false,state:'AT_STOP'}]
+ ];
+ for(const [reason,invalid] of untrusted){
+  const isolated=create({board,patterns:patternData,profile:route,lineCode:code,clock:()=>now});
+  const state=invalid.state||'APPROACHING';
+  const input={...frame,leds:[{id:goodPair.ledA,state,occupants:[{
+   id:'PRIVATE-BUS',line:code,destination:'test',...invalid,state}]}]};
+  const rejected=isolated.ingest(input,{now});
+  assert.equal(rejected.active.length,0,code+' must reject '+reason);
+  assert.equal(rejected.events.length,0,code+' must not log '+reason);
+ }
+ for(const [evidence,attributes,state] of [
+  ['explicit GPS',{quayId:goodPair.from,positionType:'gps-route-quay'},'APPROACHING'],
+  ['verified SIRI',{quayId:goodPair.from,positionType:'entur-siri-provider-stop',
+   providerReportedAtStop:true,plannedSourceDirection:goodPair.direction},'AT_STOP']
+ ]){
+  const isolated=create({board,patterns:patternData,profile:route,lineCode:code,clock:()=>now});
+  const input={...frame,leds:[{id:goodPair.ledA,state,occupants:[{
+   id:'PRIVATE-BUS',line:code,destination:'test',...attributes,state}]}]};
+  const result=isolated.ingest(input,{now});
+  assert.equal(result.active.length,1,code+' accepts '+evidence);
+  assert.equal(result.events[0].type,evidence==='verified SIRI'?'SOURCE_STOP':'GPS_NEAR');
+  assert(!JSON.stringify(result).includes('PRIVATE-BUS'));
+ }
  summary.push({line:code,patterns:patterns.length,quays:routeQuays.size,
   mappedQuays:info.mappedQuays,uniqueAdjacentPairs:usablePairs});
 }
