@@ -413,3 +413,40 @@ uovervåket produksjonslogging. Videre validering krever observerte
 passeringer og kildebekreftelse.
 
 Test: `node scripts/test-gps-v21-multiple-quays.mjs`.
+
+## GPS V2.1 – automatisk, anonym testlogging i nettleseren (24 timer)
+
+Linear leser **samme gyldige PixelFrame** i tre parallelle spor:
+- Dagens **faktisk viste** primærbuss-GPS (en *referanse for visning*,
+  ikke ground truth for holdeplass).
+- Opprinnelige **V2.0** (frosset kildekode fra PR #302 i
+  \`web/linear/network/gps-v20-baseline.js\`; ikke oppdatert til V2.1).
+- **V2.1** med samtidige Quay-hypoteser og ruterekkefølge.
+
+\`web/linear/network/gps-v2-comparison-log.js\` mottar bare disse
+anonyme tellerne og den **ferske** PixelFrame som allerede ble hentet
+av Linear. Den lager anonyme minutt-bøtter for linje 1 og 11 per kilde
+(produksjon/staging). Korrigert tidsstempel, TTL, kildebytte og dupliserte
+frames vurderes; gjentatt tegning av samme frame gir ikke ekstra
+observasjoner. Begrensning er siste 24 timer og maks 6 000 bøtter i
+\`localStorage\` (ikke cloud/Worker); ingen rå GPS-koordinater,
+VehicleRef, Quay-ID, destinasjon, individuell historikk eller rutefølge
+blir serialisert. Lokale logger kan eksporteres anonymt til CSV/JSON
+eller tømmes helt fra kontrollpanelet. Etter omlasting kan man lese
+de anonyme summene, men det midlertidige V2.0/V2.1-ruteminnet er
+ikke gjenopprettet.
+
+**Viktig:** Den automatiske loggingen skjer bare mens nettsiden er
+åpen/aktiv og får nye frames. Dette er *ikke* uovervåket innsamling
+når telefonen er låst, nettleseren sover eller fanen er lukket.
+Loggen lagrer per minutt og linje (ikke per buss), så et oppdrag som
+måler enkelte faktiske A→B→C-passeringer over tid må følges opp
+med kontroll mot eksplisitte kilder eller manuell observasjon. Ingen
+av de tre algoritmene kan brukes som fasit for fysisk korrekt Quay.
+V2.0- og V2.1-støttet rekkefølge kan telles og sammenlignes, men **en
+større andel støttede kandidater betyr ikke bevist bedre fysisk GPS**.
+På delte LED-er har bare \`led.vehicle\` egne GPS-koordinater; andre
+GPS-\`occupants\` telles separat og blir ikke feilaktig knyttet
+til hovedbussens posisjon. SIRI-prognoser behandles ikke som GPS.
+
+Regresjon: \`node scripts/test-gps-v21-comparison-log.mjs\`.

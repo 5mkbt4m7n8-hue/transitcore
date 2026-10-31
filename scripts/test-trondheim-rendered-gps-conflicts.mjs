@@ -14,7 +14,12 @@ const board={id:'trondheim-city-lines-catalog',routes:['atb-bus-1-live','atb-bus
  {led:12,quayId:A,routes:['atb-bus-1-live']},
  {led:12,quayId:B,routes:['atb-bus-1-live']}
 ]};
-const at=new Date(Date.now()-1000).toISOString();
+// Freeze the test's multi-frame sample around Oslo midday. Date.now()+301s
+// could cross local midnight and move the second frame to another day.
+const osloDay=new Intl.DateTimeFormat('en-CA',{
+ timeZone:'Europe/Oslo',year:'numeric',month:'2-digit',day:'2-digit'
+}).format(new Date());
+const at=new Date(Date.parse(osloDay+'T12:00:00Z')).toISOString();
 const secret='ATB:Vehicle:PRIVATE-NO-PERSIST';
 const occupant=(id,extra={})=>({id,line:'1',state:'APPROACHING',
  positionType:'gps-nearest-stop',platformEvidence:'direction-conflict',
@@ -93,8 +98,9 @@ assert(!JSON.stringify(stored.records[0].lineQuality).includes(secret),
 assert.deepEqual(stored.records[0].lineQuality.issues,[['1',A,1],['1',B,1]]);
 // A different helper proof: a valid empty GPS frame still has inspected scope,
 // but nobody can infer a physical departure from no visible occupants.
-const clean={...frame,leds:[],generatedAt:new Date(Date.now()+301000).toISOString(),
- sequence:Math.floor((Date.now()+301000)/1000)};
+const nextAt=Date.parse(at)+301000;
+const clean={...frame,leds:[],generatedAt:new Date(nextAt).toISOString(),
+ sequence:Math.floor(nextAt/1000)};
 await recordScheduledTrondheimFrame(env,clean,'',clean.generatedAt,board);
 index=await dayHistoryStorage(store,new Request('https://status.internal/trondheim-history')).then(r=>r.json());
 assert.equal(index.days[0].multiLineQuality.renderedScopeSamples,2);

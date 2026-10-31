@@ -43,6 +43,13 @@
     .incident-list p{font-size:12px;color:var(--muted);margin:5px 0;line-height:1.5}
     .incident-list code{font-size:11px}
 
+    /* Keep the 13-column test report inside its own horizontal scroller
+       instead of enlarging the mobile viewport and original map. */
+    #gpsV2Shadow{min-width:0;max-width:100%;overflow:hidden}
+    #gpsV2Shadow .scroll{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+    #gpsV2Shadow .scroll table{border-collapse:collapse;min-width:1100px;font-size:12px}
+    #gpsV2Shadow .scroll th,#gpsV2Shadow .scroll td{border-bottom:1px solid #344151;
+      padding:8px;text-align:left;white-space:normal;min-width:70px}
     .quality-wrap{overflow:auto;max-height:390px}.quality-table{border-collapse:collapse;width:100%;min-width:680px;font-size:12px}
     .quality-table th,.quality-table td{padding:8px;border-bottom:1px solid #344151;text-align:right;white-space:nowrap}
     .quality-table td:first-child,.quality-table th:first-child{text-align:left;position:sticky;left:0;background:#141d27}
@@ -140,6 +147,21 @@
           <div class="diagitem"><span>Ulik dagens LED-kandidat</span><b id="gpsV2Different">0</b></div>
         </div>
         <p class="tonstad-note">Tallene gjelder siste gyldige frame, ikke kumulativ trafikk. «Støttet» betyr algoritmens rutemønster-kandidat, ikke bekreftet veikant, stopp eller faktisk passering. «Entydig» betyr kun én gjenværende kandidat i kilde- og GPS-modellen, ikke fysisk bekreftet plattform. Ingen kjøretøy-ID-er eller koordinater vises.</p>
+        <section aria-label="Automatisk V2.0 V2.1 GPS sammenligningslogg">
+          <h3>📊 Automatisk GPS-sammenligning · rullerende 24 timer</h3>
+          <p class="tonstad-note">Mens denne fanen er åpen, analyseres hver nye, ferske GPS-frame automatisk med dagens PixelFrame, den opprinnelige V2.0-testen og V2.1. Lokalt lagres bare anonyme minutt-tellere, ikke buss-ID, koordinater eller Quay-historikk. Fanen må være åpen for å samle nye opptak; det er ingen uovervåket serverlogging.</p>
+          <p id="gpsCompareStatus" class="tonstad-note" aria-live="polite">Ingen sammenlignbare frames ennå.</p>
+          <div class="scroll"><table aria-label="Sammenligning av GPS V2.0 V2.1 og dagens kart">
+            <thead><tr><th>Linje</th><th>Frames</th><th>GPS primærbuss vist</th><th>GPS på andre delte LED-observasjoner (uten egne koordinater)</th><th>V2.0 GPS vurdert</th><th>V2.0 retning støttet</th><th>V2.0 uavklart</th><th>V2.1 GPS vurdert</th><th>V2.1 retning støttet</th><th>V2.1 uavklart</th><th>V2.1 alternativer innsnevret</th><th>V2.1 entydig etter følgeobservasjon</th><th>V2.1 annen LED-kandidat</th></tr></thead>
+            <tbody id="gpsCompareRows"><tr><td colspan="13">Ingen registrerte framemålinger ennå.</td></tr></tbody>
+          </table></div>
+          <p class="tonstad-note">Alle tall er summer av observasjoner, ikke antall unike busser. «Støttet» er kildekompatibel rutekandidat, <strong>ikke verifisert riktig fysisk plassering</strong>. V2.0 og V2.1 har forskjellig dekningsgrad; høyere tall betyr ikke automatisk bedre GPS. Primærbussens GPS brukes aldri som koordinat for andre busser på samme LED. Testlogging og rutehypoteser kan ikke videreføres i bakgrunnen når fanen er lukket.</p>
+          <div class="tools">
+            <button id="gpsCompareCsv" type="button">Eksporter CSV</button>
+            <button id="gpsCompareJson" type="button">Eksporter JSON</button>
+            <button id="gpsCompareClear" type="button">Tøm anonym testlogg</button>
+          </div>
+        </section>
       </section>
       <div class="tools"><strong>Hendelser i nettleseren</strong><button id="line1Export" type="button">Eksporter JSON</button><button id="line1Clear" type="button">Tøm historikk</button></div>
       <ol id="line1Events"></ol>
@@ -192,13 +214,13 @@
 </main>
 <aside class="info" id="info"><button class="close" id="close">Lukk</button><h2 id="infoTitle"></h2><div id="infoBody"></div></aside>
 <script src="../shared/board-client-model.js"></script><script src="../shared/canonical-frame-client.js"></script><script src="../shared/signal-policy.js"></script><script src="../shared/route-occupancy.js"></script><script src="network/model.js"></script><script src="network/editor.js"></script>
-<script src="network/layout-ops.js"></script><script src="network/live-monitor.js"></script><script src="network/tonstad-live-test.js"></script><script src="network/line1-route-progress.js"></script><script src="network/gps-v2-shadow.js"></script><script src="network/line1-quality-report.js"></script><script src="network/line1-corridor-quality.js"></script><script src="network/history-ui.js"></script><script src="network/cloud-draft.js"></script><script src="geo/model.js"></script><script src="geo/stop-links.js"></script><script src="network/map.js"></script><script>
+<script src="network/layout-ops.js"></script><script src="network/live-monitor.js"></script><script src="network/tonstad-live-test.js"></script><script src="network/line1-route-progress.js"></script><script src="network/gps-v2-shadow.js"></script><script src="network/gps-v20-baseline.js"></script><script src="network/gps-v2-comparison-log.js"></script><script src="network/line1-quality-report.js"></script><script src="network/line1-corridor-quality.js"></script><script src="network/history-ui.js"></script><script src="network/cloud-draft.js"></script><script src="geo/model.js"></script><script src="geo/stop-links.js"></script><script src="network/map.js"></script><script>
 "use strict";
 const SIGNALS=TransitCoreSignals;SIGNALS.applyCssVariables(document);
 const $=id=>document.getElementById(id),BASE="../../config/",FLYBUSS="flybuss-trondheim-fb73-live";
 let frameClient,frameClientId,board,hardware,flyBoard,flyHardware,catalogBoard,catalogHardware,profiles=[],profile,ordered=[],timer,testing=false,lastFrame=null,diagnosticTakeovers=0,diagnosticVehicles=new Map,diagnosticOneSided=new Map,colorCycleTimer=null;
 let refreshGeneration=0;
-let line1Tracker=null,line11Tracker=null,line11Coverage=null,trackedPatterns=null,trackedCoverage=new Map(),extraTracker=null,extraTrackerCode=null,gpsV2Shadow=null;
+let line1Tracker=null,line11Tracker=null,line11Coverage=null,trackedPatterns=null,trackedCoverage=new Map(),extraTracker=null,extraTrackerCode=null,gpsV2Shadow=null,gpsV20Baseline=null,gpsCompareLog=null;
 let line1Quality=null,qualityHistoryReport=null,qualityReportCache=null,qualityDaysLoaded=false;
 let line1Corridors=null,qualityComparisonReport=null,qualityAvailableDays=[];
 let lastFeedStatus="WAITING",lastFeedError="",lastFeedBoardId="";
@@ -448,7 +470,13 @@ function updateLine1Progress(frame=null){
   const selected=$("trackedRoute").value;
   const tracker=selectedRouteTracker();
   if(frame){
+    // Both shadow engines consume the *same unmodified canonical frame*.
+    // Only their anonymous metrics are retained by the comparison logger.
     if(gpsV2Shadow)gpsV2Shadow.ingest(frame,{source});
+    if(gpsV20Baseline)gpsV20Baseline.ingest(frame,{source});
+    if(gpsCompareLog&&gpsV20Baseline&&gpsV2Shadow)
+      gpsCompareLog.record({frame,source,v20:gpsV20Baseline.summary(),
+        v21:gpsV2Shadow.summary()});
     line1Tracker.ingest(frame,{source});
     line11Tracker?.ingest(frame,{source});
     if(tracker&&tracker!==line1Tracker&&tracker!==line11Tracker)tracker.ingest(frame,{source});
@@ -466,6 +494,23 @@ function updateLine1Progress(frame=null){
    ['gpsV2Unresolved','unresolved'],
    ['gpsV2Different','differentFromLive']]){
     $(id).textContent=String(metrics[key]||0);
+  }
+  const comparison=gpsCompareLog?.report({source});
+  if(comparison){
+    const minutes=comparison.minutesWithSamples;
+    const last=comparison.lastMinute===null?'ingen':new Date(comparison.lastMinute).toLocaleString('no-NO',{
+      timeZone:'Europe/Oslo',hour:'2-digit',minute:'2-digit',day:'numeric',month:'numeric'});
+    $('gpsCompareStatus').textContent='Kilde: '+(source==='staging'?'STAGING':'Produksjon')+
+      ' · '+minutes+' minutter med opptak siste 24 timer · siste: '+last+
+      ' · '+comparison.sessionFrames+' registrerte frames i denne fanen.';
+    $('gpsCompareRows').innerHTML=['1','11'].map(code=>{
+      const m=comparison.lines[code]||{};
+      const cells=[m.frames,m.livePrimaryGps,m.liveOtherGpsNoCoordinates,
+       m.v20Compared,m.v20Supported,m.v20Unresolved,m.v21Compared,m.v21Supported,
+       m.v21Unresolved,m.v21Narrowed,m.v21Resolved,m.v21DifferentLed];
+      return '<tr><td><strong>Linje '+code+'</strong></td>'+cells.map(n=>
+        '<td>'+String(n||0)+'</td>').join('')+'</tr>';
+    }).join('');
   }
   const coverage=trackedCoverage.get(selected);
   $("trackedRouteCoverage").textContent=tracker&&coverage
@@ -767,12 +812,23 @@ async function refresh(){
 }
 setInterval(()=>{if(!testing&&!document.hidden&&frameClient){const result=frameClient.snapshot();if(result.sample.status==="EXPIRED"&&result.frame)paint(result.frame);}},1000);
 document.addEventListener("visibilitychange",()=>{++refreshGeneration;clearTimeout(timer);if(!document.hidden)refresh()});
-function resetSourceView(){gpsV2Shadow?.clear();lastFeedStatus="WAITING";lastFeedError="";lastFeedBoardId="";networkMap?.clear();++refreshGeneration;clearTimeout(timer);testing=false;$("test").textContent="LED-test";frameClient=null;frameClientId=null;lastFrame=null;diagnosticVehicles.clear();diagnosticOneSided.clear();diagnosticTakeovers=0;$("info").classList.remove("show");$("activeCount").textContent="0";$("quality").textContent="Venter på valgt kilde";updateTonstadPanel();updateLine1Progress();updateQualityReport();}
+function resetSourceView(){gpsV2Shadow?.clear();gpsV20Baseline?.clear();lastFeedStatus="WAITING";lastFeedError="";lastFeedBoardId="";networkMap?.clear();++refreshGeneration;clearTimeout(timer);testing=false;$("test").textContent="LED-test";frameClient=null;frameClientId=null;lastFrame=null;diagnosticVehicles.clear();diagnosticOneSided.clear();diagnosticTakeovers=0;$("info").classList.remove("show");$("activeCount").textContent="0";$("quality").textContent="Venter på valgt kilde";updateTonstadPanel();updateLine1Progress();updateQualityReport();}
 $("source").onchange=()=>{resetSourceView();build();return refresh();};
 $("tonstadFocus").onclick=async()=>{await setMapMode(true);networkMap?.focusStop(InTransitTonstadLiveTest.MAP_STOP)};
 $("tonstadRefresh").onclick=()=>refresh();
 $("trackedRoute").onchange=()=>updateLine1Progress();
 $("line1Clear").onclick=()=>{selectedRouteTracker()?.clear();updateLine1Progress();};
+function exportGpsComparison(ext){
+  if(!gpsCompareLog)return;
+  const isCsv=ext==='csv',content=isCsv?gpsCompareLog.exportCsv():gpsCompareLog.exportJson();
+  const blob=new Blob([content],{type:isCsv?'text/csv;charset=utf-8':'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='intransit-gps-v20-v21-anonym-24t.'+ext;
+  a.click();URL.revokeObjectURL(url);
+}
+$('gpsCompareCsv').onclick=()=>exportGpsComparison('csv');
+$('gpsCompareJson').onclick=()=>exportGpsComparison('json');
+$('gpsCompareClear').onclick=()=>{gpsCompareLog?.clear();updateLine1Progress();};
 $("qualityCorridorList").onclick=async event=>{
  const target=event?.target?.closest?.("[data-corridor-quay]");
  if(!target)return;
@@ -853,6 +909,10 @@ const enabled=approved.filter(info=>info.usable&&profiles.some(p=>p.id==="atb-bu
 $("trackedRoute").innerHTML=enabled.map(info=>'<option value="'+esc(info.lineCode)+
   '">Linje '+esc(info.lineCode)+'</option>').join("");
 gpsV2Shadow=InTransitGpsV2Shadow.create({board:catalogBoard,patterns:line1Patterns});
+gpsV20Baseline=InTransitGpsV20Shadow.create({board:catalogBoard,patterns:line1Patterns});
+gpsCompareLog=InTransitGpsComparisonLog.create({
+ storage:typeof localStorage==='undefined'?null:localStorage
+});
 line11Coverage=trackedCoverage.get("11");
 if(line11Coverage?.usable&&profiles.some(p=>p.id==="atb-bus-11-live")){
   line11Tracker=InTransitLine1Progress.create({board:catalogBoard,patterns:line1Patterns,

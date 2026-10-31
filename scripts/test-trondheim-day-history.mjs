@@ -13,7 +13,11 @@ class Storage{
  async list({prefix='',limit=1000,startAfter=''}){return new Map([...this.data].filter(([k])=>
    k.startsWith(prefix)&&k>startAfter).sort(([a],[b])=>a.localeCompare(b)).slice(0,limit))}
 }
-const store=new Storage(),now=Date.now(),day=localDay(now);
+// Use midday in the current Oslo calendar day for all synthetic samples.
+ // Running shortly after midnight previously split the -301s pagination
+ // fixture between two days and made the test nondeterministic.
+const testDay=localDay(Date.now());
+const store=new Storage(),now=Date.parse(testDay+'T12:00:00Z'),day=localDay(now);
 const previous=localDay(now-24*60*60*1000);
 const sample=offset=>new Date(now+offset).toISOString();
 const makeFrame=(at,sequence=5)=>({schemaVersion:1,boardProfile:board,ledCount:1282,

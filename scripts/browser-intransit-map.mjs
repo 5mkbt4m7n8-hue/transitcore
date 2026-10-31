@@ -164,6 +164,9 @@ try{
  await saveScreenshot('01-dark-network-desktop.png');
  await page.setViewportSize({width:390,height:844});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Mobile map must not overflow');
+ assert.equal(await page.locator('#gpsV2Shadow .scroll').evaluate(el=>
+  el.scrollWidth>el.clientWidth),true,
+  'GPS comparison table must scroll inside its own panel on mobile');
  await saveScreenshot('02-dark-network-mobile.png');
  await page.setViewportSize({width:1280,height:1000});
  const largeLabels=page.locator('[data-role=largeLabels]');

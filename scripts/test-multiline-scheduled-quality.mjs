@@ -19,7 +19,13 @@ const board={id:'trondheim-city-lines-catalog',leds:{count:1282},
   {led:11,quayId:'NSR:Quay:201',stopIds:['NSR:Quay:201'],routes:['atb-bus-2-live']},
   {led:12,quayId:'NSR:Quay:202',stopIds:['NSR:Quay:202','NSR:Quay:203'],routes:['atb-bus-2-live']}
  ]};
-const now=Date.now(),at=new Date(now-1000).toISOString();
+// Keep the synthetic 10-minute series on one Oslo calendar day. Using
+// Date.now() made this test fail around local midnight when the final
+// error sample crossed into the next day's separate history record.
+const osloDay=new Intl.DateTimeFormat('en-CA',{
+ timeZone:'Europe/Oslo',year:'numeric',month:'2-digit',day:'2-digit'
+}).format(new Date());
+const now=Date.parse(osloDay+'T12:00:00Z'),at=new Date(now-1000).toISOString();
 const V='PRIVATE-VEHICLE-NO-STORAGE';
 const make=(timestamp,leds=[],gpsObservations=[])=>({
  schemaVersion:1,boardProfile:board.id,ledCount:1282,
