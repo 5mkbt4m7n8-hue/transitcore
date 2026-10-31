@@ -81,7 +81,7 @@
     totalSections:ordered.length,candidates,frames:report.samples,
     diagnosticSamples:report.diagnosticSamples||0,previousDay:prior?previous.day||null:null,
     note:scored.length
-     ?'Avvik er observert ved én eller begge endeholdеplasser. Rutemønsterets retning angir ikke hvilken vei bussen faktisk kjørte. Samme Quay-avvik kan vises ved to nabostrekninger.'
+     ?'Avvik er observert ved én eller begge endeholdeplasser. Rutemønsterets retning angir ikke hvilken vei bussen faktisk kjørte. Samme Quay-avvik kan vises ved to nabostrekninger.'
      :supportsGps
       ?'Ingen uavklarte GPS-matcher eller dokumenterte ruteavvik ved disse holdeplassene i utvalget. Dette beviser ikke at alle strekninger er feilfrie.'
       :'Ingen rutehendelser registrert mens nettleseren var åpen. GPS-avvisningsdiagnostikk mangler.'};
