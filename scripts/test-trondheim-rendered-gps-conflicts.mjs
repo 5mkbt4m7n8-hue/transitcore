@@ -7,7 +7,7 @@ import {recordScheduledTrondheimFrame,dayHistoryStorage}
 import {summarizeMultiLineFrame,validatedMultiLineQuality,rollupMultiLineQuality}
  from '../worker/trondheim-multiline-quality.mjs';
 const A='NSR:Quay:102733',B='NSR:Quay:102734';
-const board={id:'trondheim-city-lines-catalog',nodes:[
+const board={id:'trondheim-city-lines-catalog',routes:['atb-bus-1-live','atb-bus-11-live'],nodes:[
  {led:8,quayId:A,routes:['atb-bus-1-live']},
  {led:9,quayId:B,routes:['atb-bus-1-live']},
  {led:10,quayId:'NSR:Quay:900',routes:['atb-bus-11-live']},
