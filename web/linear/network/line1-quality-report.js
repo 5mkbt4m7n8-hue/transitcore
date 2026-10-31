@@ -178,31 +178,57 @@
   function historyReport(records,{day=null}={}){
    if(!Array.isArray(records))throw Error('invalid-history-records');
    const selected=records.slice().sort((a,b)=>a.slot-b.slot),frames=[];
-   let errors=0,gaps=0,previous=null;
+   let errors=0,gaps=0,previous=null,sourceQualitySamples=0,diagnosticSamples=0;
    for(const sample of selected){
-    if(!Number.isFinite(sample.slot)||!Number.isFinite(Date.parse(sample.capturedAt)))throw Error('invalid-history-time');
+    if(!Number.isFinite(sample.slot)||!Number.isFinite(Date.parse(sample.capturedAt)))
+     throw Error('invalid-history-time');
     if(previous!==null&&sample.slot<=previous)throw Error('invalid-history-order');
-    if(previous!==null&&sample.slot-previous>450000)gaps+=Math.max(1,Math.round((sample.slot-previous)/300000)-1);
+    if(previous!==null&&sample.slot-previous>450000)
+     gaps+=Math.max(1,Math.round((sample.slot-previous)/300000)-1);
     previous=sample.slot;
-    if(sample.status!=='OK'||sample.frame?.boardProfile!==board.id||!Array.isArray(sample.frame?.leds)){
-     errors++;continue;
+    if(sample.status!=='OK'||sample.frame?.boardProfile!==board.id||
+      !Array.isArray(sample.frame?.leds)){errors++;continue;}
+    const quality=sample.quality;
+    let items=null;
+    if(quality?.kind==='scheduled-line1-quay-snapshot'&&quality.version===1&&
+      Array.isArray(quality.items)&&quality.items.length<=180){
+     const validated=new Map();let safe=true;
+     for(const row of quality.items){
+      const q=row?.[0],v=row?.[1];
+      if(!quays.has(q)||!byQuay.has(q)||validated.has(q)||!v||
+        !['siri','gps','ledOnly','unresolved'].every(k=>
+          Number.isSafeInteger(v[k])&&v[k]>=0&&v[k]<=5000)){safe=false;break;}
+      validated.set(q,{siri:v.siri,gps:v.gps,ledOnly:v.ledOnly,
+       unresolved:v.unresolved,lost:0,conflict:0,gap:0});
+     }
+     if(safe){
+      items=[...validated];sourceQualitySamples++;
+      if(quality.diagnosticsAvailable===true)diagnosticSamples++;
+     }
     }
     frames.push({at:Date.parse(sample.capturedAt),source:'recording',
-     items:count(sample.frame,{mode:'history'})});
+      items:items||count(sample.frame,{mode:'history'})});
    }
    return {mode:'history',source:'recording',day,samples:frames.length,
-    diagnosticSamples:0,
+    sourceQualitySamples,diagnosticSamples,
     total:selected.length,errors,gaps,rows:mergeRows(frames),
     first:selected[0]?.capturedAt||null,last:selected.at(-1)?.capturedAt||null,
-    disclaimer:'5-minute recordings omit detailed SIRI/GPS proof; LED-only observations are not physical stops.'};
+    disclaimer:sourceQualitySamples
+      ?'Five-minute server snapshots include per-Quay source evidence only for newer records. No continuous stop or GPS path tracking.'
+      :'Older five-minute recordings contain LED-only frames; they cannot establish SIRI/GPS stop evidence.'};
   }
   // Issue-led priorities, never a ranking of "bad stops" from missing data.
   // Historical compact frames lack Quay/source diagnostics; only live
   // observations can identify concrete Quays requiring investigation.
   function priorities(report,{limit=10}={}){
-   if(!report||report.mode!=='live')
+   if(!report||!['live','history'].includes(report.mode))
     return {status:'INSUFFICIENT_DETAIL',rows:[],
-     note:'Døgnopptaket har kun LED-observasjoner, ikke Quay-spesifikke avvisninger. Kan ikke rangere feil fra dette.'};
+     note:'Rapporten mangler datagrunnlag til å rangere konkrete Quays.'};
+   if(report.mode==='history'&&(!report.sourceQualitySamples||!report.diagnosticSamples))
+    return {status:'INSUFFICIENT_DETAIL',rows:[],
+     note:report.sourceQualitySamples
+       ?'Serveren lagrer Quay-oppsummeringer, men ingen detaljert GPS-avvisning i dette opptaket. Kan ikke rangere konkrete stoppavvik.'
+       :'Eldre femminuttersopptak mangler kildebevis for Quay. Kan ikke rangere konkrete stoppavvik.'};
    if(!Number.isInteger(report.samples)||report.samples===0)
     return {status:'NO_SAMPLES',rows:[],
      note:'Ingen gyldige live-frames er mottatt i nettleseren ennå.'};
@@ -215,7 +241,8 @@
      unresolved:report.diagnosticSamples>0?Math.max(0,Number(r.unresolved)||0):0
     };
     const signalCount=Object.values(issues).reduce((n,v)=>n+v,0);
-    const score=Object.entries(weight).reduce((n,[k,w])=>n+Math.min(issues[k],10)*w,0);
+    const score=report.mode==='history'?Math.min(issues.unresolved,10):
+      Object.entries(weight).reduce((n,[k,w])=>n+Math.min(issues[k],10)*w,0);
     return {quay:r.quay,name:r.name,score,signals:signalCount,
      issues,sourceSamples:r.siri,gpsSamples:r.gps,
      diagnosticCoverage:report.diagnosticSamples,
@@ -228,8 +255,12 @@
    return {status:rows.length?'OBSERVED_ISSUES':'NO_OBSERVED_ISSUES',
     rows:rows.slice(0,n),totalCandidates:rows.length,
     note:rows.length
-      ?'Rangert etter observerte konflikter, tapte spor, hull og uavklart GPS. Samme GPS-avvik kan telle flere ganger – dette er en undersøkelsesliste, ikke en feilprosent.'
-      :report.diagnosticSamples===0
+      ?report.mode==='history'
+       ?'Rangert kun etter faktisk uavklart GPS i kildeberikede femminuttersopptak. Korte stopp kan falle helt mellom målingene.'
+       :'Rangert etter observerte konflikter, tapte spor, hull og uavklart GPS. Samme GPS-avvik kan telle flere ganger – dette er en undersøkelsesliste, ikke en feilprosent.'
+      :report.mode==='history'
+       ?'Ingen uavklarte GPS-observasjoner registrert i de kildeberikede femminuttersmålingene. Det beviser ikke at stoppene fungerer feilfritt.'
+       :report.diagnosticSamples===0
        ?'Ingen ruteavvik registrert, men feeden mangler detaljert GPS-diagnostikk. Fravær av avvik er ikke bekreftet.'
        :'Ingen ruteavvik registrert i dette utvalget. Det betyr ikke at alle stopp fungerer feilfritt.'};
   }
