@@ -19,6 +19,8 @@ on:
       - 'scripts/test-verified-entur-patterns.mjs'
       - 'scripts/test-multiline-scheduled-quality.mjs'
       - 'scripts/test-trondheim-anomaly-radar.mjs'
+      - 'scripts/test-trondheim-rendered-gps-conflicts.mjs'
+      - 'worker/trondheim-rendered-gps-conflicts.mjs'
       - 'web/linear/network/anomaly-radar.js'
       - 'worker/trondheim-multiline-quality.mjs'
       - 'worker/trondheim-history.mjs'
@@ -125,6 +127,9 @@ jobs:
 
       - name: Verify Trondheim multi-line anomaly radar and source-only route sections
         run: node scripts/test-trondheim-anomaly-radar.mjs
+
+      - name: Verify scoped rendered GPS direction conflicts in scheduled quality
+        run: node scripts/test-trondheim-rendered-gps-conflicts.mjs
 
       - name: Verify Line 1 quality counts and five-minute recording coverage
         run: node scripts/test-line1-quality-report.mjs

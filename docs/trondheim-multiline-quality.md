@@ -111,3 +111,29 @@ https://github.com/5mkbt4m7n8-hue/transitcore/actions/workflows/trondheim-qualit
 
 Kjør lokalt: `node scripts/test-trondheim-quality-proof.mjs` og
 `node scripts/probe-trondheim-quality-live.mjs` (sistnevnte krever nett).
+
+### Kildedekning: korrigering av manglende `gpsObservations`
+
+Produksjonssjekken 31.10.2026 bekreftet aktive lagrede kvalitetsdata,
+men ingen frames hadde `gpsObservations`. Dette feltet ble ikke produsert
+av standard GPS/LED-renderer – grønn CI alene var ikke nok.
+
+For **historikkjobben alene** kan vi nå lese eksisterende
+`positionType=gps-nearest-stop`, `platformEvidence=direction-conflict`,
+`nearestQuayLed`, `routeListedHere` og `withinStopRadius` fra en allerede
+gyldig frame. Kun når alle feltene stemmer, og linjen har én entydig
+eksakt Quay på samme LED, registreres en **uavklart GPS-retningskonflikt**.
+Ingen nærhetsobservasjon eller vanlig `gps-only` merkes automatisk feil.
+Samme kjøretøy i samme frame dedupliseres.
+
+Dette datagrunnlaget merkes eksplisitt
+`diagnosticScope=rendered-direction-conflict-only` og telles i
+`multiLineQuality.renderedScopeSamples`. **Det omfatter ikke** rå
+GPS-avvisninger som aldri ble vist i PixelFrame, og må aldri markedsføres
+som fullstendig diagnostikk av alle provider-posisjoner.
+
+Kilde- og kjøretøyreferanser benyttes bare for midlertidig deduplisering.
+Kun per-linje/Quay-tellere lagres i kvalitetsfeltene. Den eksisterende
+lagrede kompakte frame-historikken og offentlig LED-svar er uendret.
+
+Regresjon: `node scripts/test-trondheim-rendered-gps-conflicts.mjs`.

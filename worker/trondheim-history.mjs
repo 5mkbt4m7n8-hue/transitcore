@@ -1,6 +1,7 @@
 // Read-only public Trondheim playback plus admin-pinned one-day demo.
 import {summarizeLine1ScheduledFrame,validatedLine1ScheduledQuality} from "./trondheim-line1-quality.mjs";
 import {summarizeMultiLineFrame,validatedMultiLineQuality,rollupMultiLineQuality} from "./trondheim-multiline-quality.mjs";
+import {renderedGpsConflicts,SCOPE as RENDERED_SCOPE} from "./trondheim-rendered-gps-conflicts.mjs";
 // Recording runs in the EXISTING five-minute Worker cron, not in a browser.
 const BOARD="trondheim-city-lines-catalog";
 const PREFIX="trondheim-history:v1:";
@@ -182,10 +183,17 @@ export async function handleTrondheimHistory(request,env,authenticate){
 export async function recordScheduledTrondheimFrame(env,frame,error="",at=new Date().toISOString(),board=null){
  if(!env.DEVICE_STATUS)return {recorded:false,error:"history_storage_unavailable"};
  const stub=env.DEVICE_STATUS.get(env.DEVICE_STATUS.idFromName("__trondheim-day-history__"));
+ // The regular PixelFrame has no raw gpsObservations field. Only the private
+ // history path derives explicit rendered direction conflicts, and labels the
+ // limited scope. The public LED frame and persisted compact frame are intact.
+ const issues=frame&&!Array.isArray(frame.gpsObservations)?
+  renderedGpsConflicts(frame,board):null;
+ const evidenceFrame=frame&&issues!==null?
+  {...frame,gpsObservations:issues,gpsObservationScope:RENDERED_SCOPE}:frame;
  const result=await stub.fetch("https://status.internal/trondheim-history",{method:"POST",
   headers:{"content-type":"application/json"},body:JSON.stringify({action:"record",capturedAt:at,frame,error,
-   quality:frame?summarizeLine1ScheduledFrame(frame,board):null,
-   lineQuality:frame?summarizeMultiLineFrame(frame,board):null})});
+   quality:evidenceFrame?summarizeLine1ScheduledFrame(evidenceFrame,board):null,
+   lineQuality:evidenceFrame?summarizeMultiLineFrame(evidenceFrame,board):null})});
  if(!result.ok)throw Error("history_write_http_"+result.status);
  return result.json();
 }
