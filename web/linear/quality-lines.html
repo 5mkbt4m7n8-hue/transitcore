@@ -29,6 +29,13 @@ th:first-child{z-index:3}
 tbody tr:hover td{background:#243347}
 tbody tr:hover td:first-child{background:#243347}
 .note{font-size:12px}
+.alertgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.alertcard{border:1px solid var(--border);border-radius:10px;padding:12px;background:#1b2736}
+.alertcard strong{font-size:17px}
+.alertcard p{font-size:12px;margin:7px 0}
+.alertcard .tag{display:inline-block;color:#bde9ff;font-size:11px;margin:0 0 5px}
+.alertcard a{font-size:12px}
+#radarStatus{font-size:13px}
 #status{min-height:20px}
 @media(max-width:620px){main{padding:14px 8px}section{padding:12px}.controls label{display:flex;align-items:center;gap:8px}}
 </style>
@@ -46,6 +53,21 @@ tbody tr:hover td:first-child{background:#243347}
 <p id="status" role="status">Henter historikkmetadata …</p>
 <div id="stats" class="statgrid"></div>
 </section>
+<section id="radarSection" aria-label="Avviksradar for GPS">
+<h2>🔎 Avviksradar · dokumenterte GPS-avvik</h2>
+<p class="note">En kandidat krever minst seks målinger med GPS-diagnostikk, og uavklart GPS i minst to forskjellige gyldige frames for samme linje eller Quay. Merket «To dager» krever at dette er observert både på valgt dato og den direkte foregående kalenderdagen, med tilstrekkelig kildedekning begge dager. Dette er <strong>ikke</strong> feilprosent eller bevis for faktisk passering.</p>
+<div class="controls"><label><input type="checkbox" id="onlyRecurring"> Vis bare funn fra to dager</label></div>
+<p id="radarStatus" role="status">Analyserer tilgjengelig kildebevis …</p>
+<div class="statgrid" id="radarStats"></div>
+<h3>Linjer å undersøke</h3>
+<div class="alertgrid" id="radarLines"></div>
+<h3>Holdeplasser med gjentatte uavklarte GPS-observasjoner</h3>
+<div class="alertgrid" id="radarQuays"></div>
+<h3>Mulige nabostrekninger å kontrollere</h3>
+<p class="note">Koblingene nedenfor kommer fra kildeverifiserte JourneyPatterns. Avviket ble observert ved en ende-Quay, ikke på selve strekningen. En Quay kan inngå i flere nabostrekninger. Retningen er planlagt, ikke observert.</p>
+<div class="alertgrid" id="radarSections"></div>
+<details><summary>Databegrensninger og enkeltobservasjoner</summary><p id="radarLimitations"></p></details>
+</section>
 <section>
 <h2>Kildeobservasjoner per busslinje</h2>
 <p id="coverage" class="note">Tidligere opptak kan mangle kildeklassifisering. Da vises ikke falske nullverdier.</p>
@@ -56,19 +78,33 @@ tbody tr:hover td:first-child{background:#243347}
 <p class="note">Tallene er rå tellinger. Høy verdi kan bety flere busser eller gjentatte observasjoner av samme buss. Frames uten GPS/SIRI er gyldige målinger uten slike observasjoner, ikke bevis på feil eller passerte stopp. En linje uten målinger er ikke dokumentert som feil. Uavklart GPS er bare sammenlignbar når kildediagnostikk finnes. Linje 53, 54, 91 og 92 har ikke godkjent A→B→C-rutesekvens, men kan fortsatt ha kildeobservasjoner i denne rapporten. Ekstra GPS-mellommålinger kjøres fortsatt bare for linje 1 og er <em>ikke</em> med i denne felles femminuttersammenligningen.</p>
 </section>
 </main>
+<script src="./network/anomaly-radar.js"></script>
 <script>
 'use strict';
 const API='https://transitcore-led-feed.lgb84.workers.dev/v1/trondheim/history';
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const n=v=>Number.isFinite(v)?v.toLocaleString('no-NO'):'–';
-let days=[];
+let days=[],patternPromise=null,radarGeneration=0;
+function getPatterns(){
+ if(!patternPromise){
+  const names=['atb-journey-patterns-1-11.json',...[1,2,3,4,5].map(i=>
+    'atb-verified-patterns-0'+i+'.json')];
+  patternPromise=Promise.all(names.map(async file=>{
+   const response=await fetch('../../config/gps/'+file,{cache:'force-cache'});
+   if(!response.ok)throw Error('Rutekatalogen kunne ikke hentes');
+   return response.json();
+  })).then(files=>({lines:Object.assign({},...files.map(f=>f.lines||{}))}))
+   .catch(error=>{patternPromise=null;throw error});
+ }
+ return patternPromise;
+}
 function latest(){return days.find(x=>x.day===$('day').value)||null}
 function previous(day){return days.filter(x=>x.day<day).sort((a,b)=>b.day.localeCompare(a.day))[0]||null}
 function metrics(day){return day?.multiLineQuality?.version===1?day.multiLineQuality:null}
 function render(){
  const selected=latest(),m=metrics(selected),prior=$('compare').checked?previous(selected?.day||''):null,p=metrics(prior);
- if(!selected){$('status').textContent='Ingen lagrede døgn er tilgjengelige.';$('rows').innerHTML='<tr><td colspan="9">Ingen data</td></tr>';$('stats').innerHTML='';return}
+ if(!selected){$('status').textContent='Ingen lagrede døgn er tilgjengelige.';$('rows').innerHTML='<tr><td colspan="9">Ingen data</td></tr>';$('stats').innerHTML='';renderRadar();return}
  const source=m?.sourceSamples||0;
  $('status').textContent=selected.day+': '+n(selected.count)+' mottatte tidsluker, '+n(selected.errors)+' kildefeil. '+(source?n(source)+' kildeklassifiserte frames.':'Ingen kildeklassifiserte frames ennå.');
  $('stats').innerHTML=[
@@ -95,6 +131,59 @@ function render(){
       p&&last?Math.max(0,p.sourceSamples-last.observedFrames):null))+'</td></tr>';
  }).join(''):'<tr><td colspan="9">Ingen kildeklassifiserte målinger ennå. Eldre opptak påvirkes ikke.</td></tr>';
  if(prior&&p)$('coverage').textContent+=' Tabellen viser valgt dag / forrige dag. Forskjellig antall frames betyr at råtallene ikke kan tolkes som en forbedring eller forverring.';
+ renderRadar();
+}
+function alertCard(item){
+ const label=item.status==='TWO_DAYS'?'Gjennomgående funn · to dager':'Gjentatte funn · valgt dag';
+ const title=item.type==='line'?'Linje '+item.code:'Linje '+item.code+' · '+item.quay;
+ const previous=item.previousFrames>=2?' · '+item.previousFrames+' frames forrige dag':'';
+ const base='Uavklart GPS: '+n(item.hits)+' observasjoner fordelt på '+n(item.frames)+
+  ' diagnoseframes'+previous+'.';
+ const href='./?route=atb-bus-'+encodeURIComponent(item.code)+'-live&view=network&track='+
+  encodeURIComponent(item.code);
+ return '<article class="alertcard"><span class="tag">'+esc(label)+'</span><br><strong>'+
+  esc(title)+'</strong><p>'+esc(base)+'</p><a href="'+href+'">Undersøk linje i Linear</a></article>';
+}
+function renderRadar(){
+ const generation=++radarGeneration;
+ const result=InTransitAnomalyRadar.analyze(days,{day:$('day').value||null});
+ const recurring=$('onlyRecurring').checked;
+ const lineAlerts=result.lineAlerts.filter(x=>!recurring||x.status==='TWO_DAYS');
+ const quayAlerts=result.quayAlerts.filter(x=>!recurring||x.status==='TWO_DAYS');
+ $('radarStatus').textContent=result.day?
+  result.day+' · '+result.note:
+  result.note;
+ $('radarStats').innerHTML=[
+  ['GPS-diagnoseframes',result.diagnosticSamples],
+  ['Quay-diagnoseframes med full dekning',result.issueCoverageSamples],
+  ['Linjer å undersøke',lineAlerts.length],
+  ['Quays å undersøke',quayAlerts.length]
+ ].map(([label,val])=>'<div class="stat"><small>'+esc(label)+'</small><b>'+
+  esc(n(val))+'</b></div>').join('');
+ $('radarLines').innerHTML=lineAlerts.length?lineAlerts.map(alertCard).join(''):
+  '<p>Ingen dokumenterte gjentatte linjeavvik med valgt filter og tilgjengelig dekning.</p>';
+ $('radarQuays').innerHTML=quayAlerts.length?quayAlerts.map(alertCard).join(''):
+  '<p>Ingen dokumenterte gjentatte Quay-avvik med valgt filter og tilgjengelig dekning.</p>';
+ $('radarLimitations').textContent=(result.missingData.join(' ')+
+  ' Enkeltobservasjoner som ikke oppfyller gjentakelseskravet: '+result.watch.length+
+  '. Data fra før denne kildeinnsamlingen er ikke etterfylt. Hver frame er et øyeblikksbilde, ikke en fullført tur.');
+ $('radarSections').innerHTML='<p>'+(
+  quayAlerts.length?'Henter dokumentert Quay-rekkefølge …':
+  'Ingen kvalifiserte Quay-avvik å koble til planlagte nabostrekninger.')+'</p>';
+ if(!quayAlerts.length)return;
+ getPatterns().then(patterns=>{
+  if(generation!==radarGeneration)return;
+  const sections=InTransitAnomalyRadar.adjacentSections(quayAlerts,patterns);
+  $('radarSections').innerHTML=sections.length?sections.map(section=>
+   '<article class="alertcard"><span class="tag">Planlagt '+esc(section.direction)+
+   ' · ikke dokumentert kjøring</span><br><strong>Linje '+esc(section.code)+'</strong>'+
+   '<p>'+esc(section.from+' → '+section.to)+'</p><p>Uavklart GPS ved endepunkt: '+
+   esc(section.issues.join(', '))+' · '+n(section.frames)+' frames.</p></article>'
+  ).join(''):'<p>Ingen kildeverifiserte nabopar finnes for de aktuelle Quays. Ingen strekninger gjettet.</p>';
+ }).catch(error=>{
+  if(generation!==radarGeneration)return;
+  $('radarSections').textContent='Rutemønstre kunne ikke lastes: '+error.message;
+ });
 }
 async function load(){
  $('reload').disabled=true;$('status').textContent='Henter dagssammendrag …';
@@ -114,6 +203,7 @@ async function load(){
 $('reload').onclick=load;
 $('day').onchange=render;
 $('compare').onchange=render;
+$('onlyRecurring').onchange=renderRadar;
 load();
 </script>
 </body></html>
