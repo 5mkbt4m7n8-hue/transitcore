@@ -5,12 +5,18 @@ on:
       - '.github/workflows/trondheim-quality-proof.yml'
       - 'scripts/probe-trondheim-quality-live.mjs'
       - 'scripts/test-trondheim-quality-proof.mjs'
+      - 'scripts/test-trondheim-source-priority-live.mjs'
+      - 'scripts/probe-trondheim-source-priorities-live.mjs'
+      - 'web/linear/network/source-reconciliation-triage.js'
   push:
     branches: [main]
     paths:
       - '.github/workflows/trondheim-quality-proof.yml'
       - 'scripts/probe-trondheim-quality-live.mjs'
       - 'scripts/test-trondheim-quality-proof.mjs'
+      - 'scripts/test-trondheim-source-priority-live.mjs'
+      - 'scripts/probe-trondheim-source-priorities-live.mjs'
+      - 'web/linear/network/source-reconciliation-triage.js'
   # Three lightweight public GET checks per day; no new Entur polling.
   schedule:
     - cron: '12 6,14,22 * * *'
@@ -33,7 +39,13 @@ jobs:
           node-version: '22'
       - name: Offline proof contract regression
         run: node scripts/test-trondheim-quality-proof.mjs
+      - name: Test anonymous 47-line source priority audit
+        run: node scripts/test-trondheim-source-priority-live.mjs
       - name: Verify actual live multi-line and Quay source data
         # This check reports source outages and old Worker deployments as
         # explicit evidence in the step summary, not as source-code CI failures.
         run: node scripts/probe-trondheim-quality-live.mjs
+      - name: Inspect observed line 1, 11 and other repeated source-to-map candidates
+        # Separate second public GET for anonymous aggregates only.
+        # Missing provider evidence is reported, never called a GPS failure.
+        run: node scripts/probe-trondheim-source-priorities-live.mjs
