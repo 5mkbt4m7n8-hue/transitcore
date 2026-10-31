@@ -185,3 +185,39 @@ Cloudflare-opptak er denne funksjonen dokumentert aktiv, uavhengig
 av at koden er slått sammen og statiske sider er publisert.
 
 Test: `node scripts/test-trondheim-gps-source-reconciliation.mjs`.
+
+## Prioritering av kildeposisjoner som ikke vises
+
+Kilde-til-kart-avstemming er bekreftet aktiv i Cloudflare ved faktisk
+femminuttersopptak 31.10.2026 kl. 15:20 norsk tid. Public read-only
+production proof kl. 15:22 rapporterte 256 kilderader, 47 linjer,
+én lagret source-reconciliation-frame og ingen historikkfeil.
+Dette er bevis på at innsamlingen kjører, **ikke** bevis for GPS-avvik.
+
+Den nye rapporten fører i tillegg `sourceReconciliation.reasonFrames`:
+antall ulike gyldige femminuttersluker med minst én observasjon av
+hver grunn, for hver katalogført busslinje. Syv posisjoner i én
+frame er fortsatt bare én frame. Ved retry av samme tidsluke
+trekkes både posisjonstall og frame-indikatorer fra før nye legges til.
+Tidligere aggregerte posisjonstall uten frame-proveniens blir ikke
+etterfylt med gjetninger.
+
+Rapportens prioriterte kandidater krever minst seks avstemmingsmålinger
+og minst to forskjellige frames med `unrenderedNearCatalog`.
+Dette betyr bare at ferske kildemeldinger var nær katalogen, men
+ikke ble gjengitt av den samme frame-kjøringen. Det kan være
+datamodell, matching, dokumentert kildebegrensning eller visningslogikk;
+det er **ikke** diagnostisert som feil GPS, uteblitt fysisk stopp
+eller bestemt kjøreretning.
+
+Rapporten viser linje 1 og 11 separat for manuell kontroll,
+uten å gi dem kunstig prioritet. Andre linjer rangeres kun med
+tilstrekkelig dokumentert gjentakelse. Merket «to dager» krever
+forrige kalenderdag med minst seks kilde-til-kart-målinger og
+to separate berørte frames i begge døgn.
+
+Produksjonsproben viser en begrenset og anonym oppsummering for
+linje 1 og 11, med råtall for nær-men-ikke-vist og separate frames.
+Det eksporteres ikke identiteter, GPS-koordinater eller raw frames.
+
+Regresjon: `node scripts/test-trondheim-source-repeated-triage.mjs`.
