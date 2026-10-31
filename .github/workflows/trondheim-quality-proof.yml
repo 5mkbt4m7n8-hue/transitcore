@@ -6,6 +6,9 @@ on:
       - 'scripts/probe-trondheim-quality-live.mjs'
       - 'scripts/test-trondheim-quality-proof.mjs'
       - 'scripts/test-trondheim-source-priority-live.mjs'
+      - 'scripts/probe-trondheim-strict-root-causes-live.mjs'
+      - 'scripts/test-trondheim-strict-root-causes.mjs'
+      - 'worker/trondheim-strict-shadow.mjs'
       - 'scripts/probe-trondheim-source-priorities-live.mjs'
       - 'web/linear/network/source-reconciliation-triage.js'
   push:
@@ -15,6 +18,9 @@ on:
       - 'scripts/probe-trondheim-quality-live.mjs'
       - 'scripts/test-trondheim-quality-proof.mjs'
       - 'scripts/test-trondheim-source-priority-live.mjs'
+      - 'scripts/probe-trondheim-strict-root-causes-live.mjs'
+      - 'scripts/test-trondheim-strict-root-causes.mjs'
+      - 'worker/trondheim-strict-shadow.mjs'
       - 'scripts/probe-trondheim-source-priorities-live.mjs'
       - 'web/linear/network/source-reconciliation-triage.js'
   # Three lightweight public GET checks per day; no new Entur polling.
@@ -41,6 +47,11 @@ jobs:
         run: node scripts/test-trondheim-quality-proof.mjs
       - name: Test anonymous 47-line source priority audit
         run: node scripts/test-trondheim-source-priority-live.mjs
+      - name: Validate GPS rejection-only reason separation and source Quay geometry
+        run: node scripts/test-trondheim-strict-root-causes.mjs
+      - name: Read named Lerkendal and Tonstadkrysset Quay topology and strict GPS causes
+        # Reads only public aggregate metadata and bundled public geometry.
+        run: node scripts/probe-trondheim-strict-root-causes-live.mjs
       - name: Verify actual live multi-line and Quay source data
         # This check reports source outages and old Worker deployments as
         # explicit evidence in the step summary, not as source-code CI failures.
