@@ -90,6 +90,40 @@ frames mens Linear er åpen. De serverlagrede femminutters-
 og ekstramålingene inneholder aggregerte Quay-tall og
 kan ikke etterkonstruere hendelser for én bestemt buss.
 
+## Flere linjer – kontrollert utvidelse
+
+**Linje 1 og linje 11** er de eneste bylinjene med
+incheckede Entur JourneyPattern-sekvenser for begge
+retninger i `config/gps/atb-journey-patterns-1-11.json`.
+Den samme A→B→C-motoren støtter nå begge linjene,
+med helt atskilte midlertidige kjøretøyidentiteter,
+separat hendelseslogg i nettleseren og egen JSON-eksport
+per linje. Velg linje i «Linje 1 / 11 · spor A → B → C».
+
+**Linje 11** aktiveres bare når katalogtavlen har
+minst ett par påfølgende Quays fra kildemønsteret
+koblet til eksakt LED. Flere dokumenterte Quays på
+samme LED kan gi SIRI-kobling på eksakt Quay,
+men *ikke* en gjetning om hvilken Quay en
+GPS-nærhetsobservasjon tilhører.
+
+En tilbakelagt GPS-rutefølge kan begrunne
+**utledet retning**, men kalles ikke kildebekreftet
+uten eksplisitt SIRI stoppbevis.
+Linje 11 bruker i dag normalt GPS alene,
+mens Tonstad-SIRI-testen bare er for linje 1.
+Begge linjene leser samme mottatte PixelFrame:
+ingen ekstra Entur-kall eller Worker-kronjobb.
+Andre bylinjer vises som før på kartet, men
+får ikke spekulativ retningslåsing eller
+A→B→C-feildiagnose før kildeverifiserte rutemønstre
+kan dokumenteres.
+
+Kvalitetsrapporten med lagret døgn gjelder fortsatt
+**bare linje 1**; linje 11-sporingen er foreløpig
+nettleserbasert. Panelene endrer ikke originalkartet
+eller fysiske tavler.
+
 ## Viktige begrensninger
 
 Dette er en **observasjonsmodell**, ikke en server-side
