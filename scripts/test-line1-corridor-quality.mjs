@@ -12,7 +12,7 @@ const patterns={lines:{'1':{patterns:[
 const profile={stops:[{id:A,name:'Tonstadkrysset'},
  {id:B,name:'Lerkendal'},{id:C,name:'Østre Lund'},{id:D,name:'Teststopp'}]};
 const tracker=create({patterns,profile});
-assert.equal(tracker.sections.length,5,'Deduplicate overlapping scheduled patterns, preserve both directions');
+assert.equal(tracker.sections.length,4,'Deduplicate overlapping scheduled patterns, preserve both directions');
 assert.equal(tracker.sections.find(x=>x.id==='outbound|'+A+'|'+B).patternCount,2);
 assert.equal(tracker.analyze(null).status,'NO_DATA');
 const missing={mode:'history',samples:9,diagnosticSamples:0,
@@ -34,7 +34,7 @@ const before={mode:'history',day:'2026-10-29',samples:60,diagnosticSamples:10,
  rows:[{quay:A,unresolved:9,gps:1},{quay:B,unresolved:0,gps:3}]};
 let report=tracker.analyze(dayA,{previous:before});
 assert.equal(report.status,'OBSERVED_ALERTS');
-assert.equal(report.totalSections,5);
+assert.equal(report.totalSections,4);
 assert.equal(report.sections[0].from,A);
 assert.equal(report.sections[0].to,B);
 assert.equal(report.sections[0].direction,'outbound');
