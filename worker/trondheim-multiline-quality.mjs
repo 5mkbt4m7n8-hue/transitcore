@@ -1,0 +1,131 @@
+// Server-side, source-aware per-line counters from the EXISTING five-minute
+// Trondheim PixelFrame. No new provider requests and no per-vehicle history.
+// Quay and route membership come only from the actual catalog board.
+const BOARD='trondheim-city-lines-catalog';
+const QUAY=/^NSR:Quay:\d+$/;
+const ROUTE=/^atb-bus-(\d{1,3})-live$/;
+const KINDS=['siri','gps','estimated','ledOnly','unresolved','ambiguous'];
+const zero=()=>({siri:0,gps:0,estimated:0,ledOnly:0,unresolved:0,ambiguous:0});
+const isCount=v=>Number.isInteger(v)&&v>=0&&v<=5000;
+const codeOf=id=>typeof id==='string'?id.match(ROUTE)?.[1]:null;
+
+export function summarizeMultiLineFrame(frame,board){
+ if(frame?.boardProfile!==BOARD||board?.id!==BOARD||
+    !Array.isArray(frame.leds)||!Array.isArray(board.routes))return null;
+ const codes=[...new Set(board.routes.map(codeOf).filter(Boolean))];
+ if(!codes.length||codes.length>80)return null;
+ const counts=Object.fromEntries(codes.map(code=>[code,zero()]));
+ // An LED can represent multiple Quays. Count GPS nearest only when a
+ // particular line maps to exactly one candidate Quay on that LED.
+ const byLed=new Map(),routeQuays=new Map(codes.map(code=>[code,new Set()]));
+ for(const node of board.nodes||[]){
+  if(!Number.isInteger(node.led))continue;
+  const mapped=byLed.get(node.led)||new Map();
+  for(const id of node.routes||[]){
+   const code=codeOf(id);
+   if(!code||!counts[code])continue;
+   const quays=mapped.get(code)||new Set();
+   for(const q of [node.quayId,...(Array.isArray(node.stopIds)?node.stopIds:[])]){
+    if(QUAY.test(q)){quays.add(q);routeQuays.get(code).add(q);}
+   }
+   mapped.set(code,quays);
+  }
+  byLed.set(node.led,mapped);
+ }
+ // Resolve each vehicle at most once per line and frame. Contradictory
+ // Quays cannot be counted as verified observations.
+ const seen=new Map();
+ for(const led of frame.leds){
+  const mapping=byLed.get(led?.id);
+  if(!mapping)continue;
+  const occupants=Array.isArray(led.occupants)&&led.occupants.length?led.occupants:
+   led.vehicle?[{...led.vehicle,state:led.state}]:[];
+  for(const v of occupants){
+   const code=String(v?.line||'');
+   if(!Object.hasOwn(counts,code)||!mapping.has(code)||!v||typeof v.id!=='string'||!v.id||
+      Number.isFinite(v.ageSeconds)&&v.ageSeconds>45)continue;
+   const quays=[...mapping.get(code)],exact=QUAY.test(v.quayId)&&quays.includes(v.quayId);
+   let kind=null,quay=null;
+   if(v.positionType==='entur-siri-provider-stop'&&exact&&
+      v.providerReportedAtStop===true&&v.state==='AT_STOP'&&led.state==='AT_STOP'){
+    kind='siri';quay=v.quayId;
+   }else if(v.positionType==='gps-route-quay'&&exact){
+    kind='gps';quay=v.quayId;
+   }else if(v.positionType==='gps-nearest-stop'&&v.nearestQuayLed===led.id&&
+      v.withinStopRadius!==false&&quays.length===1){
+    kind='gps';quay=quays[0];
+   }else if(v.positionType==='estimated-station-call'){
+    kind='estimated';quay='led:'+led.id;
+   }else if(v.positionType!=='gps-nearest-stop'&&
+     v.positionType!=='gps-route-quay'&&v.positionType!=='entur-siri-provider-stop'){
+    kind='ledOnly';quay='led:'+led.id;
+   }
+   if(!kind)continue;
+   const key=code+'|'+v.id,prior=seen.get(key);
+   if(!prior)seen.set(key,{code,kind,quay});
+   else if(prior.quay!==quay)seen.set(key,{code,kind:'ambiguous',quay:null});
+   else if(prior.kind!=='ambiguous'&&kind==='siri')seen.set(key,{code,kind,quay});
+  }
+ }
+ for(const evidence of seen.values())counts[evidence.code][evidence.kind]++;
+ const diagnosticAvailable=Array.isArray(frame.gpsObservations);
+ if(diagnosticAvailable){
+  const unresolvedSeen=new Set();
+  frame.gpsObservations.forEach((v,i)=>{
+   const code=String(v?.line||''),q=v?.nearestQuayId;
+   if(!Object.hasOwn(counts,code)||v?.status!=='unresolved'||
+      !routeQuays.get(code).has(q))return;
+   const key=code+'|'+(typeof v.id==='string'&&v.id?v.id:
+    typeof v.vehicleRef==='string'&&v.vehicleRef?v.vehicleRef:'entry:'+i);
+   if(unresolvedSeen.has(key))return;
+   unresolvedSeen.add(key);counts[code].unresolved++;
+  });
+ }
+ return {version:1,kind:'trondheim-multiline-quality-v1',
+  diagnosticAvailable,lines:counts};
+}
+
+// Do not trust arbitrary fields or IDs sent to Durable Object storage.
+// The checks intentionally accept empty counts: an empty valid frame is
+// measured as no observation, never as proof of a missed bus.
+export function validatedMultiLineQuality(value){
+ if(!value||value.version!==1||value.kind!=='trondheim-multiline-quality-v1'||
+   typeof value.diagnosticAvailable!=='boolean'||!value.lines||
+   Array.isArray(value.lines)||typeof value.lines!=='object')return null;
+ const lines=Object.entries(value.lines);
+ if(!lines.length||lines.length>80)return null;
+ const safe=Object.create(null);
+ for(const [code,counts] of lines){
+  if(!/^\d{1,3}$/.test(code)||!counts||
+    !KINDS.every(kind=>isCount(counts[kind])))return null;
+  safe[code]=Object.fromEntries(KINDS.map(kind=>[kind,counts[kind]]));
+ }
+ return {version:1,kind:value.kind,diagnosticAvailable:value.diagnosticAvailable,lines:safe};
+}
+
+const emptyLine=()=>({...zero(),gpsFrames:0,siriFrames:0,
+ observedFrames:0,unresolvedFrames:0});
+export function rollupMultiLineQuality(prior=null,oldSample=null,newSample=null){
+ const result=prior?structuredClone(prior):{version:1,sourceSamples:0,
+  diagnosticSamples:0,lines:{}};
+ if(result.version!==1)throw Error('invalid_multiline_rollup');
+ for(const [sample,delta] of [[oldSample,-1],[newSample,1]]){
+  if(sample?.status!=='OK')continue;
+  const quality=validatedMultiLineQuality(sample.lineQuality);
+  if(!quality)continue;
+  result.sourceSamples+=delta;
+  if(quality.diagnosticAvailable)result.diagnosticSamples+=delta;
+  for(const [code,count] of Object.entries(quality.lines)){
+   const target=result.lines[code]||(result.lines[code]=emptyLine());
+   for(const kind of KINDS)target[kind]+=delta*count[kind];
+   if(count.gps>0)target.gpsFrames+=delta;
+   if(count.siri>0)target.siriFrames+=delta;
+   if(count.gps+count.siri>0)target.observedFrames+=delta;
+   if(count.unresolved>0)target.unresolvedFrames+=delta;
+  }
+ }
+ if(result.sourceSamples<0||result.diagnosticSamples<0||
+  Object.values(result.lines).some(item=>Object.values(item).some(x=>x<0)))
+  throw Error('negative_multiline_rollup');
+ return result;
+}
