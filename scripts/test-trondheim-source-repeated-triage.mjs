@@ -47,6 +47,11 @@ const upgraded=rollupMultiLineQuality(legacy,null,sample(2));
 assert.equal(upgraded.sourceReconciliation.reasonFrames['1'].unrenderedNearCatalog,1);
 assert.equal(upgraded.sourceReconciliation.samples,2);
 assert.equal(upgraded.sourceReconciliation.lines['1'].unrenderedNearCatalog,2);
+const legacyCorrection=rollupMultiLineQuality(
+ {...day,sourceReconciliation:{...day.sourceReconciliation,reasonFrames:undefined}},
+ sample(0),sample(0));
+assert.equal(legacyCorrection.sourceReconciliation.reasonFrames['1'].unrenderedNearCatalog,0,
+ 'Replacing a pre-provenance sample must not create negative frame counts');
 
 function dateEntry(date,samples=8,near=4,nearFrames=3,previousPossible=true){
  const s={...reasons,rendered:20,unrenderedNearCatalog:near,
