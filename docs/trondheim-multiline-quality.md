@@ -221,3 +221,31 @@ linje 1 og 11, med råtall for nær-men-ikke-vist og separate frames.
 Det eksporteres ikke identiteter, GPS-koordinater eller raw frames.
 
 Regresjon: `node scripts/test-trondheim-source-repeated-triage.mjs`.
+
+## Faktisk produksjonsprioritering – alle 47 busslinjer
+
+Den planlagte GitHub Actions-kontrollen
+`Trondheim quality production proof (read-only)` kjører nå også
+`scripts/probe-trondheim-source-priorities-live.mjs`.
+Den leser **kun døgnmetadata** fra offentlig
+`GET /v1/trondheim/history`; ingen ekstra Entur-kall, kjøretøy-ID-er,
+koordinater eller enkeltposisjoner lagres eller rapporteres.
+
+Resultatlinjen `TRONDHEIM_SOURCE_PRIORITY` og jobbens
+GitHub Actions-sammendrag viser (a) om samplingsdekning er god nok,
+(b) anonymiserte summer for linje 1 og 11, og (c) inntil åtte
+andre rutekoder med dokumentert gjentakelse av `unrenderedNearCatalog`.
+Et funn krever minst **seks avstemmingsframes** og minst **to ulike
+frames** for den samme linjen; antall kilderader alene er ikke nok.
+Historikk uten `reasonFrames` har `separateFrames=null` og kan ikke
+brukes til å rekonstruere en tidligere gjentakelse.
+
+`NO_VERIFIED_LIVE_HISTORY`, `INSUFFICIENT_COVERAGE`,
+`NO_REPEAT_CONFIRMED` og `REPEATED_CANDIDATES` er ulike tilstander.
+En gyldig posisjon utenfor kartets visningsradius eller gammel
+GPS-kildetid er **ikke** et verifisert sporingsavvik eller bevis
+på at bussen ikke passerte en holdeplass. Det opprettes ingen
+automatiske endringer i sporingsmotoren.
+
+Offline regression:
+`node scripts/test-trondheim-source-priority-live.mjs`.
