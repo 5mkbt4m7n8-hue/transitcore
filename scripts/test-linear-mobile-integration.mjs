@@ -9,10 +9,12 @@ const boardId='trondheim-bus-board';
 const frame={schemaVersion:1,boardProfile:boardId,ledCount:147,sequence:1,generatedAt:new Date().toISOString(),ttlSeconds:30,leds:[]};
 const html=read('web/linear/index.html');
 assert.match(html,/<a id="geographicMode" href="\.\/geo\/"/,'Geographic editor must be discoverable from the existing Linear mode selector');
+assert(html.includes('network/gps-v2-shadow.js'),'V2 script must load for actual Linear browser');
 // Real shared client: server PASSED is retained, never inferred; expiry becomes OFF.
 const Frames=createRequire(import.meta.url)('../web/shared/canonical-frame-client.js');
 const TonstadTest=createRequire(import.meta.url)('../web/linear/network/tonstad-live-test.js');
 const Line1Tracker=createRequire(import.meta.url)('../web/linear/network/line1-route-progress.js');
+const GpsV2Shadow=createRequire(import.meta.url)('../web/linear/network/gps-v2-shadow.js');
 const Line1Quality=createRequire(import.meta.url)('../web/linear/network/line1-quality-report.js');
 const Line1Corridors=createRequire(import.meta.url)('../web/linear/network/line1-corridor-quality.js');
 for(const [id,count] of [['trondheim-bus-board',147],['trondheim-shared-stops-board',147],['trondheim-city-lines-catalog',1282],['trondheim-flybuss-live',46],['trondheim-bus-1-gps-staging',147]]){
@@ -63,6 +65,7 @@ const clients=[],context={URLSearchParams,location:{search:'?v=110'},performance
  TransitCoreSignals:{applyCssVariables(){}},TransitCoreFrames:{create:opts=>{clients.push(opts);return {refresh:async()=>({frame:null,algorithm:'test',sample:{sequence:1,ageSeconds:0,status:'NO_FRAME'}})};}},
  InTransitTonstadLiveTest:TonstadTest,
  InTransitLine1Progress:Line1Tracker,
+ InTransitGpsV2Shadow:GpsV2Shadow,
  InTransitLine1Quality:Line1Quality,
  InTransitLine1Corridors:Line1Corridors,
  document:{getElementById:el,querySelectorAll:()=>[],addEventListener(){},hidden:false},setInterval(){},setTimeout(){},clearTimeout(){},
