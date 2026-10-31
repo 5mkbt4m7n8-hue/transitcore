@@ -368,3 +368,48 @@ Neste go/no-go krever relevante live-posisjoner og source-bekreftet kontroll
 ved Lerkendal og Tonstadkrysset.
 
 Test: `node scripts/test-gps-v2-route-shadow.mjs`.
+
+## GPS V2.1 – behold flere kandidater til ny observasjon
+
+V2.0 forkastet enhver GPS-observasjon der flere Quays lå innenfor
+søkeradiusen, og kunne derfor ikke bruke et senere korrekt A→B→C-bevis
+til å skille to Quays ved Lerkendal eller Tonstadkrysset.
+
+V2.1 kjører fremdeles **kun i nettleseren** og bruker samme allerede
+mottatte PixelFrame som V2; **ingen LED, aktiv GPS-ruteføring, Workers
+eller Entur-forespørsler påvirkes**. For linje 1 og 11 beholder modellen
+et begrenset sett av mulige (JourneyPattern, Quay-indeks, tidligere
+Quay-kandidat)-hypoteser, knyttet midlertidig til samme bilidentitet.
+Et nytt, ferskt, selvstendig frame kan fjerne kandidater som ikke er
+forenlige med et dokumentert *fremovergående* JourneyPattern. Høyest
+seks mellomliggende Quays kan være uobserverte; de blir aldri regnet
+som passert. Gjentatt GPS ved samme Quay regnes ikke som A→B.
+
+Et rutemønster kan støtte én retning når **alle gjenværende** muligheter
+har minst to forskjellige observerte Quays i riktig rekkefølge og
+samme kilde-retning. Først når én aktuell Quay gjenstår *og* slik
+retningsstøtte finnes, teller modellen et entydig forslag. Dersom to
+ulike tidligere Quays gir samme neste Quay, må ytterligere observasjoner
+til for å avklare den tidligere historien. En eksplisitt, validert
+`entur-siri-provider-stop`-observasjon kan låse retningen direkte
+for den rapporterte Quay-en; GPS alene gjør aldri et punkt til et
+bekreftet fysisk stopp.
+
+Hypoteser begrenses til 512, samtidige Quays til 24, GPS-alder til
+30 sekunder og sporhull til tre minutter. Ved konflikt, for mange
+muligheter eller manglende gyldig bevis forblir resultatet
+**uavklart**, og ingen kilde- eller LED-kandidat velges ved gjetning.
+Dersom samme primærbuss-ID forekommer flere ganger i ett frame,
+avvises dette frame-bidraget for den bussen. Andre samtidige
+`occupants` får aldri primærbussens koordinater.
+
+I Linear vises `ambiguousCandidatesRetained`, `ambiguityNarrowed` og
+`ambiguityResolvedAfterFollowup` per siste gyldige frame ved siden
+av V2s øvrige tellere. Tallene er **ikke** GPS-feilrate og betyr ikke
+at fysisk riktig veikant er bekreftet. Ingen ID, GPS-koordinat,
+Quay-hypotesesekvens eller tidspunkt publiseres i målingene.
+En åpnet nettside kreves fortsatt for testen; dette er ikke
+uovervåket produksjonslogging. Videre validering krever observerte
+passeringer og kildebekreftelse.
+
+Test: `node scripts/test-gps-v21-multiple-quays.mjs`.
