@@ -9,6 +9,9 @@ on:
       - 'scripts/probe-trondheim-strict-root-causes-live.mjs'
       - 'scripts/test-trondheim-strict-root-causes.mjs'
       - 'worker/trondheim-strict-shadow.mjs'
+      - 'worker/trondheim-gps-v22.mjs'
+      - 'scripts/test-trondheim-gps-v22.mjs'
+      - 'scripts/probe-trondheim-gps-v22-live.mjs'
       - 'scripts/probe-trondheim-source-priorities-live.mjs'
       - 'web/linear/network/source-reconciliation-triage.js'
   push:
@@ -21,6 +24,9 @@ on:
       - 'scripts/probe-trondheim-strict-root-causes-live.mjs'
       - 'scripts/test-trondheim-strict-root-causes.mjs'
       - 'worker/trondheim-strict-shadow.mjs'
+      - 'worker/trondheim-gps-v22.mjs'
+      - 'scripts/test-trondheim-gps-v22.mjs'
+      - 'scripts/probe-trondheim-gps-v22-live.mjs'
       - 'scripts/probe-trondheim-source-priorities-live.mjs'
       - 'web/linear/network/source-reconciliation-triage.js'
   # Three lightweight public GET checks per day; no new Entur polling.
@@ -43,6 +49,10 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+      - name: Test Cloudflare V2.2 anonymous proof and report schema
+        run: node scripts/test-trondheim-gps-v22.mjs
+      - name: Prove whether V2.2 aggregate recording is active in the actual Cloudflare Worker
+        run: node scripts/probe-trondheim-gps-v22-live.mjs
       - name: Offline proof contract regression
         run: node scripts/test-trondheim-quality-proof.mjs
       - name: Test anonymous 47-line source priority audit

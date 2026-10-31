@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>InTransit GPS V2.2 – automatisk døgnkontroll</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1018;--panel:#16202e;--line:#314457;--ink:#f3f7ff;--muted:#a6b8cc;--blue:#8ed1ff;--green:#4dde9c}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,sans-serif;margin:0}
+main{max-width:1080px;margin:auto;padding:24px 16px 60px}a{color:var(--blue)}
+h1{font-size:clamp(23px,4vw,34px);margin:14px 0 0}h2{font-size:19px;margin:0 0 9px}
+p{line-height:1.55;color:var(--muted)}small{color:var(--muted)}
+section{background:var(--panel);border:1px solid var(--line);padding:18px;border-radius:12px;margin:16px 0}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button,select{font:inherit;color:var(--ink);border:1px solid #52677e;border-radius:9px;padding:10px;background:#27384b;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:14px;background:#1b2a3b}
+.stat strong{font-size:27px;display:block;margin-top:5px;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;min-width:940px;width:100%;font-size:13px}
+th,td{padding:11px 9px;border-bottom:1px solid #34495e;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--panel)}
+.scroll{max-width:100%;overflow-x:auto}
+.signal{display:inline-block;width:9px;height:9px;background:var(--green);border-radius:50%;margin-right:7px}
+.note{font-size:12px}
+@media(max-width:620px){main{padding:14px 9px}section{padding:12px}table{min-width:970px}}
+</style>
+</head>
+<body><main>
+<nav><a href="./">← Trondheim Linear</a> · <a href="./quality-lines.html">Kvalitet for alle linjer</a></nav>
+<h1>📡 InTransit GPS V2.2</h1>
+<p>Automatisk døgnkontroll for linje 1 og 11. Cloudflare samler anonyme målinger fra <strong>eksisterende femminuttersinnsamling</strong> og den ekstra linje 1-prøven ved minutt 2, uten at telefon eller nettleser må være åpen.</p>
+<section>
+ <div class="controls">
+  <label for="day">Dato</label><select id="day"><option value="">I dag</option><option value="previous">I går</option></select>
+  <button id="reload" type="button">Oppdater rapport</button>
+ </div>
+ <p id="status" role="status">Henter produksjonsmålinger …</p>
+ <div id="stats" class="stats"></div>
+</section>
+<section>
+ <h2>Algoritmene på samme GPS-frames</h2>
+ <p class="note">V2.0 er den opprinnelige skyggetesten, V2.1 bevarer flere mulige Quays. «Støttet» er rutemønster-kandidat, <strong>ikke faktisk riktig fysisk plassering</strong>. Mål antall GPS-observasjoner vurdert, ikke bare antall støttede. Begge algoritmer får samme frame. Fastprøven har bare linje 1.</p>
+ <div class="scroll"><table>
+  <thead><tr><th>Linje</th><th>Vurderte frames</th><th>GPS primærbuss</th><th>V2.0 GPS vurdert</th><th>V2.0 støttet</th><th>V2.0 uavklart</th><th>V2.1 GPS vurdert</th><th>V2.1 støttet</th><th>V2.1 uavklart</th><th>Mulige Quays beholdt</th><th>Alternativer innsnevret</th><th>Entydig etter neste observasjon</th></tr></thead>
+  <tbody id="lines"><tr><td colspan="12">Ingen målinger ennå.</td></tr></tbody>
+ </table></div>
+</section>
+<section>
+ <h2>Lerkendal og Tonstadkrysset – geografiske kontrollområder</h2>
+ <p class="note">Her telles <strong>ferske GPS-observasjoner innenfor 85 meter</strong> fra utvalgte, kildeidentifiserte Quays. «Flere Quays nær GPS» viser konkurrerende geometriske kandidater. Det betyr ikke feil veikant eller faktisk stopp, og disse tallene beviser ikke hvorvidt V2.1 valgte korrekt Quay.</p>
+ <div class="scroll"><table>
+  <thead><tr><th>Område</th><th>Linje</th><th>Frames dekket</th><th>GPS nær område</th><th>Flere mulige Quays</th></tr></thead>
+  <tbody id="sites"><tr><td colspan="5">Ingen områdemålinger ennå.</td></tr></tbody>
+ </table></div>
+</section>
+<section>
+ <h2>Hva rapporten kan og ikke kan dokumentere</h2>
+ <p id="limits" class="note">GPS V2.2 er foreløpig ikke bekreftet aktiv i Cloudflare. Tilstedeværelse av kode eller grønne tester er ikke bevis på mottatte produksjonsmålinger.</p>
+ <p class="note">Kjøretøy-ID-er og rå GPS-posisjoner brukes bare kortvarig under beregningen; de lagres ikke i denne kvalitetshistorikken. Cloudflare kan starte testmotoren på nytt og da nullstilles midlertidige rutehypoteser. Fem minutter mellom GPS-prøver er ofte for langt til å bekrefte A→B→C-rekkefølge. Manglende målinger eller uavklarte tilfeller skal derfor ikke klassifiseres som feil GPS.</p>
+</section>
+</main>
+<script>
+"use strict";
+const API='https://transitcore-led-feed.lgb84.workers.dev/v1/trondheim/gps-v22';
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const count=x=>Number.isFinite(x)?x.toLocaleString('nb-NO'):'—';
+const rows=(entries)=>entries.join('')||'<tr><td colspan="12">Ingen målinger ennå.</td></tr>';
+const names={'lerkendal-1':['Lerkendal','1'],'lerkendal-11':['Lerkendal','11'],
+ 'tonstadkrysset-1':['Tonstadkrysset','1']};
+async function render(){
+ $('status').textContent='Henter siste døgnrapport …';
+ $('stats').innerHTML='';$('lines').innerHTML='';$('sites').innerHTML='';
+ try{
+  let url=API;
+  if($('day').value==='previous'){
+   const now=new Date();const y=new Date(now.getTime()-24*3600*1000);
+   const d=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Oslo',year:'numeric',month:'2-digit',day:'2-digit'}).format(y);
+   url+='?day='+encodeURIComponent(d);
+  }
+  const res=await fetch(url,{cache:'no-store'});
+  if(!res.ok)throw Error('HTTP '+res.status);
+  const d=await res.json();
+  if(d.scope!=='trondheim-gps-v22-scheduled-quality')throw Error('ukjent API-format');
+  const samples=(d.lanes?.catalog?.samples||0)+(d.lanes?.['line1-fast']?.samples||0);
+  const errors=(d.lanes?.catalog?.errors||0)+(d.lanes?.['line1-fast']?.errors||0);
+  $('status').innerHTML=samples?'<span class="signal"></span>Rapportert fra produksjon · '+esc(d.day)+
+   ' · siste måling: '+esc(d.last||'ukjent')
+   :'Ingen bekreftede V2.2-målinger for '+esc(d.day)+'. Koden kan være publisert uten at nye opptak har startet.';
+  const stats=[['Fem-minuttersmålinger',d.lanes?.catalog?.samples||0],
+   ['Ekstra linje 1-prøver',d.lanes?.['line1-fast']?.samples||0],
+   ['Feilede prøver',errors],['Linjer',Object.keys(d.lines||{}).length]];
+  $('stats').innerHTML=stats.map(([label,value])=>'<div class="stat"><small>'+esc(label)+
+   '</small><strong>'+count(value)+'</strong></div>').join('');
+  $('lines').innerHTML=rows(['1','11'].map(code=>{
+   const m=d.lines?.[code];if(!m)return '<tr><td>Linje '+code+'</td><td colspan="11">Ingen gyldige frames for denne linjen.</td></tr>';
+   const list=[m.frames,m.gpsPrimary,m.v20Compared,m.v20Supported,m.v20Unresolved,
+    m.v21Compared,m.v21Supported,m.v21Unresolved,m.retained,m.narrowed,m.resolved];
+   return '<tr><td><strong>Linje '+code+'</strong></td>'+list.map(v=>'<td>'+count(v)+'</td>').join('')+'</tr>';
+  }));
+  $('sites').innerHTML=Object.entries(names).map(([key,[name,line]])=>{
+   const s=d.spots?.[key]||{};return '<tr><td>'+esc(name)+'</td><td>'+esc(line)+
+    '</td><td>'+count(s.frames||0)+'</td><td>'+count(s.nearGps||0)+
+    '</td><td>'+count(s.overlappingQuays||0)+'</td></tr>';
+  }).join('');
+  $('limits').textContent=(d.limitations||[]).join(' ');
+ }catch(err){
+  $('status').textContent='Ingen bekreftet produksjonsrapport: '+err.message+
+   '. Den aktive LED-visningen fungerer uavhengig av dette prøvepanelet.';
+  $('limits').textContent='Oppdater senere for å se om Worker-innsamlingen faktisk skriver rapporter.';
+ }
+}
+$('reload').onclick=render;$('day').onchange=render;render();
+</script></body></html>

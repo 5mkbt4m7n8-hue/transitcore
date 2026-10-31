@@ -19,6 +19,9 @@ on:
       - 'scripts/test-gps-v2-route-shadow.mjs'
       - 'scripts/test-gps-v21-multiple-quays.mjs'
       - 'scripts/test-gps-v21-comparison-log.mjs'
+      - 'scripts/test-trondheim-gps-v22.mjs'
+      - 'worker/trondheim-gps-v22.mjs'
+      - 'web/linear/gps-v22-quality.html'
       - 'web/linear/network/gps-v20-baseline.js'
       - 'web/linear/network/gps-v2-comparison-log.js'
       - 'web/linear/network/gps-v2-shadow.js'
@@ -74,6 +77,9 @@ on:
       - 'scripts/test-gps-v2-route-shadow.mjs'
       - 'scripts/test-gps-v21-multiple-quays.mjs'
       - 'scripts/test-gps-v21-comparison-log.mjs'
+      - 'scripts/test-trondheim-gps-v22.mjs'
+      - 'worker/trondheim-gps-v22.mjs'
+      - 'web/linear/gps-v22-quality.html'
       - 'web/linear/network/gps-v20-baseline.js'
       - 'web/linear/network/gps-v2-comparison-log.js'
       - 'web/linear/network/gps-v2-shadow.js'
@@ -143,6 +149,9 @@ jobs:
 
       - name: Compare original V2.0 and V2.1 against the same live frame and anonymous 24h rollups
         run: node scripts/test-gps-v21-comparison-log.mjs
+
+      - name: Verify unattended, anonymous Cloudflare GPS V2.2 quality report
+        run: node scripts/test-trondheim-gps-v22.mjs
 
       - name: Verify source-certified Line 1 and 11 route tracking and privacy
         run: node scripts/test-multiline-route-progress.mjs

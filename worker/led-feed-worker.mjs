@@ -19,6 +19,7 @@ import {handleLinearPublish} from "./linear-publish.mjs";
 import {dayHistoryStorage,handleTrondheimHistory,recordScheduledTrondheimFrame} from "./trondheim-history.mjs";
 import {reconcileTrondheimGpsSource} from "./trondheim-gps-source-reconciliation.mjs";
 import {evaluateStrictShadow} from "./trondheim-strict-shadow.mjs";
+import {recordScheduledV22,handleV22Public,v22Storage,observeV22Internal} from "./trondheim-gps-v22.mjs";
 import {summarizeLine1ScheduledFrame} from "./trondheim-line1-quality.mjs";
 import {fastLine1Storage,recordScheduledFastLine1,handleFastLine1History} from "./trondheim-line1-fast.mjs";
 import {trondheimCatalogProfiles} from "./trondheim-catalog-profiles.mjs";
@@ -470,10 +471,16 @@ export function buildSignalTestSequence({
 export class DeviceStatus {
   constructor(state) {
     this.state = state;
+    // Only volatile object memory, never persisted GPS or vehicle identities.
+    this.gpsV22Volatile={engine:null,fingerprint:null};
   }
 
   async fetch(request) {
     const url = new URL(request.url);
+    if(url.pathname==="/gps-v22/observe")
+      return observeV22Internal(this.state.storage,request,this.gpsV22Volatile);
+    if(url.pathname==="/gps-v22")
+      return v22Storage(this.state.storage,request);
     if (url.pathname === "/line1-fast-history")
       return this.state.blockConcurrencyWhile
         ?this.state.blockConcurrencyWhile(()=>fastLine1Storage(this.state.storage,request))
@@ -766,7 +773,7 @@ function validFrameSummary(frame, boardId) {
 // five-minute cycle. The full 1282-LED catalog, Oslo boards and extra SIRI
 // journey calls are not polled again. Source sampling is GPS-near only.
 async function runFastLine1Sample(env,now=Date.now()){
- let quality=null,error='';
+ let quality=null,error='',v22Frame=null,v22Board=null;
  try{
   const {board,profiles,hardware}=await boundedOperation('line1_config',
     ()=>configuration('trondheim-city-lines-catalog',now),5000,{source:'line1-fast'});
@@ -782,6 +789,7 @@ async function runFastLine1Sample(env,now=Date.now()){
   }));
   quality=summarizeLine1ScheduledFrame(frame,board);
   if(!quality)throw Error('line1_quality_unavailable');
+  v22Frame=frame;v22Board=board;
  }catch(cause){
   error=String(cause?.code||cause?.message||'feed_unavailable').slice(0,100);
   console.warn('line1_fast_source_error',error);
@@ -790,6 +798,12 @@ async function runFastLine1Sample(env,now=Date.now()){
   await boundedOperation('line1_fast_store',()=>recordScheduledFastLine1(
    env,quality,error,new Date(now).toISOString()),1800,{source:'line1-fast'});
  }catch(cause){console.error('line1_fast_history_write_failed',cause.message);}
+ // Same already fetched line 1 GPS batch; no new Entur traffic.
+ try{
+  await boundedOperation('gps_v22_fast',()=>recordScheduledV22(
+   env,v22Frame,v22Board,'line1-fast',new Date(now).toISOString(),!v22Frame),
+   2000,{source:'line1-fast'});
+ }catch(cause){console.warn('gps_v22_fast_store_failed',cause?.message||'unknown');}
 }
 async function runBackgroundChecks(env) {
   await Promise.all([...BOARD_IDS].map(async boardId => {
@@ -1129,6 +1143,11 @@ async function boardFrameResponse(boardId, env, source) {
    try{await boundedOperation("trondheim_history",()=>recordScheduledTrondheimFrame(
      env,historyFrame,historyFrame?"":sample.detail,new Date(now).toISOString(),historyBoard,historyGpsQuality),1500,{boardId,source});}
    catch(error){console.error("trondheim_history_write_failed",error.message);}
+   // Separate, read-only diagnostics; never block or mutate the PixelFrame.
+   try{await boundedOperation('gps_v22_catalog',()=>recordScheduledV22(
+    env,historyFrame,historyBoard,'catalog',new Date(now).toISOString(),!historyFrame),
+    2000,{boardId,source});}
+   catch(error){console.warn('gps_v22_catalog_store_failed',error?.message||'unknown');}
   }
   // A monitoring-storage problem must not discard a valid LED frame.
   try {
@@ -1404,6 +1423,8 @@ const worker = {
     if (url.pathname === "/v1/admin/linear-publish") return handleLinearPublish(request,env,secureTokenEquals,(path,options)=>githubApi(env,path,options));
     if (url.pathname === "/v1/trondheim/line1-fast")
       return handleFastLine1History(request,env);
+    if (url.pathname === "/v1/trondheim/gps-v22")
+      return handleV22Public(request,env);
     if (url.pathname === "/v1/trondheim/history" || url.pathname === "/v1/admin/trondheim/history/demo")
       return handleTrondheimHistory(request,env,secureTokenEquals);
     if (url.pathname === "/v1/admin/publish") return handlePublish(request, env);
