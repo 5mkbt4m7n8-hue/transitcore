@@ -150,7 +150,8 @@ export async function recordV22Storage(storage,{at,lane,metrics=null,error=false
  await storage.put(key,data);
  const indexKey=ROOT+'index',index=await storage.get(indexKey)||[];
  if(!index.includes(day)){index.push(day);index.sort();await storage.put(indexKey,index);}
- const current=dayOf(now),previous=dayOf(now-24*3600000);
+ const current=dayOf(now),previous=dayOf(Date.UTC(Number(current.slice(0,4)),
+  Number(current.slice(5,7))-1,Number(current.slice(8))-1,12));
  const keep=new Set([current,previous]);
  for(const expired of index.filter(d=>!keep.has(d))){
   const entries=await storage.list({prefix:prefix(expired),limit:1000});
@@ -165,7 +166,8 @@ const sumLine=(lines,code,vals)=>{
  for(const k of FIELDS)dest[k]+=vals[k];
 };
 export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
- const today=dayOf(now),yesterday=dayOf(now-24*3600000);
+ const today=dayOf(now),yesterday=dayOf(Date.UTC(Number(today.slice(0,4)),
+  Number(today.slice(5,7))-1,Number(today.slice(8))-1,12));
  const chosen=day||today;
  if(!validDay(chosen)||![today,yesterday].includes(chosen))
   return {error:'day_unavailable'};
