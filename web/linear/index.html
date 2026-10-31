@@ -145,8 +145,8 @@
           <p class="tonstad-note">Mens denne fanen er åpen, analyseres hver nye, ferske GPS-frame automatisk med dagens PixelFrame, den opprinnelige V2.0-testen og V2.1. Lokalt lagres bare anonyme minutt-tellere, ikke buss-ID, koordinater eller Quay-historikk. Fanen må være åpen for å samle nye opptak; det er ingen uovervåket serverlogging.</p>
           <p id="gpsCompareStatus" class="tonstad-note" aria-live="polite">Ingen sammenlignbare frames ennå.</p>
           <div class="scroll"><table aria-label="Sammenligning av GPS V2.0 V2.1 og dagens kart">
-            <thead><tr><th>Linje</th><th>Frames</th><th>GPS primærbuss vist</th><th>GPS på andre delte LED-observasjoner (uten egne koordinater)</th><th>V2.0 retning støttet</th><th>V2.1 retning støttet</th><th>V2.1 alternativer innsnevret</th><th>V2.1 entydig etter følgeobservasjon</th><th>V2.1 annen LED-kandidat</th></tr></thead>
-            <tbody id="gpsCompareRows"><tr><td colspan="9">Ingen registrerte framemålinger ennå.</td></tr></tbody>
+            <thead><tr><th>Linje</th><th>Frames</th><th>GPS primærbuss vist</th><th>GPS på andre delte LED-observasjoner (uten egne koordinater)</th><th>V2.0 GPS vurdert</th><th>V2.0 retning støttet</th><th>V2.0 uavklart</th><th>V2.1 GPS vurdert</th><th>V2.1 retning støttet</th><th>V2.1 uavklart</th><th>V2.1 alternativer innsnevret</th><th>V2.1 entydig etter følgeobservasjon</th><th>V2.1 annen LED-kandidat</th></tr></thead>
+            <tbody id="gpsCompareRows"><tr><td colspan="13">Ingen registrerte framemålinger ennå.</td></tr></tbody>
           </table></div>
           <p class="tonstad-note">Alle tall er summer av observasjoner, ikke antall unike busser. «Støttet» er kildekompatibel rutekandidat, <strong>ikke verifisert riktig fysisk plassering</strong>. V2.0 og V2.1 har forskjellig dekningsgrad; høyere tall betyr ikke automatisk bedre GPS. Primærbussens GPS brukes aldri som koordinat for andre busser på samme LED. Testlogging og rutehypoteser kan ikke videreføres i bakgrunnen når fanen er lukket.</p>
           <div class="tools">
@@ -499,7 +499,8 @@ function updateLine1Progress(frame=null){
     $('gpsCompareRows').innerHTML=['1','11'].map(code=>{
       const m=comparison.lines[code]||{};
       const cells=[m.frames,m.livePrimaryGps,m.liveOtherGpsNoCoordinates,
-       m.v20Supported,m.v21Supported,m.v21Narrowed,m.v21Resolved,m.v21DifferentLed];
+       m.v20Compared,m.v20Supported,m.v20Unresolved,m.v21Compared,m.v21Supported,
+       m.v21Unresolved,m.v21Narrowed,m.v21Resolved,m.v21DifferentLed];
       return '<tr><td><strong>Linje '+code+'</strong></td>'+cells.map(n=>
         '<td>'+String(n||0)+'</td>').join('')+'</tr>';
     }).join('');
