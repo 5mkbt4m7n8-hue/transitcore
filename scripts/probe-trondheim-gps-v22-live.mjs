@@ -8,11 +8,16 @@ const COUNTERS=['frames','gpsPrimary','gpsSecondaryUnlocated','v20Compared',
  'v20Supported','v20Unresolved','v20DifferentLed','v21Compared',
  'v21Supported','v21Unresolved','v21DifferentLed','retained','narrowed',
  'resolved','sourceStop','sequenceConflict','hypothesisLimit'];
+const DIAGNOSTICS=['frames','firstSeen','sameVehicleWithin3m',
+ 'sameVehicleAfter3m','outsideQuayRadius','oneNearbyQuay','multipleNearbyQuays'];
 const count=x=>Number.isSafeInteger(x)&&x>=0?x:null;
 export function summarizeV22Daily(payload){
  if(payload?.scope!=='trondheim-gps-v22-scheduled-quality')return null;
- const lines=Object.fromEntries(['1','11'].map(code=>[code,
-  Object.fromEntries(COUNTERS.map(k=>[k,count(payload.lines?.[code]?.[k])]))]));
+ const lines=Object.fromEntries(['1','11'].map(code=>[code,{
+  ...Object.fromEntries(COUNTERS.map(k=>[k,count(payload.lines?.[code]?.[k])])),
+  diagnostics:Object.fromEntries(DIAGNOSTICS.map(k=>[
+   k,count(payload.lines?.[code]?.diagnostics?.[k])]))
+ }]));
  const sites=Object.fromEntries(['lerkendal-1','lerkendal-11','tonstadkrysset-1']
   .map(key=>[key,{
    frames:count(payload.spots?.[key]?.frames),
@@ -28,13 +33,16 @@ const fresh=stamp=>Number.isFinite(Date.parse(stamp||''))&&
 export function inspect(payload,{now=Date.now()}={}){
  if(payload?.scope!=='trondheim-gps-v22-scheduled-quality'||!payload.lanes)
   return {status:'OLD_WORKER_OR_UNKNOWN_RESPONSE'};
- const full=payload.lanes.catalog?.samples||0,fast=payload.lanes['line1-fast']?.samples||0;
- if(!full&&!fast)return {status:'NO_SAMPLES',full,fast};
+ const full=payload.lanes.catalog?.samples||0;
+ const legacyFast=payload.lanes['line1-fast']?.samples||0;
+ const dualFast=payload.lanes['dual-fast']?.samples||0;
+ const fast=legacyFast+dualFast;
+ if(!full&&!fast)return {status:'NO_SAMPLES',full,fast,legacyFast,dualFast};
  if(!Number.isFinite(Date.parse(payload.last||''))||
    now-Date.parse(payload.last)>25*60000||
    now-Date.parse(payload.last)<-60000)
-  return {status:'STALE',full,fast,last:payload.last||null};
- return {status:'ACTIVE',full,fast,last:payload.last,
+  return {status:'STALE',full,fast,legacyFast,dualFast,last:payload.last||null};
+ return {status:'ACTIVE',full,fast,legacyFast,dualFast,last:payload.last,
   line1Frames:payload.lines?.['1']?.frames||0,
   line11Frames:payload.lines?.['11']?.frames||0};
 }
@@ -68,7 +76,15 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
    '| '+proof.status+' | '+(proof.full??'—')+' | '+(proof.fast??'—')+
    ' | '+(proof.line1Frames??'—')+' | '+(proof.line11Frames??'—')+
    ' | '+(proof.last??'—')+' |\n\n'+
-   'Ingen GPS- eller kjøretøy-ID-er er hentet. Dette beviser at aggregatene produseres, ikke fysisk GPS-nøyaktighet.\n'+
+   'Ingen GPS- eller kjøretøy-ID-er er hentet. Detaljtabellen skiller ny V2.3-diagnostikk fra gamle frames.\n'+
+   (proof.daily?'\n### GPS V2.3 kilde-/tidsbrudd per linje (bare målt V2.3-dekning)\n\n'+
+    '| Linje | Måleframes med V2.3 | Først sett | Samme GPS-buss innen 3 min | Samme GPS-buss etter 3 min | 0 Quays | 1 Quay | Flere Quays |\n'+
+    '|---|---:|---:|---:|---:|---:|---:|---:|\n'+
+    ['1','11'].map(line=>{const d=proof.daily.lines[line].diagnostics;return '| '+line+' | '+
+     ['frames','firstSeen','sameVehicleWithin3m','sameVehicleAfter3m',
+      'outsideQuayRadius','oneNearbyQuay','multipleNearbyQuays']
+      .map(k=>d[k]??'—').join(' | ')+' |';}).join('\n')+'\n':'')+
+   '\n**GPS-kandidat er ikke bekreftet Quay eller holdeplass.**\n'+
    (proof.daily?'\n### Sammenligning per linje – summer av observasjoner, ikke unike busser\n\n'+
     '| Linje | Frames | Primær-GPS | V2.0 vurdert | V2.0 støttet | V2.0 uavklart | V2.1 vurdert | V2.1 støttet | V2.1 uavklart | Beholdt flere Quays | Innsnevret | Entydig etter ny observasjon |\n'+
     '|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n'+
