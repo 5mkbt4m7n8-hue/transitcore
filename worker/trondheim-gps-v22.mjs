@@ -274,7 +274,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
   limitations:[
    'Sampling: 5-minute catalog plus existing offset Line 1 fast history; V2.3 dual-fast also measures Line 11 using the SAME AtB source response, no extra provider requests.',
    'V2.0 and V2.1 use the same sample; route hypotheses live in volatile DO memory and may reset.',
-   'Older Line 11 five-minute-only samples are sparse; V2.3 diagnostic coverage counts only newer dual-line samples.',
+   'Older Line 11 five-minute-only samples are too sparse for proven stop sequences; V2.3 diagnostics start only on new samples.',
    'Near a focus Quay is geometric proximity only, never a physical arrival or correct platform.',
    'Only primary LED vehicle has usable GPS; IDs and positions are not persisted.',
    'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
