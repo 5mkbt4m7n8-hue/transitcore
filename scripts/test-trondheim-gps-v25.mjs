@@ -3,7 +3,8 @@ import {readFileSync} from 'node:fs';
 import {evaluateV25,expireV25State,sanitizeV25,V25_KEY,V25_TTL}
  from '../worker/trondheim-gps-v25.mjs';
 import {createVolatileState,evaluateV22,validateV22,
- reportV22Storage,observeV22Internal,summarizeV25Cadence} from '../worker/trondheim-gps-v22.mjs';
+ reportV22Storage,observeV22Internal,summarizeV25Cadence,
+ summarizeV28Timing,makeV28Sample} from '../worker/trondheim-gps-v22.mjs';
 
 const source=JSON.parse(readFileSync(new URL('../config/gps/atb-journey-patterns-1-11.json',import.meta.url),'utf8'));
 const a=source.lines['1'].patterns.find(p=>p.quays.length>5).quays;
@@ -192,4 +193,45 @@ assert.equal(chained.threePlusFrameContinuations,2);
 assert.equal(chained.maxContinuousFrames,4);
 assert.equal(roll.v25.cadence.sameSlotFreshRestored,1);
 assert.equal(roll.v25.cadence.maxContinuousFrames,2);
+// GPS V2.8: only anonymous frame-second offsets; no 4-minute tokens/patterns.
+const oldSample=makeV28Sample(make(t0),new Date(t0).toISOString(),first);
+assert.deepEqual(oldSample,{version:1,offsetSeconds:0,status:'fresh'});
+const v28With=structuredClone(ordinary);
+v28With.v28=oldSample;
+assert(validateV22(v28With));
+const badTiming=structuredClone(v28With);
+badTiming.v28.offsetSeconds=300;
+assert.equal(validateV22(badTiming),null);
+badTiming.v28.offsetSeconds=0;
+badTiming.v28.status='restored';
+assert.equal(validateV22(badTiming),null);
+const measuredV28=summarizeV28Timing([
+ {slot:t0,lane:'catalog',offsetSeconds:1,status:'fresh'},
+ {slot:t0,lane:'dual-fast',offsetSeconds:121,status:'restored'},
+ {slot:t0+300000,lane:'catalog',offsetSeconds:3,status:'fresh'},
+ {slot:t0+300000,lane:'dual-fast',offsetSeconds:120,status:'restored'}
+]);
+assert.equal(measuredV28.frames,4);
+assert.equal(measuredV28.pairs,3);
+assert.equal(measuredV28.under3m,2);
+assert.equal(measuredV28.between3and4m,1);
+assert.equal(measuredV28.fresh3to4m,1);
+assert.equal(measuredV28.freshUnder3m,0);
+assert.equal(measuredV28.possible4mBridges,1);
+assert.equal(measuredV28.maxFrames3m,2);
+assert.equal(measuredV28.maxFrames4m,4);
+assert.equal(measuredV28.threeFrameChains3m,0);
+assert.equal(measuredV28.threeFrameChains4m,1);
+const noGain=summarizeV28Timing([
+ {slot:t0,lane:'catalog',offsetSeconds:0,status:'fresh'},
+ {slot:t0,lane:'dual-fast',offsetSeconds:120,status:'restored'},
+ {slot:t0+300000,lane:'catalog',offsetSeconds:0,status:'fresh'}
+]);
+assert.equal(noGain.freshUnder3m,1);
+assert.equal(noGain.possible4mBridges,0);
+assert.equal(noGain.maxFrames3m,3);
+assert.equal(noGain.maxFrames4m,3);
+assert.equal(roll.v25.timingV28.frames,2);
+assert.equal(roll.v25.timingV28.pairs,1);
+assert(!JSON.stringify(roll.v25.timingV28).includes(raw1));
 console.log('V2.5 PASS: HMAC-only 3m bounded storage, restore after DO cold starts, alarm expiry, catalog reset, failure isolation, V2.4 backwards compatibility and zero source GPS/identity persistence');

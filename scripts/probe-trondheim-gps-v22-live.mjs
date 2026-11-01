@@ -26,6 +26,10 @@ const CADENCE_FIELDS=['frames','sameSlotFreshRestored',
  'threePlusFrameContinuations','maxContinuousFrames'];
 const CADENCE_LANES=['catalog','line1-fast','dual-fast'];
 const CADENCE_LANE_FIELDS=['frames','fresh','restored'];
+const TIMING_V28=['frames','pairs','under3m','between3and4m','over4m',
+ 'freshUnder3m','fresh3to4m','freshOver4m','restoredUnder3m',
+ 'restoredAfter3m','possible4mBridges','maxFrames3m','maxFrames4m',
+ 'threeFrameChains3m','threeFrameChains4m'];
 const count=x=>Number.isSafeInteger(x)&&x>=0?x:null;
 export function summarizeV22Daily(payload){
  if(payload?.scope!=='trondheim-gps-v22-scheduled-quality')return null;
@@ -49,6 +53,9 @@ export function summarizeV22Daily(payload){
     states:Object.fromEntries(V25_STATES.map(k=>[k,count(payload.v25?.states?.[k])])),
     restoredTracks:count(payload.v25?.restoredTracks),
     tracksWritten:count(payload.v25?.tracksWritten),
+    timingV28:payload.v25?.timingV28?
+     Object.fromEntries(TIMING_V28.map(k=>[
+      k,count(payload.v25.timingV28[k])])):null,
     cadence:payload.v25?.cadence?{
      ...Object.fromEntries(CADENCE_FIELDS.map(k=>[
       k,count(payload.v25.cadence[k])])),
@@ -143,6 +150,14 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
       proof.daily.v25.cadence.maxContinuousFrames].map(x=>x??'—').join(' | ')+' |\n\n'+
      'Dette gjelder testminnets rammer, ikke tre observerte holdeplasser.\n'):''))
     :'')+
+   (proof.daily.v25.timingV28?.frames?('\n### V2.8 – målte kildeframe-avstander (sekundoppløsning)\n\n'+
+    '| Frames | Sammenlignbare par | ≤180 s | 181–240 s | >240 s | Nytt minne 181–240 s | Nytt minne ≤180 s | Tidsmulige broer med 4m | Lengste 3m kjede | Lengste 4m kjede | Tre+-kjeder 3m | Tre+-kjeder 4m |\n'+
+    '|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n'+
+    ['frames','pairs','under3m','between3and4m','over4m','fresh3to4m',
+     'freshUnder3m','possible4mBridges','maxFrames3m','maxFrames4m',
+     'threeFrameChains3m','threeFrameChains4m']
+     .map(k=>proof.daily.v25.timingV28[k]??'—').join(' | ')+' |\n\n'+
+    '4m-kjeder er kun en hypotetisk tidsmulighet; V2.5 sporer fremdeles bare 3m.\n'):'')+
    (proof.daily?'\n### GPS V2.4 memory lifecycle (only new V2.4-sample frames)\n\n'+
     '| V2.4 frames | Fresh volatile state | Catalog reset | Continued | Prior ≤3m | Prior >3m | Prior unknown |\n'+
     '|---:|---:|---:|---:|---:|---:|---:|\n'+

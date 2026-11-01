@@ -257,6 +257,14 @@ export function validateV22(value){
    return null;
   safe.v25=shadow;
  }
+ if(value.v28!=null){
+  const x=value.v28;
+  if(!safe.v25||x.version!==1||
+    !Number.isSafeInteger(x.offsetSeconds)||x.offsetSeconds<0||
+    x.offsetSeconds>299||x.status!==safe.v25.status||
+    Object.keys(x).length!==3)return null;
+  safe.v28={version:1,offsetSeconds:x.offsetSeconds,status:x.status};
+ }
  if(value.memory!=null){
   const m=value.memory;
   if(!m||typeof m!=='object'||Array.isArray(m)||
@@ -316,6 +324,68 @@ const sumLine=(lines,code,vals)=>{
 // V2.7: cadence evidence is derived from EXISTING per-slot V2.5 status
 // counters. No individual journey, HMAC token, Quay, or precise GPS coordinate.
 const CADENCE_STATES=['fresh','restored','expired','catalogChanged','keyRotated'];
+const V28_WINDOW_3=180, V28_WINDOW_4=240;
+const V28_FIELDS=['frames','pairs','under3m','between3and4m','over4m',
+ 'freshUnder3m','fresh3to4m','freshOver4m','restoredUnder3m',
+ 'restoredAfter3m','possible4mBridges','maxFrames3m','maxFrames4m',
+ 'threeFrameChains3m','threeFrameChains4m'];
+// This is a timing-only counterfactual: no extra 4-minute vehicle retention.
+// Each source timestamp is quantized to one second inside its existing slot.
+export function summarizeV28Timing(records=[]){
+ const result=Object.fromEntries(V28_FIELDS.map(k=>[k,0]));
+ const ordering={catalog:0,'line1-fast':1,'dual-fast':2};
+ const recordsOk=records.filter(r=>Number.isSafeInteger(r?.slot)&&r.slot>=0&&
+  r.slot%300000===0&&LANES.includes(r.lane)&&
+  Number.isSafeInteger(r.offsetSeconds)&&r.offsetSeconds>=0&&
+  r.offsetSeconds<300&&CADENCE_STATES.includes(r.status))
+  .sort((a,b)=>(a.slot+a.offsetSeconds*1000)-
+    (b.slot+b.offsetSeconds*1000)||ordering[a.lane]-ordering[b.lane]);
+ let previous=null,chain3=0,chain4=0;
+ for(const row of recordsOk){
+  result.frames++;
+  const same=previous?.lane==='catalog'&&row.lane!=='catalog'&&
+   row.slot===previous.slot;
+  const across=previous!==null&&previous.lane!=='catalog'&&
+   row.lane==='catalog'&&row.slot-previous.slot===300000;
+  const gap=previous?Math.round((row.slot-previous.slot)/1000)+
+   row.offsetSeconds-previous.offsetSeconds:null;
+  const adjacent=(same||across)&&Number.isSafeInteger(gap)&&gap>0&&gap<600;
+  if(adjacent){
+   result.pairs++;
+   if(gap<=V28_WINDOW_3)result.under3m++;
+   else if(gap<=V28_WINDOW_4)result.between3and4m++;
+   else result.over4m++;
+   if(row.status==='fresh'){
+    if(gap<=V28_WINDOW_3)result.freshUnder3m++;
+    else if(gap<=V28_WINDOW_4)result.fresh3to4m++;
+    else result.freshOver4m++;
+   }
+   if(row.status==='restored'){
+    if(gap<=V28_WINDOW_3)result.restoredUnder3m++;
+    else result.restoredAfter3m++;
+   }
+   if(gap>V28_WINDOW_3&&gap<=V28_WINDOW_4)
+    result.possible4mBridges++;
+  }
+  chain3=adjacent&&gap<=V28_WINDOW_3?chain3+1:1;
+  chain4=adjacent&&gap<=V28_WINDOW_4?chain4+1:1;
+  result.maxFrames3m=Math.max(result.maxFrames3m,chain3);
+  result.maxFrames4m=Math.max(result.maxFrames4m,chain4);
+  if(chain3===3)result.threeFrameChains3m++;
+  if(chain4===3)result.threeFrameChains4m++;
+  previous=row;
+ }
+ return result;
+}
+export function makeV28Sample(frame,at,v25){
+ if(!v25||!CADENCE_STATES.includes(v25.status))return null;
+ const sourceAt=Date.parse(frame?.generatedAt||''),slotAt=Date.parse(at||'');
+ if(!Number.isFinite(sourceAt)||!Number.isFinite(slotAt))return null;
+ const slot=Math.floor(slotAt/300000)*300000;
+ const delta=sourceAt-slot;
+ if(delta<0||delta>=300000)return null;
+ return {version:1,offsetSeconds:Math.floor(delta/1000),status:v25.status};
+}
 const cadenceLane=()=>({frames:0,fresh:0,restored:0});
 export function summarizeV25Cadence(records=[]){
  const out={frames:0,lanes:Object.fromEntries(LANES.map(l=>[l,cadenceLane()])),
@@ -368,7 +438,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
   lines:Object.fromEntries(LINES.map(code=>[code,{frames:0,primary:0,matchedPrior:0,
    compared:0,supported:0,retained:0,narrowed:0,resolved:0,
    followupFrames:0,...Object.fromEntries(FOLLOWUP_FIELDS.map(k=>[k,0]))}]))};
- const cadenceRows=[];
+ const cadenceRows=[],timingRows=[];
  let first=null,last=null;
  for(const item of entries.values()){
   if(!LANES.includes(item?.lane)||item.day!==chosen)continue;
@@ -380,6 +450,11 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
   }
   if(item.metrics.v25){
    cadenceRows.push({slot:item.slot,lane:item.lane,status:item.metrics.v25.status});
+   if(item.metrics.v28)timingRows.push({
+    slot:item.slot,lane:item.lane,
+    offsetSeconds:item.metrics.v28.offsetSeconds,
+    status:item.metrics.v28.status
+   });
    const s=item.metrics.v25;
    v25.frames++;v25.states[s.status]++;
    v25.restoredTracks+=s.restoredTracks;v25.tracksWritten+=s.tracksWritten;
@@ -405,6 +480,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
   }
  }
  v25.cadence=summarizeV25Cadence(cadenceRows);
+ v25.timingV28=summarizeV28Timing(timingRows);
  return {version:1,scope:'trondheim-gps-v22-scheduled-quality',
   day:chosen,timezone:'Europe/Oslo',status:LANES.some(
    lane=>lanes[lane].samples>0)?'SAMPLES':'NO_SAMPLES',
@@ -420,6 +496,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    'V2.5 restores only at most 3-minute-old HMAC-tokenized source-pattern hypotheses, bounded to 128 temporary tracks; no raw ID, destination, GPS coordinate or Quay is written.',
    'V2.6 follow-up counters have separate coverage and count only restored source-compatible pattern-index candidates. A three-point candidate never proves actual passage or correct direction.',
    'V2.7 cadence is a retrospective calculation from pre-existing V2.5 slot/lane/status counters; no new per-bus data or sampling. It distinguishes within-slot two-frame restoration from across-slot continuity. Slot spacing is not precise source or vehicle timing.',
+   'V2.8 adds only second-resolution per-frame sample offset in the existing daily slot, never a vehicle timestamp. The 4-minute column is timing-only counterfactual eligibility, not real 4-minute restored tracks or proof of alarm root cause.',
    'V2.5 shadow key and pattern indexes are pseudonymous, not fully anonymous; automatic Durable Object alarm deletes them after 3 minutes plus a small scheduling grace period.',
    'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
    'Higher candidate support is not validated GPS accuracy.'
@@ -489,6 +566,8 @@ export async function observeV22Internal(storage,request,volatile,now=Date.now()
    // any V2.5 failure must never invalidate the existing V2.4 sample.
    try{
     metrics.v25=await evaluateV25(storage,frame,board,{lane,now});
+    const v28=makeV28Sample(frame,at,metrics.v25);
+    if(v28)metrics.v28=v28;
    }catch(err){
     console.warn('gps_v25_shadow_unavailable',err?.message||'unknown');
    }

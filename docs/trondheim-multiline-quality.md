@@ -729,3 +729,46 @@ blindt.
 
 Ingen rå kjøretøy-ID-er, pseudonymer, GPS-posisjoner, Quay-strenger
 eller tidslinjer per kjøretøy legges til V2.7-rapporten.
+
+
+## GPS V2.8 – reell prøveavstand og isolert 180/240-sekunders tidsmodell
+
+V2.7 i produksjon: 57 V2.5-frames, 29 nye katalogminner og 28
+gjenopprettede hurtigminner, men **ingen** katalog-gjenopprettinger
+etter hurtigprøven. Resultatene viser lengste sammenhengende
+testminnekjede lik to frames. **Årsaken er ikke endelig bekreftet**,
+fordi V2.7 visste hvilke femminuttersluker prøvene tilhørte, men
+ikke den faktiske avstanden innenfor hver luke.
+
+V2.8 lagrer i det eksisterende anonymiserte døgnets V2.2-sample
+**kun** `v28:{version:1,offsetSeconds:0..299,status}`, hvor
+`offsetSeconds` er genereringstiden til **hele samleframen**
+avkortet til sekund relativt til dens allerede lagrede
+femminuttersluke. `status` må samsvare med validert V2.5-status.
+Ingen GPS, Quay, bussidentitet, pseudonym, nøyaktig busstidspunkt
+eller rutehistorikk blir lagret. Eldre samples uten V2.8 telles
+ikke som null; selve per-slot-offseten eksponeres aldri i API.
+Workerens eksisterende døgnretensjon gjelder.
+
+Bare tilstøtende, sammenlignbare prøver (katalog→samme lukes
+hurtigprøve eller hurtigprøve→neste lukes katalogprøve) telles.
+Rapporten viser faktiske frame-genereringsintervaller avrundet
+til sekunder: opptil 180 sek, 181–240 sek og over 240 sek,
+samt om neste frame faktisk hadde `fresh` eller `restored`
+V2.5-minne. For eksempel kan en ny katalogprøve etter 182
+sekunder gjøre den strenge 180-sekundersgrensen til en plausibel
+forklaring på minnebruddet.
+
+Det isolerte fireminutterseksperimentet simulerer **bare
+tidsmessig mulighet**, ved å beregne kjedelengder med terskler
+180 og 240 sek over de nøyaktig samme måleframes. Det lagres
+ikke fire minutters HMAC-nøkkel eller mønsterhypoteser. Dette
+er **ikke** en full simulering av faktiske buss-/Quay-valg:
+en tidsmessig mulig tredje frame er ikke A→B→C,
+og bare en egen kildevalidering kan avklare fysisk stopp.
+
+V2.8 klassifiserer heller ikke Cloudflare-alarm eller eviction
+som bevist årsak basert på fravær av snapshot. Dersom
+`freshUnder3m > 0` må vi undersøke andre årsaker før
+vi anbefaler økt TTL. Ingen ekstra Entur-kall, cron, DO-binding,
+alarmer, GPS-radiusendring eller aktiv LED-endring.
