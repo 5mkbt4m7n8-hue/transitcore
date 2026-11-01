@@ -33,6 +33,10 @@ const TIMING_V28=['frames','pairs','under3m','between3and4m','over4m',
 const count=x=>Number.isSafeInteger(x)&&x>=0?x:null;
 const PAIRED_V211=['frames','matchedPrior','longMatchedPrior',
  'extraMatches','lostMatches','gainFrames','lossFrames','sameFrames',
+ 'lossFramesLongNotRestoredShortRestored',
+ 'lostMatchesLongNotRestoredShortRestored',
+ 'lossFramesBothRestored','lostMatchesBothRestored',
+ 'lossFramesOther','lostMatchesOther',
  'candidateFrames','restoredWithCandidates','longWithCandidates',
  'extraCandidates','lostCandidates','restoredNarrowed','longNarrowed',
  'restoredDirection','longDirection','restoredABC','longABC'];
@@ -202,6 +206,13 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
       'extraMatches','lostMatches','restoredWithCandidates',
       'longWithCandidates'].map(k=>p[k]??'—').join(' | ')+' |';}).join('\n')+
     '\n\nKandidatevidens gjelder bare frames med V2.6-kandidatdekning.\n'+
+    '\n\n**240s-tap ved sammenligning:** '+['1','11'].map(line=>{
+     const p=proof.daily.v29.paired.lines[line];
+     return 'linje '+line+': '+(p.lostMatches??'—')+
+      ' færre observasjoner, hvorav '+(p.lostMatchesLongNotRestoredShortRestored??'—')+
+      ' ved 240s ikke-gjenopprettet / 180s gjenopprettet og '+
+      (p.lostMatchesBothRestored??'—')+' med begge gjenopprettet';
+    }).join('; ')+'.\n'+
     '\n\n240s følger kun pseudonymiserte mønsterhypoteser, aldri aktive LED- eller bussposisjoner.\n'):'')+
    (proof.daily?'\n### GPS V2.4 memory lifecycle (only new V2.4-sample frames)\n\n'+
     '| V2.4 frames | Fresh volatile state | Catalog reset | Continued | Prior ≤3m | Prior >3m | Prior unknown |\n'+

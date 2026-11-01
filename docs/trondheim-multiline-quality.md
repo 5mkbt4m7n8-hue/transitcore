@@ -872,3 +872,25 @@ public `?day=`-parameter. Dette motvirker at en viktig produksjonsmåling
 ved lokal midnatt tilsynelatende forsvinner når dagens døgnrapport nullstilles.
 Det er **ett ekstra public aggregat-GET** per CI-kjøring, ingen nye Entur-
 kall, DO-bindinger, ruteminner, alarmer, GPS-radius eller aktiv LED-endring.
+
+
+## GPS V2.12 – skill oppstartstap fra varig svakhet
+
+V2.11 viste ved første døgns V2.10-data samlet 50 gjenkjente 240s
+mot 22 med 180s på ni identiske frames, men **fem negative**
+240s/180s-differanser i enkelte frames. En plausibel forklaring er
+første frame etter at den nye 240s-varianten startet med tomt HMAC-
+minne, mens 180s-varianten allerede hadde historikk.
+
+V2.12 summerer derfor kun **statuspar og numeriske tellere** i den
+allerede eksisterende døgnrapporten, per linje: færre gjenkjennelser
+der 240s-varianten *ikke* var gjenopprettet og 180s-varianten var
+`restored`; tap der **begge** var `restored`; samt øvrige tap.
+Rå vehicle-ID, HMAC-pseudonym, ruteindeks, nøyaktig tidspunkt og GPS
+lagres ikke i disse nye tellerne.
+
+Hvis alle tap er fra initial 240s-oppvarming, må disse ikke tolkes
+som dokumentert svekket retningsalgoritme. Hvis tap forekommer når
+**begge** minnevariantene er gjenopprettet, bør vi undersøke
+mønsterhypoteser/sekvenslogikk isolert før en eventuell aktiv endring.
+Det er fremdeles ikke bevis for fysisk holdeplass- eller A→B→C-passering.
