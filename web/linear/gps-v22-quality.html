@@ -105,7 +105,7 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
  <div class="scroll"><table>
  <thead><tr><th>Linje</th><th>180s gjenkjent</th><th>240s gjenkjent</th><th>180s innsnevret</th><th>240s innsnevret</th><th>240s retningskandidat</th><th>240s trepunktskandidat</th></tr></thead>
  <tbody id="v210Lines"><tr><td colspan="7">Ingen parallell måledekning ennå.</td></tr></tbody></table></div>
- <p class="note">180s-tallene over gjelder hele dagens opprinnelige rapport, mens 240s-tallene begynner ved ny V2.10-dekning. Sammenlign ikke rå døgnsummer direkte før dekningen er lik. For en ren differanse må begge varianter sammenlignes innen nøyaktig samme frames.</p>
+ <p class="note">180s-kolonnene bruker bare frames som også har 240s-dekning. Rapporteringsdekningen er oppgitt over; hvis en 180s-prøve feiler, skal resultatene ikke sammenlignes som likeverdige. Ingen sum garanterer riktige fysiske busspasseringer.</p>
 </section>
 <section>
  <h2>Lerkendal og Tonstadkrysset – geografiske kontrollområder</h2>
@@ -275,13 +275,14 @@ async function render(){
   if(v29.frames){
    $('v210Stats').innerHTML=[
     ['240s måleframes',v29.frames],
+    ['Lik dekning med 180s',v29.paired?.frames||0],
     ['240s nytt minne',v29.states?.fresh||0],
     ['240s gjenopprettet minne',v29.states?.restored||0],
     ['240s gjenopprettede mønsterspor',v29.restoredTracks||0]
    ].map(([label,n])=>'<div class="stat"><small>'+esc(label)+
     '</small><strong>'+count(n)+'</strong></div>').join('');
    $('v210Lines').innerHTML=['1','11'].map(code=>{
-    const a=p.lines?.[code]||{},b=v29.lines?.[code]||{};
+    const a=v29.paired?.lines?.[code]||{},b=v29.lines?.[code]||{};
     return '<tr><td><strong>Linje '+code+'</strong></td>'+
      [a.matchedPrior,b.matchedPrior,a.restoredNarrowed,b.restoredNarrowed,
       b.restoredDirection,b.restoredABC].map(n=>'<td>'+count(n)+'</td>').join('')+'</tr>';
