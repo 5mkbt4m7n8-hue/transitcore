@@ -32,6 +32,50 @@ const sourcePrimary=(frame,lane)=>{
  for(const id of duplicated)entries.delete(id);
  return entries;
 };
+// V2.6: count *only* GPS-primary follow-ups which were actually restored.
+// The Quay lookup is transient; no Quay, vehicle token or route path is
+// included in the persisted daily counters or returned public report.
+const FOLLOWUP_FIELDS=['restoredWithCandidates','restoredAmbiguous',
+ 'restoredChanged','restoredNarrowed','restoredDirection','restoredABC'];
+const allowedPatterns=Object.fromEntries(LINES.map(code=>[code,
+ (patterns.lines[code]?.patterns||[]).filter(p=>
+  ['inbound','outbound'].includes(p.directionType)&&Array.isArray(p.quays)&&
+  p.quays.length>=2&&p.quays.every(q=>/^NSR:Quay:\d+$/.test(q)))]));
+function candidateQuays(row,code){
+ const candidates=new Set(),source=allowedPatterns[code]||[];
+ for(const h of row?.hypotheses||[]){
+  const [pattern,index]=h,quay=source[pattern]?.quays?.[index];
+  if(quay)candidates.add(quay);
+ }
+ return candidates;
+}
+function followupEvidence(before,after,ids,tokens,code){
+ const out=Object.fromEntries(FOLLOWUP_FIELDS.map(k=>[k,0]));
+ for(const id of ids){
+  const key=code+'|'+tokens.get(id),prior=before.get(key);
+  if(!prior)continue;
+  const oldQuays=candidateQuays(prior,code);
+  if(!oldQuays.size)continue;
+  out.restoredWithCandidates++;
+  if(oldQuays.size>1)out.restoredAmbiguous++;
+  const later=after.get(key),newQuays=candidateQuays(later,code);
+  if(!newQuays.size)continue;
+  const changed=oldQuays.size!==newQuays.size||
+   [...oldQuays].some(q=>!newQuays.has(q));
+  if(!changed)continue;
+  out.restoredChanged++;
+  if(oldQuays.size>1&&newQuays.size<oldQuays.size)out.restoredNarrowed++;
+  // A source-compatible direction is only a candidate, NOT verified GPS
+  // movement, passage, side of road, platform or physical stop.
+  if(later.direction&&newQuays.size===1&&
+     later.hypotheses.length>0&&later.hypotheses.every(h=>h[3]>=1)){
+   out.restoredDirection++;
+   if(later.hypotheses.every(h=>h[3]>=2)&&
+      !prior.hypotheses.every(h=>h[3]>=2))out.restoredABC++;
+  }
+ }
+ return out;
+}
 export async function expireV25State(storage,now=Date.now()){
  const s=await storage.get(V25_KEY);
  if(!s)return;
@@ -93,8 +137,11 @@ export async function evaluateV25(storage,frame,board,{lane,now=Date.now()}={}){
  const engine=v21.create({board,patterns});
  const restored=status==='restored'?
   engine.restoreSnapshot(prior.tracks,{now:ts+1000}):0;
+ const before=new Map(engine.exportSnapshot({now:ts+1000}).map(r=>[r.key,r]));
  const summary=engine.ingest(anonymized,{now:ts+1000,source:'production'});
  if(summary.status!=='ACTIVE_BROWSER_SHADOW')throw Error('v25_shadow_not_active');
+ const tracks=engine.exportSnapshot({now:ts+1000});
+ const after=new Map(tracks.map(r=>[r.key,r]));
  const priorKeys=new Set((prior?.tracks||[]).map(row=>row.key));
  const lines={};
  for(const code of (lane==='line1-fast'?['1']:LINES)){
@@ -106,10 +153,10 @@ export async function evaluateV25(storage,frame,board,{lane,now=Date.now()}={}){
    compared:s.comparedGps||0,supported:s.acceptedBySourceSequence||0,
    retained:s.ambiguousCandidatesRetained||0,
    narrowed:s.ambiguityNarrowed||0,
-   resolved:s.ambiguityResolvedAfterFollowup||0
+   resolved:s.ambiguityResolvedAfterFollowup||0,
+   ...followupEvidence(before,after,ids,hashed,code)
   };
  }
- const tracks=engine.exportSnapshot({now:ts+1000});
  const record={version:1,at:ts,expiresAt:ts+V25_TTL+ALARM_GRACE_MS,
   issuedAt:prior?.issuedAt||ts,sig,secret,tracks};
  // Only the pseudonyms + pattern indices; forbid raw IDs / source coordinates.
@@ -138,6 +185,17 @@ export function sanitizeV25(metrics,lane){
    x.matchedPrior>x.primary||x.compared>x.primary)return null;
   lines[code]=Object.fromEntries(['primary','matchedPrior','compared','supported',
    'retained','narrowed','resolved'].map(k=>[k,x[k]]));
+  const hasNew=FOLLOWUP_FIELDS.some(k=>x[k]!==undefined);
+  if(hasNew){
+   if(!FOLLOWUP_FIELDS.every(k=>bounded(x[k]))||
+      x.restoredWithCandidates>x.matchedPrior||
+      x.restoredAmbiguous>x.restoredWithCandidates||
+      x.restoredChanged>x.restoredWithCandidates||
+      x.restoredNarrowed>x.restoredAmbiguous||
+      x.restoredDirection>x.restoredChanged||
+      x.restoredABC>x.restoredDirection)return null;
+   for(const k of FOLLOWUP_FIELDS)lines[code][k]=x[k];
+  }
  }
  if(Object.keys(metrics.lines).length!==allowed.length)return null;
  return {version:1,status:metrics.status,

@@ -647,3 +647,43 @@ kildekompatible hypoteser kontrolleres mot virkelig trafikk.
 Ingen ekstra Entur-kall, cron-oppgaver, ny DO-binding eller migrering.
 
 Regresjon: `node scripts/test-trondheim-gps-v25.mjs`.
+
+
+## GPS V2.6 – diagnostikk av gjenopprettede kandidatspor
+
+V2.5 (PR #309) bekreftet korttids-gjenoppretting av HMAC-pseudonymiserte
+mønsterspor etter DO-kaldstart. **Det er ikke i seg selv A→B→C-bevis.**
+V2.6 utvider bare denne skyggetestens validerte heltall (ingen nye
+Entur-kall, cron, persistente posisjoner, LED-endringer eller
+produksjonsmatching).
+
+Per linje og **bare nye V2.6-frames** rapporteres:
+
+- `followupFrames`: frames med V2.6-dekning, slik at eldre V2.5-slots
+  ikke tolkes som null fremgang.
+- `restoredWithCandidates`: gjenkjent primær-GPS med faktisk
+  gjenopprettede, gyldige mønsterkandidater (ikke bare samme HMAC-token).
+- `restoredAmbiguous`: disse hadde minst to mulige Quays før ny prøve.
+- `restoredChanged`: kandidatsettet av Quays ble endret i ny prøve.
+- `restoredNarrowed`: tidligere tvetydig kandidatsett fikk færre
+  mulige Quays etter neste observasjon.
+- `restoredDirection`: endret kandidatsett endte med én mulig Quay,
+  kildekompatibel retning og minst ett fremoversteg i alle gjenværende
+  mønsterhypoteser.
+- `restoredABC`: som over, men minst to mønstersteg i alle gjenværende
+  hypoteser, og dette var ikke allerede oppnådd i forrige snapshot.
+
+**Alle tellere er observasjoner**, ikke unike busser, og mønstersteg er
+ikke observert fysisk stopppassering. Flere JourneyPatterns kan dele
+samme Quay. Katalogens Quay-strenger brukes kortvarig for å telle
+distinkte kandidater, men lagres aldri i den offentlige døgnrapporten.
+Kun validerte heltall føres tilbake. Eksisterende HMAC-nøkkel og
+snapshot-retensjon på 180 s med kort alarmmargin gjelder fortsatt,
+og pseudonymene er ikke fullstendig anonyme.
+
+Mål før neste beslutning: se at `followupFrames > 0` fra faktisk
+Cloudflare-prod, deretter sammenligne `restoredWithCandidates`,
+`restoredAmbiguous`, `restoredNarrowed` og `restoredABC` for
+linje 1 og 11. Ingen terskler her skal automatisk aktivere GPS V2.
+En reell passering må verifiseres separat mot korrekt Quay og
+kjøreretning før LED-sporing endres.

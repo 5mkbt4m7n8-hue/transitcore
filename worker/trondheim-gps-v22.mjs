@@ -14,6 +14,8 @@ const DIAG_FIELDS=['firstSeen','sameVehicleWithin3m','sameVehicleAfter3m',
  'outsideQuayRadius','oneNearbyQuay','multipleNearbyQuays'];
 const zeroDiag=()=>Object.fromEntries(DIAG_FIELDS.map(key=>[key,0]));
 // V2.4: counters only. IDs and positions never leave the DO's volatile memory.
+const FOLLOWUP_FIELDS=['restoredWithCandidates','restoredAmbiguous',
+ 'restoredChanged','restoredNarrowed','restoredDirection','restoredABC'];
 const MEMORY=['coldStart','catalogReset','continued','priorWithin3m',
  'priorAfter3m','priorUnknown'];
 const FRAME_MATCH=['priorFrameKnown','priorPrimary','currentPrimary',
@@ -325,7 +327,8 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
  const v25={frames:0,states:{fresh:0,restored:0,expired:0,
   catalogChanged:0,keyRotated:0},restoredTracks:0,tracksWritten:0,
   lines:Object.fromEntries(LINES.map(code=>[code,{frames:0,primary:0,matchedPrior:0,
-   compared:0,supported:0,retained:0,narrowed:0,resolved:0}]))};
+   compared:0,supported:0,retained:0,narrowed:0,resolved:0,
+   followupFrames:0,...Object.fromEntries(FOLLOWUP_FIELDS.map(k=>[k,0]))}]))};
  let first=null,last=null;
  for(const item of entries.values()){
   if(!LANES.includes(item?.lane)||item.day!==chosen)continue;
@@ -343,6 +346,10 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
     const dest=v25.lines[code];dest.frames++;
     for(const key of ['primary','matchedPrior','compared','supported',
      'retained','narrowed','resolved'])dest[key]+=vals[key];
+    if(FOLLOWUP_FIELDS.every(key=>Number.isSafeInteger(vals[key]))){
+     dest.followupFrames++;
+     for(const key of FOLLOWUP_FIELDS)dest[key]+=vals[key];
+    }
    }
   }
   const ts=new Date(item.slot).toISOString();
@@ -369,6 +376,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    'V2.4 measures first use of volatile DO memory and catalog resets but cannot identify why Cloudflare started a new instance.',
    'V2.4 frame-overlap compares only primary GPS IDs in consecutive sampled frames; missing IDs are not proof of Entur identity changes.',
    'V2.5 restores only at most 3-minute-old HMAC-tokenized source-pattern hypotheses, bounded to 128 temporary tracks; no raw ID, destination, GPS coordinate or Quay is written.',
+   'V2.6 follow-up counters have separate coverage and count only restored source-compatible pattern-index candidates. A three-point candidate never proves actual passage or correct direction.',
    'V2.5 shadow key and pattern indexes are pseudonymous, not fully anonymous; automatic Durable Object alarm deletes them after 3 minutes plus a small scheduling grace period.',
    'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
    'Higher candidate support is not validated GPS accuracy.'

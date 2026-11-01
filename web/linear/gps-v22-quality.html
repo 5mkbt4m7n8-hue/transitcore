@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>InTransit GPS V2.5 – automatisk døgnkontroll</title>
+<title>InTransit GPS V2.6 – automatisk døgnkontroll</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1018;--panel:#16202e;--line:#314457;--ink:#f3f7ff;--muted:#a6b8cc;--blue:#8ed1ff;--green:#4dde9c}
 *{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,sans-serif;margin:0}
@@ -26,7 +26,7 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
 </head>
 <body><main>
 <nav><a href="./">← Trondheim Linear</a> · <a href="./quality-lines.html">Kvalitet for alle linjer</a></nav>
-<h1>📡 InTransit GPS V2.5</h1>
+<h1>📡 InTransit GPS V2.6</h1>
 <p>Automatisk døgnkontroll for linje 1 og 11. Cloudflare samler anonyme målinger fra <strong>eksisterende femminuttersinnsamling</strong> og den eksisterende ekstra AtB-prøven ved minutt 2. V2.3 analyserer nå <strong>både linje 1 og 11</strong> i denne samme prøvepakken, uten nye Entur-kall eller at telefonen må være åpen.</p>
 <section>
  <div class="controls">
@@ -73,6 +73,14 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
  </table></div>
 </section>
 <section>
+ <h2>V2.6 · kan gjenopprettede spor avklare flere Quays?</h2>
+ <p class="note">Bare nye V2.6-prøver inngår. «Tidligere kandidater» betyr at et gjenkjent GPS-primærkjøretøy hadde gyldige lagrede rutemønsterhypoteser. «Endret kandidatsett» betyr kun endring i mulige Quays mellom to prøver. En retnings- eller trepunkt-kandidat er en <strong>kildekompatibel hypotese</strong>, aldri bevis på fysisk A→B→C-passering eller riktig plattform. Manglende kandidater er ikke en GPS-feil.</p>
+ <div class="scroll"><table>
+  <thead><tr><th>Linje</th><th>V2.6-frames</th><th>Gjenkjent med kandidater</th><th>Flere Quays tidligere</th><th>Quay-sett endret</th><th>Alternativer innsnevret</th><th>Retningskandidat</th><th>Trepunkt-kandidat</th></tr></thead>
+  <tbody id="v26Lines"><tr><td colspan="8">Ingen V2.6-prøver ennå.</td></tr></tbody>
+ </table></div>
+</section>
+<section>
  <h2>Lerkendal og Tonstadkrysset – geografiske kontrollområder</h2>
  <p class="note">Her telles <strong>ferske GPS-observasjoner innenfor 85 meter</strong> fra utvalgte, kildeidentifiserte Quays. «Flere Quays nær GPS» viser konkurrerende geometriske kandidater. Det betyr ikke feil veikant eller faktisk stopp, og disse tallene beviser ikke hvorvidt V2.1 valgte korrekt Quay.</p>
  <div class="scroll"><table>
@@ -101,6 +109,7 @@ async function render(){
  $('gpsV23Reasons').innerHTML='';
  $('v24Memory').textContent='';$('v24FrameMatch').textContent='';
  $('v25Stats').textContent='';$('v25Lines').textContent='';
+ $('v26Lines').textContent='';
  try{
   let url=API;
   if($('day').value==='previous'){
@@ -176,6 +185,14 @@ async function render(){
    return '<tr><td><strong>Linje '+code+'</strong></td>'+
     [m.frames,m.primary,m.matchedPrior,m.compared,m.supported,m.retained,m.narrowed,m.resolved]
      .map(value=>'<td>'+count(value)+'</td>').join('')+'</tr>';
+  }).join('');
+  $('v26Lines').innerHTML=['1','11'].map(code=>{
+   const m=p.lines?.[code];
+   if(!m?.followupFrames)return '<tr><td>Linje '+code+'</td><td colspan="7">Ingen V2.6-dekning ennå.</td></tr>';
+   const values=[m.followupFrames,m.restoredWithCandidates,m.restoredAmbiguous,
+    m.restoredChanged,m.restoredNarrowed,m.restoredDirection,m.restoredABC];
+   return '<tr><td><strong>Linje '+code+'</strong></td>'+
+    values.map(value=>'<td>'+count(value)+'</td>').join('')+'</tr>';
   }).join('');
   $('sites').innerHTML=Object.entries(names).map(([key,[name,line]])=>{
    const s=d.spots?.[key]||{};return '<tr><td>'+esc(name)+'</td><td>'+esc(line)+

@@ -132,4 +132,40 @@ const core=readFileSync(new URL('../worker/led-feed-worker.mjs',import.meta.url)
 assert(core.includes('async alarm()'));
 assert(core.includes('await expireV25State(this.state.storage)'));
 assert(core.includes("recordScheduledV22("));
+assert(next.lines['1'].restoredWithCandidates>=1);
+assert(next.lines['11'].restoredWithCandidates>=1);
+assert.equal(next.lines['1'].restoredAmbiguous,0);
+assert.equal(next.lines['1'].restoredABC,0);
+assert.equal(roll.v25.lines['1'].followupFrames,2);
+assert.equal(roll.v25.lines['1'].restoredWithCandidates,1);
+// Begin with two nearby competing Quays and then observe only the later Quay.
+// This must narrow a RESTORED hypothesis rather than a fresh per-frame guess.
+const ambiguousBoard=structuredClone(board);
+ambiguousBoard.nodes[1].lat=ambiguousBoard.nodes[0].lat+0.001;
+const ambiguousStore=fakeStore();
+const ambFirst=make(t0);
+ambFirst.leds[0].vehicle.latitude=ambiguousBoard.nodes[0].lat+0.0005;
+const ambStart=await evaluateV25(ambiguousStore,ambFirst,ambiguousBoard,{
+ lane:'catalog',now:t0});
+assert(ambStart.lines['1'].retained>=1,'Two nearby Quays are retained as possibilities');
+const ambSecond=make(t0+120000);
+ambSecond.leds[0].vehicle.latitude=ambiguousBoard.nodes[1].lat+0.0002;
+const ambFollow=await evaluateV25(ambiguousStore,ambSecond,ambiguousBoard,{
+ lane:'dual-fast',now:t0+120000});
+assert.equal(ambFollow.status,'restored');
+assert.equal(ambFollow.lines['1'].restoredWithCandidates,1);
+assert.equal(ambFollow.lines['1'].restoredAmbiguous,1);
+assert.equal(ambFollow.lines['1'].restoredChanged,1);
+assert.equal(ambFollow.lines['1'].restoredNarrowed,1);
+assert(ambFollow.lines['1'].restoredABC<=ambFollow.lines['1'].restoredDirection);
+const oldEvidence=structuredClone(next);
+for(const l of ['1','11'])for(const k of ['restoredWithCandidates',
+ 'restoredAmbiguous','restoredChanged','restoredNarrowed',
+ 'restoredDirection','restoredABC'])delete oldEvidence.lines[l][k];
+assert(sanitizeV25(oldEvidence,'dual-fast'),'Old V2.5 reports stay readable');
+const altered=structuredClone(next);
+altered.lines['1'].restoredABC=altered.lines['1'].restoredDirection+1;
+assert.equal(sanitizeV25(altered,'dual-fast'),null);
+assert(!JSON.stringify(ambiguousStore.map.get(V25_KEY)).includes('NSR:Quay:'));
+assert(!JSON.stringify(ambiguousStore.map.get(V25_KEY)).includes(raw1));
 console.log('V2.5 PASS: HMAC-only 3m bounded storage, restore after DO cold starts, alarm expiry, catalog reset, failure isolation, V2.4 backwards compatibility and zero source GPS/identity persistence');
