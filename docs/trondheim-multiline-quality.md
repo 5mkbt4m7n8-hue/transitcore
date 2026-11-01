@@ -599,3 +599,51 @@ Aktiv LED-/kartvisning er uberørt.
 
 Regresjon: `node scripts/test-trondheim-gps-v24.mjs`. Produksjon
 må verifiseres med faktisk nytt `memory.frames` etter utrulling.
+
+## GPS V2.5 – kortvarig ruteminne over Cloudflare-kaldstarter
+
+Produksjonsdata 1. november viste **68 av 68** V2.4-prøver med nytt
+volatilt ruteminne. Hver prøvesammenligning var derfor uavklart.
+V2.5 bygger en **egen skyggetest** i
+`worker/trondheim-gps-v25.mjs`. V2.0, V2.1, V2.4-rapporten og
+den synlige LED-/GPS-visningen endres ikke.
+
+For en gyldig primærbuss lager Durable Object en **HMAC-SHA-256-basert
+pseudonymisert ID** med tilfeldig nøkkel som finnes bare i den
+spesifikke, private DO-instansen. Nøkkelen og et lite rutemønstersnapshot
+lagres kortvarig i DO-lagring under
+`trondheim-gps-v25:v1:expiring-shadow`. Snapshotet inneholder
+*kun* HMAC-pseudonymer, kildemønster-/holdeplass**indekser**,
+retningshypoteser og siste midlertidige observasjonstid. Ingen rå
+GPS-koordinater, Entur-kjøretøy-ID-er, destinasjoner, Quay-strenger
+eller kopier av PixelFrame lagres i V2.5-snapshotet.
+
+Snapshot gjenbrukes bare for samme holdeplasskatalog og opptil
+**180 sekunder** mellom prøver, med maks **128 samtidige hypotesespor**
+og maks **512 mønsterhypoteser per spor**. V2.1-motoren får et
+anonymisert testframe og gjenopprettes fra dette snapshotet etter
+Durable Object-kaldstart. Det er fortsatt den originale
+V2.1-kandidatberegningen som kjører; vi endrer ikke dens 180 sekunders
+sporferskhet.
+
+Cloudflare DO-alarm rydder opp privat snapshot når det utløper
+(maks tre minutter pluss fem sekunders alarmmargin).
+**Alle lesinger avviser utløpt snapshot selv om alarmen er forsinket**.
+En nøkkel blir også rotert etter maks 30 minutter med kontinuerlige
+målinger. Dersom DO-alarm ikke finnes eller ikke kan settes, slettes
+snapshotet og V2.5 feiler isolert; V2.4 og den vanlige produksjonen
+fortsetter. Cloudflares lagringsplattform kan ha gjenopprettingskopier;
+disse korte pseudonymene er derfor ikke lik full anonymitet.
+
+Offentlig døgnrapport får bare **allowlistede heltall**:
+`v25.frames`, `v25.states` (fersk/gjenopprettet/utløpt/katalogendret/
+nøkkelrotasjon), antall gjenopprettede korttids-hypoteser, og per linje
+antall gjenkjente primærbusser og V2.1s konkurrerende/støttede
+kandidater. Tidligere døgnmålinger får ikke kunstige nuller.
+
+Dette er fremdeles **ikke bevis på faktisk passering, fysisk
+holdeplass eller riktig retning**; i neste steg må positive,
+kildekompatible hypoteser kontrolleres mot virkelig trafikk.
+Ingen ekstra Entur-kall, cron-oppgaver, ny DO-binding eller migrering.
+
+Regresjon: `node scripts/test-trondheim-gps-v25.mjs`.
