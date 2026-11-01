@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import v21 from '../web/linear/network/gps-v2-shadow.js';
 import {readFileSync} from 'node:fs';
-import {evaluateV25,expireV25State,sanitizeV25,V25_KEY,V25_TTL}
+import {evaluateV25,evaluateV29,expireV25State,sanitizeV25,sanitizeV29,
+ V25_KEY,V25_TTL,V29_KEY,V29_TTL}
  from '../worker/trondheim-gps-v25.mjs';
 import {createVolatileState,evaluateV22,validateV22,
  reportV22Storage,observeV22Internal,summarizeV25Cadence,
@@ -94,6 +95,45 @@ assert.equal(expired.restoredTracks,0);
 assert.equal(store.map.size,1);
 await expireV25State(store,expired.expiresAt||t0+120000+V25_TTL+V25_TTL+7000);
 assert(!store.map.has(V25_KEY),'Alarm must physically delete expired pseudonymous tracks');
+// Independent 4-minute token namespace: the 180s alarm MUST fire first,
+// and must leave a 240s test snapshot alive only until its own deadline.
+const parallel=fakeStore();
+const first3=await evaluateV25(parallel,make(t0),board,{lane:'catalog',now:t0});
+const first4=await evaluateV29(parallel,make(t0),board,{lane:'catalog',now:t0});
+assert.equal(first3.status,'fresh');assert.equal(first4.status,'fresh');
+assert.notEqual(parallel.map.get(V25_KEY).secret,parallel.map.get(V29_KEY).secret);
+assert.equal(parallel.alarms.at(-1),t0+V25_TTL+5000,
+ '240s candidate must not postpone original 180s alarm');
+const second3=await evaluateV25(parallel,make(t0+120000,n2,n12),board,{
+ lane:'dual-fast',now:t0+120000});
+const second4=await evaluateV29(parallel,make(t0+120000,n2,n12),board,{
+ lane:'dual-fast',now:t0+120000});
+assert.equal(second3.status,'restored');
+assert.equal(second4.status,'restored');
+assert.equal(parallel.alarms.at(-1),t0+120000+V25_TTL+5000);
+await expireV25State(parallel,t0+120000+V25_TTL+6000);
+assert(!parallel.map.has(V25_KEY),'Original 180s snapshot must be physically deleted');
+assert(parallel.map.has(V29_KEY),'240s experiment remains only until its expiry');
+assert.equal(parallel.alarms.at(-1),t0+120000+V29_TTL+5000);
+const afterGap=t0+310000;
+const fresh3=await evaluateV25(parallel,make(afterGap,n2,n12),board,{
+ lane:'catalog',now:afterGap});
+const restored4=await evaluateV29(parallel,make(afterGap,n2,n12),board,{
+ lane:'catalog',now:afterGap});
+assert.equal(fresh3.status,'fresh');
+assert.equal(fresh3.lines['1'].matchedPrior,0);
+assert.equal(restored4.status,'restored');
+assert(restored4.lines['1'].matchedPrior>=1,
+ '240s sandbox must keep pseudonym candidate at a 190s gap');
+assert(restored4.lines['11'].matchedPrior>=1);
+assert(sanitizeV29(restored4,'catalog'));
+const expiresAfter=afterGap+V29_TTL+7000;
+await expireV25State(parallel,expiresAfter);
+assert(!parallel.map.has(V25_KEY));
+assert(!parallel.map.has(V29_KEY),'Both candidate secrets must expire separately');
+const shadowStore=JSON.stringify([...parallel.map]);
+for(const forbidden of [raw1,raw11,'latitude','NSR:Quay:'])
+ assert(!shadowStore.includes(forbidden));
 const noAlarm=fakeStore();delete noAlarm.setAlarm;
 await assert.rejects(()=>evaluateV25(noAlarm,make(t0),board,{
  lane:'catalog',now:t0}),/v25_expiry_not_guaranteed/);
@@ -134,6 +174,11 @@ assert.equal((await observe(make(t0+120000,n2,n12),'dual-fast')).status,'OK');
 const roll=await reportV22Storage(reportStore,{
  day:date,now:t0+120000+3000});
 assert.equal(roll.v25.frames,2);
+assert.equal(roll.v29.frames,2,'Parallel 240s measurements must be recorded');
+assert.equal(roll.v29.states.fresh,1);
+assert.equal(roll.v29.states.restored,1);
+assert.equal(roll.v29.lines['1'].matchedPrior,1);
+assert.equal(roll.v29.lines['11'].matchedPrior,1);
 assert.equal(roll.v25.states.fresh,1);
 assert.equal(roll.v25.states.restored,1);
 assert.equal(roll.v25.lines['11'].matchedPrior,1);
@@ -144,6 +189,10 @@ assert(!JSON.stringify([...reportStore.map]).includes(raw11));
 assert(!JSON.stringify([...reportStore.map]).includes('latitude'));
 assert.equal((await reportV22Storage(reportStore,{
  day:date,now:t0+120000+3000})).v25.frames,2);
+const malicious29=structuredClone(ordinary);
+malicious29.v29=structuredClone(restored4);
+malicious29.v29.lines['1'].primary=9999;
+assert.equal(validateV22(malicious29),null,'V2.10 counters reject invalid totals');
 const old=structuredClone(ordinary);
 delete old.v25;
 assert(validateV22(old),'Old V2.4 samples must remain compatible');

@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>InTransit GPS V2.8 – automatisk døgnkontroll</title>
+<title>InTransit GPS V2.10 – automatisk døgnkontroll</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1018;--panel:#16202e;--line:#314457;--ink:#f3f7ff;--muted:#a6b8cc;--blue:#8ed1ff;--green:#4dde9c}
 *{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,sans-serif;margin:0}
@@ -26,7 +26,7 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
 </head>
 <body><main>
 <nav><a href="./">← Trondheim Linear</a> · <a href="./quality-lines.html">Kvalitet for alle linjer</a></nav>
-<h1>📡 InTransit GPS V2.8</h1>
+<h1>📡 InTransit GPS V2.10</h1>
 <p>Automatisk døgnkontroll for linje 1 og 11. Cloudflare samler anonyme målinger fra <strong>eksisterende femminuttersinnsamling</strong> og den eksisterende ekstra AtB-prøven ved minutt 2. V2.3 analyserer nå <strong>både linje 1 og 11</strong> i denne samme prøvepakken, uten nye Entur-kall eller at telefonen må være åpen.</p>
 <section>
  <div class="controls">
@@ -99,6 +99,15 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
  </table></div>
 </section>
 <section>
+ <h2>V2.10 · virkelig 180s kontra 240s pseudonymisert skygge</h2>
+ <p class="note">Dette er nå to <strong>separat tidsavgrensede</strong> HMAC-pseudonymiserte sporingsmotorer. Den nye 240s-varianten leser samme allerede innsamlede GPS-frame og lagrer bare korte mønsterhypoteser i en egen DO-nøkkel. Den opprinnelige 180s-varianten er uendret. Døgnrapporten viser utelukkende summer. Verken retning eller A→B→C regnes som fysisk bekreftet.</p>
+ <div id="v210Stats" class="stats"><div class="stat">Ingen V2.10-prøver ennå.</div></div>
+ <div class="scroll"><table>
+ <thead><tr><th>Linje</th><th>180s gjenkjent</th><th>240s gjenkjent</th><th>180s innsnevret</th><th>240s innsnevret</th><th>240s retningskandidat</th><th>240s trepunktskandidat</th></tr></thead>
+ <tbody id="v210Lines"><tr><td colspan="7">Ingen parallell måledekning ennå.</td></tr></tbody></table></div>
+ <p class="note">180s-kolonnene bruker bare frames som også har 240s-dekning. Rapporteringsdekningen er oppgitt over; hvis en 180s-prøve feiler, skal resultatene ikke sammenlignes som likeverdige. Ingen sum garanterer riktige fysiske busspasseringer.</p>
+</section>
+<section>
  <h2>Lerkendal og Tonstadkrysset – geografiske kontrollområder</h2>
  <p class="note">Her telles <strong>ferske GPS-observasjoner innenfor 85 meter</strong> fra utvalgte, kildeidentifiserte Quays. «Flere Quays nær GPS» viser konkurrerende geometriske kandidater. Det betyr ikke feil veikant eller faktisk stopp, og disse tallene beviser ikke hvorvidt V2.1 valgte korrekt Quay.</p>
  <div class="scroll"><table>
@@ -130,6 +139,7 @@ async function render(){
  $('v26Lines').textContent='';
  $('v27Stats').textContent='';$('v27Lanes').textContent='';
  $('v28Stats').textContent='';$('v28Comparison').textContent='';
+ $('v210Stats').textContent='';$('v210Lines').textContent='';
  try{
   let url=API;
   if($('day').value==='previous'){
@@ -260,6 +270,26 @@ async function render(){
   }else{
    $('v28Stats').textContent='Ingen V2.8-dekning ennå. Eldre prøver regnes ikke som null.';
    $('v28Comparison').innerHTML='<tr><td colspan="3">Målingene starter først etter Cloudflare-deploy.</td></tr>';
+  }
+  const v29=d.v29||{};
+  if(v29.frames){
+   $('v210Stats').innerHTML=[
+    ['240s måleframes',v29.frames],
+    ['Lik dekning med 180s',v29.paired?.frames||0],
+    ['240s nytt minne',v29.states?.fresh||0],
+    ['240s gjenopprettet minne',v29.states?.restored||0],
+    ['240s gjenopprettede mønsterspor',v29.restoredTracks||0]
+   ].map(([label,n])=>'<div class="stat"><small>'+esc(label)+
+    '</small><strong>'+count(n)+'</strong></div>').join('');
+   $('v210Lines').innerHTML=['1','11'].map(code=>{
+    const a=v29.paired?.lines?.[code]||{},b=v29.lines?.[code]||{};
+    return '<tr><td><strong>Linje '+code+'</strong></td>'+
+     [a.matchedPrior,b.matchedPrior,a.restoredNarrowed,b.restoredNarrowed,
+      b.restoredDirection,b.restoredABC].map(n=>'<td>'+count(n)+'</td>').join('')+'</tr>';
+   }).join('');
+  }else{
+   $('v210Stats').textContent='Ingen V2.10-prøver ennå; eldre data regnes ikke som null.';
+   $('v210Lines').innerHTML='<tr><td colspan="7">Avventer nye måleframes.</td></tr>';
   }
   $('sites').innerHTML=Object.entries(names).map(([key,[name,line]])=>{
    const s=d.spots?.[key]||{};return '<tr><td>'+esc(name)+'</td><td>'+esc(line)+

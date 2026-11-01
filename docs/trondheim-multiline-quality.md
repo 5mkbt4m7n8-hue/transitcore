@@ -805,3 +805,47 @@ En eventuell parallell V2.9-lagringsprøve må i egen PR sikre
 at **begge** anonymiserte vinduer slettes til riktig tid
 med koordinert Cloudflare-DO-alarm. Det skal ikke være mulig
 å forlenge det gamle treminuttersminnet utilsiktet.
+
+
+## GPS V2.10 – parallell, begrenset fireminutters-HMAC-skygge
+
+V2.8 registrerte minst én faktisk prøveavstand mellom 181 og 240 sek
+med nytt V2.5-ruteminne. V2.9 viste i syntetisk test at
+V2.1-motoren kan rekonstruere samme pseudonymiserte mønsterhypotese
+ved ~190 sek **bare** når `trackTtlMs:240000` er eksplisitt valgt.
+For å teste dette i reelle produksjonsrammer bruker V2.10:
+
+- Opprinnelig `V25_KEY` og 180s TTL **uendret**.
+- Egen `V29_KEY` med **egen tilfeldig HMAC-nøkkel** og
+  fire minutters maksimal kilde-frame-alder.
+- Hver snapshot er fortsatt maks 128 kortvarige rader med
+  HMAC-pseudonymer og rutemønster-indekser. Ingen rå ID, GPS,
+  koordinat, destinasjon eller faktisk Quay lagres.
+- Begge variantene evaluerer **samme allerede innsamlede frame**
+  med samme rutekatalog, uten noen ekstra Entur-kall.
+- Cloudflare Durable Object har **én** alarm. Derfor leser
+  rutinen begge dedikerte utløpstider, sletter hver nøkkel
+  uavhengig når den er utløpt, og programmerer alltid neste
+  alarm til **tidligste utløp**. En lengre prøve må aldri
+  skyve ut slettingen av V2.5.
+- Hver variants feil fanges separat, slik at V2.10-eksperimentet
+  ikke kan stoppe V2.5-rapporteringen, aktiv GPS, fysisk LED
+  eller historikkprøver.
+- Kun summer for `fresh/restored`, gjenkjente primær-GPS,
+  gjenopprettede HMAC-hypoteser, innsnevrede kandidater og
+  kildekompatible retning-/trepunkt-kandidater returneres.
+  180s-sammenligningen i V2.10 bruker nøyaktig samme
+  måleframes som 240s, slik at tidligere døgnsum ikke feilaktig
+  forveksles med forbedring fra ett nytt sample.
+
+Eksperimentell HMAC-lagring er nå maks 240 sekunder (+ fem sek
+alarm-grace); dette er **ett minutt lengre** enn V2.5.
+Pseudonymene kan være lenkbare innenfor den korte levetiden og
+må ikke beskrives som fullt anonyme. Alarmer, feil og
+oppdateringer skal regressjonstestes spesielt. Kun metriske
+summer lever i den eksisterende korte kvalitetshistorikken.
+
+Dette dokumenterer **mulig** videreføring av GPS-kandidater;
+det bekrefter ikke korrekt veiside, fysisk holdeplass,
+busspassering eller A→B→C. Utvidelse av aktiv GPS er fortsatt
+utenfor scope.

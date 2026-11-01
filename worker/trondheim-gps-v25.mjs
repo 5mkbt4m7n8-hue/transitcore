@@ -7,6 +7,8 @@ import {v23BoardSignature} from './trondheim-gps-v22.mjs';
 
 export const V25_KEY='trondheim-gps-v25:v1:expiring-shadow';
 export const V25_TTL=180000;
+export const V29_KEY='trondheim-gps-v29:v1:expiring-shadow-240s';
+export const V29_TTL=240000;
 const ALARM_GRACE_MS=5000;
 const MAX_KEY_AGE=30*60000;
 const LINES=['1','11'];
@@ -76,25 +78,37 @@ function followupEvidence(before,after,ids,tokens,code){
  }
  return out;
 }
-export async function expireV25State(storage,now=Date.now()){
- const s=await storage.get(V25_KEY);
- if(!s)return;
- if(!Number.isFinite(s.expiresAt)||s.expiresAt<=now){
-  await storage.delete(V25_KEY);
- }else if(typeof storage.setAlarm==='function'){
-  await storage.setAlarm(s.expiresAt);
+// The DO has a single alarm. Always schedule the EARLIEST due expiry
+// across the original 180s and independent 240s experimental snapshot.
+const SHADOW_KEYS=[V25_KEY,V29_KEY];
+async function scheduleShadowExpiry(storage,now){
+ if(typeof storage.setAlarm!=='function')throw Error('v25_alarm_unavailable');
+ const deadlines=[];
+ for(const key of SHADOW_KEYS){
+  const s=await storage.get(key);
+  if(!s)continue;
+  if(!Number.isSafeInteger(s.expiresAt)||s.expiresAt<=now){
+   await storage.delete(key);
+  }else deadlines.push(s.expiresAt);
  }
+ if(deadlines.length)await storage.setAlarm(Math.min(...deadlines));
 }
-export async function evaluateV25(storage,frame,board,{lane,now=Date.now()}={}){
+export async function expireV25State(storage,now=Date.now()){
+ await scheduleShadowExpiry(storage,now);
+}
+async function evaluateShadow(storage,frame,board,{lane,now=Date.now(),variant}={}){
  if(!['catalog','line1-fast','dual-fast'].includes(lane)||
   frame?.boardProfile!=='trondheim-city-lines-catalog'||
   !Array.isArray(frame.leds)||!Array.isArray(board?.nodes))
   throw Error('invalid_v25_source');
+ if(!['v25','v29'].includes(variant))throw Error('invalid_shadow_variant');
+ const storageKey=variant==='v29'?V29_KEY:V25_KEY;
+ const ttl=variant==='v29'?V29_TTL:V25_TTL;
  const ts=Date.parse(frame.generatedAt||''),sig=v23BoardSignature(board);
  if(!Number.isFinite(ts)||Math.abs(ts-now)>120000)
   throw Error('invalid_v25_freshness');
  // Read only this dedicated key, never read or touch active device state.
- let prior=await storage.get(V25_KEY);
+ let prior=await storage.get(storageKey);
  let status='fresh';
  if(prior){
   if(prior.version!==1||!Number.isSafeInteger(prior.at)||
@@ -102,8 +116,8 @@ export async function evaluateV25(storage,frame,board,{lane,now=Date.now()}={}){
      !Number.isSafeInteger(prior.expiresAt)||
      !validKey(prior.secret)||!Array.isArray(prior.tracks)||
      prior.tracks.length>128||ts<=prior.at||
-     ts>prior.expiresAt||ts-prior.at>V25_TTL||
-     prior.expiresAt>prior.at+V25_TTL+ALARM_GRACE_MS){
+     ts>prior.expiresAt||ts-prior.at>ttl||
+     prior.expiresAt>prior.at+ttl+ALARM_GRACE_MS){
    status='expired';prior=null;
   }else if(prior.sig!==sig){status='catalogChanged';prior=null;}
   else if(ts-prior.issuedAt>=MAX_KEY_AGE){status='keyRotated';prior=null;}
@@ -116,7 +130,7 @@ export async function evaluateV25(storage,frame,board,{lane,now=Date.now()}={}){
  async function token(id){
   if(!tokenCache.has(id)){
    const sig=await crypto.subtle.sign('HMAC',key,
-    new TextEncoder().encode('transitcore-v25-ephemeral:'+id));
+    new TextEncoder().encode('transitcore-'+variant+'-ephemeral:'+id));
    tokenCache.set(id,encode(new Uint8Array(sig)));
   }
   return tokenCache.get(id);
@@ -134,7 +148,7 @@ export async function evaluateV25(storage,frame,board,{lane,now=Date.now()}={}){
  }
  const anonymized={boardProfile:frame.boardProfile,generatedAt:frame.generatedAt,
   ttlSeconds:frame.ttlSeconds,leds:safeLeds};
- const engine=v21.create({board,patterns});
+ const engine=v21.create({board,patterns,trackTtlMs:ttl});
  const restored=status==='restored'?
   engine.restoreSnapshot(prior.tracks,{now:ts+1000}):0;
  const before=new Map(engine.exportSnapshot({now:ts+1000}).map(r=>[r.key,r]));
@@ -157,22 +171,26 @@ export async function evaluateV25(storage,frame,board,{lane,now=Date.now()}={}){
    ...followupEvidence(before,after,ids,hashed,code)
   };
  }
- const record={version:1,at:ts,expiresAt:ts+V25_TTL+ALARM_GRACE_MS,
+ const record={version:1,at:ts,expiresAt:ts+ttl+ALARM_GRACE_MS,
   issuedAt:prior?.issuedAt||ts,sig,secret,tracks};
  // Only the pseudonyms + pattern indices; forbid raw IDs / source coordinates.
  if(!validKey(secret)||tracks.some(r=>!/^(1|11)\|[a-f0-9]{64}$/.test(r.key)))
   throw Error('v25_unsafe_snapshot');
- await storage.put(V25_KEY,record);
- // Fail closed: an expiring snapshot without an alarm is not permitted.
- try{
-  if(typeof storage.setAlarm!=='function')throw Error('v25_alarm_unavailable');
-  await storage.setAlarm(record.expiresAt);
- }catch(err){
-  await storage.delete(V25_KEY);
-  throw Error('v25_expiry_not_guaranteed');
+ await storage.put(storageKey,record);
+ // Fail closed if the shared earliest deadline cannot be guaranteed.
+ try{await scheduleShadowExpiry(storage,now);}
+ catch(err){
+  await storage.delete(storageKey);
+  // If possible, re-arm the other shadow after deleting the failed one.
+  try{await scheduleShadowExpiry(storage,now);}catch{}
+  throw Error(variant+'_expiry_not_guaranteed');
  }
  return {version:1,status,restoredTracks:restored,tracksWritten:tracks.length,lines};
 }
+export const evaluateV25=(storage,frame,board,options={})=>
+ evaluateShadow(storage,frame,board,{...options,variant:'v25'});
+export const evaluateV29=(storage,frame,board,options={})=>
+ evaluateShadow(storage,frame,board,{...options,variant:'v29'});
 export function sanitizeV25(metrics,lane){
  if(metrics?.version!==1||!STATES.includes(metrics.status)||
   !bounded(metrics.restoredTracks)||!bounded(metrics.tracksWritten)||
@@ -201,3 +219,6 @@ export function sanitizeV25(metrics,lane){
  return {version:1,status:metrics.status,
   restoredTracks:metrics.restoredTracks,tracksWritten:metrics.tracksWritten,lines};
 }
+
+// Same strict numeric-only public allow-list as original V2.5 evidence.
+export const sanitizeV29=sanitizeV25;
