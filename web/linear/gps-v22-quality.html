@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>InTransit GPS V2.7 – automatisk døgnkontroll</title>
+<title>InTransit GPS V2.8 – automatisk døgnkontroll</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1018;--panel:#16202e;--line:#314457;--ink:#f3f7ff;--muted:#a6b8cc;--blue:#8ed1ff;--green:#4dde9c}
 *{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,sans-serif;margin:0}
@@ -26,7 +26,7 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
 </head>
 <body><main>
 <nav><a href="./">← Trondheim Linear</a> · <a href="./quality-lines.html">Kvalitet for alle linjer</a></nav>
-<h1>📡 InTransit GPS V2.7</h1>
+<h1>📡 InTransit GPS V2.8</h1>
 <p>Automatisk døgnkontroll for linje 1 og 11. Cloudflare samler anonyme målinger fra <strong>eksisterende femminuttersinnsamling</strong> og den eksisterende ekstra AtB-prøven ved minutt 2. V2.3 analyserer nå <strong>både linje 1 og 11</strong> i denne samme prøvepakken, uten nye Entur-kall eller at telefonen må være åpen.</p>
 <section>
  <div class="controls">
@@ -90,6 +90,15 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
  </table></div>
 </section>
 <section>
+ <h2>V2.8 · faktisk tidsavstand, 3 min mot 4 min</h2>
+ <p class="note">Bare nye prøver med V2.8-dekning inngår. Vi lagrer en sekundavrundet tidsforskyvning for hele prøveframen innenfor eksisterende femminuttersluke, aldri kjøretøyposisjoner eller individuelle hendelsestidspunkter. Et 4-minuttersvindu simuleres <strong>kun ut fra tidsavstand</strong>, uten å forlenge det ekte treminuttersminnet. Det sier ikke om bussen ville blitt gjenkjent eller om retningen ville blitt riktig.</p>
+ <div id="v28Stats" class="stats"><div class="stat">Ingen V2.8-målinger ennå.</div></div>
+ <div class="scroll"><table>
+  <thead><tr><th>Mål</th><th>180 sekunder</th><th>240 sekunder</th></tr></thead>
+  <tbody id="v28Comparison"><tr><td colspan="3">Ingen sammenlignbare prøver ennå.</td></tr></tbody>
+ </table></div>
+</section>
+<section>
  <h2>Lerkendal og Tonstadkrysset – geografiske kontrollområder</h2>
  <p class="note">Her telles <strong>ferske GPS-observasjoner innenfor 85 meter</strong> fra utvalgte, kildeidentifiserte Quays. «Flere Quays nær GPS» viser konkurrerende geometriske kandidater. Det betyr ikke feil veikant eller faktisk stopp, og disse tallene beviser ikke hvorvidt V2.1 valgte korrekt Quay.</p>
  <div class="scroll"><table>
@@ -120,6 +129,7 @@ async function render(){
  $('v25Stats').textContent='';$('v25Lines').textContent='';
  $('v26Lines').textContent='';
  $('v27Stats').textContent='';$('v27Lanes').textContent='';
+ $('v28Stats').textContent='';$('v28Comparison').textContent='';
  try{
   let url=API;
   if($('day').value==='previous'){
@@ -227,6 +237,29 @@ async function render(){
   }else{
    $('v27Stats').textContent='Ingen V2.5-tidsstempler å analysere.';
    $('v27Lanes').innerHTML='<tr><td colspan="4">Ingen måledekning.</td></tr>';
+  }
+  const timing=p.timingV28;
+  if(timing?.frames){
+   const tstats=[
+    ['V2.8-måleframes',timing.frames],
+    ['Sammenlignbare prøvepar',timing.pairs],
+    ['Intervaller ≤180 sek',timing.under3m],
+    ['Intervaller 181–240 sek',timing.between3and4m],
+    ['Intervaller >240 sek',timing.over4m],
+    ['Nytt minne etter 181–240 sek',timing.fresh3to4m],
+    ['Nytt minne innen 180 sek',timing.freshUnder3m],
+    ['Mulige tidsbroer med 240 sek',timing.possible4mBridges]
+   ];
+   $('v28Stats').innerHTML=tstats.map(([label,n])=>
+    '<div class="stat"><small>'+esc(label)+'</small><strong>'+count(n)+'</strong></div>').join('');
+   $('v28Comparison').innerHTML=[
+    ['Lengste sammenhengende tidsmulighet',timing.maxFrames3m,timing.maxFrames4m],
+    ['Tidskjeder med minst 3 frames',timing.threeFrameChains3m,timing.threeFrameChains4m]
+   ].map(([title,a,b])=>'<tr><td>'+esc(title)+'</td><td>'+count(a)+
+    '</td><td>'+count(b)+'</td></tr>').join('');
+  }else{
+   $('v28Stats').textContent='Ingen V2.8-dekning ennå. Eldre prøver regnes ikke som null.';
+   $('v28Comparison').innerHTML='<tr><td colspan="3">Målingene starter først etter Cloudflare-deploy.</td></tr>';
   }
   $('sites').innerHTML=Object.entries(names).map(([key,[name,line]])=>{
    const s=d.spots?.[key]||{};return '<tr><td>'+esc(name)+'</td><td>'+esc(line)+
