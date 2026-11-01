@@ -7,7 +7,11 @@ import v21 from '../web/linear/network/gps-v2-shadow.js';
 import sourcePatterns from '../config/gps/atb-journey-patterns-1-11.json' with {type:'json'};
 
 const BOARD='trondheim-city-lines-catalog',ROOT='trondheim-gps-v22:v1:';
-const LINES=['1','11'],LANES=['catalog','line1-fast'],CUTOFF=85;
+const LINES=['1','11'],LANES=['catalog','line1-fast','dual-fast'],CUTOFF=85;
+const TTL_MS=180000,SEEN_WINDOW_MS=30*60000;
+const DIAG_FIELDS=['firstSeen','sameVehicleWithin3m','sameVehicleAfter3m',
+ 'outsideQuayRadius','oneNearbyQuay','multipleNearbyQuays'];
+const zeroDiag=()=>Object.fromEntries(DIAG_FIELDS.map(key=>[key,0]));
 const FIELDS=['gpsPrimary','gpsSecondaryUnlocated','v20Compared','v20Supported',
  'v20Unresolved','v20DifferentLed','v21Compared','v21Supported',
  'v21Unresolved','v21DifferentLed','retained','narrowed','resolved',
@@ -80,7 +84,59 @@ function makeEngine(board){
  if(board?.id!==BOARD||!Array.isArray(board.nodes)||board.nodes.length>5000)
   throw Error('invalid_catalog');
  return {board,baseline:v20.create({board,patterns:sourcePatterns}),
-  newer:v21.create({board,patterns:sourcePatterns}),lastFrame:-Infinity};
+  newer:v21.create({board,patterns:sourcePatterns}),lastFrame:-Infinity,
+  lastGps:new Map()};
+}
+// Fingerprint only STABLE source catalog geometry and route membership. The
+// per-frame profileFingerprint changes when a catalog-only route filter
+// differs from the dual-line fast frame; using it resets every hypothesis
+// across alternating scheduled samples.
+export function v23BoardSignature(board){
+ if(board?.id!==BOARD||!Array.isArray(board.nodes))throw Error('invalid_board_signature');
+ let h=2166136261;
+ const consume=value=>{
+  for(const ch of String(value)){h=Math.imul(h^ch.charCodeAt(0),16777619)>>>0;}
+ };
+ consume(board.id);consume(board.profileRevision??'');
+ for(const id of board.routes||[])consume(id);
+ for(const n of board.nodes){
+  consume(n.quayId);consume(n.led);consume(n.lat);consume(n.lon);
+  for(const route of n.routes||[])consume(route);
+ }
+ return String(h>>>0)+':'+board.nodes.length;
+}
+function continuity(frame,board,state,ts,lane){
+ const validLines=lane==='line1-fast'?new Set(['1']):new Set(LINES);
+ const result=Object.fromEntries([...validLines].map(code=>[code,zeroDiag()]));
+ for(const [key,last] of state.lastGps)
+  if(ts-last>SEEN_WINDOW_MS||ts<last)state.lastGps.delete(key);
+ const unique=new Map(),duplicates=new Set();
+ for(const led of frame.leds){
+  const v=led?.vehicle,code=String(v?.line||'');
+  if(!validLines.has(code)||typeof v?.id!=='string'||!v.id||
+     v.positionType!=='gps-nearest-stop'||!Number.isFinite(v.latitude)||
+     !Number.isFinite(v.longitude)||Math.abs(v.latitude)>90||
+     Math.abs(v.longitude)>180||!Number.isFinite(v.ageSeconds)||
+     v.ageSeconds<0||v.ageSeconds>30)continue;
+  const key=code+'|'+v.id;
+  if(unique.has(key))duplicates.add(key);else unique.set(key,{code,v});
+ }
+ for(const key of duplicates)unique.delete(key);
+ for(const [key,{code,v}] of unique){
+  const counters=result[code],last=state.lastGps.get(key),age=ts-last;
+  if(last==null||age<0)counters.firstSeen++;
+  else if(age<=TTL_MS)counters.sameVehicleWithin3m++;
+  else counters.sameVehicleAfter3m++;
+  const n=board.nodes.filter(node=>node?.routes?.includes('atb-bus-'+code+'-live')&&
+    Number.isFinite(node.lat)&&Number.isFinite(node.lon)&&
+    metres({lat:v.latitude,lon:v.longitude},node)<=CUTOFF);
+  const candidates=new Set(n.map(node=>node.quayId)).size;
+  if(!candidates)counters.outsideQuayRadius++;
+  else if(candidates===1)counters.oneNearbyQuay++;
+  else counters.multipleNearbyQuays++;
+  state.lastGps.set(key,ts);
+ }
+ return result;
 }
 // Engine state stays solely in volatile object memory. Cloudflare DO eviction
 // naturally forgets all per-bus hypotheses: reports MUST NOT assume continuous
@@ -110,7 +166,11 @@ export function evaluateV22(frame,board,state,{lane='catalog'}={}){
  state.lastFrame=ts;
  const result=gpsCounters(frame,board,lane);
  const supported=lane==='line1-fast'?['1']:LINES;
- for(const code of supported)transfer(result.lines[code],old.lines[code],newer.lines[code]);
+ const detail=continuity(frame,board,state,ts,lane);
+ for(const code of supported){
+  transfer(result.lines[code],old.lines[code],newer.lines[code]);
+  result.lines[code].diagnostics=detail[code];
+ }
  // A fast Line 1 frame cannot be a negative Line 11 measurement.
  for(const code of LINES)if(!supported.includes(code))delete result.lines[code];
  return {version:1,scope:'scheduled-v22-shadow',lane,lines:result.lines,
@@ -126,6 +186,17 @@ export function validateV22(value){
  for(const code of expected){
   const v=value.lines[code];if(!v||!FIELDS.every(k=>valid(v[k])))return null;
   safe.lines[code]=Object.fromEntries(FIELDS.map(k=>[k,v[k]]));
+  // Older V2.2 slots have no V2.3 evidence. Never backfill them as zero.
+  if(v.diagnostics!=null){
+   if(typeof v.diagnostics!=='object'||Array.isArray(v.diagnostics)||
+      !DIAG_FIELDS.every(key=>valid(v.diagnostics[key])))return null;
+   const d=v.diagnostics;
+   if(d.firstSeen+d.sameVehicleWithin3m+d.sameVehicleAfter3m!==v.gpsPrimary||
+      d.outsideQuayRadius+d.oneNearbyQuay+d.multipleNearbyQuays!==v.gpsPrimary)
+    return null;
+   safe.lines[code].diagnostics=Object.fromEntries(
+    DIAG_FIELDS.map(key=>[key,d[key]]));
+  }
  }
  if(Object.keys(value.lines).length!==expected.length)return null;
  for(const [name,code] of SPOTS){
@@ -161,9 +232,14 @@ export async function recordV22Storage(storage,{at,lane,metrics=null,error=false
  return {recorded:true,status:data.status,day};
 }
 const sumLine=(lines,code,vals)=>{
- const dest=lines[code]||(lines[code]={frames:0,...zero()});
+ const dest=lines[code]||(lines[code]={frames:0,...zero(),
+  diagnostics:{frames:0,...zeroDiag()}});
  dest.frames++;
  for(const k of FIELDS)dest[k]+=vals[k];
+ if(vals.diagnostics){
+  dest.diagnostics.frames++;
+  for(const key of DIAG_FIELDS)dest.diagnostics[key]+=vals.diagnostics[key];
+ }
 };
 export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
  const today=dayOf(now),yesterday=dayOf(Date.UTC(Number(today.slice(0,4)),
@@ -174,7 +250,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
  const entries=await storage.list({prefix:prefix(chosen),limit:1000});
  const lines={},spots=Object.fromEntries(SPOTS.map(([name,code])=>
   [name,{line:code,...siteZero(),frames:0}]));
- const lanes={catalog:{samples:0,errors:0},'line1-fast':{samples:0,errors:0}};
+ const lanes=Object.fromEntries(LANES.map(lane=>[lane,{samples:0,errors:0}]));
  let first=null,last=null;
  for(const item of entries.values()){
   if(!LANES.includes(item?.lane)||item.day!==chosen)continue;
@@ -192,15 +268,16 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
   }
  }
  return {version:1,scope:'trondheim-gps-v22-scheduled-quality',
-  day:chosen,timezone:'Europe/Oslo',status:lanes.catalog.samples+
-   lanes['line1-fast'].samples?'SAMPLES':'NO_SAMPLES',
+  day:chosen,timezone:'Europe/Oslo',status:LANES.some(
+   lane=>lanes[lane].samples>0)?'SAMPLES':'NO_SAMPLES',
   lanes,first,last,lines,spots,
   limitations:[
-   'Sampling: 5-minute full catalog plus existing 2-minute-offset Line 1 only; no extra provider requests.',
+   'Sampling: 5-minute catalog plus existing offset Line 1 fast history; V2.3 dual-fast also measures Line 11 using the SAME AtB source response, no extra provider requests.',
    'V2.0 and V2.1 use the same sample; route hypotheses live in volatile DO memory and may reset.',
-   'Five-minute Line 11 samples are too sparse to imply verified A-B-C travel.',
+   'Older Line 11 five-minute-only samples are sparse; V2.3 diagnostic coverage counts only newer dual-line samples.',
    'Near a focus Quay is geometric proximity only, never a physical arrival or correct platform.',
    'Only primary LED vehicle has usable GPS; IDs and positions are not persisted.',
+   'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
    'Higher candidate support is not validated GPS accuracy.'
   ]};
 }
@@ -255,7 +332,7 @@ export async function observeV22Internal(storage,request,volatile,now=Date.now()
  if(!error&&frame&&board){
   try{
    // Changing catalog geometry invalidates the prior ephemeral hypotheses.
-   const fingerprint=String(frame.profileFingerprint||'')+':'+String(board.nodes.length);
+   const fingerprint=v23BoardSignature(board);
    if(!volatile.engine||volatile.fingerprint!==fingerprint){
     volatile.engine=createVolatileState(board);volatile.fingerprint=fingerprint;
    }
