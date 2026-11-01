@@ -5,6 +5,7 @@
 import v20 from '../web/linear/network/gps-v20-baseline.js';
 import v21 from '../web/linear/network/gps-v2-shadow.js';
 import sourcePatterns from '../config/gps/atb-journey-patterns-1-11.json' with {type:'json'};
+import {evaluateV25,sanitizeV25} from './trondheim-gps-v25.mjs';
 
 const BOARD='trondheim-city-lines-catalog',ROOT='trondheim-gps-v22:v1:';
 const LINES=['1','11'],LANES=['catalog','line1-fast','dual-fast'],CUTOFF=85;
@@ -247,6 +248,13 @@ export function validateV22(value){
   }
  }
  if(Object.keys(value.lines).length!==expected.length)return null;
+ if(value.v25!=null){
+  const shadow=sanitizeV25(value.v25,value.lane);
+  if(!shadow)return null;
+  for(const code of expected)if(shadow.lines[code].primary>value.lines[code].gpsPrimary)
+   return null;
+  safe.v25=shadow;
+ }
  if(value.memory!=null){
   const m=value.memory;
   if(!m||typeof m!=='object'||Array.isArray(m)||
@@ -314,6 +322,10 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
   [name,{line:code,...siteZero(),frames:0}]));
  const lanes=Object.fromEntries(LANES.map(lane=>[lane,{samples:0,errors:0}]));
  const memory={frames:0,...zeroMemory()};
+ const v25={frames:0,states:{fresh:0,restored:0,expired:0,
+  catalogChanged:0,keyRotated:0},restoredTracks:0,tracksWritten:0,
+  lines:Object.fromEntries(LINES.map(code=>[code,{frames:0,primary:0,matchedPrior:0,
+   compared:0,supported:0,retained:0,narrowed:0,resolved:0}]))};
  let first=null,last=null;
  for(const item of entries.values()){
   if(!LANES.includes(item?.lane)||item.day!==chosen)continue;
@@ -322,6 +334,16 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
   if(item.metrics.memory){
    memory.frames++;
    for(const k of MEMORY)memory[k]+=item.metrics.memory[k];
+  }
+  if(item.metrics.v25){
+   const s=item.metrics.v25;
+   v25.frames++;v25.states[s.status]++;
+   v25.restoredTracks+=s.restoredTracks;v25.tracksWritten+=s.tracksWritten;
+   for(const [code,vals] of Object.entries(s.lines)){
+    const dest=v25.lines[code];dest.frames++;
+    for(const key of ['primary','matchedPrior','compared','supported',
+     'retained','narrowed','resolved'])dest[key]+=vals[key];
+   }
   }
   const ts=new Date(item.slot).toISOString();
   if(!first||ts<first)first=ts;if(!last||ts>last)last=ts;
@@ -337,7 +359,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
  return {version:1,scope:'trondheim-gps-v22-scheduled-quality',
   day:chosen,timezone:'Europe/Oslo',status:LANES.some(
    lane=>lanes[lane].samples>0)?'SAMPLES':'NO_SAMPLES',
-  lanes,first,last,lines,spots,memory,
+  lanes,first,last,lines,spots,memory,v25,
   limitations:[
    'Sampling: 5-minute catalog plus existing offset Line 1 fast history; V2.3 dual-fast also measures Line 11 using the SAME AtB source response, no extra provider requests.',
    'V2.0 and V2.1 use the same sample; route hypotheses live in volatile DO memory and may reset.',
@@ -346,6 +368,8 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    'Only primary LED vehicle has usable GPS; IDs and positions are not persisted.',
    'V2.4 measures first use of volatile DO memory and catalog resets but cannot identify why Cloudflare started a new instance.',
    'V2.4 frame-overlap compares only primary GPS IDs in consecutive sampled frames; missing IDs are not proof of Entur identity changes.',
+   'V2.5 restores only at most 3-minute-old HMAC-tokenized source-pattern hypotheses, bounded to 128 temporary tracks; no raw ID, destination, GPS coordinate or Quay is written.',
+   'V2.5 shadow key and pattern indexes are pseudonymous, not fully anonymous; automatic Durable Object alarm deletes them after 3 minutes plus a small scheduling grace period.',
    'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
    'Higher candidate support is not validated GPS accuracy.'
   ]};
@@ -409,6 +433,14 @@ export async function observeV22Internal(storage,request,volatile,now=Date.now()
     volatile.engine=createVolatileState(board);volatile.fingerprint=fingerprint;
    }
    metrics=evaluateV22(frame,board,volatile.engine,{lane,memory});
+   // V2.5 is a SEPARATE, guarded read-only shadow. It writes only a
+   // short-lived pseudonymous snapshot to its dedicated DO storage key;
+   // any V2.5 failure must never invalidate the existing V2.4 sample.
+   try{
+    metrics.v25=await evaluateV25(storage,frame,board,{lane,now});
+   }catch(err){
+    console.warn('gps_v25_shadow_unavailable',err?.message||'unknown');
+   }
    if(!validateV22(metrics))throw Error('invalid_v22_metrics');
   }catch(err){
    // Fail closed instead of recording fake zero GPS traffic.
