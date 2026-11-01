@@ -12,6 +12,13 @@ const TTL_MS=180000,SEEN_WINDOW_MS=30*60000;
 const DIAG_FIELDS=['firstSeen','sameVehicleWithin3m','sameVehicleAfter3m',
  'outsideQuayRadius','oneNearbyQuay','multipleNearbyQuays'];
 const zeroDiag=()=>Object.fromEntries(DIAG_FIELDS.map(key=>[key,0]));
+// V2.4: counters only. IDs and positions never leave the DO's volatile memory.
+const MEMORY=['coldStart','catalogReset','continued','priorWithin3m',
+ 'priorAfter3m','priorUnknown'];
+const FRAME_MATCH=['priorFrameKnown','priorPrimary','currentPrimary',
+ 'repeatedPrimary','newSincePrior','absentSincePrior','uncomparablePrimary'];
+const zeroMemory=()=>Object.fromEntries(MEMORY.map(k=>[k,0]));
+const zeroFrameMatch=()=>Object.fromEntries(FRAME_MATCH.map(k=>[k,0]));
 const FIELDS=['gpsPrimary','gpsSecondaryUnlocated','v20Compared','v20Supported',
  'v20Unresolved','v20DifferentLed','v21Compared','v21Supported',
  'v21Unresolved','v21DifferentLed','retained','narrowed','resolved',
@@ -85,7 +92,7 @@ function makeEngine(board){
   throw Error('invalid_catalog');
  return {board,baseline:v20.create({board,patterns:sourcePatterns}),
   newer:v21.create({board,patterns:sourcePatterns}),lastFrame:-Infinity,
-  lastGps:new Map()};
+  lastGps:new Map(),previousPrimary:new Map()};
 }
 // Fingerprint only STABLE source catalog geometry and route membership. The
 // per-frame profileFingerprint changes when a catalog-only route filter
@@ -108,6 +115,8 @@ export function v23BoardSignature(board){
 function continuity(frame,board,state,ts,lane){
  const validLines=lane==='line1-fast'?new Set(['1']):new Set(LINES);
  const result=Object.fromEntries([...validLines].map(code=>[code,zeroDiag()]));
+ const frameMatch=Object.fromEntries([...validLines].map(code=>[code,zeroFrameMatch()]));
+ const current=Object.fromEntries([...validLines].map(code=>[code,new Set()]));
  for(const [key,last] of state.lastGps)
   if(ts-last>SEEN_WINDOW_MS||ts<last)state.lastGps.delete(key);
  const unique=new Map(),duplicates=new Set();
@@ -123,6 +132,7 @@ function continuity(frame,board,state,ts,lane){
  }
  for(const key of duplicates)unique.delete(key);
  for(const [key,{code,v}] of unique){
+  current[code].add(key);
   const counters=result[code],last=state.lastGps.get(key),age=ts-last;
   if(last==null||age<0)counters.firstSeen++;
   else if(age<=TTL_MS)counters.sameVehicleWithin3m++;
@@ -136,7 +146,22 @@ function continuity(frame,board,state,ts,lane){
   else counters.multipleNearbyQuays++;
   state.lastGps.set(key,ts);
  }
- return result;
+ for(const code of validLines){
+  const prior=state.previousPrimary.get(code),nowKeys=current[code];
+  const evidence=frameMatch[code];
+  evidence.currentPrimary=nowKeys.size;
+  if(prior){
+   evidence.priorFrameKnown=1;
+   evidence.priorPrimary=prior.size;
+   evidence.repeatedPrimary=[...nowKeys].filter(id=>prior.has(id)).length;
+   evidence.newSincePrior=nowKeys.size-evidence.repeatedPrimary;
+   evidence.absentSincePrior=prior.size-evidence.repeatedPrimary;
+  }else{
+   evidence.uncomparablePrimary=nowKeys.size;
+  }
+  state.previousPrimary.set(code,nowKeys);
+ }
+ return {result,frameMatch};
 }
 // Engine state stays solely in volatile object memory. Cloudflare DO eviction
 // naturally forgets all per-bus hypotheses: reports MUST NOT assume continuous
@@ -152,13 +177,21 @@ const transfer=(target,old,n)=>Object.assign(target,{
  sequenceConflict:(n.sourceDirectionConflict||0)+(n.sequenceConflict||0),
  hypothesisLimit:n.hypothesisLimit||0
 });
-export function evaluateV22(frame,board,state,{lane='catalog'}={}){
+export function evaluateV22(frame,board,state,{lane='catalog',memory='continued'}={}){
  if(!LANES.includes(lane)||!state||frame?.boardProfile!==BOARD||
    !Array.isArray(frame.leds)||!Number.isFinite(Date.parse(frame.generatedAt))||
    !Number.isFinite(frame.ttlSeconds)||frame.ttlSeconds<1)
   throw Error('invalid_v22_frame');
  const ts=Date.parse(frame.generatedAt);
  if(ts<=state.lastFrame)throw Error('duplicate_or_reordered_frame');
+ if(!['continued','coldStart','catalogReset'].includes(memory))
+  throw Error('invalid_memory_evidence');
+ const previousAt=state.lastFrame;
+ const memoryEvidence=zeroMemory();
+ memoryEvidence[memory]=1;
+ if(previousAt===-Infinity)memoryEvidence.priorUnknown=1;
+ else if(ts-previousAt<=TTL_MS)memoryEvidence.priorWithin3m=1;
+ else memoryEvidence.priorAfter3m=1;
  const old=state.baseline.ingest(frame,{source:'production',now:ts+1000});
  const newer=state.newer.ingest(frame,{source:'production',now:ts+1000});
  if(old.status!=='ACTIVE_BROWSER_SHADOW'||newer.status!=='ACTIVE_BROWSER_SHADOW')
@@ -166,15 +199,16 @@ export function evaluateV22(frame,board,state,{lane='catalog'}={}){
  state.lastFrame=ts;
  const result=gpsCounters(frame,board,lane);
  const supported=lane==='line1-fast'?['1']:LINES;
- const detail=continuity(frame,board,state,ts,lane);
+ const {result:detail,frameMatch}=continuity(frame,board,state,ts,lane);
  for(const code of supported){
   transfer(result.lines[code],old.lines[code],newer.lines[code]);
   result.lines[code].diagnostics=detail[code];
+  result.lines[code].frameMatch=frameMatch[code];
  }
  // A fast Line 1 frame cannot be a negative Line 11 measurement.
  for(const code of LINES)if(!supported.includes(code))delete result.lines[code];
  return {version:1,scope:'scheduled-v22-shadow',lane,lines:result.lines,
-  sites:Object.fromEntries(Object.entries(result.spots).filter(([name])=>
+  memory:memoryEvidence,sites:Object.fromEntries(Object.entries(result.spots).filter(([name])=>
    lane!=='line1-fast'||!name.includes('11')))};
 }
 export function validateV22(value){
@@ -197,8 +231,31 @@ export function validateV22(value){
    safe.lines[code].diagnostics=Object.fromEntries(
     DIAG_FIELDS.map(key=>[key,d[key]]));
   }
+  if(v.frameMatch!=null){
+   const m=v.frameMatch;
+   if(!m||typeof m!=='object'||Array.isArray(m)||
+      !FRAME_MATCH.every(k=>valid(m[k]))||
+      m.currentPrimary!==v.gpsPrimary||
+      m.priorFrameKnown>1||m.repeatedPrimary>m.priorPrimary||
+      m.repeatedPrimary>m.currentPrimary||
+      m.newSincePrior+m.repeatedPrimary+m.uncomparablePrimary!==m.currentPrimary||
+      m.absentSincePrior+m.repeatedPrimary!==m.priorPrimary||
+      (m.priorFrameKnown===0&&(m.priorPrimary!==0||m.repeatedPrimary!==0||
+       m.newSincePrior!==0||m.absentSincePrior!==0))||
+      (m.priorFrameKnown===1&&m.uncomparablePrimary!==0))return null;
+   safe.lines[code].frameMatch=Object.fromEntries(FRAME_MATCH.map(k=>[k,m[k]]));
+  }
  }
  if(Object.keys(value.lines).length!==expected.length)return null;
+ if(value.memory!=null){
+  const m=value.memory;
+  if(!m||typeof m!=='object'||Array.isArray(m)||
+     !MEMORY.every(k=>valid(m[k]))||
+     m.coldStart+m.catalogReset+m.continued!==1||
+     m.priorWithin3m+m.priorAfter3m+m.priorUnknown!==1||
+     ((m.coldStart||m.catalogReset)&&m.priorUnknown!==1))return null;
+  safe.memory=Object.fromEntries(MEMORY.map(k=>[k,m[k]]));
+ }
  for(const [name,code] of SPOTS){
   if(value.lane==='line1-fast'&&code==='11')continue;
   const v=value.sites[name];
@@ -233,12 +290,17 @@ export async function recordV22Storage(storage,{at,lane,metrics=null,error=false
 }
 const sumLine=(lines,code,vals)=>{
  const dest=lines[code]||(lines[code]={frames:0,...zero(),
-  diagnostics:{frames:0,...zeroDiag()}});
+  diagnostics:{frames:0,...zeroDiag()},
+  frameMatch:{frames:0,...zeroFrameMatch()}});
  dest.frames++;
  for(const k of FIELDS)dest[k]+=vals[k];
  if(vals.diagnostics){
   dest.diagnostics.frames++;
   for(const key of DIAG_FIELDS)dest.diagnostics[key]+=vals.diagnostics[key];
+ }
+ if(vals.frameMatch){
+  dest.frameMatch.frames++;
+  for(const key of FRAME_MATCH)dest.frameMatch[key]+=vals.frameMatch[key];
  }
 };
 export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
@@ -251,11 +313,16 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
  const lines={},spots=Object.fromEntries(SPOTS.map(([name,code])=>
   [name,{line:code,...siteZero(),frames:0}]));
  const lanes=Object.fromEntries(LANES.map(lane=>[lane,{samples:0,errors:0}]));
+ const memory={frames:0,...zeroMemory()};
  let first=null,last=null;
  for(const item of entries.values()){
   if(!LANES.includes(item?.lane)||item.day!==chosen)continue;
   if(item.status!=='OK'||!validateV22(item.metrics)){lanes[item.lane].errors++;continue;}
   lanes[item.lane].samples++;
+  if(item.metrics.memory){
+   memory.frames++;
+   for(const k of MEMORY)memory[k]+=item.metrics.memory[k];
+  }
   const ts=new Date(item.slot).toISOString();
   if(!first||ts<first)first=ts;if(!last||ts>last)last=ts;
   for(const [code,values] of Object.entries(item.metrics.lines))
@@ -270,13 +337,15 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
  return {version:1,scope:'trondheim-gps-v22-scheduled-quality',
   day:chosen,timezone:'Europe/Oslo',status:LANES.some(
    lane=>lanes[lane].samples>0)?'SAMPLES':'NO_SAMPLES',
-  lanes,first,last,lines,spots,
+  lanes,first,last,lines,spots,memory,
   limitations:[
    'Sampling: 5-minute catalog plus existing offset Line 1 fast history; V2.3 dual-fast also measures Line 11 using the SAME AtB source response, no extra provider requests.',
    'V2.0 and V2.1 use the same sample; route hypotheses live in volatile DO memory and may reset.',
    'Older Line 11 five-minute-only samples are too sparse for proven stop sequences; V2.3 diagnostics start only on new samples.',
    'Near a focus Quay is geometric proximity only, never a physical arrival or correct platform.',
    'Only primary LED vehicle has usable GPS; IDs and positions are not persisted.',
+   'V2.4 measures first use of volatile DO memory and catalog resets but cannot identify why Cloudflare started a new instance.',
+   'V2.4 frame-overlap compares only primary GPS IDs in consecutive sampled frames; missing IDs are not proof of Entur identity changes.',
    'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
    'Higher candidate support is not validated GPS accuracy.'
   ]};
@@ -333,10 +402,13 @@ export async function observeV22Internal(storage,request,volatile,now=Date.now()
   try{
    // Changing catalog geometry invalidates the prior ephemeral hypotheses.
    const fingerprint=v23BoardSignature(board);
-   if(!volatile.engine||volatile.fingerprint!==fingerprint){
+   let memory='continued';
+   if(!volatile.engine)memory='coldStart';
+   else if(volatile.fingerprint!==fingerprint)memory='catalogReset';
+   if(memory!=='continued'){
     volatile.engine=createVolatileState(board);volatile.fingerprint=fingerprint;
    }
-   metrics=evaluateV22(frame,board,volatile.engine,{lane});
+   metrics=evaluateV22(frame,board,volatile.engine,{lane,memory});
    if(!validateV22(metrics))throw Error('invalid_v22_metrics');
   }catch(err){
    // Fail closed instead of recording fake zero GPS traffic.

@@ -553,3 +553,49 @@ Før produksjonsendringer må vi se faktiske positive
 og verifisere dem mot kilde/virkelighet.
 
 Test `node scripts/test-trondheim-gps-v23.mjs`.
+
+## GPS V2.4 – oppstart, ruteminne og manglende gjenobservasjoner
+
+V2.3 viste ingen påfølgende GPS-primær-ID-gjenobservasjoner i den første
+produksjonsperioden. **Dette er ikke i seg selv bevis for at AtB bytter
+vehicleId eller at Cloudflare restarter:** primærbussen kan ha gått
+ut av visningsradius, blitt en sekundær occupant eller være absent i
+en bestemt frame.
+
+V2.4 legger **kun anonyme diagnostikktellere** til den eksisterende
+`/v1/trondheim/gps-v22`-rapporten og `gps-v22-quality.html`:
+
+* `memory.frames` er nevner for NYE V2.4-prøver, aldri retroaktivt
+  estimert fra V2.2 eller V2.3.
+* `coldStart`: første observerte gyldige frame i Durable Object-instansens
+  volatile ruteminne (kan være deploy, vanlig instansstart eller tap av
+  minne; sier ikke hvorfor).
+* `catalogReset`: katalogsignaturen endret seg, slik at eksperimentet
+  startes på nytt for å unngå å kombinere forskjellige Quay-geometrier.
+* `continued`: samme volatile ruteminne ble brukt i neste måleframe.
+  `priorWithin3m`, `priorAfter3m` og `priorUnknown` måler
+  tidsavstand til forrige faktisk behandlede frame.
+* `lines[n].frameMatch.frames` er nevner for V2.4 linjemålinger.
+  `priorFrameKnown` er antall frames med et registrert forrige
+  GPS-primærsett for linjen. `priorPrimary`/`currentPrimary`
+  teller unike kvalifiserte primær-ID-er i disse frames;
+  `repeatedPrimary` teller ID som finnes i begge påfølgende frames;
+  `newSincePrior` og `absentSincePrior` teller forskjeller,
+  mens `uncomparablePrimary` er primærobservasjoner når forrige
+  frame mangler fra volatile minne.
+
+Uttrykket «nytt siden forrige frame» innebærer aldri at bilen er ny
+eller at Entur har endret kjøretøy-ID. Avledede datasummer er dessuten
+ikke en fasit for fysisk riktig Quay eller faktisk holdeplassbesøk.
+
+Dette bruker den samme katalog/dual-fast-innsamlingen som V2.3, uten
+nye HTTP-forespørsler eller nye cron-jobber. Ingen identiteter,
+koordinater, kandidatsekvenser eller unike ID-hasher lagres.
+Streng validasjon krever interne konsistente primærsett-tellere,
+avviser falske kombinasjoner og kopierer kun godkjente numeriske
+felter til Durable Object. V2.3-opptak uten V2.4-felter leses videre
+med egen diagnostikkdekning og blir ikke fylt med falske nuller.
+Aktiv LED-/kartvisning er uberørt.
+
+Regresjon: `node scripts/test-trondheim-gps-v24.mjs`. Produksjon
+må verifiseres med faktisk nytt `memory.frames` etter utrulling.
