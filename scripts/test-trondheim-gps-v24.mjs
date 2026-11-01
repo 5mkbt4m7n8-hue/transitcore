@@ -78,7 +78,7 @@ const store={async get(k){return stored.get(k)},async put(k,v){stored.set(k,stru
  .sort(([a],[b])=>a.localeCompare(b)).slice(0,limit))}};
 await recordV22Storage(store,{at:first.generatedAt,lane:'catalog',metrics:baseline},now);
 await recordV22Storage(store,{at:second.generatedAt,lane:'dual-fast',metrics:next},now);
-await recordV22Storage(store,{at:missing.generatedAt,lane:'catalog',metrics:old},now);
+await recordV22Storage(store,{at:noPrimary.generatedAt,lane:'catalog',metrics:old},now);
 const rollup=await reportV22Storage(store,{now,day:oslo});
 assert.equal(rollup.memory.frames,2,'Historical records must not be backfilled');
 assert.equal(rollup.memory.coldStart,1);
