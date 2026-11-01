@@ -49,6 +49,14 @@ export function summarizeV22Daily(payload){
  return {day:typeof payload.day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(payload.day)?
    payload.day:null,lines,sites,
    memory:Object.fromEntries(MEMORY.map(k=>[k,count(payload.memory?.[k])])),
+   v29:{frames:count(payload.v29?.frames),
+    states:Object.fromEntries(V25_STATES.map(k=>[k,count(payload.v29?.states?.[k])])),
+    restoredTracks:count(payload.v29?.restoredTracks),
+    lines:Object.fromEntries(['1','11'].map(line=>[line,
+     Object.fromEntries(['frames','primary','matchedPrior',
+      'restoredWithCandidates','restoredNarrowed','restoredDirection',
+      'restoredABC'].map(k=>[k,count(payload.v29?.lines?.[line]?.[k])]))]))
+   },
    v25:{frames:count(payload.v25?.frames),
     states:Object.fromEntries(V25_STATES.map(k=>[k,count(payload.v25?.states?.[k])])),
     restoredTracks:count(payload.v25?.restoredTracks),
@@ -108,6 +116,7 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  console.log('GPS_V22_PRODUCTION_PROOF',json);
  if(proof.daily)console.log('GPS_V22_DAILY_AUDIT',JSON.stringify(proof.daily));
  if(proof.daily?.v25)console.log('GPS_V25_PRODUCTION_PROOF',JSON.stringify(proof.daily.v25));
+ if(proof.daily?.v29)console.log('GPS_V29_PRODUCTION_PROOF',JSON.stringify(proof.daily.v29));
  if(process.env.GITHUB_STEP_SUMMARY){
   const {appendFile}=await import('node:fs/promises');
   await appendFile(process.env.GITHUB_STEP_SUMMARY,
@@ -158,6 +167,13 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
      'threeFrameChains3m','threeFrameChains4m']
      .map(k=>proof.daily.v25.timingV28[k]??'—').join(' | ')+' |\n\n'+
     '4m-kjeder er kun en hypotetisk tidsmulighet; V2.5 sporer fremdeles bare 3m.\n'):'')+
+   (proof.daily?.v29?.frames?('\n### V2.10 – parallell 240s HMAC-skygge (egen korttidsnøkkel)\n\n'+
+    '| Linje | 240s frames | 240s GPS-primær | 240s gjenkjent | 240s kandidatbevis | 240s innsnevret | 240s retning | 240s A→B→C-kandidat |\n'+
+    '|---|---:|---:|---:|---:|---:|---:|---:|\n'+
+    ['1','11'].map(line=>{const m=proof.daily.v29.lines[line];return '| '+line+' | '+
+     ['frames','primary','matchedPrior','restoredWithCandidates','restoredNarrowed',
+      'restoredDirection','restoredABC'].map(k=>m[k]??'—').join(' | ')+' |';}).join('\n')+
+    '\n\n240s følger kun pseudonymiserte mønsterhypoteser, aldri aktive LED- eller bussposisjoner.\n'):'')+
    (proof.daily?'\n### GPS V2.4 memory lifecycle (only new V2.4-sample frames)\n\n'+
     '| V2.4 frames | Fresh volatile state | Catalog reset | Continued | Prior ≤3m | Prior >3m | Prior unknown |\n'+
     '|---:|---:|---:|---:|---:|---:|---:|\n'+
