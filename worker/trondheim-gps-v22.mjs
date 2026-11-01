@@ -175,7 +175,7 @@ export function evaluateV22(frame,board,state,{lane='catalog'}={}){
  for(const code of LINES)if(!supported.includes(code))delete result.lines[code];
  return {version:1,scope:'scheduled-v22-shadow',lane,lines:result.lines,
   sites:Object.fromEntries(Object.entries(result.spots).filter(([name])=>
-   lane==='catalog'||!name.includes('11')))};
+   lane!=='line1-fast'||!name.includes('11')))};
 }
 export function validateV22(value){
  if(value?.version!==1||value.scope!=='scheduled-v22-shadow'||
