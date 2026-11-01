@@ -214,7 +214,7 @@
   function exportSnapshot({now=Date.now()}={}){
    const out=[];
    for(const [key,t] of tracks){
-    if(!/^(1|11)\\|[a-f0-9]{64}$/.test(key)||
+    if(!/^(1|11)\|[a-f0-9]{64}$/.test(key)||
        !finite(t.lastSeen)||now-t.lastSeen<0||now-t.lastSeen>180000)
      continue;
     const info=lines.get(key.split('|')[0]),hypotheses=[];
@@ -241,7 +241,7 @@
    if(!Array.isArray(rows)||rows.length>128||tracks.size)return 0;
    let restored=0;
    for(const row of rows){
-    if(!row||!/^(1|11)\\|[a-f0-9]{64}$/.test(row.key||'')||
+    if(!row||!/^(1|11)\|[a-f0-9]{64}$/.test(row.key||'')||
        !finite(row.lastSeen)||now-row.lastSeen<0||
        now-row.lastSeen>180000||!Array.isArray(row.hypotheses)||
        row.hypotheses.length>512||
