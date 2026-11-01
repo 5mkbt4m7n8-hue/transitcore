@@ -7,6 +7,7 @@ import {v23BoardSignature} from './trondheim-gps-v22.mjs';
 
 export const V25_KEY='trondheim-gps-v25:v1:expiring-shadow';
 export const V25_TTL=180000;
+const ALARM_GRACE_MS=5000;
 const MAX_KEY_AGE=30*60000;
 const LINES=['1','11'];
 const STATES=['fresh','restored','expired','catalogChanged','keyRotated'];
@@ -58,7 +59,7 @@ export async function evaluateV25(storage,frame,board,{lane,now=Date.now()}={}){
      !validKey(prior.secret)||!Array.isArray(prior.tracks)||
      prior.tracks.length>128||ts<=prior.at||
      ts>prior.expiresAt||ts-prior.at>V25_TTL||
-     prior.expiresAt>prior.at+V25_TTL){
+     prior.expiresAt>prior.at+V25_TTL+ALARM_GRACE_MS){
    status='expired';prior=null;
   }else if(prior.sig!==sig){status='catalogChanged';prior=null;}
   else if(ts-prior.issuedAt>=MAX_KEY_AGE){status='keyRotated';prior=null;}
@@ -109,7 +110,7 @@ export async function evaluateV25(storage,frame,board,{lane,now=Date.now()}={}){
   };
  }
  const tracks=engine.exportSnapshot({now:ts+1000});
- const record={version:1,at:ts,expiresAt:ts+V25_TTL,
+ const record={version:1,at:ts,expiresAt:ts+V25_TTL+ALARM_GRACE_MS,
   issuedAt:prior?.issuedAt||ts,sig,secret,tracks};
  // Only the pseudonyms + pattern indices; forbid raw IDs / source coordinates.
  if(!validKey(secret)||tracks.some(r=>!/^(1|11)\|[a-f0-9]{64}$/.test(r.key)))
