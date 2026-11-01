@@ -849,3 +849,26 @@ Dette dokumenterer **mulig** videreføring av GPS-kandidater;
 det bekrefter ikke korrekt veiside, fysisk holdeplass,
 busspassering eller A→B→C. Utvidelse av aktiv GPS er fortsatt
 utenfor scope.
+
+
+## GPS V2.11 – målegevinst med identisk dekning og døgnskifte
+
+En første produksjonsprøve 2. november 2026 ved lokal midnatt viste
+linje 1/11 totalt 0 gjenkjente primær-GPS-pseudonymer med 180s-minnet
+mot 3+3 med 240s-minnet i den samme registrerte kildeframen. Dette
+viser reell forlenget kontinuitet, men bare 1+3 av disse hadde
+lagrede mønsterhypoteser, og ingen retnings- eller A→B→C-bevis.
+
+V2.11 utvider den anonyme **døgnaggregatrapporten**: alle oppgitte
+180s/240s-sammenligningstall beregnes utelukkende der **begge**
+skyggeprøvene finnes, ikke fra hver sin (potensielt ulikt dekkede)
+døgnsum. Per linje beregnes 180s/240s gjenkjent, positive og negative
+endringer, antall måleframes med gevinst/tap/likt og egen kandidatdekning
+for de faktisk tilgjengelige V2.6-tellerne. Ingen busser identifiseres,
+og antall gjentatte observasjoner er ikke antall unike kjøretøy.
+
+Read-only GitHub Actions henter også foregående Oslo-døgn via eksisterende
+public `?day=`-parameter. Dette motvirker at en viktig produksjonsmåling
+ved lokal midnatt tilsynelatende forsvinner når dagens døgnrapport nullstilles.
+Det er **ett ekstra public aggregat-GET** per CI-kjøring, ingen nye Entur-
+kall, DO-bindinger, ruteminner, alarmer, GPS-radius eller aktiv LED-endring.

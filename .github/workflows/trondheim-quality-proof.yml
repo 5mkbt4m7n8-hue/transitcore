@@ -71,6 +71,9 @@ jobs:
         run: node scripts/test-trondheim-gps-v22-daily-audit.mjs
       - name: Prove whether V2.2 aggregate recording is active in the actual Cloudflare Worker
         run: node scripts/probe-trondheim-gps-v22-live.mjs
+      - name: Read previous Oslo day's anonymous 180s/240s GPS shadow proof
+        # Read-only public aggregate GET, especially important at midnight.
+        run: node scripts/probe-trondheim-gps-v22-live.mjs --previous-day
       - name: Offline proof contract regression
         run: node scripts/test-trondheim-quality-proof.mjs
       - name: Test anonymous 47-line source priority audit

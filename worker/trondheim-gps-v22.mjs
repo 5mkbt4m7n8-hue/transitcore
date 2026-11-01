@@ -446,8 +446,14 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    frames:0,primary:0,matchedPrior:0,restoredWithCandidates:0,
    restoredNarrowed:0,restoredDirection:0,restoredABC:0}])),
   paired:{frames:0,lines:Object.fromEntries(LINES.map(code=>[
-   code,{frames:0,matchedPrior:0,restoredNarrowed:0,
-    restoredDirection:0,restoredABC:0}]))}};
+   code,{frames:0,matchedPrior:0,longMatchedPrior:0,
+    extraMatches:0,lostMatches:0,gainFrames:0,lossFrames:0,
+    sameFrames:0,candidateFrames:0,
+    restoredWithCandidates:0,longWithCandidates:0,
+    extraCandidates:0,lostCandidates:0,
+    restoredNarrowed:0,longNarrowed:0,
+    restoredDirection:0,longDirection:0,
+    restoredABC:0,longABC:0}]))}};
  const v25={frames:0,states:{fresh:0,restored:0,expired:0,
   catalogChanged:0,keyRotated:0},restoredTracks:0,tracksWritten:0,
   lines:Object.fromEntries(LINES.map(code=>[code,{frames:0,primary:0,matchedPrior:0,
@@ -474,12 +480,31 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    }
    if(item.metrics.v25){
     v29.paired.frames++;
-    for(const [code,vals] of Object.entries(item.metrics.v25.lines)){
-     const dest=v29.paired.lines[code];dest.frames++;
-     for(const key of ['matchedPrior','restoredNarrowed',
-      'restoredDirection','restoredABC']){
-      // Missing V2.6-era follow-up fields are absent, never guessed as zero.
-      if(Number.isSafeInteger(vals[key]))dest[key]+=vals[key];
+    for(const [code,short] of Object.entries(item.metrics.v25.lines)){
+     const dest=v29.paired.lines[code],long=s.lines[code];
+     // Both totals refer to precisely the same recorded source frame.
+     if(!long)continue;
+     dest.frames++;dest.matchedPrior+=short.matchedPrior;
+     dest.longMatchedPrior+=long.matchedPrior;
+     const delta=long.matchedPrior-short.matchedPrior;
+     if(delta>0){dest.extraMatches+=delta;dest.gainFrames++;}
+     else if(delta<0){dest.lostMatches-=delta;dest.lossFrames++;}
+     else dest.sameFrames++;
+     if(FOLLOWUP_FIELDS.every(k=>Number.isSafeInteger(short[k]))){
+      dest.candidateFrames++;
+      dest.restoredWithCandidates+=short.restoredWithCandidates;
+      dest.longWithCandidates+=long.restoredWithCandidates;
+      const candidateDelta=long.restoredWithCandidates-
+       short.restoredWithCandidates;
+      if(candidateDelta>0)dest.extraCandidates+=candidateDelta;
+      else if(candidateDelta<0)dest.lostCandidates-=candidateDelta;
+      for(const [shortField,longField] of [
+       ['restoredNarrowed','longNarrowed'],
+       ['restoredDirection','longDirection'],
+       ['restoredABC','longABC']]){
+       dest[shortField]+=short[shortField];
+       dest[longField]+=long[shortField];
+      }
      }
     }
    }
@@ -534,6 +559,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    'V2.7 cadence is a retrospective calculation from pre-existing V2.5 slot/lane/status counters; no new per-bus data or sampling. It distinguishes within-slot two-frame restoration from across-slot continuity. Slot spacing is not precise source or vehicle timing.',
    'V2.8 adds only second-resolution per-frame sample offset in the existing daily slot, never a vehicle timestamp. The 4-minute column is timing-only counterfactual eligibility, not real 4-minute restored tracks or proof of alarm root cause.',
    'V2.10 runs a separate HMAC-only 240s shadow alongside the original 180s shadow, with independent random keys and the earliest-deadline shared DO alarm. Numeric candidate continuity is not proven bus-stop passage.',
+   'V2.11 matchedPrior comparison uses identical frames with both shadows available, and reports positive and negative differences separately. Candidate comparisons have separate followup coverage. These are GPS observations, not unique vehicles or verified stop passages.',
    'V2.5 shadow key and pattern indexes are pseudonymous, not fully anonymous; automatic Durable Object alarm deletes them after 3 minutes plus a small scheduling grace period.',
    'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
    'Higher candidate support is not validated GPS accuracy.'
