@@ -772,3 +772,36 @@ som bevist årsak basert på fravær av snapshot. Dersom
 `freshUnder3m > 0` må vi undersøke andre årsaker før
 vi anbefaler økt TTL. Ingen ekstra Entur-kall, cron, DO-binding,
 alarmer, GPS-radiusendring eller aktiv LED-endring.
+
+
+## GPS V2.9 – kildekontrollert 240-sekunders testmotor (ingen lengre produksjonslagring)
+
+V2.8 har bekreftet ett målt intervall på 181–240 sekunder der
+3-minuttersminnet var `fresh` ved neste prøving. Det er et
+første datapunkt, ikke dokumentert forbedret fysisk Quay-matching.
+
+En kildekodegjennomgang av `web/linear/network/gps-v2-shadow.js`
+fant en ytterligere 180-sekundersgrense **inne i V2.1-motoren**,
+både ved sletting, eksport og gjenoppretting av HMAC-hypoteser.
+Å endre bare DO-lagringens TTL ville derfor gitt en misvisende
+fireminuttersmåling.
+
+V2.9 gir `create({trackTtlMs:240000})` som eksplisitt tillatt
+**testvalg**, mens standard `180000` er uendret. Alle tre
+interne kontrollpunkter (ingest, eksport og restore) bruker
+den samme instansbaserte grensen. Bare 180/240 sekunder er
+tillatt; vilkårlige høyere verdier avvises.
+
+En syntetisk test gjenbruker et HMAC-pseudonymisert snapshot
+fra V2.5-fixturen ved 199 sekunders alder:
+standardmotor 180 sek gjenoppretter ingen,
+isolert 240-sekundersmotor gjenoppretter snapshotet,
+og eksporten godtar de samme mønsterindeksene.
+Ugyldige TTL-er avvises. Ingen produksjonskallere velger 240
+sekunder, ingen nye DO-nøkler, alarmer, tidsplaner,
+Entur-kall eller endringer av GPS-radius/LED/visning.
+
+En eventuell parallell V2.9-lagringsprøve må i egen PR sikre
+at **begge** anonymiserte vinduer slettes til riktig tid
+med koordinert Cloudflare-DO-alarm. Det skal ikke være mulig
+å forlenge det gamle treminuttersminnet utilsiktet.

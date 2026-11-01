@@ -9,7 +9,7 @@
 })(globalThis,function(){
  'use strict';
  const QUAY=/^NSR:Quay:\d+$/;
- const TRACK_TTL=180000,MAX_FRESH=30000,MAX_HYPOTHESES=512;
+ const DEFAULT_TRACK_TTL=180000,MAX_FRESH=30000,MAX_HYPOTHESES=512;
  const MAX_SKIPPED_QUAYS=6, MAX_CANDIDATES=24;
  const validDirection=x=>x==='inbound'||x==='outbound';
  const finite=n=>typeof n==='number'&&Number.isFinite(n);
@@ -27,9 +27,11 @@
   ambiguityResolvedAfterFollowup:0,hypothesisLimit:0,
   duplicateVehicleIdentity:0
  });
- function create({board,patterns,lineCodes=['1','11'],radiusMeters=85}={}){
+ function create({board,patterns,lineCodes=['1','11'],radiusMeters=85,
+  trackTtlMs=DEFAULT_TRACK_TTL}={}){
   if(board?.id!=='trondheim-city-lines-catalog'||!Array.isArray(board.nodes)||
-     !patterns?.lines||!finite(radiusMeters)||radiusMeters<=0||radiusMeters>100)
+     !patterns?.lines||!finite(radiusMeters)||radiusMeters<=0||radiusMeters>100||
+     ![DEFAULT_TRACK_TTL,240000].includes(trackTtlMs))
    throw Error('invalid-v21-shadow-configuration');
   const lines=new Map(),nodeByQuay=new Map(),tracks=new Map();
   for(const node of board.nodes){
@@ -106,7 +108,7 @@
    if(generated<=lastAt)return summary();
    lastSource=selected;lastAt=generated;frames++;
    for(const [key,track] of tracks)
-    if(now-track.lastSeen>TRACK_TTL)tracks.delete(key);
+    if(now-track.lastSeen>trackTtlMs)tracks.delete(key);
    const totals=Object.fromEntries([...lines.keys()].map(code=>[code,empty()]));
    const samples=new Map();
    // A duplicated primary bus ID at different LEDs is conflicting evidence.
@@ -215,7 +217,7 @@
    const out=[];
    for(const [key,t] of tracks){
     if(!/^(1|11)\|[a-f0-9]{64}$/.test(key)||
-       !finite(t.lastSeen)||now-t.lastSeen<0||now-t.lastSeen>180000)
+       !finite(t.lastSeen)||now-t.lastSeen<0||now-t.lastSeen>trackTtlMs)
      continue;
     const info=lines.get(key.split('|')[0]),hypotheses=[];
     for(const h of t.hypotheses){
@@ -243,7 +245,7 @@
    for(const row of rows){
     if(!row||!/^(1|11)\|[a-f0-9]{64}$/.test(row.key||'')||
        !finite(row.lastSeen)||now-row.lastSeen<0||
-       now-row.lastSeen>180000||!Array.isArray(row.hypotheses)||
+       now-row.lastSeen>trackTtlMs||!Array.isArray(row.hypotheses)||
        row.hypotheses.length>512||
        !(row.direction===null||validDirection(row.direction))||
        !['unknown','gps-sequence','provider-stop'].includes(row.basis))
