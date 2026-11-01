@@ -444,7 +444,10 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
   catalogChanged:0,keyRotated:0},restoredTracks:0,
   lines:Object.fromEntries(LINES.map(code=>[code,{
    frames:0,primary:0,matchedPrior:0,restoredWithCandidates:0,
-   restoredNarrowed:0,restoredDirection:0,restoredABC:0}]))};
+   restoredNarrowed:0,restoredDirection:0,restoredABC:0}])),
+  paired:{frames:0,lines:Object.fromEntries(LINES.map(code=>[
+   code,{frames:0,matchedPrior:0,restoredNarrowed:0,
+    restoredDirection:0,restoredABC:0}]))}};
  const v25={frames:0,states:{fresh:0,restored:0,expired:0,
   catalogChanged:0,keyRotated:0},restoredTracks:0,tracksWritten:0,
   lines:Object.fromEntries(LINES.map(code=>[code,{frames:0,primary:0,matchedPrior:0,
@@ -468,6 +471,17 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
     for(const key of ['primary','matchedPrior','restoredWithCandidates',
      'restoredNarrowed','restoredDirection','restoredABC'])
      dest[key]+=vals[key];
+   }
+   if(item.metrics.v25){
+    v29.paired.frames++;
+    for(const [code,vals] of Object.entries(item.metrics.v25.lines)){
+     const dest=v29.paired.lines[code];dest.frames++;
+     for(const key of ['matchedPrior','restoredNarrowed',
+      'restoredDirection','restoredABC']){
+      // Missing V2.6-era follow-up fields are absent, never guessed as zero.
+      if(Number.isSafeInteger(vals[key]))dest[key]+=vals[key];
+     }
+    }
    }
   }
   if(item.metrics.v25){
