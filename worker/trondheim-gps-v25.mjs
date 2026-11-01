@@ -112,7 +112,7 @@ export async function evaluateV25(storage,frame,board,{lane,now=Date.now()}={}){
  const record={version:1,at:ts,expiresAt:ts+V25_TTL,
   issuedAt:prior?.issuedAt||ts,sig,secret,tracks};
  // Only the pseudonyms + pattern indices; forbid raw IDs / source coordinates.
- if(!validKey(secret)||tracks.some(r=>!/^(1|11)\\|[a-f0-9]{64}$/.test(r.key)))
+ if(!validKey(secret)||tracks.some(r=>!/^(1|11)\|[a-f0-9]{64}$/.test(r.key)))
   throw Error('v25_unsafe_snapshot');
  await storage.put(V25_KEY,record);
  // Fail closed: an expiring snapshot without an alarm is not permitted.
