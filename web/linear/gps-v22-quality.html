@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>InTransit GPS V2.3 – automatisk døgnkontroll</title>
+<title>InTransit GPS V2.4 – automatisk døgnkontroll</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1018;--panel:#16202e;--line:#314457;--ink:#f3f7ff;--muted:#a6b8cc;--blue:#8ed1ff;--green:#4dde9c}
 *{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,sans-serif;margin:0}
@@ -26,7 +26,7 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
 </head>
 <body><main>
 <nav><a href="./">← Trondheim Linear</a> · <a href="./quality-lines.html">Kvalitet for alle linjer</a></nav>
-<h1>📡 InTransit GPS V2.3</h1>
+<h1>📡 InTransit GPS V2.4</h1>
 <p>Automatisk døgnkontroll for linje 1 og 11. Cloudflare samler anonyme målinger fra <strong>eksisterende femminuttersinnsamling</strong> og den eksisterende ekstra AtB-prøven ved minutt 2. V2.3 analyserer nå <strong>både linje 1 og 11</strong> i denne samme prøvepakken, uten nye Entur-kall eller at telefonen må være åpen.</p>
 <section>
  <div class="controls">
@@ -53,6 +53,17 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
  </table></div>
 </section>
 <section>
+ <h2>V2.4 · er ruteminnet bevart?</h2>
+ <p class="note">Kun måleframes med nye V2.4-felter telles. «Nytt minne» betyr første observerte prøve i en volatile Cloudflare Durable Object-instans. Det beviser <strong>ikke</strong> at Cloudflare har startet på nytt på grunn av et problem. «Katalog reset» betyr at testkatalogens signatur har endret seg. «Fortsetter» betyr at det samme ruteminnet ble brukt igjen. Tidsavstanden gjelder mottatte frames, ikke enkeltbussers kjøretid.</p>
+ <div class="stats" id="v24Memory"><div class="stat">Ingen V2.4-data ennå.</div></div>
+ <h2 style="margin-top:20px">Samme GPS-primærbuss fra forrige prøve?</h2>
+ <p class="note">Dette sammenligner bare primærbussens rå kildereferanse i to <strong>påfølgende innsamlinger</strong>. En buss kan være ute av visningsradius, være sekundær i et LED-punkt eller mangle GPS i ett frame. Derfor beviser «ikke gjenfunnet» aldri at Entur har endret ID.</p>
+ <div class="scroll"><table>
+ <thead><tr><th>Linje</th><th>V2.4 frames</th><th>Frames med forrige prøve</th><th>GPS i forrige</th><th>GPS i denne</th><th>Samme ID igjen</th><th>Nye i denne</th><th>Ikke i denne</th><th>Kan ikke sammenlignes</th></tr></thead>
+ <tbody id="v24FrameMatch"><tr><td colspan="9">Ingen V2.4-målinger ennå.</td></tr></tbody>
+ </table></div>
+ </section>
+<section>
  <h2>Lerkendal og Tonstadkrysset – geografiske kontrollområder</h2>
  <p class="note">Her telles <strong>ferske GPS-observasjoner innenfor 85 meter</strong> fra utvalgte, kildeidentifiserte Quays. «Flere Quays nær GPS» viser konkurrerende geometriske kandidater. Det betyr ikke feil veikant eller faktisk stopp, og disse tallene beviser ikke hvorvidt V2.1 valgte korrekt Quay.</p>
  <div class="scroll"><table>
@@ -63,7 +74,7 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
 <section>
  <h2>Hva rapporten kan og ikke kan dokumentere</h2>
  <p id="limits" class="note">GPS V2.3 er foreløpig ikke bekreftet aktiv i Cloudflare. Tilstedeværelse av kode eller grønne tester er ikke bevis på mottatte produksjonsmålinger.</p>
- <p class="note">Kjøretøy-ID-er og rå GPS-posisjoner brukes bare kortvarig under beregningen; de lagres ikke i denne kvalitetshistorikken. Cloudflare kan starte testmotoren på nytt og da nullstilles midlertidige rutehypoteser. V2.3 måler gjenobservasjoner og nærhet ved den samme prøvekadensen, men dette bekrefter ikke A→B→C-rekkefølge. Manglende målinger eller uavklarte tilfeller skal derfor ikke klassifiseres som feil GPS.</p>
+ <p class="note">Kjøretøy-ID-er og rå GPS-posisjoner brukes bare kortvarig under beregningen; de lagres ikke i denne kvalitetshistorikken. Cloudflare kan starte testmotoren på nytt og da nullstilles midlertidige rutehypoteser. V2.4 teller når dette volatile minnet er nytt, men kan ikke bevise hvorfor det ble nytt. V2.3 måler gjenobservasjoner og nærhet ved den samme prøvekadensen, men dette bekrefter ikke A→B→C-rekkefølge. Manglende målinger eller uavklarte tilfeller skal derfor ikke klassifiseres som feil GPS.</p>
 </section>
 </main>
 <script>
@@ -79,6 +90,7 @@ async function render(){
  $('status').textContent='Henter siste døgnrapport …';
  $('stats').innerHTML='';$('lines').innerHTML='';$('sites').innerHTML='';
  $('gpsV23Reasons').innerHTML='';
+ $('v24Memory').textContent='';$('v24FrameMatch').textContent='';
  try{
   let url=API;
   if($('day').value==='previous'){
@@ -117,6 +129,26 @@ async function render(){
     m.multipleNearbyQuays];
    return '<tr><td><strong>Linje '+code+'</strong></td>'+
     values.map(value=>'<td>'+count(value)+'</td>').join('')+'</tr>';
+  }).join('');
+  const m=d.memory||{};
+  const memoryStats=[
+   ['V2.4-frames',m.frames||0],
+   ['Nytt ruteminne',m.coldStart||0],
+   ['Endret testkatalog',m.catalogReset||0],
+   ['Eksisterende ruteminne',m.continued||0],
+   ['Forrige prøve ≤3 min',m.priorWithin3m||0],
+   ['Forrige prøve >3 min',m.priorAfter3m||0]
+  ];
+  $('v24Memory').innerHTML=m.frames?memoryStats.map(([label,value])=>
+   '<div class="stat"><small>'+esc(label)+'</small><strong>'+count(value)+'</strong></div>').join('')
+   :'<div class="stat">Ingen V2.4-frames registrert ennå.</div>';
+  $('v24FrameMatch').innerHTML=['1','11'].map(code=>{
+   const s=d.lines?.[code]?.frameMatch;
+   if(!s||!s.frames)return '<tr><td>Linje '+code+'</td><td colspan="8">Ingen sammenlignbare V2.4-data ennå.</td></tr>';
+   const vals=[s.frames,s.priorFrameKnown,s.priorPrimary,s.currentPrimary,
+    s.repeatedPrimary,s.newSincePrior,s.absentSincePrior,s.uncomparablePrimary];
+   return '<tr><td><strong>Linje '+code+'</strong></td>'+
+    vals.map(value=>'<td>'+count(value)+'</td>').join('')+'</tr>';
   }).join('');
   $('sites').innerHTML=Object.entries(names).map(([key,[name,line]])=>{
    const s=d.spots?.[key]||{};return '<tr><td>'+esc(name)+'</td><td>'+esc(line)+
