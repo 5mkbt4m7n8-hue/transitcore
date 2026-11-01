@@ -1,6 +1,28 @@
 // Read-only production proof: no Entur calls, no vehicle identifiers,
 // no raw frames. A successful GitHub Pages build is not production evidence.
 const API='https://transitcore-led-feed.lgb84.workers.dev/v1/trondheim/gps-v22';
+
+// An explicitly limited allow-list. Only counters from the public *daily*
+// report; never include vehicle IDs, positions, raw frames or Quay IDs.
+const COUNTERS=['frames','gpsPrimary','gpsSecondaryUnlocated','v20Compared',
+ 'v20Supported','v20Unresolved','v20DifferentLed','v21Compared',
+ 'v21Supported','v21Unresolved','v21DifferentLed','retained','narrowed',
+ 'resolved','sourceStop','sequenceConflict','hypothesisLimit'];
+const count=x=>Number.isSafeInteger(x)&&x>=0?x:null;
+export function summarizeV22Daily(payload){
+ if(payload?.scope!=='trondheim-gps-v22-scheduled-quality')return null;
+ const lines=Object.fromEntries(['1','11'].map(code=>[code,
+  Object.fromEntries(COUNTERS.map(k=>[k,count(payload.lines?.[code]?.[k])]))]));
+ const sites=Object.fromEntries(['lerkendal-1','lerkendal-11','tonstadkrysset-1']
+  .map(key=>[key,{
+   frames:count(payload.spots?.[key]?.frames),
+   nearGps:count(payload.spots?.[key]?.nearGps),
+   overlappingQuays:count(payload.spots?.[key]?.overlappingQuays)
+  }]));
+ return {day:typeof payload.day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(payload.day)?
+   payload.day:null,lines,sites};
+}
+
 const fresh=stamp=>Number.isFinite(Date.parse(stamp||''))&&
  Date.now()-Date.parse(stamp)>=0&&Date.now()-Date.parse(stamp)<=25*60000;
 export function inspect(payload,{now=Date.now()}={}){
@@ -24,7 +46,10 @@ export async function probe({fetchImpl=fetch,now=Date.now()}={}){
   const res=await fetchImpl(API,{cache:'no-store',signal:controller.signal});
   if(!res.ok)result={status:res.status===404?
    'OLD_WORKER_OR_NOT_DEPLOYED':'HTTP_ERROR',httpStatus:res.status};
-  else result=inspect(await res.json(),{now});
+  else{
+   const payload=await res.json();
+   result={...inspect(payload,{now}),daily:summarizeV22Daily(payload)};
+  }
  }catch{result={status:'NETWORK_UNAVAILABLE'};}
  finally{clearTimeout(timeout);}
  return result;
@@ -33,6 +58,7 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  const proof=await probe();
  const json=JSON.stringify(proof);
  console.log('GPS_V22_PRODUCTION_PROOF',json);
+ if(proof.daily)console.log('GPS_V22_DAILY_AUDIT',JSON.stringify(proof.daily));
  if(process.env.GITHUB_STEP_SUMMARY){
   const {appendFile}=await import('node:fs/promises');
   await appendFile(process.env.GITHUB_STEP_SUMMARY,
@@ -42,6 +68,20 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
    '| '+proof.status+' | '+(proof.full??'—')+' | '+(proof.fast??'—')+
    ' | '+(proof.line1Frames??'—')+' | '+(proof.line11Frames??'—')+
    ' | '+(proof.last??'—')+' |\n\n'+
-   'Ingen GPS- eller kjøretøy-ID-er er hentet. Dette beviser at aggregatene produseres, ikke fysisk GPS-nøyaktighet.\n');
+   'Ingen GPS- eller kjøretøy-ID-er er hentet. Dette beviser at aggregatene produseres, ikke fysisk GPS-nøyaktighet.\n'+
+   (proof.daily?'\n### Sammenligning per linje – summer av observasjoner, ikke unike busser\n\n'+
+    '| Linje | Frames | Primær-GPS | V2.0 vurdert | V2.0 støttet | V2.0 uavklart | V2.1 vurdert | V2.1 støttet | V2.1 uavklart | Beholdt flere Quays | Innsnevret | Entydig etter ny observasjon |\n'+
+    '|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n'+
+    ['1','11'].map(line=>{const s=proof.daily.lines[line];return '| '+line+' | '+
+    ['frames','gpsPrimary','v20Compared','v20Supported','v20Unresolved','v21Compared','v21Supported','v21Unresolved','retained','narrowed','resolved']
+      .map(k=>s[k]??'—').join(' | ')+' |';}).join('\n')+
+    '\n\n### Geografisk nærhet (ikke faktisk stopp)\n\n'+
+    '| Sted | Frames med dekning | GPS innen 85m | Konkurrerende Quays |\n'+
+    '|---|---:|---:|---:|\n'+
+    [['lerkendal-1','Lerkendal linje 1'],['lerkendal-11','Lerkendal linje 11'],
+     ['tonstadkrysset-1','Tonstadkrysset linje 1']].map(([key,name])=>{
+     const s=proof.daily.sites[key];return '| '+name+' | '+s.frames+' | '+s.nearGps+' | '+s.overlappingQuays+' |';
+    }).join('\n')+'\n\n**Viktig:** V2.1-kandidatstøtte er ikke GPS-fasit. Fem minutter mellom linje 11-prøver er for glissent for bekreftet A→B→C-sporing.\n':'')
+  );
  }
 }
