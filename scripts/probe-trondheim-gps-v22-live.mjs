@@ -31,6 +31,11 @@ const TIMING_V28=['frames','pairs','under3m','between3and4m','over4m',
  'restoredAfter3m','possible4mBridges','maxFrames3m','maxFrames4m',
  'threeFrameChains3m','threeFrameChains4m'];
 const count=x=>Number.isSafeInteger(x)&&x>=0?x:null;
+const PAIRED_V211=['frames','matchedPrior','longMatchedPrior',
+ 'extraMatches','lostMatches','gainFrames','lossFrames','sameFrames',
+ 'candidateFrames','restoredWithCandidates','longWithCandidates',
+ 'extraCandidates','lostCandidates','restoredNarrowed','longNarrowed',
+ 'restoredDirection','longDirection','restoredABC','longABC'];
 export function summarizeV22Daily(payload){
  if(payload?.scope!=='trondheim-gps-v22-scheduled-quality')return null;
  const lines=Object.fromEntries(['1','11'].map(code=>[code,{
@@ -54,9 +59,8 @@ export function summarizeV22Daily(payload){
     restoredTracks:count(payload.v29?.restoredTracks),
     paired:{frames:count(payload.v29?.paired?.frames),
      lines:Object.fromEntries(['1','11'].map(line=>[line,
-      Object.fromEntries(['frames','matchedPrior','restoredNarrowed',
-       'restoredDirection','restoredABC'].map(k=>[
-        k,count(payload.v29?.paired?.lines?.[line]?.[k])]))]))
+      Object.fromEntries(PAIRED_V211.map(k=>[
+       k,count(payload.v29?.paired?.lines?.[line]?.[k])]))]))
     },
     lines:Object.fromEntries(['1','11'].map(line=>[line,
      Object.fromEntries(['frames','primary','matchedPrior',
@@ -100,12 +104,15 @@ export function inspect(payload,{now=Date.now()}={}){
   line1Frames:payload.lines?.['1']?.frames||0,
   line11Frames:payload.lines?.['11']?.frames||0};
 }
-export async function probe({fetchImpl=fetch,now=Date.now()}={}){
+export async function probe({fetchImpl=fetch,now=Date.now(),day=null}={}){
+ if(day!==null&&(!/^\d{4}-\d{2}-\d{2}$/.test(day)||
+   Number.isNaN(Date.parse(day+'T12:00:00Z'))))throw Error('invalid_day');
  const controller=new AbortController();
  let result={status:'NETWORK_UNAVAILABLE'};
  const timeout=setTimeout(()=>controller.abort(),8000);
  try{
-  const res=await fetchImpl(API,{cache:'no-store',signal:controller.signal});
+  const url=day===null?API:API+'?day='+encodeURIComponent(day);
+  const res=await fetchImpl(url,{cache:'no-store',signal:controller.signal});
   if(!res.ok)result={status:res.status===404?
    'OLD_WORKER_OR_NOT_DEPLOYED':'HTTP_ERROR',httpStatus:res.status};
   else{
@@ -117,12 +124,19 @@ export async function probe({fetchImpl=fetch,now=Date.now()}={}){
  return result;
 }
 if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
- const proof=await probe();
+ const previous=process.argv.includes('--previous-day');
+ const localToday=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Oslo',
+  year:'numeric',month:'2-digit',day:'2-digit'}).format(Date.now());
+ const priorDay=new Date(Date.parse(localToday+'T12:00:00Z')-86400000)
+  .toISOString().slice(0,10);
+ const proof=await probe({day:previous?priorDay:null});
  const json=JSON.stringify(proof);
  console.log('GPS_V22_PRODUCTION_PROOF',json);
  if(proof.daily)console.log('GPS_V22_DAILY_AUDIT',JSON.stringify(proof.daily));
  if(proof.daily?.v25)console.log('GPS_V25_PRODUCTION_PROOF',JSON.stringify(proof.daily.v25));
- if(proof.daily?.v29)console.log('GPS_V29_PRODUCTION_PROOF',JSON.stringify(proof.daily.v29));
+ if(proof.daily?.v29)console.log(previous?
+  'GPS_V29_PREVIOUS_DAY_PROOF':'GPS_V29_PRODUCTION_PROOF',
+  JSON.stringify(proof.daily.v29));
  if(process.env.GITHUB_STEP_SUMMARY){
   const {appendFile}=await import('node:fs/promises');
   await appendFile(process.env.GITHUB_STEP_SUMMARY,
@@ -180,9 +194,14 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
      ['frames','primary','matchedPrior','restoredWithCandidates','restoredNarrowed',
       'restoredDirection','restoredABC'].map(k=>m[k]??'—').join(' | ')+' |';}).join('\n')+
     '\n\n**Lik dekning:** '+(proof.daily.v29.paired?.frames??'—')+
-    ' frames med både V2.5 og V2.10; 180s gjenkjente linje 1/11: '+
-    ['1','11'].map(k=>proof.daily.v29.paired?.lines?.[k]?.matchedPrior??'—').join('/')+
-    '. Se 240s gjenkjente i tabellen over.\n'+
+    ' frames med både V2.5 og V2.10.\n\n'+
+    '| Linje | Parrede frames | 180s gjenkjent | 240s gjenkjent | Flere med 240s | Færre med 240s | 180s kandidatevidens | 240s kandidatevidens |\n'+
+    '|---|---:|---:|---:|---:|---:|---:|---:|\n'+
+    ['1','11'].map(line=>{const p=proof.daily.v29.paired.lines[line];return '| '+
+      line+' | '+['frames','matchedPrior','longMatchedPrior',
+      'extraMatches','lostMatches','restoredWithCandidates',
+      'longWithCandidates'].map(k=>p[k]??'—').join(' | ')+' |';}).join('\n')+
+    '\n\nKandidatevidens gjelder bare frames med V2.6-kandidatdekning.\n'+
     '\n\n240s følger kun pseudonymiserte mønsterhypoteser, aldri aktive LED- eller bussposisjoner.\n'):'')+
    (proof.daily?'\n### GPS V2.4 memory lifecycle (only new V2.4-sample frames)\n\n'+
     '| V2.4 frames | Fresh volatile state | Catalog reset | Continued | Prior ≤3m | Prior >3m | Prior unknown |\n'+

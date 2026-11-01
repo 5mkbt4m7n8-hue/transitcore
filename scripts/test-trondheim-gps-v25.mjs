@@ -179,6 +179,13 @@ assert.equal(roll.v29.states.fresh,1);
 assert.equal(roll.v29.states.restored,1);
 assert.equal(roll.v29.lines['1'].matchedPrior,1);
 assert.equal(roll.v29.lines['11'].matchedPrior,1);
+assert.equal(roll.v29.paired.frames,2);
+assert.equal(roll.v29.paired.lines['1'].frames,2);
+assert.equal(roll.v29.paired.lines['1'].matchedPrior,1);
+assert.equal(roll.v29.paired.lines['1'].longMatchedPrior,1);
+assert.equal(roll.v29.paired.lines['1'].gainFrames,0);
+assert.equal(roll.v29.paired.lines['1'].sameFrames,2);
+assert.equal(roll.v29.paired.lines['1'].candidateFrames,2);
 assert.equal(roll.v25.states.fresh,1);
 assert.equal(roll.v25.states.restored,1);
 assert.equal(roll.v25.lines['11'].matchedPrior,1);
@@ -189,6 +196,19 @@ assert(!JSON.stringify([...reportStore.map]).includes(raw11));
 assert(!JSON.stringify([...reportStore.map]).includes('latitude'));
 assert.equal((await reportV22Storage(reportStore,{
  day:date,now:t0+120000+3000})).v25.frames,2);
+// A 190s-gap snapshot yields six-or-fewer aggregate identities;
+ // these paired frame metrics must never be mistaken for unique buses.
+const compareStore=fakeStore();
+await evaluateV25(compareStore,make(t0),board,{lane:'catalog',now:t0});
+await evaluateV29(compareStore,make(t0),board,{lane:'catalog',now:t0});
+await evaluateV25(compareStore,make(t0+120000),board,{lane:'dual-fast',now:t0+120000});
+await evaluateV29(compareStore,make(t0+120000),board,{lane:'dual-fast',now:t0+120000});
+const short190=await evaluateV25(compareStore,make(t0+310000),board,{
+ lane:'catalog',now:t0+310000});
+const long190=await evaluateV29(compareStore,make(t0+310000),board,{
+ lane:'catalog',now:t0+310000});
+assert.equal(short190.lines['1'].matchedPrior,0);
+assert.equal(long190.lines['1'].matchedPrior,1);
 const malicious29=structuredClone(ordinary);
 malicious29.v29=structuredClone(restored4);
 malicious29.v29.lines['1'].primary=9999;
