@@ -12,6 +12,7 @@ on:
       - 'worker/trondheim-gps-v22.mjs'
       - 'scripts/test-trondheim-gps-v22.mjs'
       - 'scripts/test-trondheim-gps-v23.mjs'
+      - 'scripts/test-trondheim-gps-v24.mjs'
       - 'scripts/probe-trondheim-gps-v22-live.mjs'
       - 'scripts/test-trondheim-gps-v22-daily-audit.mjs'
       - 'scripts/probe-trondheim-source-priorities-live.mjs'
@@ -29,6 +30,7 @@ on:
       - 'worker/trondheim-gps-v22.mjs'
       - 'scripts/test-trondheim-gps-v22.mjs'
       - 'scripts/test-trondheim-gps-v23.mjs'
+      - 'scripts/test-trondheim-gps-v24.mjs'
       - 'scripts/probe-trondheim-gps-v22-live.mjs'
       - 'scripts/test-trondheim-gps-v22-daily-audit.mjs'
       - 'scripts/probe-trondheim-source-priorities-live.mjs'
@@ -55,6 +57,8 @@ jobs:
           node-version: '22'
       - name: Test GPS V2.3 dual-line scheduled telemetry and nonpersistent identity
         run: node scripts/test-trondheim-gps-v23.mjs
+      - name: Verify V2.4 memory integrity and per-frame GPS primary continuity
+        run: node scripts/test-trondheim-gps-v24.mjs
       - name: Test Cloudflare V2.2 anonymous proof and report schema
         run: node scripts/test-trondheim-gps-v22.mjs
       - name: Protect privacy of the V2.2 daily audit and verify source counters
