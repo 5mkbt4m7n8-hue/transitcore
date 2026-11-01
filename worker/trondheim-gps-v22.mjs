@@ -334,8 +334,8 @@ export function summarizeV25Cadence(records=[]){
   if(row.status==='restored')c.restored++;
   const sameSlot=previous?.lane==='catalog'&&row.lane!=='catalog'&&
    row.slot===previous.slot;
-  const crossSlot=previous?.lane!=='catalog'&&row.lane==='catalog'&&
-   row.slot-previous.slot===300000;
+  const crossSlot=previous!==null&&previous.lane!=='catalog'&&
+   row.lane==='catalog'&&row.slot-previous.slot===300000;
   const adjacent=sameSlot||crossSlot;
   if(sameSlot&&previous.status==='fresh'&&row.status==='restored')
    out.sameSlotFreshRestored++;
