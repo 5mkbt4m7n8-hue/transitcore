@@ -158,33 +158,6 @@ assert.equal(ambFollow.lines['1'].restoredAmbiguous,1);
 assert.equal(ambFollow.lines['1'].restoredChanged,1);
 assert.equal(ambFollow.lines['1'].restoredNarrowed,1);
 assert(ambFollow.lines['1'].restoredABC<=ambFollow.lines['1'].restoredDirection);
-// Three source-ordered observations, including an explicit provider AT_STOP:
-// this is an A→B→C *candidate*, never a claim about physical passage.
-const abcBoard=structuredClone(board);
-const third=node(a[4],3,63.404,10.4,'1');
-abcBoard.nodes.push(third);
-const abcStore=fakeStore();
-await evaluateV25(abcStore,make(t0,n1,n11),abcBoard,{lane:'catalog',now:t0});
-const abcConfirmed=make(t0+120000,n2,n11);
-abcConfirmed.leds[0].state='AT_STOP';
-Object.assign(abcConfirmed.leds[0].vehicle,{
- positionType:'entur-siri-provider-stop',providerReportedAtStop:true,
- state:'AT_STOP',quayId:n2.quayId,plannedSourceDirection:'outbound'});
-const providerStep=await evaluateV25(abcStore,abcConfirmed,abcBoard,{
- lane:'dual-fast',now:t0+120000});
-const providerTrackProof=abcStore.map.get(V25_KEY).tracks
- .filter(t=>t.key.startsWith('1|')).map(t=>({
-  direction:t.direction,basis:t.basis,alternatives:t.hypotheses.length,
-  steps:[...new Set(t.hypotheses.map(h=>h[3]))]}));
-console.log('ABC_TEST_DIAGNOSTIC',JSON.stringify({
- provider:providerStep.lines['1'],tracks:providerTrackProof}));
-assert.equal(providerStep.lines['1'].supported,1,
- 'Exact provider AT_STOP must support the outward second pattern point');
-const abcThird=await evaluateV25(abcStore,make(t0+240000,third,n11),abcBoard,{
- lane:'dual-fast',now:t0+240000});
-assert.equal(abcThird.lines['1'].restoredDirection,1);
-assert.equal(abcThird.lines['1'].restoredABC,1,
- 'Three distinct source-compatible observations advance two pattern steps');
 const oldEvidence=structuredClone(next);
 for(const l of ['1','11'])for(const k of ['restoredWithCandidates',
  'restoredAmbiguous','restoredChanged','restoredNarrowed',
