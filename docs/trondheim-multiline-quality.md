@@ -505,3 +505,51 @@ Først etter en **faktisk ny, gyldig Cloudflare-innspilling** og
 bekreftet GET kan V2.2 kalles aktiv i produksjon.
 
 Regresjon: \`node scripts/test-trondheim-gps-v22.mjs\`.
+
+## GPS V2.3 – linje 1 + 11 på samme ekstra AtB-prøve
+
+Den eksisterende `2-59/5`-cron-en henter fra AtBs kjøretøy-endepunkt
+**én gang** og bygger fortsatt uendret, separat kvalitetsoversikt for
+linje 1. I tillegg bygges et **skyggeframe for både linje 1 og 11** fra
+det samme mottatte AtB-svaret. Dette lagres som ny, separat
+`dual-fast`-bane i GPS-kvalitetsdataene; historiske `line1-fast`-data
+beholdes og linje 11 får aldri bakoverfylte observasjoner. Ingen nye
+Entur-forespørsler, cron-utløsere, Workers-migreringer eller endringer
+i produksjons-LED/GPS-renderingen.
+
+Skyggetestens midlertidige rutehistorikk knyttes nå til en stabil
+signatur over hele kildestoppkatalogen, ikke til `profileFingerprint`
+på et midlertidig LED-frame. Ellers kunne et katalogframe og et
+ekstra prøveframe med ulikt linjeutvalg nullstille ruteminnet mellom
+hverandre. Den **uendrede** V2.0/V2.1-kandidatalgoritmen bruker
+fremdeles tre minutters sporferskhet, slik at vi kan måle avbrudd
+uten å endre forutsetningene i skygge-eksperimentet.
+
+V2.3 tilfører seks anonymiserte diagnosetellere per linje og per
+nytt frame:
+
+- `firstSeen`: en GPS-primærbuss ble ikke tidligere observert i
+  siste 30 minutter i denne DO-instansens midlertidige minne
+- `sameVehicleWithin3m`: samme primæridentitet observert på nytt
+  innenfor den eksisterende treminuttersgrensen
+- `sameVehicleAfter3m`: ny observasjon av en tidligere identitet
+  etter treminuttersgrensen
+- `outsideQuayRadius`, `oneNearbyQuay`, `multipleNearbyQuays`:
+  henholdsvis null, én eller flere katalog-Quays for denne linjen
+  innenfor 85 meters radius fra **primærbussens** gyldige GPS
+
+Sekundære `occupants` får aldri primærbussens GPS. Midlertidig
+identitet og GPS-historikk beholdes bare i volatile Durable
+Object-minne. Kun strengt validerte tellerfelter lagres, og tidligere
+V2.2-opptak uten V2.3-diagnose telles ikke som null-hendelser:
+`diagnostics.frames` gir den faktiske nevneren.
+
+Dette er en test av datadekning og mulig kildekompatibel rutesekvens,
+**ikke** et bevis på at en konkret buss faktisk var på riktig
+holdeplass eller fortsetter samme tur. Den tidligere avtalen om
+kun linje 1- og 11-pilot, samt uendret aktiv LED, gjelder fortsatt.
+Før produksjonsendringer må vi se faktiske positive
+`ambiguityNarrowed`/`ambiguityResolvedAfterFollowup`-målinger
+og verifisere dem mot kilde/virkelighet.
+
+Test `node scripts/test-trondheim-gps-v23.mjs`.

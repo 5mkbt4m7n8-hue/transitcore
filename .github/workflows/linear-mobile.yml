@@ -20,6 +20,7 @@ on:
       - 'scripts/test-gps-v21-multiple-quays.mjs'
       - 'scripts/test-gps-v21-comparison-log.mjs'
       - 'scripts/test-trondheim-gps-v22.mjs'
+      - 'scripts/test-trondheim-gps-v23.mjs'
       - 'worker/trondheim-gps-v22.mjs'
       - 'web/linear/gps-v22-quality.html'
       - 'web/linear/network/gps-v20-baseline.js'
@@ -78,6 +79,7 @@ on:
       - 'scripts/test-gps-v21-multiple-quays.mjs'
       - 'scripts/test-gps-v21-comparison-log.mjs'
       - 'scripts/test-trondheim-gps-v22.mjs'
+      - 'scripts/test-trondheim-gps-v23.mjs'
       - 'worker/trondheim-gps-v22.mjs'
       - 'web/linear/gps-v22-quality.html'
       - 'web/linear/network/gps-v20-baseline.js'
@@ -105,7 +107,7 @@ permissions:
   contents: read
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -152,6 +154,9 @@ jobs:
 
       - name: Verify unattended, anonymous Cloudflare GPS V2.2 quality report
         run: node scripts/test-trondheim-gps-v22.mjs
+
+      - name: Verify GPS V2.3 dual-line fast sampling and source evidence continuity
+        run: node scripts/test-trondheim-gps-v23.mjs
 
       - name: Verify source-certified Line 1 and 11 route tracking and privacy
         run: node scripts/test-multiline-route-progress.mjs

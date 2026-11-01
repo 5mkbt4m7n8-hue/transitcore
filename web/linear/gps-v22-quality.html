@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>InTransit GPS V2.2 – automatisk døgnkontroll</title>
+<title>InTransit GPS V2.3 – automatisk døgnkontroll</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1018;--panel:#16202e;--line:#314457;--ink:#f3f7ff;--muted:#a6b8cc;--blue:#8ed1ff;--green:#4dde9c}
 *{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,sans-serif;margin:0}
@@ -26,8 +26,8 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
 </head>
 <body><main>
 <nav><a href="./">← Trondheim Linear</a> · <a href="./quality-lines.html">Kvalitet for alle linjer</a></nav>
-<h1>📡 InTransit GPS V2.2</h1>
-<p>Automatisk døgnkontroll for linje 1 og 11. Cloudflare samler anonyme målinger fra <strong>eksisterende femminuttersinnsamling</strong> og den ekstra linje 1-prøven ved minutt 2, uten at telefon eller nettleser må være åpen.</p>
+<h1>📡 InTransit GPS V2.3</h1>
+<p>Automatisk døgnkontroll for linje 1 og 11. Cloudflare samler anonyme målinger fra <strong>eksisterende femminuttersinnsamling</strong> og den eksisterende ekstra AtB-prøven ved minutt 2. V2.3 analyserer nå <strong>både linje 1 og 11</strong> i denne samme prøvepakken, uten nye Entur-kall eller at telefonen må være åpen.</p>
 <section>
  <div class="controls">
   <label for="day">Dato</label><select id="day"><option value="">I dag</option><option value="previous">I går</option></select>
@@ -38,10 +38,18 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
 </section>
 <section>
  <h2>Algoritmene på samme GPS-frames</h2>
- <p class="note">V2.0 er den opprinnelige skyggetesten, V2.1 bevarer flere mulige Quays. «Støttet» er rutemønster-kandidat, <strong>ikke faktisk riktig fysisk plassering</strong>. Mål antall GPS-observasjoner vurdert, ikke bare antall støttede. Begge algoritmer får samme frame. Fastprøven har bare linje 1.</p>
+ <p class="note">V2.0 er den opprinnelige skyggetesten, V2.1 bevarer flere mulige Quays. «Støttet» er rutemønster-kandidat, <strong>ikke faktisk riktig fysisk plassering</strong>. Mål antall GPS-observasjoner vurdert, ikke bare antall støttede. Begge algoritmer får samme frame. Gamle fastprøver gjaldt bare linje 1; nye V2.3 fastprøver gjelder begge linjer.</p>
  <div class="scroll"><table>
   <thead><tr><th>Linje</th><th>Vurderte frames</th><th>GPS primærbuss</th><th>V2.0 GPS vurdert</th><th>V2.0 støttet</th><th>V2.0 uavklart</th><th>V2.1 GPS vurdert</th><th>V2.1 støttet</th><th>V2.1 uavklart</th><th>Mulige Quays beholdt</th><th>Alternativer innsnevret</th><th>Entydig etter neste observasjon</th></tr></thead>
   <tbody id="lines"><tr><td colspan="12">Ingen målinger ennå.</td></tr></tbody>
+ </table></div>
+</section>
+<section>
+ <h2>V2.3 · hvorfor kan ikke GPS-sporet avklares?</h2>
+ <p class="note">Kun nye frames med V2.3-diagnostikk inngår. «Samme buss innen tre minutter» betyr gjenobservasjon av samme midlertidige identitet, <strong>ikke dokumentert holdeplasspassering</strong>. «Lengre enn tre minutter» er tidsavstand mellom tilgjengelige GPS-prøver for samme identitet og forklarer hvorfor V2.1s sporhistorikk kan ha gått ut på tid. Geografiske kandidater angir bare Quays innenfor 85 meter.</p>
+ <div class="scroll"><table>
+  <thead><tr><th>Linje</th><th>V2.3 måleframes</th><th>Første observasjon / etter minnetap</th><th>Gjenobservert innen 3 min</th><th>Gjenobservert etter 3 min</th><th>Ingen Quay innen 85m</th><th>Én Quay innen 85m</th><th>Flere Quays innen 85m</th></tr></thead>
+  <tbody id="gpsV23Reasons"><tr><td colspan="8">Ingen nye V2.3-målinger ennå.</td></tr></tbody>
  </table></div>
 </section>
 <section>
@@ -54,8 +62,8 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
 </section>
 <section>
  <h2>Hva rapporten kan og ikke kan dokumentere</h2>
- <p id="limits" class="note">GPS V2.2 er foreløpig ikke bekreftet aktiv i Cloudflare. Tilstedeværelse av kode eller grønne tester er ikke bevis på mottatte produksjonsmålinger.</p>
- <p class="note">Kjøretøy-ID-er og rå GPS-posisjoner brukes bare kortvarig under beregningen; de lagres ikke i denne kvalitetshistorikken. Cloudflare kan starte testmotoren på nytt og da nullstilles midlertidige rutehypoteser. Fem minutter mellom GPS-prøver er ofte for langt til å bekrefte A→B→C-rekkefølge. Manglende målinger eller uavklarte tilfeller skal derfor ikke klassifiseres som feil GPS.</p>
+ <p id="limits" class="note">GPS V2.3 er foreløpig ikke bekreftet aktiv i Cloudflare. Tilstedeværelse av kode eller grønne tester er ikke bevis på mottatte produksjonsmålinger.</p>
+ <p class="note">Kjøretøy-ID-er og rå GPS-posisjoner brukes bare kortvarig under beregningen; de lagres ikke i denne kvalitetshistorikken. Cloudflare kan starte testmotoren på nytt og da nullstilles midlertidige rutehypoteser. V2.3 måler gjenobservasjoner og nærhet ved den samme prøvekadensen, men dette bekrefter ikke A→B→C-rekkefølge. Manglende målinger eller uavklarte tilfeller skal derfor ikke klassifiseres som feil GPS.</p>
 </section>
 </main>
 <script>
@@ -70,6 +78,7 @@ const names={'lerkendal-1':['Lerkendal','1'],'lerkendal-11':['Lerkendal','11'],
 async function render(){
  $('status').textContent='Henter siste døgnrapport …';
  $('stats').innerHTML='';$('lines').innerHTML='';$('sites').innerHTML='';
+ $('gpsV23Reasons').innerHTML='';
  try{
   let url=API;
   if($('day').value==='previous'){
@@ -81,13 +90,16 @@ async function render(){
   if(!res.ok)throw Error('HTTP '+res.status);
   const d=await res.json();
   if(d.scope!=='trondheim-gps-v22-scheduled-quality')throw Error('ukjent API-format');
-  const samples=(d.lanes?.catalog?.samples||0)+(d.lanes?.['line1-fast']?.samples||0);
-  const errors=(d.lanes?.catalog?.errors||0)+(d.lanes?.['line1-fast']?.errors||0);
+  const samples=(d.lanes?.catalog?.samples||0)+(d.lanes?.['line1-fast']?.samples||0)+
+   (d.lanes?.['dual-fast']?.samples||0);
+  const errors=(d.lanes?.catalog?.errors||0)+(d.lanes?.['line1-fast']?.errors||0)+
+   (d.lanes?.['dual-fast']?.errors||0);
   $('status').innerHTML=samples?'<span class="signal"></span>Rapportert fra produksjon · '+esc(d.day)+
    ' · siste måling: '+esc(d.last||'ukjent')
    :'Ingen bekreftede V2.2-målinger for '+esc(d.day)+'. Koden kan være publisert uten at nye opptak har startet.';
   const stats=[['Fem-minuttersmålinger',d.lanes?.catalog?.samples||0],
-   ['Ekstra linje 1-prøver',d.lanes?.['line1-fast']?.samples||0],
+   ['Eldre ekstra linje 1-prøver',d.lanes?.['line1-fast']?.samples||0],
+   ['Nye V2.3 fastprøver · begge linjer',d.lanes?.['dual-fast']?.samples||0],
    ['Feilede prøver',errors],['Linjer',Object.keys(d.lines||{}).length]];
   $('stats').innerHTML=stats.map(([label,value])=>'<div class="stat"><small>'+esc(label)+
    '</small><strong>'+count(value)+'</strong></div>').join('');
@@ -97,6 +109,15 @@ async function render(){
     m.v21Compared,m.v21Supported,m.v21Unresolved,m.retained,m.narrowed,m.resolved];
    return '<tr><td><strong>Linje '+code+'</strong></td>'+list.map(v=>'<td>'+count(v)+'</td>').join('')+'</tr>';
   }));
+  $('gpsV23Reasons').innerHTML=['1','11'].map(code=>{
+   const m=d.lines?.[code]?.diagnostics;
+   if(!m||!m.frames)return '<tr><td>Linje '+code+'</td><td colspan="7">Ingen V2.3-diagnostikk ennå.</td></tr>';
+   const values=[m.frames,m.firstSeen,m.sameVehicleWithin3m,
+    m.sameVehicleAfter3m,m.outsideQuayRadius,m.oneNearbyQuay,
+    m.multipleNearbyQuays];
+   return '<tr><td><strong>Linje '+code+'</strong></td>'+
+    values.map(value=>'<td>'+count(value)+'</td>').join('')+'</tr>';
+  }).join('');
   $('sites').innerHTML=Object.entries(names).map(([key,[name,line]])=>{
    const s=d.spots?.[key]||{};return '<tr><td>'+esc(name)+'</td><td>'+esc(line)+
     '</td><td>'+count(s.frames||0)+'</td><td>'+count(s.nearGps||0)+
