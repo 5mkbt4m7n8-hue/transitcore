@@ -52,6 +52,12 @@ export function summarizeV22Daily(payload){
    v29:{frames:count(payload.v29?.frames),
     states:Object.fromEntries(V25_STATES.map(k=>[k,count(payload.v29?.states?.[k])])),
     restoredTracks:count(payload.v29?.restoredTracks),
+    paired:{frames:count(payload.v29?.paired?.frames),
+     lines:Object.fromEntries(['1','11'].map(line=>[line,
+      Object.fromEntries(['frames','matchedPrior','restoredNarrowed',
+       'restoredDirection','restoredABC'].map(k=>[
+        k,count(payload.v29?.paired?.lines?.[line]?.[k])]))]))
+    },
     lines:Object.fromEntries(['1','11'].map(line=>[line,
      Object.fromEntries(['frames','primary','matchedPrior',
       'restoredWithCandidates','restoredNarrowed','restoredDirection',
@@ -173,6 +179,10 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
     ['1','11'].map(line=>{const m=proof.daily.v29.lines[line];return '| '+line+' | '+
      ['frames','primary','matchedPrior','restoredWithCandidates','restoredNarrowed',
       'restoredDirection','restoredABC'].map(k=>m[k]??'—').join(' | ')+' |';}).join('\n')+
+    '\n\n**Lik dekning:** '+(proof.daily.v29.paired?.frames??'—')+
+    ' frames med både V2.5 og V2.10; 180s gjenkjente linje 1/11: '+
+    ['1','11'].map(k=>proof.daily.v29.paired?.lines?.[k]?.matchedPrior??'—').join('/')+
+    '. Se 240s gjenkjente i tabellen over.\n'+
     '\n\n240s følger kun pseudonymiserte mønsterhypoteser, aldri aktive LED- eller bussposisjoner.\n'):'')+
    (proof.daily?'\n### GPS V2.4 memory lifecycle (only new V2.4-sample frames)\n\n'+
     '| V2.4 frames | Fresh volatile state | Catalog reset | Continued | Prior ≤3m | Prior >3m | Prior unknown |\n'+
