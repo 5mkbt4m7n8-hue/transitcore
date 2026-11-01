@@ -14,6 +14,8 @@ const MEMORY=['frames','coldStart','catalogReset','continued',
  'priorWithin3m','priorAfter3m','priorUnknown'];
 const FRAME_MATCH=['frames','priorFrameKnown','priorPrimary','currentPrimary',
  'repeatedPrimary','newSincePrior','absentSincePrior','uncomparablePrimary'];
+const V25_BASE_FIELDS=['frames','primary','matchedPrior','compared','supported',
+ 'retained','narrowed','resolved'];
 const V25_FIELDS=['frames','primary','matchedPrior','compared','supported',
  'retained','narrowed','resolved','followupFrames','restoredWithCandidates',
  'restoredAmbiguous','restoredChanged','restoredNarrowed',
@@ -105,7 +107,7 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
     '| Linje | Frames | Primær-GPS | Samme pseudonym gjenkjent | V2.1 vurdert | Støttet | Beholdt flere Quays | Innsnevret | Avklart |\n'+
     '|---|---:|---:|---:|---:|---:|---:|---:|---:|\n'+
     ['1','11'].map(line=>{const m=proof.daily.v25.lines[line];return '| '+line+' | '+
-     V25_FIELDS.map(k=>m[k]??'—').join(' | ')+' |';}).join('\n')+
+     V25_BASE_FIELDS.map(k=>m[k]??'—').join(' | ')+' |';}).join('\n')+
     '\n\nDette er kun kildemønster-hypoteser; ikke bekreftede fysiske busspasseringer.\n'+
     '\n### V2.6 – gjenopprettede spor med kandidatbevis (bare ny dekning)\n\n'+
     '| Linje | V2.6 frames | Tidligere kandidater | Tidligere tvetydig | Endret Quay-kandidatsett | Innsnevret | Retningskandidat | Trepunkt-kandidat |\n'+

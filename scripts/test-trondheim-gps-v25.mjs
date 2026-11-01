@@ -158,6 +158,20 @@ assert.equal(ambFollow.lines['1'].restoredAmbiguous,1);
 assert.equal(ambFollow.lines['1'].restoredChanged,1);
 assert.equal(ambFollow.lines['1'].restoredNarrowed,1);
 assert(ambFollow.lines['1'].restoredABC<=ambFollow.lines['1'].restoredDirection);
+// Three distinct source-ordered GPS points in three fresh observations:
+ // this is an A→B→C *candidate*, never a claim about physical passage.
+const abcBoard=structuredClone(board);
+const third=node(a[4],3,63.404,10.4,'1');
+abcBoard.nodes.push(third);
+const abcStore=fakeStore();
+await evaluateV25(abcStore,make(t0,n1,n11),abcBoard,{lane:'catalog',now:t0});
+await evaluateV25(abcStore,make(t0+120000,n2,n11),abcBoard,{
+ lane:'dual-fast',now:t0+120000});
+const abcThird=await evaluateV25(abcStore,make(t0+240000,third,n11),abcBoard,{
+ lane:'dual-fast',now:t0+240000});
+assert.equal(abcThird.lines['1'].restoredDirection,1);
+assert.equal(abcThird.lines['1'].restoredABC,1,
+ 'Three distinct source-compatible observations advance two pattern steps');
 const oldEvidence=structuredClone(next);
 for(const l of ['1','11'])for(const k of ['restoredWithCandidates',
  'restoredAmbiguous','restoredChanged','restoredNarrowed',
