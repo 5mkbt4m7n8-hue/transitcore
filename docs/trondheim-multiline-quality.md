@@ -687,3 +687,45 @@ Cloudflare-prod, deretter sammenligne `restoredWithCandidates`,
 linje 1 og 11. Ingen terskler her skal automatisk aktivere GPS V2.
 En reell passering må verifiseres separat mot korrekt Quay og
 kjøreretning før LED-sporing endres.
+
+
+## GPS V2.7 – er prøvekadensen for glissen for A→B→C?
+
+Produksjon 1. november 2026 viste 8 nye V2.6-frames, totalt
+21 gjenkjente primær-GPS-observasjoner med gjenopprettede mønsterkandidater.
+Linje 1 hadde 2 dokumenterte innsnevringer, mens begge linjer hadde 0
+entydige retningskandidater og 0 trepunkts-kandidater. Dette er
+målebaserte hypoteser, ikke dokumenterte busspasseringer.
+
+V2.7 analyserer **allerede lagrede** V2.5-statusfelt i V2.2-døgnets
+anonyme femminutters-luker. Det gjøres ingen nye kildekall, ingen
+planlagte innsamlinger, ingen V2.5-snapshotendringer og ingen
+endring av GPS/LED. Denne retrospektive statistikken er trygg
+mot forveksling med ny bussobservasjon:
+
+- Katalogprøve (normalt minutt 0) og felles hurtigprøve (normalt
+  minutt 2) vises separat med antall `fresh` og `restored`.
+- `sameSlotFreshRestored`: ny katalogstatus fulgt av
+  gjenopprettingsstatus innen samme femminuttersluke.
+- `nextSlotFreshAfterRestored`: forrige målte hurtigprøve var
+  `restored`, mens neste katalogluke var `fresh`. Dette er tegn
+  på brutt målekjede, **ikke bevis for hvilken Cloudflare-hendelse
+  som fjernet minnet**.
+- `nextSlotRestoredAfterRestored`: gjenopprettet minne også i neste
+  katalogluke. Dette indikerer mulig tre-frames kontinuitet.
+- `threePlusFrameContinuations` teller enhver etterfølgende
+  `restored` etter en annen `restored` når de målte lukene er
+  tilstøtende i forventet sekvens. `maxContinuousFrames` er
+  lengste observerte sammenhengende statuskjede.
+
+Prøvestatuser er **ikke kjøretøyspor**. Et tre-frame-minne beviser
+ikke at samme primærbuss var GPS-synlig på alle tre, enda mindre at
+den var fysisk ved A→B→C. Hvis kjedene stadig slutter etter to
+frames, kan den strenge treminutters-retensjonen og prøveintervallet
+begrense mulig fremdrift. Vi må da undersøke faktiske
+innsamlingstidspunkter eller andre datakilder før vi endrer
+retensjon/sampling; ikke øk GPS-radius, TTL eller antall Entur-kall
+blindt.
+
+Ingen rå kjøretøy-ID-er, pseudonymer, GPS-posisjoner, Quay-strenger
+eller tidslinjer per kjøretøy legges til V2.7-rapporten.

@@ -313,6 +313,45 @@ const sumLine=(lines,code,vals)=>{
   for(const key of FRAME_MATCH)dest.frameMatch[key]+=vals.frameMatch[key];
  }
 };
+// V2.7: cadence evidence is derived from EXISTING per-slot V2.5 status
+// counters. No individual journey, HMAC token, Quay, or precise GPS coordinate.
+const CADENCE_STATES=['fresh','restored','expired','catalogChanged','keyRotated'];
+const cadenceLane=()=>({frames:0,fresh:0,restored:0});
+export function summarizeV25Cadence(records=[]){
+ const out={frames:0,lanes:Object.fromEntries(LANES.map(l=>[l,cadenceLane()])),
+  sameSlotFreshRestored:0,nextSlotFreshAfterRestored:0,
+  nextSlotRestoredAfterRestored:0,threePlusFrameContinuations:0,
+  maxContinuousFrames:0};
+ const ordering={catalog:0,'line1-fast':1,'dual-fast':2};
+ const sorted=records.filter(r=>Number.isSafeInteger(r?.slot)&&r.slot>=0&&
+  LANES.includes(r.lane)&&CADENCE_STATES.includes(r.status))
+  .sort((a,b)=>a.slot-b.slot||ordering[a.lane]-ordering[b.lane]);
+ let previous=null,streak=0;
+ for(const row of sorted){
+  out.frames++;
+  const c=out.lanes[row.lane];c.frames++;
+  if(row.status==='fresh')c.fresh++;
+  if(row.status==='restored')c.restored++;
+  const sameSlot=previous?.lane==='catalog'&&row.lane!=='catalog'&&
+   row.slot===previous.slot;
+  const crossSlot=previous?.lane!=='catalog'&&row.lane==='catalog'&&
+   row.slot-previous.slot===300000;
+  const adjacent=sameSlot||crossSlot;
+  if(sameSlot&&previous.status==='fresh'&&row.status==='restored')
+   out.sameSlotFreshRestored++;
+  if(crossSlot&&previous.status==='restored'&&row.status==='fresh')
+   out.nextSlotFreshAfterRestored++;
+  if(crossSlot&&previous.status==='restored'&&row.status==='restored')
+   out.nextSlotRestoredAfterRestored++;
+  if(adjacent&&row.status==='restored'&&previous){
+   streak++;
+   if(previous.status==='restored')out.threePlusFrameContinuations++;
+  }else streak=1;
+  out.maxContinuousFrames=Math.max(out.maxContinuousFrames,streak);
+  previous=row;
+ }
+ return out;
+}
 export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
  const today=dayOf(now),yesterday=dayOf(Date.UTC(Number(today.slice(0,4)),
   Number(today.slice(5,7))-1,Number(today.slice(8))-1,12));
@@ -329,6 +368,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
   lines:Object.fromEntries(LINES.map(code=>[code,{frames:0,primary:0,matchedPrior:0,
    compared:0,supported:0,retained:0,narrowed:0,resolved:0,
    followupFrames:0,...Object.fromEntries(FOLLOWUP_FIELDS.map(k=>[k,0]))}]))};
+ const cadenceRows=[];
  let first=null,last=null;
  for(const item of entries.values()){
   if(!LANES.includes(item?.lane)||item.day!==chosen)continue;
@@ -339,6 +379,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    for(const k of MEMORY)memory[k]+=item.metrics.memory[k];
   }
   if(item.metrics.v25){
+   cadenceRows.push({slot:item.slot,lane:item.lane,status:item.metrics.v25.status});
    const s=item.metrics.v25;
    v25.frames++;v25.states[s.status]++;
    v25.restoredTracks+=s.restoredTracks;v25.tracksWritten+=s.tracksWritten;
@@ -363,6 +404,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    spots[name].overlappingQuays+=values.overlappingQuays;
   }
  }
+ v25.cadence=summarizeV25Cadence(cadenceRows);
  return {version:1,scope:'trondheim-gps-v22-scheduled-quality',
   day:chosen,timezone:'Europe/Oslo',status:LANES.some(
    lane=>lanes[lane].samples>0)?'SAMPLES':'NO_SAMPLES',
@@ -377,6 +419,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    'V2.4 frame-overlap compares only primary GPS IDs in consecutive sampled frames; missing IDs are not proof of Entur identity changes.',
    'V2.5 restores only at most 3-minute-old HMAC-tokenized source-pattern hypotheses, bounded to 128 temporary tracks; no raw ID, destination, GPS coordinate or Quay is written.',
    'V2.6 follow-up counters have separate coverage and count only restored source-compatible pattern-index candidates. A three-point candidate never proves actual passage or correct direction.',
+   'V2.7 cadence is a retrospective calculation from pre-existing V2.5 slot/lane/status counters; no new per-bus data or sampling. It distinguishes within-slot two-frame restoration from across-slot continuity. Slot spacing is not precise source or vehicle timing.',
    'V2.5 shadow key and pattern indexes are pseudonymous, not fully anonymous; automatic Durable Object alarm deletes them after 3 minutes plus a small scheduling grace period.',
    'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
    'Higher candidate support is not validated GPS accuracy.'

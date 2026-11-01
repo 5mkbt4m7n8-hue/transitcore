@@ -21,6 +21,11 @@ const V25_FIELDS=['frames','primary','matchedPrior','compared','supported',
  'restoredAmbiguous','restoredChanged','restoredNarrowed',
  'restoredDirection','restoredABC'];
 const V25_STATES=['fresh','restored','expired','catalogChanged','keyRotated'];
+const CADENCE_FIELDS=['frames','sameSlotFreshRestored',
+ 'nextSlotFreshAfterRestored','nextSlotRestoredAfterRestored',
+ 'threePlusFrameContinuations','maxContinuousFrames'];
+const CADENCE_LANES=['catalog','line1-fast','dual-fast'];
+const CADENCE_LANE_FIELDS=['frames','fresh','restored'];
 const count=x=>Number.isSafeInteger(x)&&x>=0?x:null;
 export function summarizeV22Daily(payload){
  if(payload?.scope!=='trondheim-gps-v22-scheduled-quality')return null;
@@ -44,6 +49,13 @@ export function summarizeV22Daily(payload){
     states:Object.fromEntries(V25_STATES.map(k=>[k,count(payload.v25?.states?.[k])])),
     restoredTracks:count(payload.v25?.restoredTracks),
     tracksWritten:count(payload.v25?.tracksWritten),
+    cadence:payload.v25?.cadence?{
+     ...Object.fromEntries(CADENCE_FIELDS.map(k=>[
+      k,count(payload.v25.cadence[k])])),
+     lanes:Object.fromEntries(CADENCE_LANES.map(k=>[k,
+      Object.fromEntries(CADENCE_LANE_FIELDS.map(f=>[
+       f,count(payload.v25.cadence.lanes?.[k]?.[f])]))]))
+    }:null,
     lines:Object.fromEntries(['1','11'].map(line=>[line,
      Object.fromEntries(V25_FIELDS.map(k=>[k,count(payload.v25?.lines?.[line]?.[k])]))]))
    }};
@@ -115,7 +127,22 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
     ['1','11'].map(line=>{const m=proof.daily.v25.lines[line];return '| '+line+' | '+
      ['followupFrames','restoredWithCandidates','restoredAmbiguous','restoredChanged',
       'restoredNarrowed','restoredDirection','restoredABC'].map(k=>m[k]??'—').join(' | ')+' |';}).join('\n')+
-    '\n\nTrepunkt-kandidat er aldri attestert faktisk holdeplasspassering.\n'):'')+
+    '\n\nTrepunkt-kandidat er aldri attestert faktisk holdeplasspassering.\n'+
+    (proof.daily.v25.cadence?('\n### V2.7 – målekjede og 3-minutters minne\n\n'+
+     '| Observasjoner | Katalog nye | Katalog gjenopprettet | Fast nye | Fast gjenopprettet | Par innen tidsluke | Ny start etter fast | Fortsettelse etter fast | ≥3 sammenhengende frames | Lengste kjede |\n'+
+     '|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n'+
+     [proof.daily.v25.cadence.frames,
+      proof.daily.v25.cadence.lanes.catalog.fresh,
+      proof.daily.v25.cadence.lanes.catalog.restored,
+      proof.daily.v25.cadence.lanes['dual-fast'].fresh,
+      proof.daily.v25.cadence.lanes['dual-fast'].restored,
+      proof.daily.v25.cadence.sameSlotFreshRestored,
+      proof.daily.v25.cadence.nextSlotFreshAfterRestored,
+      proof.daily.v25.cadence.nextSlotRestoredAfterRestored,
+      proof.daily.v25.cadence.threePlusFrameContinuations,
+      proof.daily.v25.cadence.maxContinuousFrames].map(x=>x??'—').join(' | ')+' |\n\n'+
+     'Dette gjelder testminnets rammer, ikke tre observerte holdeplasser.\n'):''))
+    :'')+
    (proof.daily?'\n### GPS V2.4 memory lifecycle (only new V2.4-sample frames)\n\n'+
     '| V2.4 frames | Fresh volatile state | Catalog reset | Continued | Prior ≤3m | Prior >3m | Prior unknown |\n'+
     '|---:|---:|---:|---:|---:|---:|---:|\n'+

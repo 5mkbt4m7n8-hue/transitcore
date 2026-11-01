@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {evaluateV25,expireV25State,sanitizeV25,V25_KEY,V25_TTL}
  from '../worker/trondheim-gps-v25.mjs';
 import {createVolatileState,evaluateV22,validateV22,
- reportV22Storage,observeV22Internal} from '../worker/trondheim-gps-v22.mjs';
+ reportV22Storage,observeV22Internal,summarizeV25Cadence} from '../worker/trondheim-gps-v22.mjs';
 
 const source=JSON.parse(readFileSync(new URL('../config/gps/atb-journey-patterns-1-11.json',import.meta.url),'utf8'));
 const a=source.lines['1'].patterns.find(p=>p.quays.length>5).quays;
@@ -168,4 +168,28 @@ altered.lines['1'].restoredABC=altered.lines['1'].restoredDirection+1;
 assert.equal(sanitizeV25(altered,'dual-fast'),null);
 assert(!JSON.stringify(ambiguousStore.map.get(V25_KEY)).includes('NSR:Quay:'));
 assert(!JSON.stringify(ambiguousStore.map.get(V25_KEY)).includes(raw1));
+// V2.7 analyses existing V2.5 frame statuses, never reconstructs bus history.
+const paired=summarizeV25Cadence([
+ {slot:t0,lane:'catalog',status:'fresh'},
+ {slot:t0,lane:'dual-fast',status:'restored'},
+ {slot:t0+300000,lane:'catalog',status:'fresh'},
+ {slot:t0+300000,lane:'dual-fast',status:'restored'}
+]);
+assert.equal(paired.frames,4);
+assert.equal(paired.sameSlotFreshRestored,2);
+assert.equal(paired.nextSlotFreshAfterRestored,1);
+assert.equal(paired.nextSlotRestoredAfterRestored,0);
+assert.equal(paired.threePlusFrameContinuations,0);
+assert.equal(paired.maxContinuousFrames,2);
+const chained=summarizeV25Cadence([
+ {slot:t0,lane:'catalog',status:'fresh'},
+ {slot:t0,lane:'dual-fast',status:'restored'},
+ {slot:t0+300000,lane:'catalog',status:'restored'},
+ {slot:t0+300000,lane:'dual-fast',status:'restored'}
+]);
+assert.equal(chained.nextSlotRestoredAfterRestored,1);
+assert.equal(chained.threePlusFrameContinuations,2);
+assert.equal(chained.maxContinuousFrames,4);
+assert.equal(roll.v25.cadence.sameSlotFreshRestored,1);
+assert.equal(roll.v25.cadence.maxContinuousFrames,2);
 console.log('V2.5 PASS: HMAC-only 3m bounded storage, restore after DO cold starts, alarm expiry, catalog reset, failure isolation, V2.4 backwards compatibility and zero source GPS/identity persistence');
