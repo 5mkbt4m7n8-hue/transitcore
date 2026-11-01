@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import v21 from '../web/linear/network/gps-v2-shadow.js';
 import {readFileSync} from 'node:fs';
 import {evaluateV25,expireV25State,sanitizeV25,V25_KEY,V25_TTL}
  from '../worker/trondheim-gps-v25.mjs';
@@ -45,6 +46,23 @@ assert(store.alarms.length===1);
 const record=store.map.get(V25_KEY);
 assert(record&&record.tracks.length>=2,'First frame must write bounded hypothesis tracks');
 assert.equal(record.expiresAt,t0+V25_TTL+5000);
+// V2.9: 240 s is an explicit, isolated shadow-engine option. The active
+// GPS V2.1 and V2.5 callers keep their implicit, unchanged 180 s default.
+const at200=t0+200000;
+const standard=v21.create({board,patterns:source});
+const sandbox240=v21.create({board,patterns:source,trackTtlMs:240000});
+assert.equal(standard.restoreSnapshot(record.tracks,{now:at200}),0,
+ 'Default 180s V2.1 engine must reject a 199s-old hypothesis');
+assert.equal(sandbox240.restoreSnapshot(record.tracks,{now:at200}),record.tracks.length,
+ 'Explicit 240s engine may restore the SAME old HMAC snapshot at 199s');
+assert.equal(sandbox240.exportSnapshot({now:at200}).length,record.tracks.length,
+ '240s engine must preserve eligible hypothesis indexes on export');
+assert.throws(()=>v21.create({board,patterns:source,trackTtlMs:241000}),
+ /invalid-v21-shadow-configuration/,'Other TTL values remain forbidden');
+assert.throws(()=>v21.create({board,patterns:source,trackTtlMs:0}),
+ /invalid-v21-shadow-configuration/,'Zero TTL is forbidden');
+// Comparison uses synthetic time and a short-lived fake-store record only;
+// no additional key, alarm, token retention or provider call is introduced.
 const persisted=JSON.stringify(record);
 for(const forbidden of [raw1,raw11,'latitude','longitude','PRIVATE_DESTINATION',
  'NSR:Quay:','vehicleId','destination'])
