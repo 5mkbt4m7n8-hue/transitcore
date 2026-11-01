@@ -11,6 +11,7 @@ on:
       - 'worker/trondheim-strict-shadow.mjs'
       - 'worker/trondheim-gps-v22.mjs'
       - 'scripts/test-trondheim-gps-v22.mjs'
+      - 'scripts/test-trondheim-gps-v23.mjs'
       - 'scripts/probe-trondheim-gps-v22-live.mjs'
       - 'scripts/test-trondheim-gps-v22-daily-audit.mjs'
       - 'scripts/probe-trondheim-source-priorities-live.mjs'
@@ -27,6 +28,7 @@ on:
       - 'worker/trondheim-strict-shadow.mjs'
       - 'worker/trondheim-gps-v22.mjs'
       - 'scripts/test-trondheim-gps-v22.mjs'
+      - 'scripts/test-trondheim-gps-v23.mjs'
       - 'scripts/probe-trondheim-gps-v22-live.mjs'
       - 'scripts/test-trondheim-gps-v22-daily-audit.mjs'
       - 'scripts/probe-trondheim-source-priorities-live.mjs'
@@ -51,6 +53,8 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+      - name: Test GPS V2.3 dual-line scheduled telemetry and nonpersistent identity
+        run: node scripts/test-trondheim-gps-v23.mjs
       - name: Test Cloudflare V2.2 anonymous proof and report schema
         run: node scripts/test-trondheim-gps-v22.mjs
       - name: Protect privacy of the V2.2 daily audit and verify source counters
