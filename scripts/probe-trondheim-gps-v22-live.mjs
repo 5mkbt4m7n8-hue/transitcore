@@ -15,7 +15,9 @@ const MEMORY=['frames','coldStart','catalogReset','continued',
 const FRAME_MATCH=['frames','priorFrameKnown','priorPrimary','currentPrimary',
  'repeatedPrimary','newSincePrior','absentSincePrior','uncomparablePrimary'];
 const V25_FIELDS=['frames','primary','matchedPrior','compared','supported',
- 'retained','narrowed','resolved'];
+ 'retained','narrowed','resolved','followupFrames','restoredWithCandidates',
+ 'restoredAmbiguous','restoredChanged','restoredNarrowed',
+ 'restoredDirection','restoredABC'];
 const V25_STATES=['fresh','restored','expired','catalogChanged','keyRotated'];
 const count=x=>Number.isSafeInteger(x)&&x>=0?x:null;
 export function summarizeV22Daily(payload){
@@ -104,7 +106,14 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
     '|---|---:|---:|---:|---:|---:|---:|---:|---:|\n'+
     ['1','11'].map(line=>{const m=proof.daily.v25.lines[line];return '| '+line+' | '+
      V25_FIELDS.map(k=>m[k]??'—').join(' | ')+' |';}).join('\n')+
-    '\n\nDette er kun kildemønster-hypoteser; ikke bekreftede fysiske busspasseringer.\n'):'')+
+    '\n\nDette er kun kildemønster-hypoteser; ikke bekreftede fysiske busspasseringer.\n'+
+    '\n### V2.6 – gjenopprettede spor med kandidatbevis (bare ny dekning)\n\n'+
+    '| Linje | V2.6 frames | Tidligere kandidater | Tidligere tvetydig | Endret Quay-kandidatsett | Innsnevret | Retningskandidat | Trepunkt-kandidat |\n'+
+    '|---|---:|---:|---:|---:|---:|---:|---:|\n'+
+    ['1','11'].map(line=>{const m=proof.daily.v25.lines[line];return '| '+line+' | '+
+     ['followupFrames','restoredWithCandidates','restoredAmbiguous','restoredChanged',
+      'restoredNarrowed','restoredDirection','restoredABC'].map(k=>m[k]??'—').join(' | ')+' |';}).join('\n')+
+    '\n\nTrepunkt-kandidat er aldri attestert faktisk holdeplasspassering.\n'):'')+
    (proof.daily?'\n### GPS V2.4 memory lifecycle (only new V2.4-sample frames)\n\n'+
     '| V2.4 frames | Fresh volatile state | Catalog reset | Continued | Prior ≤3m | Prior >3m | Prior unknown |\n'+
     '|---:|---:|---:|---:|---:|---:|---:|\n'+
