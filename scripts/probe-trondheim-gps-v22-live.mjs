@@ -14,6 +14,9 @@ const MEMORY=['frames','coldStart','catalogReset','continued',
  'priorWithin3m','priorAfter3m','priorUnknown'];
 const FRAME_MATCH=['frames','priorFrameKnown','priorPrimary','currentPrimary',
  'repeatedPrimary','newSincePrior','absentSincePrior','uncomparablePrimary'];
+const V25_FIELDS=['frames','primary','matchedPrior','compared','supported',
+ 'retained','narrowed','resolved'];
+const V25_STATES=['fresh','restored','expired','catalogChanged','keyRotated'];
 const count=x=>Number.isSafeInteger(x)&&x>=0?x:null;
 export function summarizeV22Daily(payload){
  if(payload?.scope!=='trondheim-gps-v22-scheduled-quality')return null;
@@ -32,7 +35,14 @@ export function summarizeV22Daily(payload){
   }]));
  return {day:typeof payload.day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(payload.day)?
    payload.day:null,lines,sites,
-   memory:Object.fromEntries(MEMORY.map(k=>[k,count(payload.memory?.[k])]))};
+   memory:Object.fromEntries(MEMORY.map(k=>[k,count(payload.memory?.[k])])),
+   v25:{frames:count(payload.v25?.frames),
+    states:Object.fromEntries(V25_STATES.map(k=>[k,count(payload.v25?.states?.[k])])),
+    restoredTracks:count(payload.v25?.restoredTracks),
+    tracksWritten:count(payload.v25?.tracksWritten),
+    lines:Object.fromEntries(['1','11'].map(line=>[line,
+     Object.fromEntries(V25_FIELDS.map(k=>[k,count(payload.v25?.lines?.[line]?.[k])]))]))
+   }};
 }
 
 const fresh=stamp=>Number.isFinite(Date.parse(stamp||''))&&
@@ -74,6 +84,7 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
  const json=JSON.stringify(proof);
  console.log('GPS_V22_PRODUCTION_PROOF',json);
  if(proof.daily)console.log('GPS_V22_DAILY_AUDIT',JSON.stringify(proof.daily));
+ if(proof.daily?.v25)console.log('GPS_V25_PRODUCTION_PROOF',JSON.stringify(proof.daily.v25));
  if(process.env.GITHUB_STEP_SUMMARY){
   const {appendFile}=await import('node:fs/promises');
   await appendFile(process.env.GITHUB_STEP_SUMMARY,
@@ -83,7 +94,17 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
    '| '+proof.status+' | '+(proof.full??'—')+' | '+(proof.fast??'—')+
    ' | '+(proof.line1Frames??'—')+' | '+(proof.line11Frames??'—')+
    ' | '+(proof.last??'—')+' |\n\n'+
-   'Ingen GPS- eller kjøretøy-ID-er er hentet. Detaljtabellen skiller ny V2.3-diagnostikk fra gamle frames.\n'+
+   'Ingen GPS- eller kjøretøy-ID-er er hentet. Nye V2.5-pseudonymer blir ikke lest av denne kontrollen.\n'+
+   (proof.daily?.v25?.frames?('\n### GPS V2.5 — 3-minutters gjenoppretting mellom DO-kaldstarter\n\n'+
+    '| Måleframes | Nytt korttidsminne | Gjenopprettet | Utløpt | Katalogendret | Nøkkelrotasjon | Gjenopprettede spor |\n'+
+    '|---:|---:|---:|---:|---:|---:|---:|\n'+
+    [proof.daily.v25.frames,...V25_STATES.map(k=>proof.daily.v25.states[k]??'—'),
+     proof.daily.v25.restoredTracks].join(' | ')+'\n\n'+
+    '| Linje | Frames | Primær-GPS | Samme pseudonym gjenkjent | V2.1 vurdert | Støttet | Beholdt flere Quays | Innsnevret | Avklart |\n'+
+    '|---|---:|---:|---:|---:|---:|---:|---:|---:|\n'+
+    ['1','11'].map(line=>{const m=proof.daily.v25.lines[line];return '| '+line+' | '+
+     V25_FIELDS.map(k=>m[k]??'—').join(' | ')+' |';}).join('\n')+
+    '\n\nDette er kun kildemønster-hypoteser; ikke bekreftede fysiske busspasseringer.\n'):'')+
    (proof.daily?'\n### GPS V2.4 memory lifecycle (only new V2.4-sample frames)\n\n'+
     '| V2.4 frames | Fresh volatile state | Catalog reset | Continued | Prior ≤3m | Prior >3m | Prior unknown |\n'+
     '|---:|---:|---:|---:|---:|---:|---:|\n'+

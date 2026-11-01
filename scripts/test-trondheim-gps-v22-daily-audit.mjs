@@ -15,7 +15,14 @@ const v={scope:'trondheim-gps-v22-scheduled-quality',day:'2026-11-01',
    extra:'UNSAFE-SECRET'}},
  spots:{'lerkendal-1':{frames:108,nearGps:7,overlappingQuays:7,
   vehicleId:privateId},'tonstadkrysset-1':{frames:108,nearGps:4,
-  overlappingQuays:0,quay},'lerkendal-11':{frames:55,nearGps:3,overlappingQuays:2}}};
+  overlappingQuays:0,quay},'lerkendal-11':{frames:55,nearGps:3,overlappingQuays:2}},
+ v25:{frames:2,states:{fresh:1,restored:1,expired:0,
+  catalogChanged:0,keyRotated:0},restoredTracks:3,tracksWritten:4,
+  secret:privateId,latitude:63.4,
+  lines:{'1':{frames:2,primary:3,matchedPrior:1,compared:3,supported:1,
+   retained:2,narrowed:0,resolved:0,vehicleId:privateId},
+   '11':{frames:2,primary:2,matchedPrior:1,compared:2,supported:0,
+    retained:1,narrowed:0,resolved:0,quay}}}};
 const s=summarizeV22Daily(v);
 assert.equal(s.lines['1'].frames,108);
 assert.equal(s.lines['1'].retained,70);
@@ -24,6 +31,10 @@ assert.equal(s.lines['1'].diagnostics.sameVehicleWithin3m,3);
 assert.equal(s.lines['1'].diagnostics.frames,6);
 assert.equal(s.lines['11'].diagnostics.frames,null,'Old V2.2 recordings are unmeasured, not zero');
 assert.equal(s.lines['11'].gpsPrimary,49);
+assert.equal(s.v25.frames,2);
+assert.equal(s.v25.states.restored,1);
+assert.equal(s.v25.lines['1'].matchedPrior,1);
+assert.equal(s.v25.lines['11'].matchedPrior,1);
 assert.equal(s.lines['11'].sourceStop,null,'Missing counters are unknown, never a zero sample');
 assert.equal(s.sites['lerkendal-1'].overlappingQuays,7);
 assert.equal(s.sites['tonstadkrysset-1'].nearGps,4);

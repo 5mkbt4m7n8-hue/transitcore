@@ -208,7 +208,67 @@
     lines:JSON.parse(JSON.stringify(last.lines)),
     caveat:last.caveat||'No valid fresh GPS frames yet.'};
   }
-  return {ingest,summary,clear:()=>{
+  // Durable V2.5 SHADOW ONLY: serialize only short-lived HMAC-tokenized
+  // hypothesis indexes (no vehicle ID, GPS coordinates or Quay strings).
+  // Calls from the browser with raw identifiers export NOTHING.
+  function exportSnapshot({now=Date.now()}={}){
+   const out=[];
+   for(const [key,t] of tracks){
+    if(!/^(1|11)\|[a-f0-9]{64}$/.test(key)||
+       !finite(t.lastSeen)||now-t.lastSeen<0||now-t.lastSeen>180000)
+     continue;
+    const info=lines.get(key.split('|')[0]),hypotheses=[];
+    for(const h of t.hypotheses){
+     const p=info?.patterns[h.pattern],originIndex=p?.quays.indexOf(h.origin);
+     if(!p||!Number.isInteger(h.index)||h.index<0||
+        h.index>=p.quays.length||p.quays[h.index]!==h.quay||
+        originIndex<0||originIndex>h.index||
+        !Number.isSafeInteger(h.moves)||h.moves<0||h.moves>24)
+      continue;
+     hypotheses.push([h.pattern,h.index,originIndex,h.moves]);
+     if(hypotheses.length>512)break;
+    }
+    if(hypotheses.length>512)continue;
+    out.push({key,lastSeen:t.lastSeen,
+     direction:validDirection(t.direction)?t.direction:null,
+     basis:['unknown','gps-sequence','provider-stop'].includes(t.basis)?t.basis:'unknown',
+     hypotheses});
+    if(out.length>=128)break;
+   }
+   return out;
+  }
+  function restoreSnapshot(rows,{now=Date.now()}={}){
+   if(!Array.isArray(rows)||rows.length>128||tracks.size)return 0;
+   let restored=0;
+   for(const row of rows){
+    if(!row||!/^(1|11)\|[a-f0-9]{64}$/.test(row.key||'')||
+       !finite(row.lastSeen)||now-row.lastSeen<0||
+       now-row.lastSeen>180000||!Array.isArray(row.hypotheses)||
+       row.hypotheses.length>512||
+       !(row.direction===null||validDirection(row.direction))||
+       !['unknown','gps-sequence','provider-stop'].includes(row.basis))
+     continue;
+    const info=lines.get(row.key.split('|')[0]);
+    if(!info)continue;
+    const hypotheses=[];
+    let valid=true;
+    for(const value of row.hypotheses){
+     if(!Array.isArray(value)||value.length!==4||
+        !value.every(Number.isSafeInteger)){valid=false;break;}
+     const [pattern,index,originIndex,moves]=value,p=info.patterns[pattern];
+     if(!p||index<0||index>=p.quays.length||originIndex<0||
+        originIndex>index||moves<0||moves>24){valid=false;break;}
+     hypotheses.push({pattern,index,quay:p.quays[index],
+      origin:p.quays[originIndex],moves});
+    }
+    if(!valid||tracks.has(row.key))continue;
+    tracks.set(row.key,{hypotheses,direction:row.direction,
+     basis:row.basis,lastSeen:row.lastSeen});
+    restored++;
+   }
+   return restored;
+  }
+  return {ingest,summary,exportSnapshot,restoreSnapshot,clear:()=>{
    tracks.clear();lastAt=-Infinity;lastSource=null;frames=0;
    last={status:'NO_FRAMES',frames:0,lines:{}};}};
  }
