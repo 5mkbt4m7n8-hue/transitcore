@@ -51,7 +51,8 @@ assert.equal(appeared.lines['1'].frameMatch.priorFrameKnown,1);
 assert.equal(appeared.lines['1'].frameMatch.priorPrimary,0);
 assert.equal(appeared.lines['1'].frameMatch.newSincePrior,1);
 assert.equal(appeared.lines['1'].frameMatch.uncomparablePrimary,0);
-assert.equal(appeared.lines['1'].diagnostics.sameVehicleWithin3m,1);
+assert.equal(appeared.lines['1'].diagnostics.sameVehicleAfter3m,1,
+ 'The previous FRAME was 2min ago but the same BUS was last seen 5min ago');
 assert.equal(appeared.memory.priorWithin3m,1);
 for(const report of [baseline,next,missing,appeared])assert(validateV22(report));
 const old=structuredClone(next);
