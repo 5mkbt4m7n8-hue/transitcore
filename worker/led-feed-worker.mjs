@@ -20,6 +20,7 @@ import {dayHistoryStorage,handleTrondheimHistory,recordScheduledTrondheimFrame} 
 import {reconcileTrondheimGpsSource} from "./trondheim-gps-source-reconciliation.mjs";
 import {evaluateStrictShadow} from "./trondheim-strict-shadow.mjs";
 import {recordScheduledV22,handleV22Public,v22Storage,observeV22Internal} from "./trondheim-gps-v22.mjs";
+import {expireV25State} from "./trondheim-gps-v25.mjs";
 import {summarizeLine1ScheduledFrame} from "./trondheim-line1-quality.mjs";
 import {fastLine1Storage,recordScheduledFastLine1,handleFastLine1History} from "./trondheim-line1-fast.mjs";
 import {trondheimCatalogProfiles} from "./trondheim-catalog-profiles.mjs";
@@ -471,8 +472,15 @@ export function buildSignalTestSequence({
 export class DeviceStatus {
   constructor(state) {
     this.state = state;
-    // Only volatile object memory, never persisted GPS or vehicle identities.
+    // Only volatile object memory. GPS V2.5 has a separate expiring
+    // HMAC-pseudonymous snapshot, never a raw vehicle ID or GPS position.
     this.gpsV22Volatile={engine:null,fingerprint:null};
+  }
+
+  // Expire ONLY the dedicated V2.5 shadow key; never touch device registry
+  // or existing GPS quality samples. Invoked by Cloudflare DO Alarms.
+  async alarm(){
+    await expireV25State(this.state.storage);
   }
 
   async fetch(request) {
