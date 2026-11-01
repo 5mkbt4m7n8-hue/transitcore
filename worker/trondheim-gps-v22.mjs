@@ -290,12 +290,17 @@ export async function recordV22Storage(storage,{at,lane,metrics=null,error=false
 }
 const sumLine=(lines,code,vals)=>{
  const dest=lines[code]||(lines[code]={frames:0,...zero(),
-  diagnostics:{frames:0,...zeroDiag()}});
+  diagnostics:{frames:0,...zeroDiag()},
+  frameMatch:{frames:0,...zeroFrameMatch()}});
  dest.frames++;
  for(const k of FIELDS)dest[k]+=vals[k];
  if(vals.diagnostics){
   dest.diagnostics.frames++;
   for(const key of DIAG_FIELDS)dest.diagnostics[key]+=vals.diagnostics[key];
+ }
+ if(vals.frameMatch){
+  dest.frameMatch.frames++;
+  for(const key of FRAME_MATCH)dest.frameMatch[key]+=vals.frameMatch[key];
  }
 };
 export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
@@ -308,11 +313,16 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
  const lines={},spots=Object.fromEntries(SPOTS.map(([name,code])=>
   [name,{line:code,...siteZero(),frames:0}]));
  const lanes=Object.fromEntries(LANES.map(lane=>[lane,{samples:0,errors:0}]));
+ const memory={frames:0,...zeroMemory()};
  let first=null,last=null;
  for(const item of entries.values()){
   if(!LANES.includes(item?.lane)||item.day!==chosen)continue;
   if(item.status!=='OK'||!validateV22(item.metrics)){lanes[item.lane].errors++;continue;}
   lanes[item.lane].samples++;
+  if(item.metrics.memory){
+   memory.frames++;
+   for(const k of MEMORY)memory[k]+=item.metrics.memory[k];
+  }
   const ts=new Date(item.slot).toISOString();
   if(!first||ts<first)first=ts;if(!last||ts>last)last=ts;
   for(const [code,values] of Object.entries(item.metrics.lines))
@@ -327,13 +337,15 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
  return {version:1,scope:'trondheim-gps-v22-scheduled-quality',
   day:chosen,timezone:'Europe/Oslo',status:LANES.some(
    lane=>lanes[lane].samples>0)?'SAMPLES':'NO_SAMPLES',
-  lanes,first,last,lines,spots,
+  lanes,first,last,lines,spots,memory,
   limitations:[
    'Sampling: 5-minute catalog plus existing offset Line 1 fast history; V2.3 dual-fast also measures Line 11 using the SAME AtB source response, no extra provider requests.',
    'V2.0 and V2.1 use the same sample; route hypotheses live in volatile DO memory and may reset.',
    'Older Line 11 five-minute-only samples are too sparse for proven stop sequences; V2.3 diagnostics start only on new samples.',
    'Near a focus Quay is geometric proximity only, never a physical arrival or correct platform.',
    'Only primary LED vehicle has usable GPS; IDs and positions are not persisted.',
+   'V2.4 measures first use of volatile DO memory and catalog resets but cannot identify why Cloudflare started a new instance.',
+   'V2.4 frame-overlap compares only primary GPS IDs in consecutive sampled frames; missing IDs are not proof of Entur identity changes.',
    'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
    'Higher candidate support is not validated GPS accuracy.'
   ]};
@@ -390,10 +402,13 @@ export async function observeV22Internal(storage,request,volatile,now=Date.now()
   try{
    // Changing catalog geometry invalidates the prior ephemeral hypotheses.
    const fingerprint=v23BoardSignature(board);
-   if(!volatile.engine||volatile.fingerprint!==fingerprint){
+   let memory='continued';
+   if(!volatile.engine)memory='coldStart';
+   else if(volatile.fingerprint!==fingerprint)memory='catalogReset';
+   if(memory!=='continued'){
     volatile.engine=createVolatileState(board);volatile.fingerprint=fingerprint;
    }
-   metrics=evaluateV22(frame,board,volatile.engine,{lane});
+   metrics=evaluateV22(frame,board,volatile.engine,{lane,memory});
    if(!validateV22(metrics))throw Error('invalid_v22_metrics');
   }catch(err){
    // Fail closed instead of recording fake zero GPS traffic.
