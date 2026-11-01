@@ -5,7 +5,7 @@
 import v20 from '../web/linear/network/gps-v20-baseline.js';
 import v21 from '../web/linear/network/gps-v2-shadow.js';
 import sourcePatterns from '../config/gps/atb-journey-patterns-1-11.json' with {type:'json'};
-import {evaluateV25,sanitizeV25} from './trondheim-gps-v25.mjs';
+import {evaluateV25,evaluateV29,sanitizeV25,sanitizeV29} from './trondheim-gps-v25.mjs';
 
 const BOARD='trondheim-city-lines-catalog',ROOT='trondheim-gps-v22:v1:';
 const LINES=['1','11'],LANES=['catalog','line1-fast','dual-fast'],CUTOFF=85;
@@ -257,6 +257,13 @@ export function validateV22(value){
    return null;
   safe.v25=shadow;
  }
+ if(value.v29!=null){
+  const shadow=sanitizeV29(value.v29,value.lane);
+  if(!shadow)return null;
+  for(const code of expected)if(shadow.lines[code].primary>value.lines[code].gpsPrimary)
+   return null;
+  safe.v29=shadow;
+ }
  if(value.v28!=null){
   const x=value.v28;
   if(!safe.v25||x.version!==1||
@@ -433,6 +440,11 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
   [name,{line:code,...siteZero(),frames:0}]));
  const lanes=Object.fromEntries(LANES.map(lane=>[lane,{samples:0,errors:0}]));
  const memory={frames:0,...zeroMemory()};
+ const v29={frames:0,states:{fresh:0,restored:0,expired:0,
+  catalogChanged:0,keyRotated:0},restoredTracks:0,
+  lines:Object.fromEntries(LINES.map(code=>[code,{
+   frames:0,primary:0,matchedPrior:0,restoredWithCandidates:0,
+   restoredNarrowed:0,restoredDirection:0,restoredABC:0}]))};
  const v25={frames:0,states:{fresh:0,restored:0,expired:0,
   catalogChanged:0,keyRotated:0},restoredTracks:0,tracksWritten:0,
   lines:Object.fromEntries(LINES.map(code=>[code,{frames:0,primary:0,matchedPrior:0,
@@ -447,6 +459,16 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
   if(item.metrics.memory){
    memory.frames++;
    for(const k of MEMORY)memory[k]+=item.metrics.memory[k];
+  }
+  if(item.metrics.v29){
+   const s=item.metrics.v29;
+   v29.frames++;v29.states[s.status]++;v29.restoredTracks+=s.restoredTracks;
+   for(const [code,vals] of Object.entries(s.lines)){
+    const dest=v29.lines[code];dest.frames++;
+    for(const key of ['primary','matchedPrior','restoredWithCandidates',
+     'restoredNarrowed','restoredDirection','restoredABC'])
+     dest[key]+=vals[key];
+   }
   }
   if(item.metrics.v25){
    cadenceRows.push({slot:item.slot,lane:item.lane,status:item.metrics.v25.status});
@@ -484,7 +506,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
  return {version:1,scope:'trondheim-gps-v22-scheduled-quality',
   day:chosen,timezone:'Europe/Oslo',status:LANES.some(
    lane=>lanes[lane].samples>0)?'SAMPLES':'NO_SAMPLES',
-  lanes,first,last,lines,spots,memory,v25,
+  lanes,first,last,lines,spots,memory,v25,v29,
   limitations:[
    'Sampling: 5-minute catalog plus existing offset Line 1 fast history; V2.3 dual-fast also measures Line 11 using the SAME AtB source response, no extra provider requests.',
    'V2.0 and V2.1 use the same sample; route hypotheses live in volatile DO memory and may reset.',
@@ -497,6 +519,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    'V2.6 follow-up counters have separate coverage and count only restored source-compatible pattern-index candidates. A three-point candidate never proves actual passage or correct direction.',
    'V2.7 cadence is a retrospective calculation from pre-existing V2.5 slot/lane/status counters; no new per-bus data or sampling. It distinguishes within-slot two-frame restoration from across-slot continuity. Slot spacing is not precise source or vehicle timing.',
    'V2.8 adds only second-resolution per-frame sample offset in the existing daily slot, never a vehicle timestamp. The 4-minute column is timing-only counterfactual eligibility, not real 4-minute restored tracks or proof of alarm root cause.',
+   'V2.10 runs a separate HMAC-only 240s shadow alongside the original 180s shadow, with independent random keys and the earliest-deadline shared DO alarm. Numeric candidate continuity is not proven bus-stop passage.',
    'V2.5 shadow key and pattern indexes are pseudonymous, not fully anonymous; automatic Durable Object alarm deletes them after 3 minutes plus a small scheduling grace period.',
    'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
    'Higher candidate support is not validated GPS accuracy.'
@@ -570,6 +593,11 @@ export async function observeV22Internal(storage,request,volatile,now=Date.now()
     if(v28)metrics.v28=v28;
    }catch(err){
     console.warn('gps_v25_shadow_unavailable',err?.message||'unknown');
+   }
+   try{
+    metrics.v29=await evaluateV29(storage,frame,board,{lane,now});
+   }catch(err){
+    console.warn('gps_v29_shadow_unavailable',err?.message||'unknown');
    }
    if(!validateV22(metrics))throw Error('invalid_v22_metrics');
   }catch(err){
