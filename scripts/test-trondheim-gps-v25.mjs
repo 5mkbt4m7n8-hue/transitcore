@@ -172,6 +172,12 @@ Object.assign(abcConfirmed.leds[0].vehicle,{
  state:'AT_STOP',quayId:n2.quayId,plannedSourceDirection:'outbound'});
 const providerStep=await evaluateV25(abcStore,abcConfirmed,abcBoard,{
  lane:'dual-fast',now:t0+120000});
+const providerTrackProof=abcStore.map.get(V25_KEY).tracks
+ .filter(t=>t.key.startsWith('1|')).map(t=>({
+  direction:t.direction,basis:t.basis,alternatives:t.hypotheses.length,
+  steps:[...new Set(t.hypotheses.map(h=>h[3]))]}));
+console.log('ABC_TEST_DIAGNOSTIC',JSON.stringify({
+ provider:providerStep.lines['1'],tracks:providerTrackProof}));
 assert.equal(providerStep.lines['1'].supported,1,
  'Exact provider AT_STOP must support the outward second pattern point');
 const abcThird=await evaluateV25(abcStore,make(t0+240000,third,n11),abcBoard,{
