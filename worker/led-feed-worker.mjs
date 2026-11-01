@@ -789,7 +789,22 @@ async function runFastLine1Sample(env,now=Date.now()){
   }));
   quality=summarizeLine1ScheduledFrame(frame,board);
   if(!quality)throw Error('line1_quality_unavailable');
-  v22Frame=frame;v22Board=board;
+  // Keep the existing Line 1 history sample unchanged. A second,
+  // SHADOW-ONLY frame reuses the SAME already-fetched AtB vehicle batch,
+  // now selecting both Line 1 and Line 11. No extra Entur request.
+  v22Board=board;
+  try{
+   const line11=profiles.find(p=>p.id==='atb-bus-11-live');
+   if(!line11)throw Error('line11_profile_unavailable');
+   const dualProfiles=[profile,line11];
+   const dualBoard={...board,routes:dualProfiles.map(p=>p.id)};
+   const dualVehicles=vehicles.filter(v=>['1','11'].includes(String(v.publicCode)));
+   v22Frame=buildPixelFrame(frameContext({
+    board:dualBoard,profiles:dualProfiles,hardware,vehicles:dualVehicles,now
+   }));
+  }catch(cause){
+   console.warn('gps_v23_dual_fast_frame_unavailable',cause?.message||'unknown');
+  }
  }catch(cause){
   error=String(cause?.code||cause?.message||'feed_unavailable').slice(0,100);
   console.warn('line1_fast_source_error',error);
@@ -798,10 +813,10 @@ async function runFastLine1Sample(env,now=Date.now()){
   await boundedOperation('line1_fast_store',()=>recordScheduledFastLine1(
    env,quality,error,new Date(now).toISOString()),1800,{source:'line1-fast'});
  }catch(cause){console.error('line1_fast_history_write_failed',cause.message);}
- // Same already fetched line 1 GPS batch; no new Entur traffic.
+ // Same AtB batch for Lines 1 and 11, no new Entur traffic.
  try{
   await boundedOperation('gps_v22_fast',()=>recordScheduledV22(
-   env,v22Frame,v22Board,'line1-fast',new Date(now).toISOString(),!v22Frame),
+   env,v22Frame,v22Board,'dual-fast',new Date(now).toISOString(),!v22Frame),
    2000,{source:'line1-fast'});
  }catch(cause){console.warn('gps_v22_fast_store_failed',cause?.message||'unknown');}
 }
