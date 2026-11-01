@@ -448,7 +448,12 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
   paired:{frames:0,lines:Object.fromEntries(LINES.map(code=>[
    code,{frames:0,matchedPrior:0,longMatchedPrior:0,
     extraMatches:0,lostMatches:0,gainFrames:0,lossFrames:0,
-    sameFrames:0,candidateFrames:0,
+    sameFrames:0,
+    lossFramesLongNotRestoredShortRestored:0,
+    lostMatchesLongNotRestoredShortRestored:0,
+    lossFramesBothRestored:0,lostMatchesBothRestored:0,
+    lossFramesOther:0,lostMatchesOther:0,
+    candidateFrames:0,
     restoredWithCandidates:0,longWithCandidates:0,
     extraCandidates:0,lostCandidates:0,
     restoredNarrowed:0,longNarrowed:0,
@@ -488,8 +493,19 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
      dest.longMatchedPrior+=long.matchedPrior;
      const delta=long.matchedPrior-short.matchedPrior;
      if(delta>0){dest.extraMatches+=delta;dest.gainFrames++;}
-     else if(delta<0){dest.lostMatches-=delta;dest.lossFrames++;}
-     else dest.sameFrames++;
+     else if(delta<0){
+      const lost=-delta;dest.lostMatches+=lost;dest.lossFrames++;
+      // A new/expired 240s shadow cannot know the older 180s history.
+      // Count startup/expiry separately from losses with both restored.
+      if(s.status!=='restored'&&item.metrics.v25.status==='restored'){
+       dest.lossFramesLongNotRestoredShortRestored++;
+       dest.lostMatchesLongNotRestoredShortRestored+=lost;
+      }else if(s.status==='restored'&&item.metrics.v25.status==='restored'){
+       dest.lossFramesBothRestored++;dest.lostMatchesBothRestored+=lost;
+      }else{
+       dest.lossFramesOther++;dest.lostMatchesOther+=lost;
+      }
+     }else dest.sameFrames++;
      if(FOLLOWUP_FIELDS.every(k=>Number.isSafeInteger(short[k]))){
       dest.candidateFrames++;
       dest.restoredWithCandidates+=short.restoredWithCandidates;
@@ -560,6 +576,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    'V2.8 adds only second-resolution per-frame sample offset in the existing daily slot, never a vehicle timestamp. The 4-minute column is timing-only counterfactual eligibility, not real 4-minute restored tracks or proof of alarm root cause.',
    'V2.10 runs a separate HMAC-only 240s shadow alongside the original 180s shadow, with independent random keys and the earliest-deadline shared DO alarm. Numeric candidate continuity is not proven bus-stop passage.',
    'V2.11 matchedPrior comparison uses identical frames with both shadows available, and reports positive and negative differences separately. Candidate comparisons have separate followup coverage. These are GPS observations, not unique vehicles or verified stop passages.',
+   'V2.12 separates negative 240s/180s comparisons by V2.5/V2.10 snapshot status: 240s not restored while 180s restored, both restored, or other. This explains startup bias without claiming a per-vehicle identity or accuracy.',
    'V2.5 shadow key and pattern indexes are pseudonymous, not fully anonymous; automatic Durable Object alarm deletes them after 3 minutes plus a small scheduling grace period.',
    'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
    'Higher candidate support is not validated GPS accuracy.'

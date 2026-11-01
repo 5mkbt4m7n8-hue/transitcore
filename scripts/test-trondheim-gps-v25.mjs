@@ -185,6 +185,8 @@ assert.equal(roll.v29.paired.lines['1'].matchedPrior,1);
 assert.equal(roll.v29.paired.lines['1'].longMatchedPrior,1);
 assert.equal(roll.v29.paired.lines['1'].gainFrames,0);
 assert.equal(roll.v29.paired.lines['1'].sameFrames,2);
+assert.equal(roll.v29.paired.lines['1'].lostMatchesLongNotRestoredShortRestored,0);
+assert.equal(roll.v29.paired.lines['1'].lostMatchesBothRestored,0);
 assert.equal(roll.v29.paired.lines['1'].candidateFrames,2);
 assert.equal(roll.v25.states.fresh,1);
 assert.equal(roll.v25.states.restored,1);
@@ -209,6 +211,31 @@ const long190=await evaluateV29(compareStore,make(t0+310000),board,{
  lane:'catalog',now:t0+310000});
 assert.equal(short190.lines['1'].matchedPrior,0);
 assert.equal(long190.lines['1'].matchedPrior,1);
+// V2.12 classifies a 240s warmup frame separately from steady-state
+// loss, without persisting pseudonyms or raw vehicle records.
+const warmupFrame=structuredClone(ordinary);
+warmupFrame.v25=structuredClone(next); // original 180s already restored
+warmupFrame.v29=structuredClone(first4); // new 240s shadow starts fresh
+assert.equal(warmupFrame.v25.status,'restored');
+assert.equal(warmupFrame.v29.status,'fresh');
+const compareStorage=fakeStore();
+const warmupAt=new Date(t0+600000).toISOString();
+const resultWarmup=await (async()=>{
+ const {recordV22Storage}=await import('../worker/trondheim-gps-v22.mjs');
+ return recordV22Storage(compareStorage,{at:warmupAt,lane:'catalog',
+  metrics:warmupFrame},t0+601000);
+})();
+assert.equal(resultWarmup.status,'OK');
+const warmupReport=await reportV22Storage(compareStorage,{
+ day:date,now:t0+602000});
+for(const code of ['1','11']){
+ const x=warmupReport.v29.paired.lines[code];
+ assert.equal(x.lossFrames,1);
+ assert.equal(x.lossFramesLongNotRestoredShortRestored,1);
+ assert.equal(x.lostMatchesLongNotRestoredShortRestored,1);
+ assert.equal(x.lossFramesBothRestored,0);
+ assert.equal(x.lostMatchesOther,0);
+}
 const malicious29=structuredClone(ordinary);
 malicious29.v29=structuredClone(restored4);
 malicious29.v29.lines['1'].primary=9999;
