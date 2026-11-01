@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>InTransit GPS V2.6 – automatisk døgnkontroll</title>
+<title>InTransit GPS V2.7 – automatisk døgnkontroll</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1018;--panel:#16202e;--line:#314457;--ink:#f3f7ff;--muted:#a6b8cc;--blue:#8ed1ff;--green:#4dde9c}
 *{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,sans-serif;margin:0}
@@ -26,7 +26,7 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
 </head>
 <body><main>
 <nav><a href="./">← Trondheim Linear</a> · <a href="./quality-lines.html">Kvalitet for alle linjer</a></nav>
-<h1>📡 InTransit GPS V2.6</h1>
+<h1>📡 InTransit GPS V2.7</h1>
 <p>Automatisk døgnkontroll for linje 1 og 11. Cloudflare samler anonyme målinger fra <strong>eksisterende femminuttersinnsamling</strong> og den eksisterende ekstra AtB-prøven ved minutt 2. V2.3 analyserer nå <strong>både linje 1 og 11</strong> i denne samme prøvepakken, uten nye Entur-kall eller at telefonen må være åpen.</p>
 <section>
  <div class="controls">
@@ -81,6 +81,15 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
  </table></div>
 </section>
 <section>
+ <h2>V2.7 · rekker ruteminnet mer enn to prøver?</h2>
+ <p class="note">Analyserer den <strong>eksisterende</strong> V2.5-registreringen per femminuttersluke og innsamlingsbane. Katalogprøven kommer normalt rundt minutt 0 og hurtigprøven rundt minutt 2. «Neste luke» er neste femminuttersintervall, ikke eksakt tre minutters tidsavstand. Et sammenhengende minne betyr ikke at samme buss ble observert i alle målingene.</p>
+ <div id="v27Stats" class="stats"><div class="stat">Ingen V2.7-analyse ennå.</div></div>
+ <div class="scroll"><table>
+  <thead><tr><th>Prøvetype</th><th>Frames</th><th>Nytt minne</th><th>Gjenopprettet</th></tr></thead>
+  <tbody id="v27Lanes"><tr><td colspan="4">Ingen tidsprøver ennå.</td></tr></tbody>
+ </table></div>
+</section>
+<section>
  <h2>Lerkendal og Tonstadkrysset – geografiske kontrollområder</h2>
  <p class="note">Her telles <strong>ferske GPS-observasjoner innenfor 85 meter</strong> fra utvalgte, kildeidentifiserte Quays. «Flere Quays nær GPS» viser konkurrerende geometriske kandidater. Det betyr ikke feil veikant eller faktisk stopp, og disse tallene beviser ikke hvorvidt V2.1 valgte korrekt Quay.</p>
  <div class="scroll"><table>
@@ -110,6 +119,7 @@ async function render(){
  $('v24Memory').textContent='';$('v24FrameMatch').textContent='';
  $('v25Stats').textContent='';$('v25Lines').textContent='';
  $('v26Lines').textContent='';
+ $('v27Stats').textContent='';$('v27Lanes').textContent='';
  try{
   let url=API;
   if($('day').value==='previous'){
@@ -194,6 +204,30 @@ async function render(){
    return '<tr><td><strong>Linje '+code+'</strong></td>'+
     values.map(value=>'<td>'+count(value)+'</td>').join('')+'</tr>';
   }).join('');
+  const cadence=p.cadence;
+  if(cadence&&cadence.frames){
+   const stats=[
+    ['V2.5-frames undersøkt',cadence.frames],
+    ['Nytt → gjenopprettet samme luke',cadence.sameSlotFreshRestored],
+    ['Ny start ved neste katalogprøve',cadence.nextSlotFreshAfterRestored],
+    ['Fortsatt minne ved neste katalogprøve',cadence.nextSlotRestoredAfterRestored],
+    ['Restaurering etter en restaurering',cadence.threePlusFrameContinuations],
+    ['Lengste sammenhengende målekjede',cadence.maxContinuousFrames]
+   ];
+   $('v27Stats').innerHTML=stats.map(([label,n])=>
+    '<div class="stat"><small>'+esc(label)+'</small><strong>'+count(n)+'</strong></div>').join('');
+   $('v27Lanes').innerHTML=[
+    ['catalog','Fem-minutterskatalog'],['dual-fast','Ekstra felles hurtigprøve'],
+    ['line1-fast','Eldre hurtigprøve kun linje 1']
+   ].map(([key,name])=>{
+    const x=cadence.lanes?.[key]||{};
+    return '<tr><td>'+esc(name)+'</td>'+
+     [x.frames,x.fresh,x.restored].map(n=>'<td>'+count(n)+'</td>').join('')+'</tr>';
+   }).join('');
+  }else{
+   $('v27Stats').textContent='Ingen V2.5-tidsstempler å analysere.';
+   $('v27Lanes').innerHTML='<tr><td colspan="4">Ingen måledekning.</td></tr>';
+  }
   $('sites').innerHTML=Object.entries(names).map(([key,[name,line]])=>{
    const s=d.spots?.[key]||{};return '<tr><td>'+esc(name)+'</td><td>'+esc(line)+
     '</td><td>'+count(s.frames||0)+'</td><td>'+count(s.nearGps||0)+
