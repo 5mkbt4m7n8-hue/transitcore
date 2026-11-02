@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import v21 from '../web/linear/network/gps-v2-shadow.js';
 import {readFileSync} from 'node:fs';
 import {evaluateV25,evaluateV29,expireV25State,sanitizeV25,sanitizeV29,
- classifyV213Direction,
+ classifyV213Direction,classifyV217Lock,LOCK_V217,
  V25_KEY,V25_TTL,V29_KEY,V29_TTL}
  from '../worker/trondheim-gps-v25.mjs';
 import {createVolatileState,evaluateV22,validateV22,
@@ -101,6 +101,23 @@ assert.equal(classifyV213Direction(synthetic([[outbound,1,0,1],
  [outbound,2,0,1]]),'1'),'MultiQuay');
 assert.equal(classifyV213Direction(synthetic([[outbound,1,0,1]]),'1'),'NotLocked');
 assert.equal(classifyV213Direction(synthetic([[outbound,1,0,1]],'outbound'),'1'),'Locked');
+const focusIndex=(code,q)=>source.lines[code].patterns.flatMap((pattern,index)=>
+ pattern.quays.includes(q)?[[index,pattern.quays.indexOf(q),pattern.directionType]]:[]);
+const testLock=(code,quay,dir,prevDir=null)=>{
+ const [pattern,index]=focusIndex(code,quay).find(row=>row[2]===dir);
+ return classifyV217Lock(
+  {hypotheses:[[pattern,index,index,0]],direction:prevDir},
+  {hypotheses:[[pattern,index,index,1]],direction:dir},code);
+};
+assert.deepEqual(testLock('1','NSR:Quay:102733','outbound'),
+ ['lockFirst','lockQuaySame','lockTonstadShared']);
+assert.deepEqual(testLock('1','NSR:Quay:73729','inbound','inbound'),
+ ['lockRepeated','lockQuaySame','lockLerkendalCandidate']);
+assert.deepEqual(testLock('11','NSR:Quay:73421','outbound'),
+ ['lockFirst','lockQuaySame','lockLerkendalCandidate']);
+assert.deepEqual(testLock('11','NSR:Quay:73420','inbound'),
+ ['lockFirst','lockQuaySame','lockLerkendalCandidate']);
+assert.equal(classifyV217Lock(null,null,'1'),null);
 const invalidDirection=structuredClone(next);
 // V2.16: a retained lock is not support from a rejected CURRENT GPS point.
 // Exercise both independent TTLs and both pilot lines across engine restores.
@@ -109,7 +126,13 @@ for(const evaluate of [evaluateV25,evaluateV29]){
  await evaluate(isolated,make(t0),board,{lane:'catalog',now:t0});
  const locked=await evaluate(isolated,make(t0+60000,n2,n12),board,{
   lane:'dual-fast',now:t0+60000});
- for(const code of ['1','11'])assert.equal(locked.lines[code].directionReasonLocked,1);
+ for(const code of ['1','11']){
+  assert.equal(locked.lines[code].directionReasonLocked,1);
+  assert.equal(locked.lines[code].lockFirst,1);
+  assert.equal(locked.lines[code].lockRepeated,0);
+  assert.equal(locked.lines[code].lockQuayChanged,1);
+  assert.equal(locked.lines[code].lockOther,1);
+ }
  const rejected=make(t0+120000,n2,n12);
  for(const led of rejected.leds){led.vehicle.latitude=63.6;led.vehicle.longitude=10.8;}
  const beforeFrame=JSON.stringify(rejected);
@@ -120,6 +143,8 @@ for(const evaluate of [evaluateV25,evaluateV29]){
   assert.equal(unsupported.lines[code].directionReasonLocked,0,
    'Rejected GPS must not count a retained historical lock as current support');
   assert.equal(unsupported.lines[code].directionReasonNoAfter,1);
+  assert.equal(LOCK_V217.reduce((n,k)=>n+unsupported.lines[code][k],0),0,
+   'Rejected current GPS must produce zero V2.17 lock evidence');
   assert.equal(partition(unsupported,code),unsupported.lines[code].restoredWithCandidates);
  }
  assert(sanitizeV25(unsupported,'dual-fast'));
@@ -133,16 +158,34 @@ for(const evaluate of [evaluateV25,evaluateV29]){
  // Accepted stationary follow-up retains a hypothesis, not a new passage.
  const stationary=await evaluate(isolated,make(t0+150000,n2,n12),board,{
   lane:'dual-fast',now:t0+150000});
- for(const code of ['1','11'])assert.equal(stationary.lines[code].directionReasonLocked,1);
+ for(const code of ['1','11']){
+  assert.equal(stationary.lines[code].directionReasonLocked,1);
+  assert.equal(stationary.lines[code].lockFirst,0);
+  assert.equal(stationary.lines[code].lockRepeated,1);
+  assert.equal(stationary.lines[code].lockQuaySame,1);
+  assert.equal(stationary.lines[code].lockQuayChanged,0);
+ }
 }
 invalidDirection.lines['1'].directionReasonLocked=999;
 assert.equal(sanitizeV25(invalidDirection,'dual-fast'),null);
 const legacyDir=structuredClone(next);
-for(const line of ['1','11'])for(const suffix of v213Keys)
- delete legacyDir.lines[line]['directionReason'+suffix];
+for(const line of ['1','11']){
+ for(const suffix of v213Keys)delete legacyDir.lines[line]['directionReason'+suffix];
+ for(const key of LOCK_V217)delete legacyDir.lines[line][key];
+}
 assert(sanitizeV25(legacyDir,'dual-fast'),
  'Historical samples without V2.13 reasons stay readable');
 assert(sanitizeV25(next,'dual-fast'));
+const invalidLock=structuredClone(next);
+invalidLock.lines['1'].lockFirst=100;
+assert.equal(sanitizeV25(invalidLock,'dual-fast'),null);
+const partialLock=structuredClone(next);
+delete partialLock.lines['11'].lockRepeated;
+assert.equal(sanitizeV25(partialLock,'dual-fast'),null);
+const oldV216=structuredClone(next);
+for(const line of ['1','11'])for(const key of LOCK_V217)
+ delete oldV216.lines[line][key];
+assert(sanitizeV25(oldV216,'dual-fast'),'V2.16 historic reports remain valid');
 assert(!JSON.stringify(sanitizeV25(next,'dual-fast')).includes(raw1));
 // Repeated samples do not keep old GPS or an old Quay ID in durable storage.
 const storageLeak=JSON.stringify([...store.map]);
@@ -265,6 +308,15 @@ for(const line of ['1','11']){
 }
 for(const line of ['1','11']){
  const paired=roll.v29.paired.lines[line];
+ assert.equal(paired.lockFrames,2);
+ for(const side of ['Short','Long']){
+  const countKey=k=>paired['lock'+side][k];
+  const locks=paired['reason'+side].Locked;
+  assert.equal(countKey('lockFirst')+countKey('lockRepeated'),locks);
+  assert.equal(countKey('lockQuaySame')+countKey('lockQuayChanged'),locks);
+  assert.equal(countKey('lockTonstadShared')+
+   countKey('lockLerkendalCandidate')+countKey('lockOther'),locks);
+ }
  assert.equal(v213Keys.reduce((n,k)=>n+paired.reasonShort[k],0),
   paired.restoredWithCandidates);
  assert.equal(v213Keys.reduce((n,k)=>n+paired.reasonLong[k],0),
