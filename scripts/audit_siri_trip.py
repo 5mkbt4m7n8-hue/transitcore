@@ -174,6 +174,16 @@ def main():
     summary = '## SIRI VM/ET — GPS V2.17 source audit\n\n' + report['observedAt'] + '\n\n'
     summary += '\n'.join('- ' + c['line'] + ' / ' + c['site'] + ': ' + c['status'] for c in report['coverage'])
     summary += '\n\n' + report['scope'] + '\n\nErrors: ' + json.dumps(report['errors']) + '\n'
+    counts = {s: sum(r['status'] == s for r in report['rows']) for s in ('CONFIRMED', 'CONFLICT', 'INSUFFICIENT_EVIDENCE')}
+    summary += '\nObservation counts (not unique buses): ' + json.dumps(counts) + '\n'
+    for coverage in report['coverage']:
+        sample = next((r for r in report['rows'] if r['line'] == 'ATB:Line:2_' + coverage['line']
+                       and r['status'] == 'CONFIRMED' and r.get('sites', {}).get(coverage['site'], {}).get('status') == 'CONFIRMED'), None)
+        if sample:
+            evidence = {k: sample[k] for k in ('line', 'trip', 'day', 'recordedAt', 'etRecordedAt', 'direction', 'patternIds')}
+            evidence['site'] = coverage['site']
+            evidence['orderedNeighbours'] = sample['sites'][coverage['site']]['orderedNeighbours']
+            summary += '\nSOURCE_EVIDENCE ' + json.dumps(evidence) + '\n'
     print(summary)
     if os.environ.get('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as f:

@@ -83,6 +83,19 @@ class AuditTests(unittest.TestCase):
         self.assertTrue(all(r['status'] == 'INSUFFICIENT_EVIDENCE' for r in report['rows']))
         self.assertTrue(all(c['status'] == 'INSUFFICIENT_EVIDENCE' for c in report['coverage']))
 
+    def test_et_xml_and_partial_snapshot(self):
+        calls = ''.join('<EstimatedCall><StopPointRef>' + c['quay'] + '</StopPointRef><Order>' + c['order'] + '</Order><AimedDepartureTime>' + c['aimed'] + '</AimedDepartureTime></EstimatedCall>' for c in ET['calls'])
+        body = '<RecordedAtTime>' + VM['recordedAt'] + '</RecordedAtTime><LineRef>' + VM['line'] + '</LineRef><FramedVehicleJourneyRef><DataFrameRef>' + VM['day'] + '</DataFrameRef><DatedVehicleJourneyRef>' + VM['trip'] + '</DatedVehicleJourneyRef></FramedVehicleJourneyRef><IsCompleteStopSequence>true</IsCompleteStopSequence><EstimatedCalls>' + calls + '</EstimatedCalls>'
+        xml = ('<Siri><EstimatedTimetableDelivery><EstimatedJourneyVersionFrame><EstimatedVehicleJourney>' + body + '</EstimatedVehicleJourney></EstimatedJourneyVersionFrame></EstimatedTimetableDelivery><MoreData>true</MoreData></Siri>').encode()
+        records, partial = parse(xml, 'et')
+        self.assertTrue(partial)
+        self.assertEqual(classify(VM, records, PATTERNS, NOW)['status'], 'CONFIRMED')
+        vm_xml = ('<Siri><VehicleMonitoringDelivery><VehicleActivity><RecordedAtTime>' + VM['recordedAt'] + '</RecordedAtTime><MonitoredVehicleJourney>' + body + '</MonitoredVehicleJourney></VehicleActivity></VehicleMonitoringDelivery></Siri>').encode()
+        cat = {'lines': {'1': {'patterns': PATTERNS}, '11': {'patterns': []}}}
+        report = audit({'vm': vm_xml, 'et': xml}, cat, NOW)
+        self.assertTrue(all(r['status'] == 'INSUFFICIENT_EVIDENCE' for r in report['rows']))
+        self.assertTrue(all(c['status'] == 'INSUFFICIENT_EVIDENCE' for c in report['coverage']))
+
 
 if __name__ == '__main__':
     unittest.main()
