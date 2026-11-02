@@ -144,3 +144,22 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-studio-tools button{border:1px solid #608ba8;background:#173c53}
 .map-viewport .map-studio-grid{fill:none;stroke:#8dc3e4;stroke-opacity:.16;stroke-width:.65;pointer-events:none}
 @media(max-width:560px){.map-studio-tools label{flex:1 1 42%}.map-studio-tools button{width:100%}}
+
+/* Map Studio v0.2: display-only tracks and stations, safely separated from live LEDs. */
+.map-track-editor{flex:1 1 100%;display:flex;gap:8px;align-items:end;flex-wrap:wrap;padding:11px;border:1px solid #406b85;background:#122439;border-radius:10px}
+.map-track-editor strong,.map-track-editor small{flex:1 1 100%}
+.map-track-editor strong{color:#dceaff}.map-track-editor small{color:#9abbd3;line-height:1.45}
+.map-track-editor label{display:grid;gap:4px;font-size:12px;flex:1 1 135px}
+.map-track-editor input[type=color]{height:38px;max-width:85px}
+.map-station-platforms{pointer-events:none}
+.map-station-platforms rect{fill:none;stroke:#8dbde1;stroke-width:1.2}
+.map-studio-region-controls{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding:9px 11px;border:1px solid #a9bb5d;background:#2a2c1a;border-radius:9px}
+.map-studio-region-controls[hidden]{display:none!important}
+.map-studio-region-controls strong{flex:1 1 250px;color:#f7e9ad;font-size:12px;line-height:1.5}
+.map-studio-region-controls button{border:1px solid #ac9968}
+.map-studio-region-overlay{touch-action:none}
+.map-studio-region-draft{fill:#73bfea;fill-opacity:.1;stroke:#fce5a4;stroke-width:1.4;stroke-dasharray:6 3;pointer-events:none}
+.map-studio-region-selected{fill:#81badb;fill-opacity:.12;stroke:#fce5a4;stroke-width:1.4;stroke-dasharray:7 3;cursor:move;pointer-events:all}
+.map-studio-region-handle{fill:#fce082;stroke:#1f2637;stroke-width:2;cursor:ns-resize;pointer-events:all}
+.map-studio-tools [data-act=studioSelect][aria-pressed=true]{background:#805b27;border-color:#f4ce79}
+@media(max-width:560px){.map-track-editor label{flex:1 1 115px}.map-studio-region-controls button{width:100%}}
