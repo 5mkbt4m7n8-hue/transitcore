@@ -10,7 +10,7 @@
   if(!model||!displayStation||!Array.isArray(displayStation.members))return [];
   const age=frame?.generatedAt?now-Date.parse(frame.generatedAt):NaN;
   const ttl=Number(frame?.ttlSeconds||30)*1000;
-  const validFrame=Number.isFinite(age)&&age>=0&&age<=ttl;
+  const validFrame=Array.isArray(frame?.leds)&&Number.isFinite(age)&&age>=0&&age<=ttl;
   const allAssignments=hardware?.assignments||[];
   const physicalByLogical=new Map(allAssignments.map(a=>[a.logicalLed,a.physicalLed]));
   const quayByPhysical=new Map;
