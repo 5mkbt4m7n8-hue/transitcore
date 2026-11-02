@@ -312,9 +312,12 @@ assert.equal(ambFollow.lines['1'].restoredChanged,1);
 assert.equal(ambFollow.lines['1'].restoredNarrowed,1);
 assert(ambFollow.lines['1'].restoredABC<=ambFollow.lines['1'].restoredDirection);
 const oldEvidence=structuredClone(next);
-for(const l of ['1','11'])for(const k of ['restoredWithCandidates',
- 'restoredAmbiguous','restoredChanged','restoredNarrowed',
- 'restoredDirection','restoredABC'])delete oldEvidence.lines[l][k];
+for(const l of ['1','11']){
+ for(const k of ['restoredWithCandidates','restoredAmbiguous',
+  'restoredChanged','restoredNarrowed','restoredDirection','restoredABC'])
+  delete oldEvidence.lines[l][k];
+ for(const key of v213Keys)delete oldEvidence.lines[l]['directionReason'+key];
+}
 assert(sanitizeV25(oldEvidence,'dual-fast'),'Old V2.5 reports stay readable');
 const altered=structuredClone(next);
 altered.lines['1'].restoredABC=altered.lines['1'].restoredDirection+1;
