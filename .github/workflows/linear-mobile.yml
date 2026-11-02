@@ -131,6 +131,9 @@ jobs:
       - name: Verify InTransit layout, mapping and editor
         run: node scripts/test-intransit-map.mjs
 
+      - name: Verify Map Studio vector tracks and area transformations
+        run: node scripts/test-map-studio.mjs
+
       - name: Verify protected persistent Linear cloud drafts
         run: node scripts/test-linear-cloud-draft.mjs
 
