@@ -335,7 +335,7 @@
    }
    renderLiveDebug();
   }
-  function details(stop){syncGeoLink(stop.id);
+  function details(stop){if(selectedQuay&&!stop.bindings.some(b=>b.stopId===selectedQuay))selectedQuay=null;syncGeoLink(stop.id);
    const quayIds=selectedQuay?[selectedQuay]:selectedSide&&stop.diodeMode==='split'
     ?Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===selectedSide&&r.verification==='user-reviewed').map(([id])=>id)
     :null;
@@ -423,7 +423,7 @@
     const leftovers=D.uniqueQuays(stop).filter(id=>!groupedQuays.get(stop.id)?.has(id));
     const resolved=M.resolve(recordedStop(stop),activeBoard(),activeHardware())
      .filter(b=>!groupedQuays.get(stop.id)?.has(b.stopId));
-    if(stop.verification==='confirmed'&&!editing&&!context.all&&!playback&&!resolved.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
+    if(stop.verification==='confirmed'&&!context.all&&!playback&&!resolved.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id&&!groupedQuays.has(stop.id))continue;
     const sides=stop.diodeMode==='split'?['left','right']:[null];
     sides.forEach((side,i)=>{
      const mapped=side===null?[]:Object.entries(stop.platformSides||{}).filter(([,r])=>r.verification==='user-reviewed'&&r.side===side).map(([id])=>id);
