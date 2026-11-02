@@ -764,7 +764,7 @@
     try{
      T.transformArea(next,regionSelection,{mode:drag.regionMode,dx:p.x-drag.start.x,dy:p.y-drag.start.y});
      drag.next=next;layout=next;draw();
-    }catch(error){q('details').textContent=error.message;}
+    }catch(error){drag.next=null;layout=drag.before;draw();q('details').textContent=error.message;}
     return;
    }
    if(editing&&(placementMode||routeSketch)){
@@ -800,7 +800,7 @@
     return;
    }
    if(editing&&(placementMode||routeSketch))return;
-   if(drag?.next){try{editor.import(drag.next);}catch(error){layout=editor.get();q('details').textContent=error.message;}}
+   if(drag?.next){try{editor.import(drag.next);if(drag.mode==='region'&&regionSelection){const bounds=regionBounds();if(bounds)regionSelection.bounds=bounds;}}catch(error){layout=editor.get();q('details').textContent=error.message;}}
    drag=null;draw();
   }
   svg.onpointerup=end;svg.onpointercancel=()=>{pointers.clear();drag=null;regionDraft=null;regionSelecting=false;syncRegionControls();placementGestureMoved=true;layout=editor.get();draw();};
