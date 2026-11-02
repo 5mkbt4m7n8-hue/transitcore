@@ -57,13 +57,8 @@
  function geometry(layout,ds){
   const stop=layout.stops.find(s=>s.id===ds.members[0]?.mapStopId);
   if(!stop)throw Error('Stasjonsreferansen finnes ikke');
-  // Follow the original map marker after moving/stretching it. The stored
-  // anchor remains a record of the design position, never a live GPS source.
-  const anchor={x:stop.x+(ds.anchor.x-(layout.stops.find(s=>s.id===ds.label.sourceMapStopId)?.x??stop.x)),
-   y:stop.y+(ds.anchor.y-(layout.stops.find(s=>s.id===ds.label.sourceMapStopId)?.y??stop.y))};
-  // In the current single-stop prototype the live center is the map stop;
-  // v0.4 will support independent drag position and multi-stop groups.
-  anchor.x=stop.x;anchor.y=stop.y;
+  // Initial prototype is attached to its source map marker, not free-floating.
+  const anchor={x:stop.x,y:stop.y};
   let tangent={x:0,y:1};
   if(ds.trackAnchor){
    const path=layout.paths.find(p=>p.id===ds.trackAnchor.pathId);
