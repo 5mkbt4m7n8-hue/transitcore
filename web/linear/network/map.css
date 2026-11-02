@@ -177,3 +177,9 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-display-controls button{border:1px solid #66a4c8;background:#173b55}
 
 .map-display-station .map-stop:is([data-state="AT_STOP"],[data-state="PARKED"],[data-state="APPROACHING"]) circle:not(.map-stop-hit){fill:currentColor;stroke:#fff;filter:drop-shadow(0 0 4px currentColor)}
+
+/* v0.4: clearly separate source-backed preview from offline LED simulation. */
+.map-preview-banner{margin:9px 0;padding:10px 13px;border:2px solid #e9c060;background:#322510;color:#ffe6a0;font-weight:700;border-radius:8px}
+.map-display-preview-report{flex:1 1 100%;margin:2px 0 0;padding:9px;background:#071927;color:#cce2f5;border:1px solid #526c81;border-radius:6px;font:12px/1.55 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+.map-display-station .map-stop[data-mapping="SHARED_LED"] circle:not(.map-stop-hit){stroke:#ffbf61;stroke-width:2.2;stroke-dasharray:2 1}
+.map-display-station .map-stop[data-preview="simulated"][data-state="AT_STOP"] circle:not(.map-stop-hit){fill:currentColor;stroke:#fff;stroke-width:2;filter:drop-shadow(0 0 5px currentColor)}
