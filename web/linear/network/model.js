@@ -47,6 +47,51 @@
     }
    }
   }
+  // Display stations are optional decorative groups bound to canonical Quays.
+  if(layout.displayStations!==undefined||layout.displayStationsVersion!==undefined){
+   if(layout.displayStationsVersion!==1||!Array.isArray(layout.displayStations)||layout.displayStations.length>3000){
+    errors.push('Ugyldig versjon eller liste over visuelle stasjoner');
+   }else{
+    const groupIds=new Set,usedQuays=new Set,usedSlots=new Set;
+    const validStyle=new Set(['single','single_ring','double','double_outer_ring','double_capsule','interchange','terminus']);
+    for(const group of layout.displayStations){
+     if(!group||typeof group.id!=='string'||!group.id||groupIds.has(group.id)||ids.has(group.id)||
+      !point(group.anchor)||!group.style||!validStyle.has(group.style.type)||
+      !['capsule','circle','ellipse'].includes(group.style.outerShape)||
+      ![group.style.markerRadius,group.style.ringPadding,group.style.ringWidth].every(Number.isFinite)||
+      group.style.markerRadius<2||group.style.markerRadius>20||group.style.ringPadding<0||
+      group.style.ringPadding>30||group.style.ringWidth<.5||group.style.ringWidth>10||
+      !['unreviewed','user-reviewed'].includes(group.reviewStatus)||!Array.isArray(group.members)||
+      group.members.length<1||group.members.length>32){
+      errors.push('Ugyldig visuell stasjon '+(group?.id||''));continue;
+     }
+     groupIds.add(group.id);
+     if(!group.label||!['shared','separate'].includes(group.label.mode)||
+      !layout.stops.some(stop=>stop.id===group.label.sourceMapStopId))
+      errors.push('Ugyldig etikett i visuell stasjon '+group.id);
+     if(group.trackAnchor!==undefined){
+      const ta=group.trackAnchor,p=layout.paths.find(p=>p.id===ta?.pathId);
+      if(!p||!Number.isInteger(ta.segmentIndex)||ta.segmentIndex<0||ta.segmentIndex>=p.points.length-1||
+       !['follow-tangent','manual'].includes(ta.orientation))
+       errors.push('Ugyldig sporkobling i visuell stasjon '+group.id);
+     }
+     if(['double','double_outer_ring','double_capsule'].includes(group.style.type)&&group.members.length!==2)
+      errors.push('Dobbel stasjon krever to Quay-er '+group.id);
+     for(const m of group.members){
+      const stop=layout.stops.find(stop=>stop.id===m?.mapStopId),key=m?.quayId;
+      if(!m||typeof m.id!=='string'||!m.id||usedSlots.has(m.id)||
+       !/^NSR:Quay:\d+$/.test(key||'')||usedQuays.has(key)||
+       !stop||stop.verification!=='confirmed'||!stop.bindings.some(b=>b.stopId===key)||
+       !['a','b','center','custom'].includes(m.slot)||
+       !m.offset||!Number.isFinite(m.offset.along)||!Number.isFinite(m.offset.across)||
+       Math.abs(m.offset.along)>300||Math.abs(m.offset.across)>300||
+       !['unreviewed','user-reviewed'].includes(m.placementReview))
+       errors.push('Ugyldig Quay-medlem i visuell stasjon '+group.id);
+      else {usedQuays.add(key);usedSlots.add(m.id);}
+     }
+    }
+   }
+  }
   return errors;
  }
  // Side assignments are manual visual reviews, never inferred from direction 0/1.
