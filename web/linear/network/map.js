@@ -1,6 +1,6 @@
 (function(root){
  'use strict';
- const NS='http://www.w3.org/2000/svg',M=root.InTransitMapModel,S=root.TransitCoreSignals,L=root.InTransitMapLayoutOps,N=root.InTransitStopLinks,Live=root.InTransitLiveMonitor,History=root.InTransitDayHistory,T=root.InTransitDrawingTools,D=root.InTransitDisplayStations;
+ const NS='http://www.w3.org/2000/svg',M=root.InTransitMapModel,S=root.TransitCoreSignals,L=root.InTransitMapLayoutOps,N=root.InTransitStopLinks,Live=root.InTransitLiveMonitor,History=root.InTransitDayHistory,T=root.InTransitDrawingTools,D=root.InTransitDisplayStations,P=root.InTransitDisplayPreview;
  const el=(tag,attrs={})=>{const n=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;};
  const fingerprint=value=>{
   const json=JSON.stringify(value);let hash=2166136261;
@@ -26,7 +26,7 @@
    }else if(published.status!==404)throw Error('Kunne ikke hente publisert kart (HTTP '+published.status+').');
   }catch(error){publishedWarning='Publisert kart kunne ikke lastes: '+error.message+'. Originalkartet vises.';}
 
-  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><a data-role="geoLink" href="./geo/" class="map-geo-link">Åpne stopp i geografisk kart</a><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><div data-role="dayHistoryHost"></div><details class="map-live-debug" data-role="liveDebug"><summary>Sanntidsmonitor · hvorfor vises/vises ikke bussen?</summary><div class="map-live-debug-body"><p>Leser kun den aktive Linear-feeden. Ingen ekstra GPS-posisjon eller rutedekning utledes.</p><div class="map-live-debug-controls"><label>Holdeplass <select data-role="debugStop" aria-label="Diagnoseholdeplass"></select></label><label>Entur-plattform <select data-role="debugQuay" aria-label="Diagnoseplattform"></select></label><label>Buss-ID (valgfritt) <input data-role="debugVehicle" type="search" placeholder="Søk etter buss-ID i mottatt frame" autocomplete="off" aria-label="Søk etter buss-ID"></label></div><div class="map-live-debug-metrics"><div><strong data-role="debugHealth">Venter på data</strong><small data-role="debugMeta"></small></div><div><strong data-role="debugReason">Ingen holdeplass valgt</strong><small data-role="debugExplanation"></small></div></div><div class="map-live-debug-results"><section><strong>Quay / fysisk LED</strong><pre data-role="debugQuays"></pre></section><section><strong>Observerte busser</strong><pre data-role="debugObservations"></pre></section><section><strong>Søk i hele mottatte frame</strong><pre data-role="debugVehicleResult"></pre></section></div><button type="button" data-act="exportLiveDebug">Eksporter diagnose (JSON)</button><small>En buss som ikke finnes i valgt frame, kan fortsatt kjøre. Dette er ikke et historisk opptak eller direkte GPS-sporing.</small></div></details><div class="map-editor" id="networkEditor" hidden><section class="map-studio-tools" aria-label="Map Studio tegneverktøy"><strong>Map Studio · tegnehjelp</strong><label><input type="checkbox" data-role="studioGrid" checked>Vis rutenett</label><label><input type="checkbox" data-role="studioSnap" checked>Fest til rutenett</label><label>Vinkellås <select data-role="studioAngleMode" aria-label="Vinkellås"><option value="0">Fri</option><option value="15">15°</option><option value="45" selected>45°</option></select></label><label>Avstand <select data-role="studioSpacing" aria-label="Rutenettavstand"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select></label><button type="button" data-act="exportSvg">Eksporter SVG-tegning</button><button type="button" data-act="studioSelect">Marker område</button><small>Presisjonen gjelder nye og flyttede punkt. Eksisterende kart endres ikke ved å slå på tegnehjelp. JSON er prosjektfilen; SVG er visuell eksport til f.eks. Inkscape.</small></section><div class="map-studio-region-controls" data-role="studioRegionControls" hidden><strong data-role="studioRegionHelp">Marker et område i kartet.</strong><button type="button" data-act="studioClearRegion">Fjern markering</button></div><button data-act="addStop">+ Ny holdeplass</button><button data-act="addPath">+ Ny kartlinje</button><button data-act="undo">Angre</button><button data-act="nextPlatformReview" type="button">Neste uavklarte plattform</button><span class="map-platform-progress" data-role="platformProgress">Plattformkontroll lastes …</span><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><span class="map-draft-status" data-role="draftStatus" aria-live="polite">Ingen nye endringer</span><section class="map-cloud"><strong>Permanent skylagring</strong><small>Alle endringer lagres lokalt. Koble til skyen med administratornøkkelen for lagring på tvers av enheter. Nøkkelen beholdes kun mens siden er åpen.</small><label>Administratornøkkel <input type="password" autocomplete="off" data-role="cloudKey" placeholder="Administratornøkkel"></label><button type="button" data-act="cloudConnect">Koble til skylagring</button><button type="button" data-act="cloudDisconnect" hidden>Koble fra</button><button type="button" data-act="cloudUseRemote" hidden>Hent fra skyen</button><button type="button" data-act="cloudUseLocal" hidden>Bruk lokal versjon i skyen</button><span data-role="cloudStatus" role="status" aria-live="polite">Kun lokal lagring – ikke synkronisert til skyen.</span><div class="map-publish-actions"><button type="button" data-act="publishMap" disabled>Publiser kart til GitHub</button><span data-role="publishStatus" aria-live="polite">Før publisering må skyen vise «Lagret permanent i skyen».</span><a data-role="publishLink" hidden target="_blank" rel="noopener noreferrer">Åpne publiseringsforslag på GitHub</a></div></section><div class="map-sketch-controls" data-role="sketchControls" hidden><strong data-role="sketchHelp" aria-live="polite"></strong><button data-act="finishSketch">Fullfør linjen</button><button data-act="sketchUndo">Fjern siste punkt</button><button data-act="sketchCancel">Avbryt tegning</button></div><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
+  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><a data-role="geoLink" href="./geo/" class="map-geo-link">Åpne stopp i geografisk kart</a><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p data-role="mapPreviewBanner" class="map-preview-banner" hidden role="status" aria-live="polite"></p><p class="map-warning" data-role="notice"></p><div data-role="dayHistoryHost"></div><details class="map-live-debug" data-role="liveDebug"><summary>Sanntidsmonitor · hvorfor vises/vises ikke bussen?</summary><div class="map-live-debug-body"><p>Leser kun den aktive Linear-feeden. Ingen ekstra GPS-posisjon eller rutedekning utledes.</p><div class="map-live-debug-controls"><label>Holdeplass <select data-role="debugStop" aria-label="Diagnoseholdeplass"></select></label><label>Entur-plattform <select data-role="debugQuay" aria-label="Diagnoseplattform"></select></label><label>Buss-ID (valgfritt) <input data-role="debugVehicle" type="search" placeholder="Søk etter buss-ID i mottatt frame" autocomplete="off" aria-label="Søk etter buss-ID"></label></div><div class="map-live-debug-metrics"><div><strong data-role="debugHealth">Venter på data</strong><small data-role="debugMeta"></small></div><div><strong data-role="debugReason">Ingen holdeplass valgt</strong><small data-role="debugExplanation"></small></div></div><div class="map-live-debug-results"><section><strong>Quay / fysisk LED</strong><pre data-role="debugQuays"></pre></section><section><strong>Observerte busser</strong><pre data-role="debugObservations"></pre></section><section><strong>Søk i hele mottatte frame</strong><pre data-role="debugVehicleResult"></pre></section></div><button type="button" data-act="exportLiveDebug">Eksporter diagnose (JSON)</button><small>En buss som ikke finnes i valgt frame, kan fortsatt kjøre. Dette er ikke et historisk opptak eller direkte GPS-sporing.</small></div></details><div class="map-editor" id="networkEditor" hidden><section class="map-studio-tools" aria-label="Map Studio tegneverktøy"><strong>Map Studio · tegnehjelp</strong><label><input type="checkbox" data-role="studioGrid" checked>Vis rutenett</label><label><input type="checkbox" data-role="studioSnap" checked>Fest til rutenett</label><label>Vinkellås <select data-role="studioAngleMode" aria-label="Vinkellås"><option value="0">Fri</option><option value="15">15°</option><option value="45" selected>45°</option></select></label><label>Avstand <select data-role="studioSpacing" aria-label="Rutenettavstand"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select></label><button type="button" data-act="exportSvg">Eksporter SVG-tegning</button><button type="button" data-act="studioSelect">Marker område</button><small>Presisjonen gjelder nye og flyttede punkt. Eksisterende kart endres ikke ved å slå på tegnehjelp. JSON er prosjektfilen; SVG er visuell eksport til f.eks. Inkscape.</small></section><div class="map-studio-region-controls" data-role="studioRegionControls" hidden><strong data-role="studioRegionHelp">Marker et område i kartet.</strong><button type="button" data-act="studioClearRegion">Fjern markering</button></div><button data-act="addStop">+ Ny holdeplass</button><button data-act="addPath">+ Ny kartlinje</button><button data-act="undo">Angre</button><button data-act="nextPlatformReview" type="button">Neste uavklarte plattform</button><span class="map-platform-progress" data-role="platformProgress">Plattformkontroll lastes …</span><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><span class="map-draft-status" data-role="draftStatus" aria-live="polite">Ingen nye endringer</span><section class="map-cloud"><strong>Permanent skylagring</strong><small>Alle endringer lagres lokalt. Koble til skyen med administratornøkkelen for lagring på tvers av enheter. Nøkkelen beholdes kun mens siden er åpen.</small><label>Administratornøkkel <input type="password" autocomplete="off" data-role="cloudKey" placeholder="Administratornøkkel"></label><button type="button" data-act="cloudConnect">Koble til skylagring</button><button type="button" data-act="cloudDisconnect" hidden>Koble fra</button><button type="button" data-act="cloudUseRemote" hidden>Hent fra skyen</button><button type="button" data-act="cloudUseLocal" hidden>Bruk lokal versjon i skyen</button><span data-role="cloudStatus" role="status" aria-live="polite">Kun lokal lagring – ikke synkronisert til skyen.</span><div class="map-publish-actions"><button type="button" data-act="publishMap" disabled>Publiser kart til GitHub</button><span data-role="publishStatus" aria-live="polite">Før publisering må skyen vise «Lagret permanent i skyen».</span><a data-role="publishLink" hidden target="_blank" rel="noopener noreferrer">Åpne publiseringsforslag på GitHub</a></div></section><div class="map-sketch-controls" data-role="sketchControls" hidden><strong data-role="sketchHelp" aria-live="polite"></strong><button data-act="finishSketch">Fullfør linjen</button><button data-act="sketchUndo">Fjern siste punkt</button><button data-act="sketchCancel">Avbryt tegning</button></div><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
   const q=r=>host.querySelector(`[data-role="${r}"]`),svg=host.querySelector('svg'),editorPanel=host.querySelector('#networkEditor');
   let localNames={...publishedNames,...N.names(initial)};let layout=initial,context={},editing=false,selection=null,selectedSegmentIndex=0,drag=null,box=[0,0,913,1280],phase=0,report={},frame=null;
   let placementMode=null,moveStopId=null,routeSketch=null,placementGestureMoved=false,suppressAutoSave=false,cloud=null,selectedSide=null,selectedQuay=null;
@@ -35,6 +35,7 @@
   const autoDraftKey='intransit-map-autodraft-v1',manualDraftKey='intransit-map-draft-v1';
   const drawingPrefs={gridVisible:true,gridSnap:true,angleStep:45,gridSize:10};
   let regionSelecting=false,regionDraft=null,regionSelection=null;
+   let previewMode='live',previewTargetId=null;
   const snapPoint=(p,previous=null)=>T.snap(p,{...drawingPrefs,previous});
   // Stable reference is the traced source file; published edits are overlaid.
   const draftStatus=q('draftStatus');
@@ -339,9 +340,9 @@
    const quayIds=selectedQuay?[selectedQuay]:selectedSide&&stop.diodeMode==='split'
     ?Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===selectedSide&&r.verification==='user-reviewed').map(([id])=>id)
     :null;
-   const values=M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
+   const values=previewMode!=='live'&&editing?[]:M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
    const age=(playbackClock()-Date.parse(playbackFrame()?.generatedAt))/1000;
-   q('details').textContent=displayName(stop)+(selectedQuay?' · '+selectedQuay:'')+(localNames[stop.id]?' (lokalt navn; original: '+stop.name+')':'')+(selectedSide?' · '+(selectedSide==='left'?'VENSTRE':'HØYRE')+' på tegningen (Quay '+(quayIds?.join(', ')||'ikke kartlagt')+')':'')+'\n'+(stop.verification!=='confirmed'?'Uavklart navn / ID. Ingen live-kobling.':values.length?values.map(v=>`Linje ${v.line||'?'} · ${v.destination||'Ukjent destinasjon'} · buss ${v.id||'ikke oppgitt'} · ${v.state}\nKilde: ${v.source||'ikke oppgitt'} · observasjonsalder: ${v.ageSeconds??'ukjent'} s`).join('\n'):'OFF · ingen aktiv gyldig observasjon; bekrefter ikke tom holdeplass.')+`\nFrame-alder: ${Number.isFinite(age)?Math.floor(age)+' s':'ingen frame'}`;
+   q('details').textContent=(editing&&previewMode!=='live'?'SIMULERT LED-TEST · ':'')+displayName(stop)+(selectedQuay?' · '+selectedQuay:'')+(localNames[stop.id]?' (lokalt navn; original: '+stop.name+')':'')+(selectedSide?' · '+(selectedSide==='left'?'VENSTRE':'HØYRE')+' på tegningen (Quay '+(quayIds?.join(', ')||'ikke kartlagt')+')':'')+'\n'+(stop.verification!=='confirmed'?'Uavklart navn / ID. Ingen live-kobling.':values.length?values.map(v=>`Linje ${v.line||'?'} · ${v.destination||'Ukjent destinasjon'} · buss ${v.id||'ikke oppgitt'} · ${v.state}\nKilde: ${v.source||'ikke oppgitt'} · observasjonsalder: ${v.ageSeconds??'ukjent'} s`).join('\n'):'OFF · ingen aktiv gyldig observasjon; bekrefter ikke tom holdeplass.')+`\nFrame-alder: ${Number.isFinite(age)?Math.floor(age)+' s':'ingen frame'}`;
    syncDebugSelection(stop);
   }
   function draw(){
@@ -493,6 +494,33 @@
    paint();
   }
   function paint(){
+   const target=(layout.displayStations||[]).find(ds=>ds.id===previewTargetId);
+   const demoActive=editing&&previewMode!=='live'&&Boolean(target);
+   const banner=q('mapPreviewBanner');
+   banner.hidden=!demoActive;
+   banner.textContent=demoActive?'SIMULERT LED-TEST – ingen av de viste lysene er sanntid. Velg LIVE / kilde for å avslutte.':'';
+   const diagnostics=new Map;
+   for(const ds of layout.displayStations||[]){
+    const report=P.inspect(layout,ds,activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),M);
+    for(const item of report)diagnostics.set(ds.id+'|'+item.quayId,item);
+   }
+   const diagnosticPanel=q('fields').querySelector('[data-role="displayPreviewReport"]');
+   if(diagnosticPanel&&selection?.type==='stop'){
+    const ds=(layout.displayStations||[]).find(ds=>ds.members.some(m=>m.mapStopId===selection.id));
+    if(ds){
+     diagnosticPanel.textContent=(demoActive?'SIMULERT – LED-kilder vist kun som diagnostikk\\n':'')+
+      ds.members.map((m,i)=>{
+       const r=diagnostics.get(ds.id+'|'+m.quayId);
+       return (i?'B':'A')+' · '+m.quayId+'\\n'+
+        'Kartpunkt: '+m.mapStopId+' · tavlenode: '+(r?.boardNodeIds.join(', ')||'–')+'\\n'+
+        'Logisk LED: '+(r?.logicalLeds.join(', ')||'–')+
+        ' · fysisk LED: '+(r?.physicalLeds.join(', ')||'–')+'\\n'+
+        'Kilde: '+(r?.sourceStatus||'UKJENT')+
+        (r?.frameAgeSeconds===null?'':' · frame '+r.frameAgeSeconds+' s')+
+        ' · grafisk side: '+m.placementReview;
+      }).join('\\n\\n');
+    }
+   }
    let all=[];
    for(const group of svg.querySelectorAll('.map-stop')){
     const stop=layout.stops.find(s=>s.id===group.dataset.stop);
@@ -504,13 +532,26 @@
      Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===side&&r.verification==='user-reviewed')
       .map(([id])=>id).filter(id=>!remaining||remaining.has(id)):
       remaining?[...remaining]:null;
-    const values=M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
+    const diagnostic=group.dataset.quay?diagnostics.get(group.dataset.displayStation+'|'+group.dataset.quay):null;
+    const conflict=diagnostic&&['SHARED_LED','UNMAPPED','UNVERIFIED','NO_HARDWARE'].includes(diagnostic.sourceStatus);
+    const values=demoActive||conflict?[]:
+     M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
     all.push(...values);
     const max=Math.max(0,...values.map(v=>S.priority(v.state))),choices=values.filter(v=>S.priority(v.state)===max),v=choices.length?choices[phase%choices.length]:null;
-    group.dataset.state=v?.state||'OFF';const rgb=v?.rgb;group.style.color=Array.isArray(rgb)&&rgb.length===3&&rgb.every(n=>Number.isInteger(n)&&n>=0&&n<=255)?`rgb(${rgb.join(',')})`:'#70839a';group.querySelector('text').textContent=context.numbers&&v?String(v.line||'?'):side?(side==='left'?'V':'H'):'';
+    const memberIndex=demoActive&&group.dataset.displayStation===target.id?
+     target.members.findIndex(m=>m.quayId===group.dataset.quay):-1;
+    const simulation=memberIndex>=0?P.simulated(previewMode,memberIndex):null;
+    const state=simulation?simulation.state:v?.state||'OFF';
+    const rgb=simulation?simulation.rgb:v?.rgb;
+    group.dataset.state=state;
+    if(demoActive)group.dataset.preview='simulated';else delete group.dataset.preview;
+    if(diagnostic)group.dataset.mapping=diagnostic.sourceStatus;
+    group.style.color=Array.isArray(rgb)&&rgb.length===3&&rgb.every(n=>Number.isInteger(n)&&n>=0&&n<=255)?
+     `rgb(${rgb.join(',')})`:'#70839a';
+    group.querySelector('text').textContent=demoActive?'':context.numbers&&v?String(v.line||'?'):side?(side==='left'?'V':'H'):'';
    }
    const active=all.filter(v=>v.state!=='PASSED'),known=active.every(v=>v.id),count=new Set(active.map(v=>v.id)).size;
-   q('summary').textContent=(playback?'HISTORIKK – IKKE LIVE · ':'' )+`${layout.stops.length} kartpunkter · ${report.unmapped?.length||0} uten kobling · `+(known&&active.length?`${count} identifiserte aktive busser i kartets tilgjengelige feed`:'Aktivt bussantall ikke bekreftet')+' · Viser bare tegnede strekninger og data fra eksisterende Linear-feed; ikke nødvendigvis komplette bussruter.';
+   q('summary').textContent=(demoActive?'SIMULERT TEST · ':playback?'HISTORIKK – IKKE LIVE · ':'' )+`${layout.stops.length} kartpunkter · ${report.unmapped?.length||0} uten kobling · `+(known&&active.length?`${count} identifiserte aktive busser i kartets tilgjengelige feed`:'Aktivt bussantall ikke bekreftet')+' · Viser bare tegnede strekninger og data fra eksisterende Linear-feed; ikke nødvendigvis komplette bussruter.';
    if(selection?.type==='stop'){const selected=layout.stops.find(s=>s.id===selection.id);if(selected)details(selected);else selection=null;}
    if(q('liveDebug').open)renderLiveDebug();
   }
@@ -677,8 +718,21 @@
      });
     optionGroup('Ytre ringmargin',[[2,'Liten'],[4,'Normal'],[7,'Stor']],
      visualGroup.style.ringPadding,(g,v)=>{g.style.ringPadding=Number(v);});
+    const demoLabel=document.createElement('label');demoLabel.textContent='LED-test (kun forhåndsvisning)';
+    const demoSelect=document.createElement('select');demoSelect.dataset.role='displayLedSimulation';
+    for(const [id,name] of [['live','LIVE / kilde'],['off','SIMULERT · begge av'],
+     ['a','SIMULERT · bare A lyser'],['b','SIMULERT · bare B lyser'],['both','SIMULERT · begge lyser']])
+     demoSelect.append(new Option(name,id));
+    demoSelect.value=previewTargetId===visualGroup.id?previewMode:'live';
+    demoSelect.onchange=()=>{
+     previewMode=demoSelect.value;previewTargetId=visualGroup.id;paint();
+    };
+    demoLabel.append(demoSelect);panelGroup.append(demoLabel);
+    const diag=document.createElement('pre');diag.dataset.role='displayPreviewReport';
+    diag.className='map-display-preview-report';
+    panelGroup.append(diag);
     const removeGroup=document.createElement('button');removeGroup.type='button';removeGroup.textContent='Opphev visuell gruppering';
-    removeGroup.onclick=()=>{try{editor.change(next=>D.remove(next,visualGroup.id));selectedQuay=null;}catch(error){q('details').textContent=error.message;}};
+    removeGroup.onclick=()=>{try{previewMode='live';previewTargetId=null;editor.change(next=>D.remove(next,visualGroup.id));selectedQuay=null;}catch(error){q('details').textContent=error.message;}};
     panelGroup.append(removeGroup);
    }else{
     const addGroup=document.createElement('button');addGroup.type='button';addGroup.textContent='+ Opprett dobbelstasjon fra ekte Quay-er';
