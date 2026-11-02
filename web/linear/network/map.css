@@ -183,3 +183,19 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-display-preview-report{flex:1 1 100%;margin:2px 0 0;padding:9px;background:#071927;color:#cce2f5;border:1px solid #526c81;border-radius:6px;font:12px/1.55 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
 .map-display-station .map-stop[data-mapping="SHARED_LED"] circle:not(.map-stop-hit){stroke:#ffbf61;stroke-width:2.2;stroke-dasharray:2 1}
 .map-display-station .map-stop[data-preview="simulated"][data-state="AT_STOP"] circle:not(.map-stop-hit){fill:currentColor;stroke:#fff;stroke-width:2;filter:drop-shadow(0 0 5px currentColor)}
+
+/* Map Studio v0.5 – physical board mockups based on centimeter dimensions. */
+.map-physical-board{margin:15px 0;border:1px solid #49687b;border-radius:12px;background:#0e1d2b;padding:12px}
+.map-physical-board>summary{cursor:pointer;font-weight:750;color:#c6eaff;padding:6px 0}
+.map-physical-board small{display:block;margin:11px 0 2px;color:#b4c7d9;line-height:1.55}
+.map-board-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;align-items:end;padding:14px 0}
+.map-board-controls label{display:grid;gap:5px;font-size:12px;color:#d2e3f5}
+.map-board-controls input:not([type=checkbox]),.map-board-controls select{width:100%;min-width:0;box-sizing:border-box;padding:10px;border:1px solid #577f98;border-radius:7px;background:#112f42;color:#f0f7ff}
+.map-board-controls .map-board-show-labels{display:flex;align-items:center;gap:7px;min-height:37px}
+.map-board-controls input[type=checkbox]{accent-color:#6dd6a2;width:18px;height:18px}
+.map-board-controls button{padding:11px;border:1px solid #85c7e5;background:#194b66;color:#fff}
+.map-board-info{font-size:13px;color:#bce9ff;line-height:1.5}
+.map-board-warning{font-size:12px;color:#f2d29c;line-height:1.6;white-space:normal;overflow-wrap:anywhere}
+.map-board-preview{display:flex;align-items:center;justify-content:center;max-width:780px;min-height:80px;max-height:75vh;overflow:auto;padding:12px;margin:10px auto;background:#142638;border:1px solid #35546c;border-radius:12px}
+.map-board-preview svg{display:block;max-width:100%;max-height:calc(75vh - 28px);width:auto;height:auto;flex:none;box-shadow:0 12px 30px rgba(0,0,0,.4)}
+@media(max-width:560px){.map-board-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.map-board-controls button{grid-column:1/-1}.map-board-preview{padding:5px}}
