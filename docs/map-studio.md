@@ -1,29 +1,30 @@
-# InTransit Map Studio v0.1
+# InTransit Map Studio v0.2 (utkast – PR #323)
 
-Map Studio videreutvikler den eksisterende Linear-karteditoren. Alle originale SVG-koordinater, holdeplass-ID-er og linjebindinger beholdes. Ingen ny kartmodell, worker-endring eller produksjonsdeploy.
+Map Studio er et tillegg til den eksisterende karteditoren i Linear. Ingen opprinnelige kartpunkt, linjer, Entur-identiteter eller LED-koblinger blir skrevet om ved oppgraderingen. JSON er fortsatt prosjektets autoritative format.
 
-## Bruk
+## Tegne og redigere
 
-1. Åpne **Trondheim Buss → Hele kartet** i Linear.
-2. Velg **Rediger kart**. Øverst i editoren ligger **Map Studio · tegnehjelp**.
-3. Velg eventuelt **Vis rutenett**, **Fest til rutenett**, **Lås til 45°** og rutenettavstand på 5, 10 eller 20 kartenheter. Ved tegning av ny linje og forlengelse gjelder vinkelen fra forrige punkt. Når et eksisterende linjepunkt dras, brukes punktet før som vinkelreferanse.
-4. Bruk **+ Ny kartlinje**, eller marker en eksisterende linje og velg **Fortsett å tegne fra siste punkt**.
-5. Bruk **Eksporter SVG-tegning** for en visuell, skalerbar kopi som kan åpnes i Inkscape.
+1. Åpne **Trondheim Buss → Hele kartet → Rediger kart**.
+2. Slå på valgfritt **Vis rutenett** eller **Fest til rutenett**, med intervaller på 5, 10 og 20 kartenheter.
+3. Velg **Vinkellås: Fri / 15° / 45°**. Låsen virker ved tegning og flytting av et linjepunkt i forhold til forrige punkt. Når vinkellås og rutenett er aktivert samtidig, justeres avstanden langs valgt vinkel; x og y må ikke begge lande på rutenett.
+4. Marker en linje. I «Spor og parallelle rutefarger» kan du velge **ett spor / dobbeltspor**, **1–4 parallelle fargelinjer per spor**, linjeavstand og **hver enkelt farge**. Det gir opptil åtte tegnede linjer på én geometrisk trase. Utgangskoordinatene endres ikke.
+5. Marker en holdeplass. **Dobbel stasjon (kun grafikk)** viser to plattformmarkeringer ved stasjonen, men oppretter ikke nye Entur-plattformer eller uverifiserte live-indikatorer. De eksisterende valgene for «To dioder» og manuell Quay-sidekontroll er separate og beholdes.
+6. Trykk **Marker område** og dra et rektangel rundt en eller flere linjepunkter/holdeplasser. Bare markører og linjepunkter inni markeringen blir valgt. Dra **innenfor rektangelet** for å flytte området, eller dra **det gule håndtaket øverst eller nederst** for å strekke tegningen vertikalt fra motsatt kant. Tilhørende stasjonsnavn følger stasjonens markør. Bruk «Fjern markering» eller Escape for å gå ut. Endringen lagres først ved fullført dra-bevegelse, slik at **Angre** fungerer som én operasjon.
+7. Bruk **Eksporter SVG-tegning** for visuell eksport til f.eks. Inkscape. **Eksporter JSON** for å beholde alle redigerbare kartdata.
 
-**Viktig:** JSON-eksport og editorens arbeidskopi er prosjektfilen for InTransit. SVG er en visuell eksport, uten Entur-koblinger, manuelle rutegodkjenninger eller sanntidsdata. SVG-filer importeres ikke tilbake til rutemodellen. Dersom et eksisterende punkt flyttes, gjelder samme regler som før for å fjerne manuell godkjenning av berørte delstrekninger.
+## Begrensninger og avklaring
 
-## Kompatibilitet og testing
+- Visuelle parallelle ruter er foreløpig **manuelt fargelagte streker**, ikke en automatisk kobling mellom farge, rutenummer eller GPS/Entur. Dokumenterte rutedeler tegnes fortsatt separat i kildelagene. Videre utvikling kan knytte hver grafisk linje til en valgt offentlig bussrute.
+- Dobbel stasjon er foreløpig en *visuell plattformmarkering*. Virkelig Quay-plassering/retning må fortsatt bekreftes manuelt.
+- Områdestrekking er **vertikal** og flytter/skalerer bare valgte punkter. Segmenter inn og ut av valgområdet forlenges/forkortes naturlig. Verktøyet flytter ikke uvalgte stasjoner. Alle punkter og etiketter må forbli innenfor 913×1280-kartflaten.
+- Når en manuell godkjenning for en rutestrekning berøres av endret geometri, blir denne godkjenningen fjernet for den aktuelle delstrekningen. Kildebevis fra Entur blir ikke forfalsket.
+- SVG-eksporten er en separat tegnefil. Den kan åpnes og redigeres i eksterne vektorprogrammer, men **SVG-import tilbake i InTransit er ennå ikke implementert**.
 
-- Visuelt rutenett tegnes kun når redigering er aktiv.
-- Valg av visning/magnetfunksjoner runder aldri av eksisterende kartdata.
-- Kun nye punkt og punkt som brukeren faktisk flytter blir justert.
-- Nye stopp og flyttede stopp kan festes til rutenettet. Navnetiketter beholder fri plassering.
-- Andre Linear-visninger og live-LED-framer er uberørt.
+## Verifisering
 
-Kjør:
 ```bash
 node scripts/test-map-studio.mjs
 node scripts/test-intransit-map.mjs
 ```
 
-Det finnes også valgfrie nettlesertester med Playwright (`scripts/browser-intransit-map.mjs`) for interaktiv testing før sammenslåing.
+Det nye Map Studio-testsnittet er også koblet inn i eksisterende `linear-mobile.yml` CI. Testingen av faktisk berøring, markering og strekk i Playwright/Chromium må godkjennes før PR #323 kan slås sammen med `main`.
