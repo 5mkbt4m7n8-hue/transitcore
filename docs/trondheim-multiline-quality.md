@@ -894,3 +894,49 @@ som dokumentert svekket retningsalgoritme. Hvis tap forekommer når
 **begge** minnevariantene er gjenopprettet, bør vi undersøke
 mønsterhypoteser/sekvenslogikk isolert før en eventuell aktiv endring.
 Det er fremdeles ikke bevis for fysisk holdeplass- eller A→B→C-passering.
+
+
+## GPS V2.13 – diagnostiser hva som hindrer entydig retningslås
+
+Målingene 2. november 2026 har dokumentert 60 frames i V2.10,
+med 28/34 gjenkjente GPS-observasjoner på linje 1/11 og
+19/22 gjenopprettede observasjoner med rutekandidater,
+men 0 tidligere V2.6-retningskandidater i begge linjer.
+
+Statisk analyse av kildekatalogen viser 8 mønstre / 62 Quays
+på linje 1 (bare 2 Quays forekommer i begge ruteretninger)
+og 7 mønstre / 75 Quays på linje 11 (bare 1 deles av
+begge retninger). Katalogen er derfor ikke generelt
+tvetydig, men dette beviser ikke den fysiske retningen
+eller at samme buss ble sett i to forskjellige Quays.
+
+V2.6 hadde et måleblindpunkt: `restoredDirection` ble bare
+telt når **mulig Quay-sett endret seg**. V2.13 legger til
+en egen, fullstendig klassifisering av **alle** gjenopprettede
+GPS-primærobservasjoner som hadde lagrede mønsterhypoteser,
+også ved uendret Quay-sett. Nøyaktig én kategori per
+observasjon, i denne prioriteringsrekkefølgen:
+
+1. Ingen overlevende hypotese etter denne prøven.
+2. Ingen mulig fremdrift i mønsterindeksene.
+3. Minst én kandidat er fortsatt stasjonær (selv om andre har fremdrift).
+4. Alle har mulig fremdrift, men ulike/ukjente ruteretninger.
+5. Én mulig retning, men fortsatt flere Quays.
+6. Én retning og én Quay, men ingen faktisk låsing i motoren.
+7. Retning låst i kildemønster-skyggemotoren.
+
+Alle nye felt heter `directionReason...` og er kun validerte
+heltall. Summen må være lik `restoredWithCandidates`, ellers
+avvises prøven. Tidligere døgnmålinger uten V2.13 er fortsatt
+gyldige, men inngår ikke i nye V2.13-summer.
+
+180s/240s-varianter sammenlignes på **identiske frames**.
+Døgnrapporten eksponerer bare summer per linje/kategori;
+den lagrer ingen identitet, pseudonym, rå koordinat, presist
+enkelbuss-tidspunkt, faktisk Quay eller rutemønsterliste i
+de nye feltene. HMAC-utløp, tidspunkt, antall kildekall,
+aktiv motor, Radius 85m og LED-oppsett er uendret.
+
+`moves >= 1` betyr kun at hypotesens kildeindeks gikk
+fremover, ikke at kjøretøyet beviselig passerte et stopp.
+En `Locked`-teller er fortsatt ikke GPS-fasit.

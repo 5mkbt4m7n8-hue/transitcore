@@ -39,6 +39,22 @@ const sourcePrimary=(frame,lane)=>{
 // included in the persisted daily counters or returned public report.
 const FOLLOWUP_FIELDS=['restoredWithCandidates','restoredAmbiguous',
  'restoredChanged','restoredNarrowed','restoredDirection','restoredABC'];
+// V2.13: exactly one reason per restored, previously viable source-pattern
+// hypothesis. Only NUMERIC counters leave this function, never patterns,
+// Quays, directions, HMAC tokens, or raw source vehicle identifiers.
+const REASON_KEYS=["NoAfter","NoAdvance","SomeStationary","MixedDirection","MultiQuay","Locked","NotLocked"];
+const REASON_FIELDS=REASON_KEYS.map(k=>'directionReason'+k);
+export function classifyV213Direction(later,code){
+ if(!later?.hypotheses?.length)return 'NoAfter';
+ const h=later.hypotheses;
+ if(h.every(row=>row[3]===0))return 'NoAdvance';
+ if(!h.every(row=>row[3]>=1))return 'SomeStationary';
+ const dirs=new Set(h.map(row=>allowedPatterns[code]?.[row[0]]?.directionType));
+ if(dirs.size!==1||![...dirs].every(d=>d==='inbound'||d==='outbound'))
+  return 'MixedDirection';
+ if(candidateQuays(later,code).size!==1)return 'MultiQuay';
+ return later.direction===[...dirs][0]?'Locked':'NotLocked';
+}
 const allowedPatterns=Object.fromEntries(LINES.map(code=>[code,
  (patterns.lines[code]?.patterns||[]).filter(p=>
   ['inbound','outbound'].includes(p.directionType)&&Array.isArray(p.quays)&&
@@ -52,7 +68,8 @@ function candidateQuays(row,code){
  return candidates;
 }
 function followupEvidence(before,after,ids,tokens,code){
- const out=Object.fromEntries(FOLLOWUP_FIELDS.map(k=>[k,0]));
+ const out=Object.fromEntries([...FOLLOWUP_FIELDS,...REASON_FIELDS]
+  .map(k=>[k,0]));
  for(const id of ids){
   const key=code+'|'+tokens.get(id),prior=before.get(key);
   if(!prior)continue;
@@ -61,6 +78,9 @@ function followupEvidence(before,after,ids,tokens,code){
   out.restoredWithCandidates++;
   if(oldQuays.size>1)out.restoredAmbiguous++;
   const later=after.get(key),newQuays=candidateQuays(later,code);
+  // Analyze ALL restored follow-ups, including identical Quay candidate
+  // sets; V2.6 directional metric only covered changed Quay sets.
+  out['directionReason'+classifyV213Direction(later,code)]++;
   if(!newQuays.size)continue;
   const changed=oldQuays.size!==newQuays.size||
    [...oldQuays].some(q=>!newQuays.has(q));
@@ -213,6 +233,13 @@ export function sanitizeV25(metrics,lane){
       x.restoredDirection>x.restoredChanged||
       x.restoredABC>x.restoredDirection)return null;
    for(const k of FOLLOWUP_FIELDS)lines[code][k]=x[k];
+  }
+  const hasReasons=REASON_FIELDS.some(k=>x[k]!==undefined);
+  if(hasReasons){
+   if(!hasNew||!REASON_FIELDS.every(k=>bounded(x[k]))||
+      REASON_FIELDS.reduce((sum,k)=>sum+x[k],0)!==x.restoredWithCandidates)
+    return null;
+   for(const k of REASON_FIELDS)lines[code][k]=x[k];
   }
  }
  if(Object.keys(metrics.lines).length!==allowed.length)return null;
