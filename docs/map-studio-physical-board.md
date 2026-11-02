@@ -13,13 +13,13 @@ En InTransit-tavle kan tegnes med **valgfri fysisk bredde og høyde**. Grunnmode
 ## Hva beregningen gjør
 
 - Fysisk bredde og høyde konverteres til mm, f.eks. 30 × 40 cm → 300 × 400 mm.
-- Kartet plasseres med **én uniform skaleringsfaktor** og midtstilles etter en faktisk yttermarg. Det er ingen uavhengig horisontal/vertikal strekking av geografien.
+- Kartet plasseres med **én uniform skaleringsfaktor** og midtstilles etter en faktisk yttermarg. Skaleringsberegningen reserverer i tillegg LED-radius, slik at sirkler nær ytterkanten ikke spiser av den valgte margbredden. Det er ingen uavhengig horisontal/vertikal strekking av geografien.
 - På et kvadratisk format, f.eks. 40 × 40 cm, vises derfor blanke sider fremfor å deformere stasjonsavstander eller rutegeometri.
 - Parallelle fargestriper og tegnede dobbeltspor følger den eksisterende \`visualTracks\`-visningen. Visningsfarger er grafikk, ikke dokumenterte rutebevis.
 - LED-rundinger har en **fast valgt diameter i millimeter**, uavhengig av om tavlen er 30 × 40 eller 50 × 70 cm. De blir ikke automatisk fysisk større ved oppskalering av selve tavleformatet.
 - En eksplisitt dobbeltstasjon viser de **virkelige Quay-medlemmene** i én dekorativ ring/kapsel. Rundinger på et lite format flyttes litt fra hverandre *i eksporten* hvis avstanden ellers blir mindre enn LED-diameter + 1,5 mm. Originale koordinater og Quay-bindinger endres ikke.
 - En stoppmarkør med flere Quay-bindinger som **ikke** er eksplicit gruppert, forblir **skjematisk**, ikke én «verifisert fysisk LED». Renderer viser et eget varsel \`MULTI_QUAY_STOP\` for dette.
-- LED-kollisjon detekteres når avstanden mellom to ulike markører blir mindre enn LED-diameter + 0,7 mm; denne grensen er en **foreløpig visuell inspeksjon**, ikke et garantert produksjonskrav for hullboring, lodding, diffusorer eller ledningsføring.
+- LED-kollisjon detekteres når avstanden mellom to ulike markører blir mindre enn LED-diameter + 0,7 mm. Konflikter tegnes med **oransje kontur** i den fysiske SVG-eksporten og telles i preview-panelet. Denne grensen er en **foreløpig visuell inspeksjon**, ikke et garantert produksjonskrav for hullboring, lodding, diffusorer eller ledningsføring.
 - Navn utenfor formatet og navn nær høyre kant rapporteres som visuelle kontrollpunkter. Full automatisk typografi-/etikettkollisjon er ikke implementert.
 
 ## Eksport og verifikasjon
