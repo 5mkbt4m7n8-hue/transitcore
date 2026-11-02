@@ -100,10 +100,33 @@ const now=Date.now(),frame={generatedAt:new Date(now).toISOString(),ttlSeconds:3
  leds:[{id:10,state:'AT_STOP',rgb:[0,200,0],occupants:[{id:'example-bus',line:'1',state:'AT_STOP'}]}]};
 assert.equal(model.signals(sourceStop,board,hardware,frame,null,now,null,[ids[0]]).length,1);
 assert.equal(model.signals(sourceStop,board,hardware,frame,null,now,null,[ids[1]]).length,0);
+const Preview=require('../web/linear/network/display-preview.js');
+const inspection=Preview.inspect(double,station,board,hardware,frame,null,now,model);
+assert.equal(inspection.length,2);
+assert.equal(inspection[0].sourceStatus,'ACTIVE');
+assert.equal(inspection[0].physicalLeds[0],10);
+assert.equal(inspection[0].logicalLeds[0],0);
+assert.equal(inspection[0].quayId,ids[0]);
+assert.equal(inspection[1].sourceStatus,'OFF');
+assert.equal(inspection[1].physicalLeds[0],11);
+assert.equal(Preview.inspect(double,station,board,hardware,null,null,now,model)[0].sourceStatus,'NO_FRAME');
+assert.equal(Preview.inspect(double,station,board,hardware,{
+ generatedAt:new Date(now-40000).toISOString(),ttlSeconds:30,leds:frame.leds
+},null,now,model)[0].sourceStatus,'STALE');
+assert.equal(Preview.inspect(double,station,board,{assignments:[]},frame,null,now,model)[0].sourceStatus,'NO_HARDWARE');
+for(const mode of ['a','b','both','off']){
+ const expected=mode==='both'?[true,true]:mode==='a'?[true,false]:mode==='b'?[false,true]:[false,false];
+ assert.deepEqual([0,1].map(index=>Preview.simulated(mode,index).state==='AT_STOP'),expected);
+}
+assert.equal(Preview.simulated('live',0),null);
+assert.match(html,/network\/display-preview\.js/);
+assert.match(map,/SIMULERT LED-TEST/);
+
 const shared={assignments:[{logicalLed:0,physicalLed:10},{logicalLed:1,physicalLed:10}]};
 assert.equal(model.signals(sourceStop,board,shared,frame,null,now,null,[ids[0]]).length,0,
  'a shared physical LED cannot fake an independent Quay observation');
 assert.equal(model.signals(sourceStop,board,shared,frame,null,now,null,[ids[1]]).length,0);
+assert.deepEqual(Preview.inspect(double,station,board,shared,frame,null,now,model).map(s=>s.sourceStatus),['SHARED_LED','SHARED_LED']);
 const broken=structuredClone(double);broken.displayStations[0].members[1].quayId=ids[0];
 assert(model.validate(broken).length>0,'one Quay cannot occupy two grouped slots');
 const unresolved=structuredClone(original);
