@@ -107,6 +107,45 @@
   const viewportCenter=()=>({x:box[0]+box[2]/2,y:box[1]+box[3]/2});
   function zoom(f,cx=box[0]+box[2]/2,cy=box[1]+box[3]/2){const w=Math.min(1826,Math.max(40,box[2]*f)),h=w*1280/913;box=[cx-(cx-box[0])*w/box[2],cy-(cy-box[1])*h/box[3],w,h];setBox();}
   function coords(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+  
+  function syncRegionControls(){
+   q('studioRegionControls').hidden=!regionSelection;
+   const b=host.querySelector('[data-act="studioSelect"]');
+   b.setAttribute('aria-pressed',String(regionSelecting));
+   b.textContent=regionSelecting?'Avbryt markering':'Marker område';
+   if(regionSelection)q('studioRegionHelp').textContent=regionSelection.stopIds.length+
+    ' stasjoner og '+regionSelection.vertices.length+' linjepunkt. Dra rammen for å flytte, eller dra gule håndtak for å strekke.';
+  }
+  function regionBounds(){
+   if(!regionSelection)return null;
+   const points=[...layout.stops.filter(s=>regionSelection.stopIds.includes(s.id)),
+    ...regionSelection.vertices.map(({pathId,index})=>layout.paths.find(p=>p.id===pathId)?.points[index]).filter(Boolean)];
+   if(!points.length)return null;
+   return {left:Math.min(...points.map(p=>p.x)),right:Math.max(...points.map(p=>p.x)),
+    top:Math.min(...points.map(p=>p.y)),bottom:Math.max(...points.map(p=>p.y))};
+  }
+  function drawRegionOverlay(){
+   svg.querySelector('.map-studio-region-overlay')?.remove();
+   if(!editing)return;
+   const g=el('g',{class:'map-studio-region-overlay','aria-label':'Områdemarkering'});
+   if(regionSelecting&&regionDraft){
+    const {start:a,end:b}=regionDraft;
+    g.append(el('rect',{class:'map-studio-region-draft',x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),
+     width:Math.abs(a.x-b.x),height:Math.abs(a.y-b.y)}));
+   }else if(regionSelection){
+    const b=regionBounds();
+    if(b){
+     const x=b.left-7,y=b.top-7,w=Math.max(18,b.right-b.left+14),h=Math.max(18,b.bottom-b.top+14);
+     const rect=el('rect',{class:'map-studio-region-selected',x,y,width:w,height:h,rx:3});
+     rect.dataset.studioRegion='move';g.append(rect);
+     for(const edge of ['top','bottom']){
+      const handle=el('circle',{class:'map-studio-region-handle',cx:x+w/2,cy:edge==='top'?y:y+h,r:9});
+      handle.dataset.studioRegion=edge;g.append(handle);
+     }
+    }
+   }
+   svg.append(g);
+  }
   function syncSketchControls(){
    const controls=q('sketchControls'),active=!!routeSketch;
    controls.hidden=!active;
@@ -141,7 +180,7 @@
   }
   function startSketch(pathId=null){
    if(pathId&&!layout.paths.some(p=>p.id===pathId))throw Error('Fant ikke kartlinjen');
-   placementMode=null;moveStopId=null;
+   placementMode=null;moveStopId=null;regionSelecting=false;regionSelection=null;regionDraft=null;syncRegionControls();
    routeSketch={pathId,points:[],cursor:null};
    placementGestureMoved=false;
    syncSketchControls();showSketchPreview();
@@ -387,7 +426,7 @@
    // Only the explicitly selected line exposes handles above stop hit areas.
    const selectedPath=editing&&selection?.type==='path'?layout.paths.find(p=>p.id===selection.id):null;
    if(selectedPath)selectedPath.points.forEach((v,i)=>{const h=el('circle',{cx:v.x,cy:v.y,r:4,class:'map-handle'});h.dataset.path=selectedPath.id;h.dataset.index=i;svg.append(h);});
-   showSketchPreview();
+   showSketchPreview();drawRegionOverlay();
    q('focus').replaceChildren(new Option('Fokus på punkt …',''),...layout.stops.map(s=>new Option(displayName(s),s.id)));
     q('focus').value=selection?.type==='stop'?selection.id:'';syncGeoLink(selection?.type==='stop'?selection.id:null);
    const currentPath=routeReview.value;
@@ -621,6 +660,7 @@
    }
    case'addStop':{
     if(!editing)break;
+    regionSelection=null;regionSelecting=false;regionDraft=null;syncRegionControls();
     cancelSketch();moveStopId=null;placementMode=placementMode==='stop'?null:'stop';
     syncSketchControls();
     q('details').textContent=placementMode
@@ -707,9 +747,26 @@
   svg.onwheel=e=>{e.preventDefault();const p=coords(e);zoom(e.deltaY<0?.85:1.18,p.x,p.y);};
   const pointers=new Map;
   svg.onpointerdown=e=>{svg.setPointerCapture(e.pointerId);const p=coords(e);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+   if(editing&&regionSelecting){regionDraft={start:p,end:p};drawRegionOverlay();return;}
    if(editing&&(placementMode||routeSketch)){placementGestureMoved=pointers.size>1;return;}
-   const target=e.target.closest('[data-stop],[data-label],[data-path],[data-route-path]');if(target?.dataset.routePath){selection={type:'path',id:target.dataset.routePath};fields();const path=layout.paths.find(p=>p.id===selection.id);q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');}if(target&&(target.dataset.stop||target.dataset.label)){const id=target.dataset.stop||target.dataset.label;selection={type:'stop',id};fields();details(layout.stops.find(s=>s.id===id));}drag={id:e.pointerId,start:p,box:[...box],target:editing&&target&&!target.dataset.routePath?target:null,before:editor.get(),next:null};};
+   const target=e.target.closest('[data-studio-region],[data-stop],[data-label],[data-path],[data-route-path]');
+   if(editing&&regionSelection&&target?.dataset.studioRegion){
+    drag={id:e.pointerId,mode:'region',regionMode:target.dataset.studioRegion,start:p,before:editor.get(),next:null};return;
+   }if(target?.dataset.routePath){selection={type:'path',id:target.dataset.routePath};fields();const path=layout.paths.find(p=>p.id===selection.id);q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');}if(target&&(target.dataset.stop||target.dataset.label)){const id=target.dataset.stop||target.dataset.label;selection={type:'stop',id};fields();details(layout.stops.find(s=>s.id===id));}drag={id:e.pointerId,start:p,box:[...box],target:editing&&target&&!target.dataset.routePath?target:null,before:editor.get(),next:null};};
   svg.onpointermove=e=>{
+   if(editing&&regionSelecting&&regionDraft){
+    if(pointers.size===1&&pointers.has(e.pointerId)){pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});regionDraft.end=coords(e);drawRegionOverlay();}
+    return;
+   }
+   if(drag?.mode==='region'&&pointers.has(e.pointerId)){
+    if(pointers.size!==1)return;
+    const p=coords(e),next=structuredClone(drag.before);
+    try{
+     T.transformArea(next,regionSelection,{mode:drag.regionMode,dx:p.x-drag.start.x,dy:p.y-drag.start.y});
+     drag.next=next;layout=next;draw();
+    }catch(error){q('details').textContent=error.message;}
+    return;
+   }
    if(editing&&(placementMode||routeSketch)){
     const origin=pointers.get(e.pointerId);
     if(origin&&Math.hypot(origin.x-e.clientX,origin.y-e.clientY)>10)placementGestureMoved=true;
@@ -734,8 +791,19 @@
    }
    drag.next=next;layout=next;draw();
   };
-  function end(e){pointers.delete(e.pointerId);if(editing&&(placementMode||routeSketch))return;if(drag?.next)editor.import(drag.next);drag=null;draw();}
-  svg.onpointerup=end;svg.onpointercancel=()=>{pointers.clear();drag=null;placementGestureMoved=true;layout=editor.get();draw();};
+  function end(e){
+   pointers.delete(e.pointerId);
+   if(editing&&regionSelecting){
+    const a=regionDraft;regionSelection=a?T.selectArea(editor.get(),a.start,a.end):null;
+    regionDraft=null;regionSelecting=false;syncRegionControls();draw();
+    q('details').textContent=regionSelection?'Dra rammen for å flytte, eller gule håndtak for å strekke.':'Ingen punkter i markeringen.';
+    return;
+   }
+   if(editing&&(placementMode||routeSketch))return;
+   if(drag?.next){try{editor.import(drag.next);}catch(error){layout=editor.get();q('details').textContent=error.message;}}
+   drag=null;draw();
+  }
+  svg.onpointerup=end;svg.onpointercancel=()=>{pointers.clear();drag=null;regionDraft=null;regionSelecting=false;syncRegionControls();placementGestureMoved=true;layout=editor.get();draw();};
   // Capture click before the old map line/stop selection handlers, so an
   // insertion works even when the chosen pixel overlaps existing geometry.
   svg.addEventListener('click',e=>{
@@ -762,8 +830,8 @@
    }catch(error){q('details').textContent=error.message;}
   },true);
   document.addEventListener('keydown',e=>{
-   if(!editing||(!routeSketch&&placementMode!=='move')||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName||''))return;
-   if(e.key==='Escape'){e.preventDefault();cancelSketch();placementMode=null;moveStopId=null;syncSketchControls();fields();}
+   if(!editing||(!routeSketch&&placementMode!=='move'&&!regionSelecting&&!regionSelection)||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName||''))return;
+   if(e.key==='Escape'){e.preventDefault();cancelSketch();placementMode=null;moveStopId=null;regionSelection=null;regionDraft=null;regionSelecting=false;syncRegionControls();syncSketchControls();fields();draw();}
    else if(e.key==='Backspace'){e.preventDefault();undoSketchPoint();}
    else if(e.key==='Enter'){e.preventDefault();finishSketch();}
   });
