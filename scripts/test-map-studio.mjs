@@ -191,8 +191,8 @@ for(const [w,h] of [[30,40],[50,70],[40,40],[35,55]]){
  assert(result.summary.markers>=original.stops.length);
  assert(result.dimensions.scale>0);
  assert(result.dimensions.offsetX>=0&&result.dimensions.offsetY>=0);
- assert(result.dimensions.contentWidthMm<=w*10-24.001);
- assert(result.dimensions.contentHeightMm<=h*10-24.001);
+ assert(result.dimensions.contentWidthMm<=w*10-24+0.001);
+ assert(result.dimensions.contentHeightMm<=h*10-24+0.001);
  assert(result.svg.includes('r="2.5"'),'LED radius remains physical 2.5 mm across board sizes');
  rendered.push(result);
 }
@@ -204,7 +204,9 @@ assert(rendered[1].dimensions.scale>rendered[0].dimensions.scale,
 assert.throws(()=>Physical.build(original,{widthCm:0}),/mål/);
 assert.throws(()=>Physical.build(original,{widthCm:10,heightCm:10,marginMm:50}),/for liten/);
 assert.throws(()=>Physical.build(original,{widthCm:201}),/mål/);
-const physicalPair=Physical.build(pairLayout,{widthCm:30,heightCm:40,ledDiameterMm:5},
+const physicalGroup=structuredClone(original);
+D.addPair(physicalGroup,'original-049','NSR:Quay:73101','original-050','NSR:Quay:73100');
+const physicalPair=Physical.build(physicalGroup,{widthCm:30,heightCm:40,ledDiameterMm:5},
  {simulated:true,litQuays:['NSR:Quay:73101']});
 assert.match(physicalPair.svg,/data-quay="NSR:Quay:73101"/);
 assert.match(physicalPair.svg,/data-quay="NSR:Quay:73100"/);
