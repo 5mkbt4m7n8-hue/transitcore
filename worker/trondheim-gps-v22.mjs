@@ -16,6 +16,10 @@ const zeroDiag=()=>Object.fromEntries(DIAG_FIELDS.map(key=>[key,0]));
 // V2.4: counters only. IDs and positions never leave the DO's volatile memory.
 const FOLLOWUP_FIELDS=['restoredWithCandidates','restoredAmbiguous',
  'restoredChanged','restoredNarrowed','restoredDirection','restoredABC'];
+const REASON_V213=["NoAfter","NoAdvance","SomeStationary","MixedDirection","MultiQuay","Locked","NotLocked"];
+const freshReasons=()=>Object.fromEntries(REASON_V213.map(k=>[k,0]));
+const hasReasons=values=>REASON_V213.every(k=>
+ Number.isSafeInteger(values['directionReason'+k]));
 const MEMORY=['coldStart','catalogReset','continued','priorWithin3m',
  'priorAfter3m','priorUnknown'];
 const FRAME_MATCH=['priorFrameKnown','priorPrimary','currentPrimary',
@@ -458,7 +462,8 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
     extraCandidates:0,lostCandidates:0,
     restoredNarrowed:0,longNarrowed:0,
     restoredDirection:0,longDirection:0,
-    restoredABC:0,longABC:0}]))}};
+    restoredABC:0,longABC:0,
+    reasonFrames:0,reasonShort:freshReasons(),reasonLong:freshReasons()}]))}};
  const v25={frames:0,states:{fresh:0,restored:0,expired:0,
   catalogChanged:0,keyRotated:0},restoredTracks:0,tracksWritten:0,
   lines:Object.fromEntries(LINES.map(code=>[code,{frames:0,primary:0,matchedPrior:0,
@@ -506,6 +511,13 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
        dest.lossFramesOther++;dest.lostMatchesOther+=lost;
       }
      }else dest.sameFrames++;
+     if(hasReasons(short)&&hasReasons(long)){
+      dest.reasonFrames++;
+      for(const key of REASON_V213){
+       dest.reasonShort[key]+=short['directionReason'+key];
+       dest.reasonLong[key]+=long['directionReason'+key];
+      }
+     }
      if(FOLLOWUP_FIELDS.every(k=>Number.isSafeInteger(short[k]))){
       dest.candidateFrames++;
       dest.restoredWithCandidates+=short.restoredWithCandidates;
@@ -577,6 +589,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    'V2.10 runs a separate HMAC-only 240s shadow alongside the original 180s shadow, with independent random keys and the earliest-deadline shared DO alarm. Numeric candidate continuity is not proven bus-stop passage.',
    'V2.11 matchedPrior comparison uses identical frames with both shadows available, and reports positive and negative differences separately. Candidate comparisons have separate followup coverage. These are GPS observations, not unique vehicles or verified stop passages.',
    'V2.12 separates negative 240s/180s comparisons by V2.5/V2.10 snapshot status: 240s not restored while 180s restored, both restored, or other. This explains startup bias without claiming a per-vehicle identity or accuracy.',
+   'V2.13 reason fields partition restored source-pattern hypotheses by first unmet direction-lock condition: no surviving candidate, no forward source-pattern move, partly stationary hypotheses, competing source directions, multiple Quays, locked direction or a ready-but-unlocked anomaly. These are source-pattern index hypotheses, NOT physical movement or direction truth. It counts direction independently of Quay-set changes.',
    'V2.5 shadow key and pattern indexes are pseudonymous, not fully anonymous; automatic Durable Object alarm deletes them after 3 minutes plus a small scheduling grace period.',
    'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
    'Higher candidate support is not validated GPS accuracy.'

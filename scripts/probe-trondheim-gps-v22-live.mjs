@@ -31,6 +31,7 @@ const TIMING_V28=['frames','pairs','under3m','between3and4m','over4m',
  'restoredAfter3m','possible4mBridges','maxFrames3m','maxFrames4m',
  'threeFrameChains3m','threeFrameChains4m'];
 const count=x=>Number.isSafeInteger(x)&&x>=0?x:null;
+const V213_REASONS=["NoAfter","NoAdvance","SomeStationary","MixedDirection","MultiQuay","Locked","NotLocked"];
 const PAIRED_V211=['frames','matchedPrior','longMatchedPrior',
  'extraMatches','lostMatches','gainFrames','lossFrames','sameFrames',
  'lossFramesLongNotRestoredShortRestored',
@@ -63,8 +64,14 @@ export function summarizeV22Daily(payload){
     restoredTracks:count(payload.v29?.restoredTracks),
     paired:{frames:count(payload.v29?.paired?.frames),
      lines:Object.fromEntries(['1','11'].map(line=>[line,
-      Object.fromEntries(PAIRED_V211.map(k=>[
-       k,count(payload.v29?.paired?.lines?.[line]?.[k])]))]))
+      {...Object.fromEntries(PAIRED_V211.map(k=>[
+       k,count(payload.v29?.paired?.lines?.[line]?.[k])])),
+       reasonFrames:count(payload.v29?.paired?.lines?.[line]?.reasonFrames),
+       reasonShort:Object.fromEntries(V213_REASONS.map(k=>[
+        k,count(payload.v29?.paired?.lines?.[line]?.reasonShort?.[k])])),
+       reasonLong:Object.fromEntries(V213_REASONS.map(k=>[
+        k,count(payload.v29?.paired?.lines?.[line]?.reasonLong?.[k])]))
+      }]))
     },
     lines:Object.fromEntries(['1','11'].map(line=>[line,
      Object.fromEntries(['frames','primary','matchedPrior',
@@ -206,6 +213,14 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
       'extraMatches','lostMatches','restoredWithCandidates',
       'longWithCandidates'].map(k=>p[k]??'—').join(' | ')+' |';}).join('\n')+
     '\n\nKandidatevidens gjelder bare frames med V2.6-kandidatdekning.\n'+
+    '\n\n### V2.13 – årsak til manglende retningslås (samme frames)\n\n'+
+    '| Linje | Frames med årsaksdekning | Årsak | 180s | 240s |\n'+
+    '|---|---:|---|---:|---:|\n'+
+    ['1','11'].flatMap(code=>V213_REASONS.map(key=>{
+     const p=proof.daily.v29.paired.lines[code];
+     return '| '+code+' | '+(p.reasonFrames??'—')+' | '+key+' | '+
+      (p.reasonShort?.[key]??'—')+' | '+(p.reasonLong?.[key]??'—')+' |';
+    })).join('\n')+'\n'+
     '\n\n**240s-tap ved sammenligning:** '+['1','11'].map(line=>{
      const p=proof.daily.v29.paired.lines[line];
      return 'linje '+line+': '+(p.lostMatches??'—')+

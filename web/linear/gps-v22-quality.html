@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>InTransit GPS V2.12 – automatisk døgnkontroll</title>
+<title>InTransit GPS V2.13 – automatisk døgnkontroll</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1018;--panel:#16202e;--line:#314457;--ink:#f3f7ff;--muted:#a6b8cc;--blue:#8ed1ff;--green:#4dde9c}
 *{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,sans-serif;margin:0}
@@ -26,7 +26,7 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
 </head>
 <body><main>
 <nav><a href="./">← Trondheim Linear</a> · <a href="./quality-lines.html">Kvalitet for alle linjer</a></nav>
-<h1>📡 InTransit GPS V2.12</h1>
+<h1>📡 InTransit GPS V2.13</h1>
 <p>Automatisk døgnkontroll for linje 1 og 11. Cloudflare samler anonyme målinger fra <strong>eksisterende femminuttersinnsamling</strong> og den eksisterende ekstra AtB-prøven ved minutt 2. V2.3 analyserer nå <strong>både linje 1 og 11</strong> i denne samme prøvepakken, uten nye Entur-kall eller at telefonen må være åpen.</p>
 <section>
  <div class="controls">
@@ -110,6 +110,14 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
  <p class="note">Oppstartseffekt: Hvis 240s-minnet er nytt, men 180s-minnet allerede er gjenopprettet, er en svakere 240s-prøve ikke bevis på svakere varig sporing. Tap der begge er gjenopprettet må derimot undersøkes videre.</p>
 </section>
 <section>
+ <h2>V2.13 · hvorfor låses ikke kjøreretningen?</h2>
+ <p class="note">Bare nye målinger hvor <strong>begge</strong> skyggevariantene er tilgjengelige inngår. For hver gjenkjent GPS-observasjon som hadde lagrede mønsterhypoteser før den nye prøven, registrerer vi nøyaktig én grunn. «Fremdrift» betyr kun at mønsterindeksen er gått videre i mulige stoppsekvenser – det er <strong>ikke bevis på en faktisk passering</strong>. Vi registrerer retningslås også når kandidat-Quayene er uendret.</p>
+ <div class="scroll"><table>
+  <thead><tr><th>Linje</th><th>Hypotesestatus</th><th>180s</th><th>240s</th></tr></thead>
+  <tbody id="v213Reasons"><tr><td colspan="4">Ingen målinger av retningsårsaker ennå.</td></tr></tbody>
+ </table></div>
+</section>
+<section>
  <h2>Lerkendal og Tonstadkrysset – geografiske kontrollområder</h2>
  <p class="note">Her telles <strong>ferske GPS-observasjoner innenfor 85 meter</strong> fra utvalgte, kildeidentifiserte Quays. «Flere Quays nær GPS» viser konkurrerende geometriske kandidater. Det betyr ikke feil veikant eller faktisk stopp, og disse tallene beviser ikke hvorvidt V2.1 valgte korrekt Quay.</p>
  <div class="scroll"><table>
@@ -142,7 +150,7 @@ async function render(){
  $('v27Stats').textContent='';$('v27Lanes').textContent='';
  $('v28Stats').textContent='';$('v28Comparison').textContent='';
  $('v210Stats').textContent='';$('v210Lines').textContent='';
- $('v212Stats').textContent='';
+ $('v212Stats').textContent='';$('v213Reasons').textContent='';
  try{
   let url=API;
   if($('day').value==='previous'){
@@ -306,6 +314,23 @@ async function render(){
    $('v212Stats').textContent='Ingen parrede prøver for oppstartskontroll.';
    $('v210Lines').innerHTML='<tr><td colspan="10">Avventer nye måleframes.</td></tr>';
   }
+  const reasonNames=[
+   ['NoAfter','Ingen gjenværende rutekandidat'],
+   ['NoAdvance','Ingen mulig rutefremdrift'],
+   ['SomeStationary','Noen kandidater står fortsatt på samme stopp'],
+   ['MixedDirection','Konkurrerende ruteretninger'],
+   ['MultiQuay','Én retning, men flere mulige Quays'],
+   ['Locked','Retning låst i skyggen'],
+   ['NotLocked','Entydig hypotese uten låsing (undersøk)']
+  ];
+  $('v213Reasons').innerHTML=['1','11'].flatMap(code=>{
+   const pair=v29.paired?.lines?.[code];
+   if(!pair?.reasonFrames)return ['<tr><td>Linje '+code+
+    '</td><td colspan="3">Ingen V2.13-dekning.</td></tr>'];
+   return reasonNames.map(([key,label])=>'<tr><td><strong>Linje '+code+
+    '</strong></td><td>'+esc(label)+'</td><td>'+count(pair.reasonShort?.[key])+
+    '</td><td>'+count(pair.reasonLong?.[key])+'</td></tr>');
+  }).join('');
   $('sites').innerHTML=Object.entries(names).map(([key,[name,line]])=>{
    const s=d.spots?.[key]||{};return '<tr><td>'+esc(name)+'</td><td>'+esc(line)+
     '</td><td>'+count(s.frames||0)+'</td><td>'+count(s.nearGps||0)+

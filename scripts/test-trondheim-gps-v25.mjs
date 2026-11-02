@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import v21 from '../web/linear/network/gps-v2-shadow.js';
 import {readFileSync} from 'node:fs';
 import {evaluateV25,evaluateV29,expireV25State,sanitizeV25,sanitizeV29,
+ classifyV213Direction,
  V25_KEY,V25_TTL,V29_KEY,V29_TTL}
  from '../worker/trondheim-gps-v25.mjs';
 import {createVolatileState,evaluateV22,validateV22,
@@ -77,6 +78,35 @@ assert.equal(next.status,'restored','Recreate V2.1 from storage across a simulat
 assert.equal(next.lines['1'].matchedPrior,1);
 assert.equal(next.lines['11'].matchedPrior,1);
 assert(next.restoredTracks>=2);
+const v213Keys=["NoAfter","NoAdvance","SomeStationary","MixedDirection","MultiQuay","Locked","NotLocked"];
+const partition=(metrics,line)=>v213Keys.reduce((n,key)=>
+ n+metrics.lines[line]['directionReason'+key],0);
+for(const line of ['1','11']){
+ assert.equal(partition(next,line),next.lines[line].restoredWithCandidates,
+  'Every restored pattern hypothesis must have exactly one direction reason');
+ assert(sanitizeV25(next,'dual-fast'));
+}
+const outbound=source.lines['1'].patterns.findIndex(p=>p.directionType==='outbound');
+const inbound=source.lines['1'].patterns.findIndex(p=>p.directionType==='inbound');
+const synthetic=(hypotheses,direction=null)=>({hypotheses,direction});
+assert.equal(classifyV213Direction(null,'1'),'NoAfter');
+assert.equal(classifyV213Direction(synthetic([[outbound,1,0,0]]),'1'),'NoAdvance');
+assert.equal(classifyV213Direction(synthetic([[outbound,1,0,0],
+ [outbound,2,0,1]]),'1'),'SomeStationary');
+assert.equal(classifyV213Direction(synthetic([[outbound,1,0,1],
+ [inbound,1,0,1]]),'1'),'MixedDirection');
+assert.equal(classifyV213Direction(synthetic([[outbound,1,0,1],
+ [outbound,2,0,1]]),'1'),'MultiQuay');
+assert.equal(classifyV213Direction(synthetic([[outbound,1,0,1]]),'1'),'NotLocked');
+assert.equal(classifyV213Direction(synthetic([[outbound,1,0,1]],'outbound'),'1'),'Locked');
+const invalidDirection=structuredClone(next);
+invalidDirection.lines['1'].directionReasonLocked=999;
+assert.equal(sanitizeV25(invalidDirection,'dual-fast'),null);
+const legacyDir=structuredClone(next);
+for(const line of ['1','11'])for(const suffix of v213Keys)
+ delete legacyDir.lines[line]['directionReason'+suffix];
+assert(sanitizeV25(legacyDir,'dual-fast'),
+ 'Historical samples without V2.13 reasons stay readable');
 assert(sanitizeV25(next,'dual-fast'));
 assert(!JSON.stringify(sanitizeV25(next,'dual-fast')).includes(raw1));
 // Repeated samples do not keep old GPS or an old Quay ID in durable storage.
@@ -180,6 +210,14 @@ assert.equal(roll.v29.states.restored,1);
 assert.equal(roll.v29.lines['1'].matchedPrior,1);
 assert.equal(roll.v29.lines['11'].matchedPrior,1);
 assert.equal(roll.v29.paired.frames,2);
+assert.equal(roll.v29.paired.lines['1'].reasonFrames,2);
+for(const line of ['1','11']){
+ const paired=roll.v29.paired.lines[line];
+ assert.equal(v213Keys.reduce((n,k)=>n+paired.reasonShort[k],0),
+  paired.restoredWithCandidates);
+ assert.equal(v213Keys.reduce((n,k)=>n+paired.reasonLong[k],0),
+  paired.longWithCandidates);
+}
 assert.equal(roll.v29.paired.lines['1'].frames,2);
 assert.equal(roll.v29.paired.lines['1'].matchedPrior,1);
 assert.equal(roll.v29.paired.lines['1'].longMatchedPrior,1);
@@ -274,9 +312,12 @@ assert.equal(ambFollow.lines['1'].restoredChanged,1);
 assert.equal(ambFollow.lines['1'].restoredNarrowed,1);
 assert(ambFollow.lines['1'].restoredABC<=ambFollow.lines['1'].restoredDirection);
 const oldEvidence=structuredClone(next);
-for(const l of ['1','11'])for(const k of ['restoredWithCandidates',
- 'restoredAmbiguous','restoredChanged','restoredNarrowed',
- 'restoredDirection','restoredABC'])delete oldEvidence.lines[l][k];
+for(const l of ['1','11']){
+ for(const k of ['restoredWithCandidates','restoredAmbiguous',
+  'restoredChanged','restoredNarrowed','restoredDirection','restoredABC'])
+  delete oldEvidence.lines[l][k];
+ for(const key of v213Keys)delete oldEvidence.lines[l]['directionReason'+key];
+}
 assert(sanitizeV25(oldEvidence,'dual-fast'),'Old V2.5 reports stay readable');
 const altered=structuredClone(next);
 altered.lines['1'].restoredABC=altered.lines['1'].restoredDirection+1;
