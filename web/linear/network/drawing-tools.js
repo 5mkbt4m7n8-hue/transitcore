@@ -108,6 +108,14 @@
   return {stops:changedStops.length,vertices:changedVertices.length};
  }
  function exportSVG(layout){
+  const ds=layout.displayStations||[];
+  const D=globalThis.InTransitDisplayStations;
+  if(ds.length&&!D)throw Error('Visuelle stasjoner må lastes før SVG-eksport');
+  const groupedIds=new Set;
+  for(const group of ds)for(const id of new Set(group.members.map(m=>m.mapStopId))){
+   const stop=layout.stops.find(s=>s.id===id);
+   if(stop&&D.uniqueQuays(stop).length&&D.uniqueQuays(stop).every(qid=>group.members.some(m=>m.mapStopId===id&&m.quayId===qid)))groupedIds.add(id);
+  }
   const lines=(layout.paths||[]).flatMap(path=>visualTracks(path).map(track=>
    '<polyline data-path-id="'+xml(path.id)+'" data-lane="'+track.lane+
    '" points="'+track.points.map(p=>num(p.x)+','+num(p.y)).join(' ')+
@@ -117,11 +125,22 @@
    const platforms=stop.stationStyle==='double'?[-1,1].map(side=>
     '<rect x="'+num(stop.x+side*(stop.radius+3)-2)+'" y="'+num(stop.y-stop.radius-3)+
     '" width="4" height="'+num(stop.radius*2+6)+'" rx="2" fill="none" stroke="#8dbde1" stroke-width="1.2"/>').join(''):'';
-   const markers=stop.diodeMode==='split'?
+   const markers=groupedIds.has(stop.id)?'':stop.diodeMode==='split'?
     [-1,1].map(side=>'<circle cx="'+num(stop.x+side*(stop.radius+2))+'" cy="'+num(stop.y)+'" r="'+num(stop.radius)+'"/>').join(''):
     '<circle cx="'+num(stop.x)+'" cy="'+num(stop.y)+'" r="'+num(stop.radius)+'"/>';
    const label=stop.label?.visible?'<text x="'+num(stop.label.x)+'" y="'+num(stop.label.y)+'" fill="#dce8f8" stroke="#080f1d" stroke-width="2.5" paint-order="stroke" font-family="sans-serif" font-size="9">'+xml(stop.name)+'</text>':'';
    return '<g data-stop-id="'+xml(stop.id)+'" fill="#273449" stroke="#9eb9d2" stroke-width="1.3">'+platforms+markers+'</g>'+label;
+  }).join('\n  ');
+  const groupShapes=ds.map(group=>{
+   const geom=D.geometry(layout,group);
+   const outer=group.style.type==='double'?'':'<rect x="'+num(geom.outline.x)+'" y="'+num(geom.outline.y)+
+    '" width="'+num(geom.outline.width)+'" height="'+num(geom.outline.height)+'" rx="'+
+    num(group.style.outerShape==='capsule'?Math.min(geom.outline.width,geom.outline.height)/2:
+     Math.min(geom.outline.width,geom.outline.height)/3)+'" fill="none" stroke="#d7e6f6" stroke-width="'+num(group.style.ringWidth)+'"/>';
+   const marks=geom.members.map(({member,point})=>
+    '<circle data-quay="'+xml(member.quayId)+'" cx="'+num(point.x)+'" cy="'+num(point.y)+
+    '" r="'+num(group.style.markerRadius)+'" fill="#273449" stroke="#bfd4e6" stroke-width="1.2"/>').join('');
+   return '<g data-display-station="'+xml(group.id)+'">'+outer+marks+'</g>';
   }).join('\n  ');
   return '<?xml version="1.0" encoding="UTF-8"?>\n'+
    '<svg xmlns="http://www.w3.org/2000/svg" width="913" height="1280" viewBox="0 0 913 1280">\n'+
@@ -129,7 +148,7 @@
    ' <desc>Visuell tegning. Eksporter JSON fra InTransit for å bevare rutekoblinger og holdeplassdata.</desc>\n'+
    ' <rect width="913" height="1280" fill="#080f1d"/>\n'+
    ' <g id="intransit-lines">\n  '+lines+'\n </g>\n'+
-   ' <g id="intransit-stops">\n  '+stops+'\n </g>\n'+
+   ' <g id="intransit-stops">\n  '+stops+'\n  '+groupShapes+'\n </g>\n'+
    '</svg>\n';
  }
  return {snap,visualTracks,selectArea,transformArea,exportSVG};
