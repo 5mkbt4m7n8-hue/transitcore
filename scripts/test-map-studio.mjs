@@ -178,4 +178,46 @@ assert.match(map,/D\.nearbyPairs\(/);
 assert.match(map,/D\.addPair\(/);
 assert.match(map,/group\.dataset\.remainingQuays/);
 
-console.log('InTransit Map Studio v0.3 real-Quay and cross-stop groups OK');
+
+// Physical preview v0.5 is based on real board dimensions, never fixed pixels.
+const Physical=require('../web/linear/network/physical-board.js');
+assert.deepEqual(Physical.PRESETS.map(p=>p.id),['30x40','50x70','40x40']);
+const boardOriginal=JSON.stringify(original);
+const rendered=[];
+for(const [w,h] of [[30,40],[50,70],[40,40],[35,55]]){
+ const result=Physical.build(original,{widthCm:w,heightCm:h,ledDiameterMm:5,marginMm:12,labelFontMm:2.4});
+ assert(result.svg.includes('width="'+w*10+'mm" height="'+h*10+'mm"'));
+ assert(result.svg.includes('viewBox="0 0 '+w*10+' '+h*10+'"'));
+ assert(result.summary.markers>=original.stops.length);
+ assert(result.dimensions.scale>0);
+ assert(result.dimensions.offsetX>=0&&result.dimensions.offsetY>=0);
+ assert(result.dimensions.contentWidthMm<=w*10-24.001);
+ assert(result.dimensions.contentHeightMm<=h*10-24.001);
+ assert(result.svg.includes('r="2.5"'),'LED radius remains physical 2.5 mm across board sizes');
+ rendered.push(result);
+}
+assert.equal(JSON.stringify(original),boardOriginal,'physical preview does not edit canonical map');
+assert(rendered[2].dimensions.usagePct<rendered[0].dimensions.usagePct,
+ 'square board preserves aspect instead of stretching 913×1280 original');
+assert(rendered[1].dimensions.scale>rendered[0].dimensions.scale,
+ 'larger physical dimensions produce more space around same physical LED size');
+assert.throws(()=>Physical.build(original,{widthCm:0}),/mål/);
+assert.throws(()=>Physical.build(original,{widthCm:10,heightCm:10,marginMm:50}),/for liten/);
+assert.throws(()=>Physical.build(original,{widthCm:201}),/mål/);
+const physicalPair=Physical.build(pairLayout,{widthCm:30,heightCm:40,ledDiameterMm:5},
+ {simulated:true,litQuays:['NSR:Quay:73101']});
+assert.match(physicalPair.svg,/data-quay="NSR:Quay:73101"/);
+assert.match(physicalPair.svg,/data-quay="NSR:Quay:73100"/);
+assert.match(physicalPair.svg,/SIMULERT/);
+assert.match(physicalPair.svg,/data-display-station="display-pair-original-049-original-050"/);
+const physicalOn=physicalPair.svg.match(/<circle data-stop="original-049" data-quay="NSR:Quay:73101"[^>]+>/)?.[0];
+const physicalOff=physicalPair.svg.match(/<circle data-stop="original-050" data-quay="NSR:Quay:73100"[^>]+>/)?.[0];
+assert(physicalOn?.includes('fill="#44e392"'));
+assert(physicalOff?.includes('fill="#152a3c"'));
+assert.match(html,/network\/physical-board\.js/);
+assert.match(map,/boardPanel/);
+assert.match(map,/B\.build\(/);
+assert.match(map,/Eksporter SVG i fysisk størrelse/);
+assert.equal(JSON.stringify(pairLayout.stops),stopData,'physical board preview never rewrites real stops');
+
+console.log('InTransit Map Studio v0.5 real-size physical SVG preview and source integrity OK');
