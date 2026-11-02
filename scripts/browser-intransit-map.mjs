@@ -413,6 +413,23 @@ try{
  assert.deepEqual(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay]').evaluateAll(nodes=>nodes.map(n=>n.dataset.quay).sort()),
   ['NSR:Quay:71132','NSR:Quay:71134']);
  assert.equal(await page.locator('.map-display-outline').count(),1,'one shared outline without an LED');
+ assert.match(await page.locator('[data-role=displayPreviewReport]').innerText(),/NSR:Quay:71132/);
+ assert.match(await page.locator('[data-role=displayPreviewReport]').innerText(),/NSR:Quay:71134/);
+ await page.locator('[data-role=displayLedSimulation]').selectOption('a');
+ assert.equal(await page.locator('[data-role=mapPreviewBanner]').isVisible(),true,'Simulation needs visible warning');
+ assert.match(await page.locator('[data-role=mapPreviewBanner]').innerText(),/SIMULERT/);
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay="NSR:Quay:71132"]').getAttribute('data-state'),'AT_STOP');
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay="NSR:Quay:71134"]').getAttribute('data-state'),'OFF');
+ await page.locator('[data-role=displayLedSimulation]').selectOption('b');
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay="NSR:Quay:71132"]').getAttribute('data-state'),'OFF');
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay="NSR:Quay:71134"]').getAttribute('data-state'),'AT_STOP');
+ await page.locator('[data-role=displayLedSimulation]').selectOption('both');
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-state="AT_STOP"]').count(),2);
+ await page.locator('[data-role=displayLedSimulation]').selectOption('off');
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-state="AT_STOP"]').count(),0);
+ await page.locator('[data-role=displayLedSimulation]').selectOption('live');
+ assert.equal(await page.locator('[data-role=mapPreviewBanner]').isVisible(),false,'Live mode hides simulation banner');
+
  await page.locator('.map-display-controls select').first().selectOption('double');
  assert.equal(await page.locator('.map-display-outline').count(),0,'separate marker option removes only outer ring');
  await page.locator('[data-act=undo]').click();
