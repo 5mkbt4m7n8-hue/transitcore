@@ -413,9 +413,35 @@ try{
  assert.deepEqual(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay]').evaluateAll(nodes=>nodes.map(n=>n.dataset.quay).sort()),
   ['NSR:Quay:71132','NSR:Quay:71134']);
  assert.equal(await page.locator('.map-display-outline').count(),1,'one shared outline without an LED');
+
+ // Board dimensions are real physical cm/mm, independent of a 64×64 grid.
+ await page.locator('[data-role=boardPanel] summary').click();
+ await page.locator('[data-role=boardSvgHost] svg').waitFor();
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'300mm');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('height'),'400mm');
+ assert.match(await page.locator('[data-role=boardMetrics]').innerText(),/30 × 40 cm/);
+ await page.locator('[data-role=boardPreset]').selectOption('50x70');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'500mm');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('height'),'700mm');
+ await page.locator('[data-role=boardPreset]').selectOption('40x40');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('viewBox'),'0 0 400 400');
+ await page.locator('[data-role=boardWidth]').fill('35');
+ await page.locator('[data-role=boardWidth]').press('Tab');
+ await page.locator('[data-role=boardHeight]').fill('52');
+ await page.locator('[data-role=boardHeight]').press('Tab');
+ assert.equal(await page.locator('[data-role=boardPreset]').inputValue(),'custom');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'350mm');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('height'),'520mm');
+ const physicalDownload=page.waitForEvent('download');
+ await page.locator('[data-role=boardExport]').click();
+ assert.equal((await physicalDownload).suggestedFilename(),'intransit-board-35x52cm.svg');
+
  assert.match(await page.locator('[data-role=displayPreviewReport]').innerText(),/NSR:Quay:71132/);
  assert.match(await page.locator('[data-role=displayPreviewReport]').innerText(),/NSR:Quay:71134/);
  await page.locator('[data-role=displayLedSimulation]').selectOption('a');
+ await page.waitForFunction(()=>document.querySelector('[data-role=boardSvgHost] svg circle[data-quay="NSR:Quay:71132"]')?.getAttribute('fill')==='#44e392');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg circle[data-quay="NSR:Quay:71134"]').getAttribute('fill'),'#152a3c');
+
  assert.equal(await page.locator('[data-role=mapPreviewBanner]').isVisible(),true,'Simulation needs visible warning');
  assert.match(await page.locator('[data-role=mapPreviewBanner]').innerText(),/SIMULERT/);
  assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay="NSR:Quay:71132"]').getAttribute('data-state'),'AT_STOP');
