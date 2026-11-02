@@ -395,11 +395,14 @@
     });
    }
    // A group replaces the original marker only when all real Quays are covered.
-   const groupedIds=new Set;
-   for(const ds of layout.displayStations||[])for(const id of new Set(ds.members.map(m=>m.mapStopId))){
-    const stop=layout.stops.find(s=>s.id===id);
-    if(stop&&D.uniqueQuays(stop).length>0&&
-     D.uniqueQuays(stop).every(qid=>ds.members.some(m=>m.mapStopId===id&&m.quayId===qid)))groupedIds.add(id);
+   const groupedIds=new Set,groupedQuays=new Map;
+   for(const ds of layout.displayStations||[])for(const member of ds.members){
+    if(!groupedQuays.has(member.mapStopId))groupedQuays.set(member.mapStopId,new Set);
+    groupedQuays.get(member.mapStopId).add(member.quayId);
+   }
+   for(const stop of layout.stops){
+    const all=D.uniqueQuays(stop),grouped=groupedQuays.get(stop.id)||new Set;
+    if(all.length&&all.every(qid=>grouped.has(qid)))groupedIds.add(stop.id);
    }
    for(const stop of layout.stops){
      if(groupedIds.has(stop.id)){
@@ -417,7 +420,9 @@
       }));
       svg.append(platforms);
      }
-    const resolved=M.resolve(recordedStop(stop),activeBoard(),activeHardware());
+    const leftovers=D.uniqueQuays(stop).filter(id=>!groupedQuays.get(stop.id)?.has(id));
+    const resolved=M.resolve(recordedStop(stop),activeBoard(),activeHardware())
+     .filter(b=>!groupedQuays.get(stop.id)?.has(b.stopId));
     if(stop.verification==='confirmed'&&!context.all&&!playback&&!resolved.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
     const sides=stop.diodeMode==='split'?['left','right']:[null];
     sides.forEach((side,i)=>{
@@ -428,6 +433,7 @@
      if(stop.verification!=='confirmed'||(side!==null&&!mapped.length))group.dataset.unresolved='true';
      if(side!==null){group.dataset.direction=side;group.dataset.side=side;group.dataset.review=mapped.length?'user-reviewed':'pending';}
      group.dataset.stop=stop.id;
+     if(groupedQuays.has(stop.id))group.dataset.remainingQuays=leftovers.join(',');
      if(selection?.type==='stop'&&selection.id===stop.id)group.dataset.selected='true';
      group.append(el('circle',{r:Math.max(stop.radius,10),class:'map-stop-hit'}));
      group.append(el('circle',{r:stop.radius}));
@@ -493,7 +499,11 @@
     // On split markers, ONLY manually assigned Quays can trigger that side.
     // Missing reviews show OFF, never a guessed direction or a merged LED.
     const side=group.dataset.side||null;
-    const quayIds=group.dataset.quay?[group.dataset.quay]:side?Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===side&&r.verification==='user-reviewed').map(([id])=>id):null;
+    const remaining=group.dataset.remainingQuays?new Set(group.dataset.remainingQuays.split(',')):null;
+    const quayIds=group.dataset.quay?[group.dataset.quay]:side?
+     Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===side&&r.verification==='user-reviewed')
+      .map(([id])=>id).filter(id=>!remaining||remaining.has(id)):
+      remaining?[...remaining]:null;
     const values=M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
     all.push(...values);
     const max=Math.max(0,...values.map(v=>S.priority(v.state))),choices=values.filter(v=>S.priority(v.state)===max),v=choices.length?choices[phase%choices.length]:null;
