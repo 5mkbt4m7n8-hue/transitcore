@@ -32,6 +32,10 @@ const TIMING_V28=['frames','pairs','under3m','between3and4m','over4m',
  'threeFrameChains3m','threeFrameChains4m'];
 const count=x=>Number.isSafeInteger(x)&&x>=0?x:null;
 const V213_REASONS=["NoAfter","NoAdvance","SomeStationary","MixedDirection","MultiQuay","Locked","NotLocked"];
+const V214_COVERAGE=['frames','withGpsFrames','withoutGpsFrames','primaryGps',
+ 'matched180','matched240','withoutPrior180','withoutPrior240',
+ 'matchedWithoutPattern180','matchedWithoutPattern240',
+ 'withPattern180','withPattern240','gpsFramesWithoutPattern240'];
 const PAIRED_V211=['frames','matchedPrior','longMatchedPrior',
  'extraMatches','lostMatches','gainFrames','lossFrames','sameFrames',
  'lossFramesLongNotRestoredShortRestored',
@@ -70,7 +74,9 @@ export function summarizeV22Daily(payload){
        reasonShort:Object.fromEntries(V213_REASONS.map(k=>[
         k,count(payload.v29?.paired?.lines?.[line]?.reasonShort?.[k])])),
        reasonLong:Object.fromEntries(V213_REASONS.map(k=>[
-        k,count(payload.v29?.paired?.lines?.[line]?.reasonLong?.[k])]))
+        k,count(payload.v29?.paired?.lines?.[line]?.reasonLong?.[k])])),
+       coverageV214:Object.fromEntries(V214_COVERAGE.map(k=>[
+        k,count(payload.v29?.paired?.lines?.[line]?.coverageV214?.[k])]))
       }]))
     },
     lines:Object.fromEntries(['1','11'].map(line=>[line,
@@ -213,7 +219,16 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
       'extraMatches','lostMatches','restoredWithCandidates',
       'longWithCandidates'].map(k=>p[k]??'—').join(' | ')+' |';}).join('\n')+
     '\n\nKandidatevidens gjelder bare frames med V2.6-kandidatdekning.\n'+
-    '\n\n### V2.13 – årsak til manglende retningslås (samme frames)\n\n'+
+    '\n\n### V2.14 – GPS-dekning før retningsdiagnostikk\n\n'+
+    '| Linje | Nye frames | Frames med GPS | Frames uten GPS | GPS-observasjoner | 240s ukjent | 240s gjenkjent uten mønster | 240s gjenkjent med mønster |\n'+
+    '|---|---:|---:|---:|---:|---:|---:|---:|\n'+
+    ['1','11'].map(line=>{
+     const c=proof.daily.v29.paired.lines[line].coverageV214||{};
+     return '| '+line+' | '+['frames','withGpsFrames','withoutGpsFrames',
+      'primaryGps','withoutPrior240','matchedWithoutPattern240','withPattern240']
+      .map(k=>c[k]??'—').join(' | ')+' |';
+    }).join('\n')+'\n\nIngen GPS i et frame betyr manglende data, ikke feil retningslås.\n'+
+    '\n### V2.13 – årsak til manglende retningslås (samme frames)\n\n'+
     '| Linje | Frames med årsaksdekning | Årsak | 180s | 240s |\n'+
     '|---|---:|---|---:|---:|\n'+
     ['1','11'].flatMap(code=>V213_REASONS.map(key=>{

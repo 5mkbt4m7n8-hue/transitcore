@@ -212,6 +212,23 @@ assert.equal(roll.v29.lines['11'].matchedPrior,1);
 assert.equal(roll.v29.paired.frames,2);
 assert.equal(roll.v29.paired.lines['1'].reasonFrames,2);
 for(const line of ['1','11']){
+ const c=roll.v29.paired.lines[line].coverageV214;
+ assert.equal(c.frames,2);
+ assert.equal(c.withGpsFrames,2);
+ assert.equal(c.withoutGpsFrames,0);
+ assert.equal(c.primaryGps,2);
+ assert.equal(c.matched180,1);
+ assert.equal(c.matched240,1);
+ assert.equal(c.withoutPrior180,1);
+ assert.equal(c.withoutPrior240,1);
+ assert.equal(c.matchedWithoutPattern180,0);
+ assert.equal(c.matchedWithoutPattern240,0);
+ assert.equal(c.withPattern180,1);
+ assert.equal(c.withPattern240,1);
+ assert.equal(c.withoutPrior240+c.matchedWithoutPattern240+
+  c.withPattern240,c.primaryGps,'Coverage partition must be complete');
+}
+for(const line of ['1','11']){
  const paired=roll.v29.paired.lines[line];
  assert.equal(v213Keys.reduce((n,k)=>n+paired.reasonShort[k],0),
   paired.restoredWithCandidates);
@@ -273,6 +290,28 @@ for(const code of ['1','11']){
  assert.equal(x.lostMatchesLongNotRestoredShortRestored,1);
  assert.equal(x.lossFramesBothRestored,0);
  assert.equal(x.lostMatchesOther,0);
+}
+// Explicit zero-GPS fixture: a valid daily source sample is NOT
+// sufficient to claim that any direction hypothesis was analyzed.
+const emptyStore=fakeStore(),noGpsFrame=make(t0);
+noGpsFrame.leds=[];
+const noGpsReq=new Request('https://status.internal/gps-v22/observe',{
+ method:'POST',headers:{'content-type':'application/json'},
+ body:JSON.stringify({at:noGpsFrame.generatedAt,lane:'catalog',
+  frame:noGpsFrame,board})});
+const noGpsRes=await observeV22Internal(emptyStore,noGpsReq,
+ {engine:null,fingerprint:null},t0+1000);
+assert.equal(noGpsRes.status,200);
+const noGpsRoll=await reportV22Storage(emptyStore,{day:date,now:t0+2000});
+for(const line of ['1','11']){
+ const c=noGpsRoll.v29.paired.lines[line].coverageV214;
+ assert.equal(c.frames,1);
+ assert.equal(c.withoutGpsFrames,1);
+ assert.equal(c.withGpsFrames,0);
+ assert.equal(c.primaryGps,0);
+ assert.equal(c.withoutPrior240+c.matchedWithoutPattern240+
+  c.withPattern240,0);
+ assert.equal(noGpsRoll.v29.paired.lines[line].reasonFrames,1);
 }
 const malicious29=structuredClone(ordinary);
 malicious29.v29=structuredClone(restored4);

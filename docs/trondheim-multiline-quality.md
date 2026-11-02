@@ -940,3 +940,33 @@ aktiv motor, Radius 85m og LED-oppsett er uendret.
 `moves >= 1` betyr kun at hypotesens kildeindeks gikk
 fremover, ikke at kjøretøyet beviselig passerte et stopp.
 En `Locked`-teller er fortsatt ikke GPS-fasit.
+
+
+## GPS V2.14 – reell datadekning før retningsanalyse
+
+V2.13 var aktiv i 36 nye prøver natt til 2. november 2026,
+men ingen av disse hadde nye primær-GPS-observasjoner med
+restaurerte rutekandidater på linje 1 eller 11. Null i
+årsaksfordelingen er derfor ikke dokumentasjon på en
+feil i sporingsmotoren.
+
+V2.14 oppgir per linje antall nye, **parrede og diagnostiske**
+frames med/uten primær-GPS og deler hver primær-GPS-
+observasjon i tre uttømmende kategorier:
+
+- Kortvarig pseudonym ikke gjenkjent i tidligere minne.
+- Pseudonym gjenkjent, men uten overlevende rutemønster.
+- Pseudonym gjenkjent og med overlevende rutemønster, klart
+  for V2.13-klassifisering av mulige årsaker.
+
+Tallene beregnes fra både 180 og 240 sekund på samme frames.
+Nye dagssummer inneholder bare heltall, aldri kilde-ID,
+HMAC-pseudonym, koordinat, faktisk Quay eller nøyaktig
+enkeltbuss-tidspunkt. Uten GPS-data skal rapporten tydelig
+vise **manglende data**, ikke en feilaktig nullscore for
+retningsnøyaktighet. Eldre samples uten V2.13-dekning
+telles ikke som null i V2.14.
+
+Ingen nye Entur-kall, lagringsnøkler, timer, Cloudflare-
+alarmer, kildefrekvens, LED-endringer eller endring av
+aktiv GPS-matching.
