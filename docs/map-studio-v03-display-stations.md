@@ -2,7 +2,9 @@
 
 **Status:** Delvis implementert i utkast-PR #323, **ikke publisert**. Første prototype kan eksplisitt gruppere to bekreftede Entur Quay-er som allerede er knyttet til **samme skjematiske kartpunkt**, og tegne to separat kildekoblede LED-rundinger. Stasjonsstil (ring/kapsel/separate rundinger), ringmargin og avstand kan endres. Felles ring får aldri LED-status. Eksisterende tavle-/GPS-kilde, originalkart og hardwareprofil endres ikke.
 
-**Gjenstår:** gruppering på tvers av to ulike `stops[]`-markører (selv om de ligger tett), full valgbar fysisk/64×64-preview, komplett visuell plassering/flerstoppseditor og egne nettleserregresjonstester for alle symbolvarianter. De øvrige seksjonene i dette dokumentet beskriver den langsiktige v0.3-modellen, ikke nødvendigvis funksjoner som er ferdig implementert.
+**Ny delvis implementasjon:** Du kan nå velge to separate, bekreftede kartstopp innenfor 90 **skjematiske kartenheter** (ikke 90 meter!), og eksplisitt velge én Quay fra hver. Øvrige Quay-er blir værende som originale markører, men filtreres bort fra den valgte gruppens signaler for å unngå dobbel telling. Samfundet (`original-049` og `original-050`) brukes i regresjonstestene: én Quay fra hvert kartpunkt grupperes, mens de to andre fortsatt er tilgjengelige. UI antyder når to stopp har samme dokumenterte StopPlace, men det er ikke automatisk godkjenning av plassering eller fysisk side.
+
+**Gjenstår:** gruppering av flere enn to individuelle Quay-er i én visuell gruppe, full valgbar fysisk/64×64-preview, komplett fri plassering, manuell godkjenning av gruppens plattformside, og mer omfattende nettlesertesting av alle symbolvarianter. De øvrige seksjonene i dette dokumentet beskriver den langsiktige v0.3-modellen, ikke nødvendigvis funksjoner som er ferdig implementert.
 
 ## 1. Prinsipp og eksisterende data
 
