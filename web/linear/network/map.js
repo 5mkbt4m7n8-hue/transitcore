@@ -686,6 +686,37 @@
     addGroup.onclick=()=>{try{editor.change(next=>D.addDouble(next,item.id));selectedQuay=null;}catch(error){q('details').textContent=error.message;}};
     panelGroup.append(addGroup);
     if(addGroup.disabled){const warning=document.createElement('small');warning.textContent='Krever et bekreftet kartpunkt med nøyaktig to unike Entur Quay-er.';panelGroup.append(warning);}
+    const groupedStops=new Set((layout.displayStations||[]).flatMap(ds=>ds.members.map(m=>m.mapStopId)));
+    const candidates=D.nearbyPairs(layout,item.id).filter(v=>!groupedStops.has(v.stopId));
+    if(item.verification==='confirmed'&&D.uniqueQuays(item).length&&candidates.length){
+     const subsection=document.createElement('strong');subsection.textContent='Grupper med et annet, nærliggende kartstopp';
+     const help=document.createElement('small');
+     help.textContent='Velg manuelt én ekte Quay fra hvert kartpunkt. Andre Quay-er blir værende i kartet og får ikke doble signaler. Nærhet alene bekrefter ingen fysisk plattformside.';
+     panelGroup.append(subsection,help);
+     const labelSecond=document.createElement('label');labelSecond.textContent='Andre holdeplass';
+     const targetSelect=document.createElement('select');targetSelect.dataset.role='displayPairTarget';
+     for(const candidate of candidates)targetSelect.append(new Option(candidate.name+' · '+candidate.stopId+
+      (candidate.sameStopPlace?' (samme StopPlace)':'')+' · '+candidate.distance.toFixed(1)+' kartenheter',candidate.stopId));
+     labelSecond.append(targetSelect);
+     const labelFirst=document.createElement('label');labelFirst.textContent='Første Quay';
+     const selectFirst=document.createElement('select');selectFirst.dataset.role='displayPairFirstQuay';
+     for(const quay of D.uniqueQuays(item))selectFirst.append(new Option(quay,quay));
+     labelFirst.append(selectFirst);
+     const labelQuay=document.createElement('label');labelQuay.textContent='Andre Quay';
+     const selectQuay=document.createElement('select');selectQuay.dataset.role='displayPairSecondQuay';
+     const refresh=()=>{
+      const candidate=candidates.find(x=>x.stopId===targetSelect.value);
+      selectQuay.replaceChildren(...(candidate?.quays||[]).map(q=>new Option(q,q)));
+     };
+     targetSelect.onchange=refresh;refresh();labelQuay.append(selectQuay);
+     const groupPair=document.createElement('button');groupPair.type='button';
+     groupPair.textContent='+ Samle to separate stopp i én dobbeltstasjon';groupPair.dataset.act='createDisplayPair';
+     groupPair.onclick=()=>{try{
+      editor.change(next=>D.addPair(next,item.id,selectFirst.value,targetSelect.value,selectQuay.value));
+      selectedQuay=null;
+     }catch(error){q('details').textContent=error.message;}};
+     panelGroup.append(labelSecond,labelFirst,labelQuay,groupPair);
+    }
    }
    area.append(panelGroup);
    const knownQuays=[...new Set(item.bindings.map(b=>b.stopId).filter(id=>typeof id==='string'&&/^NSR:Quay:\d+$/.test(id)))].sort();
