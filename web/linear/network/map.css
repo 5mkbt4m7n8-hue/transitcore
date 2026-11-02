@@ -133,3 +133,14 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 
 /* Hit area for small unresolved stops, including those with hidden labels. */
 .map-viewport .map-stop circle.map-stop-hit{fill:transparent;stroke:none;filter:none;pointer-events:all}
+
+/* Map Studio: visual-only grid and opt-in drawing constraints. */
+.map-studio-tools{flex:1 1 100%;display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:11px;border:1px solid #4a738d;border-radius:10px;background:#10283a}
+.map-studio-tools strong{color:#e8f3fc;margin-right:6px}
+.map-studio-tools label{display:flex;align-items:center;gap:5px;font-size:12px;color:#d9e7fa}
+.map-studio-tools input[type=checkbox]{width:17px;height:17px;accent-color:#76c7f5}
+.map-studio-tools select{width:auto;min-width:70px;padding:7px}
+.map-studio-tools small{flex:1 1 100%;color:#a9cce4;line-height:1.4}
+.map-studio-tools button{border:1px solid #608ba8;background:#173c53}
+.map-viewport .map-studio-grid{fill:none;stroke:#8dc3e4;stroke-opacity:.16;stroke-width:.65;pointer-events:none}
+@media(max-width:560px){.map-studio-tools label{flex:1 1 42%}.map-studio-tools button{width:100%}}
