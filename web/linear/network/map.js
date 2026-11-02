@@ -439,6 +439,40 @@
    if(selection.type==='path'){
      input('Nøytral linjefarge',item.color,'color',(n,v)=>pick(n).color=v);
      input('Linjetykkelse',item.width,'number',(n,v)=>pick(n).width=v);
+      {const trackEditor=document.createElement('section');trackEditor.className='map-track-editor';
+      const trackTitle=document.createElement('strong');trackTitle.textContent='Spor og parallelle rutefarger (kun grafikk)';
+      const trackInfo=document.createElement('small');trackInfo.textContent='1 eller 2 tegnede spor, inntil 4 fargestriper per spor. Dette er utseende, ikke dokumenterte bussruter eller Quay-retninger.';
+      const settings=item.visualTracks||{trackCount:1,routeCount:1,spacing:5,colors:[item.color]};
+      function optionField(title,items,value,onChange){
+       const label=document.createElement('label');label.textContent=title;
+       const control=document.createElement('select');
+       for(const [id,text] of items)control.append(new Option(text,String(id)));
+       control.value=String(value);
+       control.onchange=()=>onChange(Number(control.value));
+       label.append(control);trackEditor.append(label);
+      }
+      const updateTracks=changes=>{try{editor.change(next=>{
+       const p=pick(next),old=p.visualTracks||{trackCount:1,routeCount:1,spacing:5,colors:[p.color]};
+       const trackCount=changes.trackCount??old.trackCount,routeCount=changes.routeCount??old.routeCount;
+       const size=trackCount*routeCount;
+       p.visualTracks={trackCount,routeCount,spacing:changes.spacing??old.spacing,
+        colors:Array.from({length:size},(_,i)=>old.colors[i]||p.color)};
+      });}catch(e){q('details').textContent=e.message;fields();}};
+      trackEditor.append(trackTitle,trackInfo);
+      optionField('Antall spor',[[1,'Ett spor'],[2,'Dobbeltspor']],settings.trackCount,n=>updateTracks({trackCount:n}));
+      optionField('Rutefarger per spor',[[1,'1'],[2,'2'],[3,'3'],[4,'4']],settings.routeCount,n=>updateTracks({routeCount:n}));
+      optionField('Avstand',[[3,'3'],[5,'5'],[8,'8'],[12,'12'],[18,'18'],[24,'24']],settings.spacing,n=>updateTracks({spacing:n}));
+      for(let i=0;i<settings.trackCount*settings.routeCount;i++){
+       const label=document.createElement('label');label.textContent='Farge '+(i+1);
+       const swatch=document.createElement('input');swatch.type='color';swatch.value=settings.colors[i]||item.color;
+       swatch.onchange=()=>{try{editor.change(next=>{
+        const p=pick(next);p.visualTracks||={trackCount:1,routeCount:1,spacing:5,colors:[p.color]};
+        p.visualTracks.colors[i]=swatch.value;
+       });}catch(e){q('details').textContent=e.message;fields();}};
+       label.append(swatch);trackEditor.append(label);
+      }
+      area.append(trackEditor);}
+
      const review=document.createElement('section');review.className='map-segment-editor';
      const heading=document.createElement('strong');heading.textContent='Rutetilknytning per delstrekning – manuell godkjenning';review.append(heading);
      const segment=document.createElement('select');segment.setAttribute('aria-label','Velg delstrekning');
