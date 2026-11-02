@@ -43,11 +43,15 @@
      const dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy)||1;
      return {x:-dy/length,y:dx/length};
     };
-    const a=normal(prev,p),b=normal(p,next),sx=a.x+b.x,sy=a.y+b.y;
-    const projected=(sx*a.x+sy*a.y)/2;
-    const ratio=Math.abs(projected)>0.1?Math.min(3,1/Math.abs(projected)):1;
-    const scale=Math.hypot(sx,sy)>0.1?ratio:1;
-    const n=Math.hypot(sx,sy)>0.1?{x:sx/2*scale,y:sy/2*scale}:a;
+    const left=i===0?normal(p,next):normal(prev,p);
+    const right=i===points.length-1?normal(prev,p):normal(p,next);
+    const sx=left.x+right.x,sy=left.y+right.y;
+    // Standard miter join: inner/outer rails keep the same spacing through
+    // corners, while a strict cap prevents huge spikes at acute turns.
+    const dot=(sx*left.x+sy*left.y)/2;
+    const multiplier=Math.abs(dot)>0.1?Math.min(3,1/Math.abs(dot)):1;
+    const n=Math.hypot(sx,sy)>0.1
+     ?{x:sx/2*multiplier,y:sy/2*multiplier}:left;
     return {x:p.x+offset*n.x,y:p.y+offset*n.y};
    });
    return {lane,color:color(settings.colors?.[lane]||path.color),width:path.width,points:translated};
