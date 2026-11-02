@@ -442,7 +442,7 @@
    // The outer capsule is purely decorative.
    for(const ds of layout.displayStations||[]){
     const geom=D.geometry(layout,ds),group=el('g',{class:'map-display-station','data-display-station':ds.id});
-    group.append(el('rect',{class:'map-display-outline',x:geom.outline.x,y:geom.outline.y,
+    if(ds.style.type!=='double')group.append(el('rect',{class:'map-display-outline',x:geom.outline.x,y:geom.outline.y,
      width:geom.outline.width,height:geom.outline.height,
      rx:ds.style.outerShape==='capsule'?Math.min(geom.outline.width,geom.outline.height)/2:
       ds.style.outerShape==='circle'?Math.min(geom.outline.width,geom.outline.height)/2:Math.min(geom.outline.width,geom.outline.height)/3,
@@ -641,6 +641,43 @@
    if(item.id.startsWith('custom-stop-'))input('Navn på nytt kartpunkt',item.name,'text',(n,v)=>{pick(n).name=v;});
    input('Dobbel stasjon (kun grafikk)',item.stationStyle==='double','checkbox',(n,v)=>pick(n).stationStyle=v?'double':'single');
     input('Punktstørrelse',item.radius,'number',(n,v)=>pick(n).radius=v);input('Vis etikett',item.label.visible,'checkbox',(n,v)=>pick(n).label.visible=v);input('To dioder',item.diodeMode==='split','checkbox',(n,v)=>pick(n).diodeMode=v?'split':'shared');
+
+   // Grouping controls only ever reference existing Quay IDs from this stop.
+   const visualGroup=(layout.displayStations||[]).find(ds=>ds.members.some(m=>m.mapStopId===item.id));
+   const panelGroup=document.createElement('section');panelGroup.className='map-display-controls';
+   const titleGroup=document.createElement('strong');titleGroup.textContent='Map Studio · ekte dobbelstasjon';
+   const noteGroup=document.createElement('small');
+   noteGroup.textContent=visualGroup?'Begge rundinger er knyttet til hver sin ekte Quay. Grafisk side er ikke automatisk verifisert.':'Opprett dobbelstasjon fra to bekreftede Quay-er, uten å endre stopp- eller LED-identitet.';
+   panelGroup.append(titleGroup,noteGroup);
+   if(visualGroup){
+    const updateGroup=fn=>{try{editor.change(next=>fn(next.displayStations.find(ds=>ds.id===visualGroup.id)));}catch(error){q('details').textContent=error.message;}};
+    function optionGroup(name,options,value,change){
+     const label=document.createElement('label');label.textContent=name;
+     const select=document.createElement('select');
+     for(const [id,text] of options)select.append(new Option(text,String(id)));
+     select.value=String(value);select.onchange=()=>updateGroup(g=>change(g,select.value));
+     label.append(select);panelGroup.append(label);
+    }
+    optionGroup('Stasjonsstil',[['double_outer_ring','Felles ring'],['double_capsule','Kapsel'],['double','To separate rundinger']],
+     visualGroup.style.type,(g,v)=>{g.style.type=v;g.style.outerShape=v==='double_capsule'?'capsule':'ellipse';});
+    optionGroup('Avstand fra sporet',[[6,'Tett'],[9,'Normal'],[12,'Luftig'],[16,'Ekstra luftig']],
+     Math.abs(visualGroup.members[0].offset.across),(g,v)=>{
+      g.members.forEach((m,i)=>{m.offset.across=(i===0?-1:1)*Number(v);m.placementReview='unreviewed';});
+      g.reviewStatus='unreviewed';
+     });
+    optionGroup('Ytre ringmargin',[[2,'Liten'],[4,'Normal'],[7,'Stor']],
+     visualGroup.style.ringPadding,(g,v)=>{g.style.ringPadding=Number(v);});
+    const removeGroup=document.createElement('button');removeGroup.type='button';removeGroup.textContent='Opphev visuell gruppering';
+    removeGroup.onclick=()=>{try{editor.change(next=>D.remove(next,visualGroup.id));selectedQuay=null;}catch(error){q('details').textContent=error.message;}};
+    panelGroup.append(removeGroup);
+   }else{
+    const addGroup=document.createElement('button');addGroup.type='button';addGroup.textContent='+ Opprett dobbelstasjon fra ekte Quay-er';
+    addGroup.disabled=item.verification!=='confirmed'||D.uniqueQuays(item).length!==2;
+    addGroup.onclick=()=>{try{editor.change(next=>D.addDouble(next,item.id));selectedQuay=null;}catch(error){q('details').textContent=error.message;}};
+    panelGroup.append(addGroup);
+    if(addGroup.disabled){const warning=document.createElement('small');warning.textContent='Krever et bekreftet kartpunkt med nøyaktig to unike Entur Quay-er.';panelGroup.append(warning);}
+   }
+   area.append(panelGroup);
    const knownQuays=[...new Set(item.bindings.map(b=>b.stopId).filter(id=>typeof id==='string'&&/^NSR:Quay:\d+$/.test(id)))].sort();
    if(knownQuays.length){
     const panel=document.createElement('section');panel.className='map-platform-review';
