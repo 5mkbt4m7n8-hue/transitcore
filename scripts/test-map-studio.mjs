@@ -117,4 +117,42 @@ assert.match(map,/D\.geometry\(/);
 assert.match(map,/group\.dataset\.quay/);
 assert.match(map,/D\.addDouble\(/);
 
-console.log('InTransit Map Studio v0.3 real-Quay LED grouping and geometry OK');
+
+// v0.3 two separate nearby stop markers: Samfundet is intentionally two
+// existing map stops in one StopPlace, containing FOUR real Quays in total.
+const pairLayout=structuredClone(original);
+const nearby=D.nearbyPairs(pairLayout,'original-049');
+const samfundet=nearby.find(c=>c.stopId==='original-050');
+assert(samfundet&&samfundet.sameStopPlace&&samfundet.distance<20);
+const stopData=JSON.stringify(pairLayout.stops);
+const pairId=D.addPair(pairLayout,'original-049','NSR:Quay:73101','original-050','NSR:Quay:73100');
+assert.equal(pairId,'display-pair-original-049-original-050');
+assert.deepEqual(model.validate(pairLayout),[]);
+assert.equal(JSON.stringify(pairLayout.stops),stopData);
+assert.deepEqual(pairLayout.displayStations[0].members.map(m=>m.mapStopId),['original-049','original-050']);
+const pairGeometry=D.geometry(pairLayout,pairLayout.displayStations[0]);
+assert.equal(pairGeometry.members.length,2);
+assert.notDeepEqual(pairGeometry.members[0].point,pairGeometry.members[1].point);
+const leftover1=D.uniqueQuays(pairLayout.stops.find(s=>s.id==='original-049'))
+ .filter(q=>!pairLayout.displayStations[0].members.some(m=>m.quayId===q));
+const leftover2=D.uniqueQuays(pairLayout.stops.find(s=>s.id==='original-050'))
+ .filter(q=>!pairLayout.displayStations[0].members.some(m=>m.quayId===q));
+assert.deepEqual(leftover1,['NSR:Quay:73103']);
+assert.deepEqual(leftover2,['NSR:Quay:73102']);
+const pairSvg=tools.exportSVG(pairLayout);
+assert.match(pairSvg,/data-display-station="display-pair-original-049-original-050"/);
+assert.match(pairSvg,/data-quay="NSR:Quay:73101"/);
+assert.match(pairSvg,/data-quay="NSR:Quay:73100"/);
+assert.throws(()=>D.addPair(pairLayout,'original-049','NSR:Quay:73103','original-050','NSR:Quay:73102'),/allerede/);
+assert.throws(()=>D.addPair(pairLayout,'original-049','NSR:Quay:00000','original-050','NSR:Quay:73102'),/dokumentert/);
+const wrongPair=structuredClone(pairLayout);
+wrongPair.displayStations[0].members[1].mapStopId='original-049';
+assert(model.validate(wrongPair).length>0,'cross-stop Quay must match the actual original stop');
+D.remove(pairLayout,pairId);
+assert.deepEqual(model.validate(pairLayout),[]);
+assert.equal(JSON.stringify(pairLayout.stops),stopData);
+assert.match(map,/D\.nearbyPairs\(/);
+assert.match(map,/D\.addPair\(/);
+assert.match(map,/group\.dataset\.remainingQuays/);
+
+console.log('InTransit Map Studio v0.3 real-Quay and cross-stop groups OK');
