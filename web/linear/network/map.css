@@ -163,3 +163,15 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-studio-region-handle{fill:#fce082;stroke:#1f2637;stroke-width:2;cursor:ns-resize;pointer-events:all}
 .map-studio-tools [data-act=studioSelect][aria-pressed=true]{background:#805b27;border-color:#f4ce79}
 @media(max-width:560px){.map-track-editor label{flex:1 1 115px}.map-studio-region-controls button{width:100%}}
+
+/* v0.3 explicit Quay-based double station: only inner markers can light. */
+.map-display-station .map-display-outline{fill:#102138;fill-opacity:.5;stroke:#d7e6f6;stroke-width:1.2;pointer-events:none}
+.map-display-station .map-stop circle:not(.map-stop-hit){fill:#273449;stroke:#bfd4e6;stroke-width:1.2}
+.map-display-station .map-stop[data-unresolved] circle:not(.map-stop-hit){stroke:#edc777;stroke-dasharray:2 1}
+.map-display-controls{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:9px;align-items:end;border:1px solid #517d9c;background:#12273b;padding:11px;border-radius:10px}
+.map-display-controls strong,.map-display-controls small{flex:1 1 100%}
+.map-display-controls strong{color:#d4efff}
+.map-display-controls small{line-height:1.5;color:#c1d6e9}
+.map-display-controls label{display:grid;gap:4px;flex:1 1 140px;font-size:12px}
+.map-display-controls select,.map-display-controls input{max-width:100%}
+.map-display-controls button{border:1px solid #66a4c8;background:#173b55}
