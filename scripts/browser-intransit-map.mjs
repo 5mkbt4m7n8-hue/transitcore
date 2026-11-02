@@ -405,6 +405,24 @@ try{
  await page.locator('.map-stop').first().click();
  await page.getByLabel('To dioder',{exact:true}).check();assert.equal(await page.locator('.map-stop[data-direction]').count(),2);
  await page.locator('[data-act=undo]').click();assert.equal(await page.locator('.map-stop[data-direction]').count(),0);
+ // Explicit display grouping uses real individual Quays, never fake station LEDs.
+ await page.locator('[data-role=focus]').selectOption('original-000');
+ await page.getByRole('button',{name:'+ Opprett dobbelstasjon fra ekte Quay-er'}).click();
+ assert.equal(await page.locator('.map-display-station').count(),1);
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay]').count(),2);
+ assert.deepEqual(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay]').evaluateAll(nodes=>nodes.map(n=>n.dataset.quay).sort()),
+  ['NSR:Quay:71132','NSR:Quay:71134']);
+ assert.equal(await page.locator('.map-display-outline').count(),1,'one shared outline without an LED');
+ await page.locator('.map-display-controls select').first().selectOption('double');
+ assert.equal(await page.locator('.map-display-outline').count(),0,'separate marker option removes only outer ring');
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-display-outline').count(),1,'Undo restores outer ring');
+ await page.getByRole('button',{name:'Opphev visuell gruppering'}).click();
+ assert.equal(await page.locator('.map-display-station').count(),0,'ungrouping restores legacy stop marker');
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-display-station').count(),1,'ungroup operation can be undone');
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-display-station').count(),0,'original map preserved by Undo');
  // The platform-audit workflow must enumerate verified Entur Quays without
  // guessing which side corresponds to route direction 0 or direction 1.
  assert.match(await page.locator('[data-role=platformProgress]').innerText(),/0\/65/);
