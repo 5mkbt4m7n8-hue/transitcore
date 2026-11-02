@@ -760,7 +760,9 @@
    }
    if(drag?.mode==='region'&&pointers.has(e.pointerId)){
     if(pointers.size!==1)return;
-    const p=coords(e),next=structuredClone(drag.before);
+    const p=coords(e);
+    if(Math.hypot(p.x-drag.start.x,p.y-drag.start.y)<.5){drag.next=null;layout=drag.before;draw();return;}
+    const next=structuredClone(drag.before);
     try{
      T.transformArea(next,regionSelection,{mode:drag.regionMode,dx:p.x-drag.start.x,dy:p.y-drag.start.y});
      drag.next=next;layout=next;draw();
