@@ -26,7 +26,10 @@
   const widthMm=n(widthCm*10),heightMm=n(heightCm*10);
   if(widthMm-2*marginMm<=ledDiameterMm+5||heightMm-2*marginMm<=ledDiameterMm+5)
    throw Error('Tavlen er for liten for valgt marg og LED-diameter');
-  const scale=Math.min((widthMm-2*marginMm)/SOURCE_W,(heightMm-2*marginMm)/SOURCE_H);
+  // Reserve the LED radius outside the map geometry, so drilled dots remain
+  // within the requested physical border margin even at the very edges.
+  const clearance=marginMm+ledDiameterMm/2;
+  const scale=Math.min((widthMm-2*clearance)/SOURCE_W,(heightMm-2*clearance)/SOURCE_H);
   const contentWidthMm=SOURCE_W*scale,contentHeightMm=SOURCE_H*scale;
   const offsetX=(widthMm-contentWidthMm)/2,offsetY=(heightMm-contentHeightMm)/2;
   return {widthCm,heightCm,widthMm,heightMm,marginMm,ledDiameterMm,labelFontMm,scale,
@@ -94,6 +97,7 @@
    const a=markers[i],b=markers[j];
    if(a.groupId&&a.groupId===b.groupId)continue;
    if(Math.hypot(a.x-b.x,a.y-b.y)<dims.ledDiameterMm+0.7){
+    a.overlap=true;b.overlap=true;
     warnings.push({code:'LED_OVERLAP',message:'LED-punkter ligger for tett: '+a.stopId+' / '+b.stopId});
    }
   }
@@ -136,9 +140,10 @@
    return '<circle data-stop="'+enc(m.stopId)+'"'+
     (m.quayId?' data-quay="'+enc(m.quayId)+'"':'')+
     (m.groupId?' data-display-station="'+enc(m.groupId)+'"':'')+
+    (m.overlap?' data-overlap="true"':'')+
     ' cx="'+m.x+'" cy="'+m.y+'" r="'+n(radius)+
-    '" fill="'+(active?'#44e392':'#152a3c')+'" stroke="'+(m.explicit?'#bed3e6':'#7794a8')+
-    '" stroke-width="'+(m.explicit?'0.7':'0.5')+'"/>';
+    '" fill="'+(active?'#44e392':'#152a3c')+'" stroke="'+(m.overlap?'#ffad5b':m.explicit?'#bed3e6':'#7794a8')+
+    '" stroke-width="'+(m.overlap?'1.2':m.explicit?'0.7':'0.5')+'"/>';
   }).join('\n');
   const labelSvg=(settings.showLabels===false?[]:labels).map(l=>
    '<text data-label-stop="'+enc(l.stopId)+'" x="'+l.x+'" y="'+l.y+
