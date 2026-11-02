@@ -773,6 +773,9 @@
     }
    }
    area.append(panelGroup);
+   // The editor panel is created after draw() invokes paint(); populate
+   // the read-only LED diagnostic immediately, not at the next 1.2 s tick.
+   if(visualGroup)paint();
    const knownQuays=[...new Set(item.bindings.map(b=>b.stopId).filter(id=>typeof id==='string'&&/^NSR:Quay:\d+$/.test(id)))].sort();
    if(knownQuays.length){
     const panel=document.createElement('section');panel.className='map-platform-review';
