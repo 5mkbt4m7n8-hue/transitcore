@@ -168,3 +168,21 @@ Foreslått *session-konfigurasjon*:
 5. **Aksepttest:** to Quay-er i samme dobbeltstasjon, hvor bare én Quay har aktivitet → bare riktig indre runding aktiveres.
 
 **Grense for v0.3:** Dette dokumentet og JSON Schema er kun forslag. Ikke slå PR #323 sammen eller kall tavlepreview ferdig før de faktiske modellendringene er implementert og regresjons-/nettlesertester består.
+
+
+## LED-testpanel i Map Studio (v0.4-utkast, implementert i PR #323)
+
+Når en eksplisitt dobbelstasjon er valgt i **Rediger kart**, viser editoren nå «LED-test (kun forhåndsvisning)» med fem valg:
+
+- **LIVE / kilde**: eksisterende tavle-/frame-signaler er utgangspunkt for de indre rundingene. Per-Quay-inspektøren viser hvilken tavlenode og logisk/fysisk LED som er koblet til rundingen. Manglende mapping gir ikke en fiktiv fysisk LED.
+- **SIMULERT · begge av**: ingen rundinger lyser i demoen.
+- **SIMULERT · bare A lyser** og **SIMULERT · bare B lyser**: test individuell fysisk plassering visuelt; den andre rundingen holdes av.
+- **SIMULERT · begge lyser**: test symbolstørrelse og lesbarhet med to aktive rundinger.
+
+Når SIMULERT er valgt, vises en tydelig banner i kartet. All faktisk live-LED-rendering i kartet holdes av mens testen pågår, slik at simuleringen ikke blandes med sanntidsobservasjoner. **Ingen simulert lysstatus lagres i JSON, sendes til GPS/Worker eller publiseres til en fysisk LED-tavle.**
+
+Statuspanelet per Quay kan vise **ACTIVE**, **OFF** (gyldig frame uten aktiv observasjon), **NO_FRAME**, **STALE**, **UNMAPPED**, **NO_HARDWARE**, **UNVERIFIED** og **SHARED_LED**. Sistnevnte markerer når flere Quay-er ikke sikkert kan skilles fra hverandre på en fysisk LED. Bare en gyldig frame gir grunnlag for ACTIVE eller OFF, og bare dokumentert node-/hardwarebinding gir et reelt fysisk LED-nummer. Statuspanelet er en *read-only inspeksjon* av eksisterende profiler, ikke ny rutebestemmelse.
+
+**Viktig begrensning:** Dette er foreløpig en **symbol- og Quay-basert preview i kartet**. Det er ikke en 1:1-rekonstruksjon av kablingen i en ferdig fysisk tavle og ikke en komplett 64×64 RGB-matriseprojeksjon. Plasseringene A/B er fortsatt manuelt uverifiserte til brukeren kontrollerer dem. Utvalget av to reelle Quay-er kommer fra eksisterende bindinger; systemet gjetter aldri hvilken som tilhører en gitt retning.
+
+Planlagt neste trinn: valgfri 64×64-piksel-forhåndsvisning basert på uttrykkelig valgt fysisk RGB-matriseprofil, inkludert lesbarhet og overlappssjekk ved tavlestørrelse.
