@@ -60,7 +60,7 @@ assert.deepEqual(model.validate(styled),[],'stretched layout validates');
 assert.equal(tools.selectArea(styled,{x:1,y:1},{x:2,y:2}),null);
 const invalidMove=structuredClone(styled),invalidArea=tools.selectArea(invalidMove,{x:470,y:140},{x:550,y:260});
 const invalidBefore=JSON.stringify(invalidMove);
-assert.throws(()=>tools.transformArea(invalidMove,invalidArea,{mode:'move',dy:-200}),/innenfor/);
+assert.throws(()=>tools.transformArea(invalidMove,invalidArea,{mode:'move',dy:-200}),/kartflaten/);
 assert.equal(JSON.stringify(invalidMove),invalidBefore,'invalid transforms are atomic');
 const invalidColor=structuredClone(styled);invalidColor.paths[0].visualTracks.colors[0]='bad';
 assert(model.validate(invalidColor).length>0,'visual color validation');
