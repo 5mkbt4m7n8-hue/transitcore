@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const require=createRequire(import.meta.url);
+const tools=require('../web/linear/network/drawing-tools.js');
+const snap=(x,y,options)=>tools.snap({x,y},options);
+assert.deepEqual(snap(12.7,14.1,{}),{x:12.7,y:14.1},'no snapping keeps exact coordinates');
+assert.deepEqual(snap(14.8,16.8,{gridSnap:true,gridSize:10}),{x:10,y:20});
+assert.deepEqual(snap(139,111,{gridSnap:true,angleSnap:true,previous:{x:100,y:100}}),{x:140,y:100},'horizontal constraint');
+assert.deepEqual(snap(133,127,{gridSnap:true,angleSnap:true,previous:{x:100,y:100}}),{x:130,y:130},'diagonal 45 degrees');
+assert.deepEqual(snap(83,122,{gridSnap:true,angleSnap:true,previous:{x:100,y:100}}),{x:80,y:120},'negative diagonal');
+assert.deepEqual(snap(128,135,{gridSnap:true,angleSnap:true,previous:{x:103,y:107}}),{x:133,y:137},'unaligned anchors keep 45 degrees');
+assert.deepEqual(snap(-50,1500,{gridSnap:true,gridSize:20}),{x:0,y:1280},'within viewBox');
+const layout={paths:[{id:'trace-1',color:'#56ccaa',width:2,points:[{x:2,y:3},{x:8,y:9}]}],
+ stops:[{id:'stop&1',name:'Buran <mot & retning>',x:10,y:20,radius:4,diodeMode:'shared',
+  label:{x:15,y:18,visible:true}}]};
+const before=JSON.stringify(layout),svg=tools.exportSVG(layout);
+assert.equal(JSON.stringify(layout),before,'export is read only');
+assert.match(svg,/viewBox="0 0 913 1280"/);
+assert.match(svg,/points="2,3 8,9"/);
+assert.match(svg,/Buran &lt;mot &amp; retning&gt;/);
+assert.match(svg,/data-stop-id="stop&amp;1"/);
+assert.doesNotMatch(svg,/Buran <mot/);
+const map=fs.readFileSync(new URL('../web/linear/network/map.js',import.meta.url),'utf8');
+const html=fs.readFileSync(new URL('../web/linear/index.html',import.meta.url),'utf8');
+new vm.Script(map);
+assert.match(html,/network\/drawing-tools\.js/);
+assert.match(map,/T\.snap\(/);
+assert.match(map,/T\.exportSVG\(/);
+assert.match(map,/map-studio-grid/);
+console.log('InTransit Map Studio drawing tools and integration OK');
