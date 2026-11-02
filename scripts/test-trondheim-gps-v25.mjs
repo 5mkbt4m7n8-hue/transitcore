@@ -82,6 +82,8 @@ const v213Keys=["NoAfter","NoAdvance","SomeStationary","MixedDirection","MultiQu
 const partition=(metrics,line)=>v213Keys.reduce((n,key)=>
  n+metrics.lines[line]['directionReason'+key],0);
 for(const line of ['1','11']){
+ assert.equal(next.lines[line].supported,1,'Restored worker GPS sequence must lock direction');
+ assert.equal(next.lines[line].directionReasonLocked,1);
  assert.equal(partition(next,line),next.lines[line].restoredWithCandidates,
   'Every restored pattern hypothesis must have exactly one direction reason');
  assert(sanitizeV25(next,'dual-fast'));
