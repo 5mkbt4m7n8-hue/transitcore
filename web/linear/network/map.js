@@ -70,11 +70,11 @@
     q('boardSvgHost').innerHTML=result.svg.replace(/^<\?xml[^>]*>\s*/,'');
     q('boardMetrics').textContent=boardSettings.widthCm+' × '+boardSettings.heightCm+
      ' cm · LED Ø '+boardSettings.ledDiameterMm+' mm · '+result.summary.markers+
-     ' markører · '+result.summary.labels+' navn · utnyttet flate '+result.dimensions.usagePct+
+     ' markører · '+result.summary.labels+' navn · '+result.summary.overlaps+' LED-avstandskonflikter · utnyttet flate '+result.dimensions.usagePct+
      ' %'+(demo?' · SIMULERT':' · kun grafisk preview');
     q('boardWarnings').textContent=result.warnings.length?
      'Kontrollpunkter ('+result.warnings.length+'): '+
-     result.warnings.slice(0,4).map(w=>w.message).join(' · ')+
+     result.warnings.slice().sort((a,b)=>Number(b.code==='LED_OVERLAP')-Number(a.code==='LED_OVERLAP')).slice(0,4).map(w=>w.message).join(' · ')+
      (result.warnings.length>4?' · …':''):'Ingen registrerte overlapp i denne visningen.';
    }catch(error){
     lastBoardResult=null;q('boardSvgHost').replaceChildren();q('boardWarnings').textContent='Kan ikke tegne tavlen: '+error.message;
