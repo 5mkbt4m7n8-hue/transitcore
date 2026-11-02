@@ -423,6 +423,28 @@ try{
  assert.equal(await page.locator('.map-display-station').count(),1,'ungroup operation can be undone');
  await page.locator('[data-act=undo]').click();
  assert.equal(await page.locator('.map-display-station').count(),0,'original map preserved by Undo');
+ // A real close-by pair is explicitly chosen; four Samfundet Quays remain
+ // represented, even though only one Quay from each stop is grouped.
+ await page.locator('[data-role=focus]').selectOption('original-049');
+ await page.locator('[data-role=displayPairTarget]').selectOption('original-050');
+ await page.locator('[data-role=displayPairFirstQuay]').selectOption('NSR:Quay:73101');
+ await page.locator('[data-role=displayPairSecondQuay]').selectOption('NSR:Quay:73100');
+ await page.locator('[data-act=createDisplayPair]').click();
+ const groupId='display-pair-original-049-original-050';
+ assert.equal(await page.locator('.map-display-station[data-display-station="'+groupId+'"]').count(),1);
+ assert.deepEqual(await page.locator('.map-display-station[data-display-station="'+groupId+'"] .map-stop[data-quay]')
+  .evaluateAll(nodes=>nodes.map(n=>({stop:n.dataset.stop,quay:n.dataset.quay}))),
+  [{stop:'original-049',quay:'NSR:Quay:73101'},{stop:'original-050',quay:'NSR:Quay:73100'}]);
+ assert.equal(await page.locator('.map-stop[data-stop="original-049"][data-remaining-quays]').getAttribute('data-remaining-quays'),
+  'NSR:Quay:73103');
+ assert.equal(await page.locator('.map-stop[data-stop="original-050"][data-remaining-quays]').getAttribute('data-remaining-quays'),
+  'NSR:Quay:73102');
+ const groupedDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert.equal(groupedDraft.stops.length,100);
+ assert.equal(groupedDraft.displayStations[0].members.length,2);
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-display-station').count(),0,'Undo removes cross-stop group in one transaction');
+ assert.equal(await page.locator('.map-stop[data-remaining-quays]').count(),0,'Undo restores full original Quay view');
  // The platform-audit workflow must enumerate verified Entur Quays without
  // guessing which side corresponds to route direction 0 or direction 1.
  assert.match(await page.locator('[data-role=platformProgress]').innerText(),/0\/65/);
