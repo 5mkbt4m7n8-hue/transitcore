@@ -67,7 +67,7 @@ function candidateQuays(row,code){
  }
  return candidates;
 }
-function followupEvidence(before,after,ids,tokens,code){
+function followupEvidence(before,after,ids,tokens,code,acceptedAt){
  const out=Object.fromEntries([...FOLLOWUP_FIELDS,...REASON_FIELDS]
   .map(k=>[k,0]));
  for(const id of ids){
@@ -77,7 +77,13 @@ function followupEvidence(before,after,ids,tokens,code){
   if(!oldQuays.size)continue;
   out.restoredWithCandidates++;
   if(oldQuays.size>1)out.restoredAmbiguous++;
-  const later=after.get(key),newQuays=candidateQuays(later,code);
+  // V2.16: ingest deliberately retains the prior track after a rejected
+  // observation (outside radius, sequence/direction conflict or limit).
+  // Only a track accepted at THIS ingest time is current follow-up evidence.
+  // Do not change tracking or erase its historical lock to fix a counter.
+  const retained=after.get(key);
+  const later=retained?.lastSeen===acceptedAt?retained:null;
+  const newQuays=candidateQuays(later,code);
   // Analyze ALL restored follow-ups, including identical Quay candidate
   // sets; V2.6 directional metric only covered changed Quay sets.
   out['directionReason'+classifyV213Direction(later,code)]++;
@@ -188,7 +194,7 @@ async function evaluateShadow(storage,frame,board,{lane,now=Date.now(),variant}=
    retained:s.ambiguousCandidatesRetained||0,
    narrowed:s.ambiguityNarrowed||0,
    resolved:s.ambiguityResolvedAfterFollowup||0,
-   ...followupEvidence(before,after,ids,hashed,code)
+   ...followupEvidence(before,after,ids,hashed,code,ts+1000)
   };
  }
  const record={version:1,at:ts,expiresAt:ts+ttl+ALARM_GRACE_MS,
