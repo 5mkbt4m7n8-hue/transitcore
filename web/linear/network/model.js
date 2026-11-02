@@ -13,6 +13,7 @@
    if(!s||typeof s!=='object'){errors.push('Ugyldig stopp');continue;}
    if(typeof s.id!=='string'||!s.id||ids.has(s.id))errors.push('Duplisert / ugyldig kart-ID');ids.add(s.id);
    if(!point(s)||!point(s.label)||typeof s.name!=='string'||typeof s.label.visible!=='boolean'||!['shared','split'].includes(s.diodeMode)||!Number.isFinite(s.radius)||s.radius<2||s.radius>20||!Array.isArray(s.bindings))errors.push('Ugyldig stopp '+s.id);
+   if(s.stationStyle!==undefined&&!['single','double'].includes(s.stationStyle))errors.push('Ugyldig stasjonsvisning '+s.id);
    for(const b of Array.isArray(s.bindings)?s.bindings:[])if(!b||typeof b.boardId!=='string'||typeof b.nodeId!=='string')errors.push('Ugyldig kobling '+s.id);
    if(s.platformSides!==undefined){
     if(!s.platformSides||typeof s.platformSides!=='object'||Array.isArray(s.platformSides))errors.push('Ugyldig plattformkontroll '+s.id);
@@ -30,6 +31,15 @@
   for(const p of layout.paths){
    if(!p||typeof p.id!=='string'||ids.has(p.id)||!/^#[a-f\d]{6}$/i.test(p.color)||!Number.isFinite(p.width)||p.width<.5||p.width>15||!Array.isArray(p.points)||p.points.length<2||!p.points.every(point)||!Array.isArray(p.routes)){errors.push('Ugyldig linje '+p?.id);continue;}
    ids.add(p.id);
+   if(p.visualTracks!==undefined){
+    const v=p.visualTracks;
+    if(!v||typeof v!=='object'||Array.isArray(v)||![1,2].includes(v.trackCount)||
+       !Number.isInteger(v.routeCount)||v.routeCount<1||v.routeCount>4||
+       !Number.isFinite(v.spacing)||v.spacing<2||v.spacing>24||
+       !Array.isArray(v.colors)||v.colors.length!==v.trackCount*v.routeCount||
+       v.colors.some(color=>!/^#[a-f\d]{6}$/i.test(color)))
+     errors.push('Ugyldig sporgeometri eller farger '+p.id);
+   }
    if(p.reviewedSegments!==undefined){
     if(!p.reviewedSegments||typeof p.reviewedSegments!=='object'||Array.isArray(p.reviewedSegments)){errors.push('Ugyldige godkjente delstrekninger '+p.id);continue;}
     for(const [index,item] of Object.entries(p.reviewedSegments)){
