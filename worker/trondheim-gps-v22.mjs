@@ -598,8 +598,10 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
  return {version:1,scope:'trondheim-gps-v22-scheduled-quality',
   day:chosen,timezone:'Europe/Oslo',status:LANES.some(
    lane=>lanes[lane].samples>0)?'SAMPLES':'NO_SAMPLES',
+  diagnosticRevision:216,
   lanes,first,last,lines,spots,memory,v25,v29,
   limitations:[
+   'V2.16: new follow-ups count NoAfter when the current GPS observation was not accepted; a retained historical lock is not current support. Earlier daily samples are unchanged. Locked is source-pattern compatibility, including accepted stationary follow-ups, not a new direction lock, physical passage or independently validated side of road.',
    'Sampling: 5-minute catalog plus existing offset Line 1 fast history; V2.3 dual-fast also measures Line 11 using the SAME AtB source response, no extra provider requests.',
    'V2.0 and V2.1 use the same sample; route hypotheses live in volatile DO memory and may reset.',
    'Older Line 11 five-minute-only samples are too sparse for proven stop sequences; V2.3 diagnostics start only on new samples.',

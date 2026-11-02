@@ -102,6 +102,39 @@ assert.equal(classifyV213Direction(synthetic([[outbound,1,0,1],
 assert.equal(classifyV213Direction(synthetic([[outbound,1,0,1]]),'1'),'NotLocked');
 assert.equal(classifyV213Direction(synthetic([[outbound,1,0,1]],'outbound'),'1'),'Locked');
 const invalidDirection=structuredClone(next);
+// V2.16: a retained lock is not support from a rejected CURRENT GPS point.
+// Exercise both independent TTLs and both pilot lines across engine restores.
+for(const evaluate of [evaluateV25,evaluateV29]){
+ const isolated=fakeStore();
+ await evaluate(isolated,make(t0),board,{lane:'catalog',now:t0});
+ const locked=await evaluate(isolated,make(t0+60000,n2,n12),board,{
+  lane:'dual-fast',now:t0+60000});
+ for(const code of ['1','11'])assert.equal(locked.lines[code].directionReasonLocked,1);
+ const rejected=make(t0+120000,n2,n12);
+ for(const led of rejected.leds){led.vehicle.latitude=63.6;led.vehicle.longitude=10.8;}
+ const beforeFrame=JSON.stringify(rejected);
+ const unsupported=await evaluate(isolated,rejected,board,{
+  lane:'dual-fast',now:t0+120000});
+ assert.equal(JSON.stringify(rejected),beforeFrame,'Diagnostics must not mutate active frame');
+ for(const code of ['1','11']){
+  assert.equal(unsupported.lines[code].directionReasonLocked,0,
+   'Rejected GPS must not count a retained historical lock as current support');
+  assert.equal(unsupported.lines[code].directionReasonNoAfter,1);
+  assert.equal(partition(unsupported,code),unsupported.lines[code].restoredWithCandidates);
+ }
+ assert(sanitizeV25(unsupported,'dual-fast'));
+ const reversed=await evaluate(isolated,make(t0+130000,n1,n11),board,{
+  lane:'dual-fast',now:t0+130000});
+ for(const code of ['1','11']){
+  assert.equal(reversed.lines[code].directionReasonLocked,0,
+   'An in-radius backward sequence rejection is not fresh lock support');
+  assert.equal(reversed.lines[code].directionReasonNoAfter,1);
+ }
+ // Accepted stationary follow-up retains a hypothesis, not a new passage.
+ const stationary=await evaluate(isolated,make(t0+150000,n2,n12),board,{
+  lane:'dual-fast',now:t0+150000});
+ for(const code of ['1','11'])assert.equal(stationary.lines[code].directionReasonLocked,1);
+}
 invalidDirection.lines['1'].directionReasonLocked=999;
 assert.equal(sanitizeV25(invalidDirection,'dual-fast'),null);
 const legacyDir=structuredClone(next);
