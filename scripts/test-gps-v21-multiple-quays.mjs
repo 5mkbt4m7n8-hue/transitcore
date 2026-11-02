@@ -84,6 +84,60 @@ assert.equal(res.lines['1'].acceptedBySourceSequence,0,
 res=use(shadowShared,mk(start+20000,d));
 assert.equal(res.lines['1'].routeDirectionLocked,1,
  'Third distinct Quay can disambiguate previously overlapping source paths');
+// V2.15: recreate the engine between GPS frames, as durable shadow callers do.
+// Direction must come from the verified pattern, not a new snapshot field.
+const token='a'.repeat(64);
+for(const trackTtlMs of [180000,240000]){
+ const fresh=(p=patterns)=>create({board,patterns:p,trackTtlMs});
+ const gps=(t,n,opts={})=>mk(t,n,{id:token,...opts});
+ const restore=(engine,t,p=patterns)=>{
+  const rows=engine.exportSnapshot({now:t});
+  assert.equal(rows.length,1);
+  assert(rows[0].hypotheses.every(h=>h.length===4));
+  const next=fresh(p);
+  assert.equal(next.restoreSnapshot(rows,{now:t}),1);
+  return next;
+ };
+ for(const [second,third,direction] of [[c,d,'inbound'],[e,f,'outbound']]){
+  let engine=fresh();
+  use(engine,gps(start,a,{coords:near}));
+  engine=restore(engine,start+2000);
+  let result=use(engine,gps(start+10000,second));
+  assert.equal(result.lines['1'].routeDirectionLocked,1,'Second GPS locks after restore');
+  assert.equal(engine.exportSnapshot({now:start+11000})[0].direction,direction);
+  engine=restore(engine,start+12000);
+  result=use(engine,gps(start+20000,third));
+  assert.equal(result.lines['1'].routeDirectionLocked,1,'Third GPS preserves restored lock');
+  assert.equal(result.lines['1'].acceptedBySourceSequence,1);
+  const before=engine.exportSnapshot({now:start+21000});
+  // The opposite platform is only ~10m away at the shared stop area.
+  result=use(engine,gps(start+30000,direction==='inbound'?e:c));
+  assert.equal(result.lines['1'].sourceDirectionConflict,1);
+  assert.equal(result.lines['1'].acceptedBySourceSequence,0);
+  assert.deepEqual(engine.exportSnapshot({now:start+31000}),before);
+  const opposite=direction==='inbound'?'outbound':'inbound';
+  result=use(engine,gps(start+40000,a,{kind:'entur-siri-provider-stop',
+   extras:{quayId:direction==='inbound'?b.quayId:a.quayId,
+    providerReportedAtStop:true,plannedSourceDirection:opposite,state:'AT_STOP'}}));
+  assert.equal(result.lines['1'].sourceDirectionConflict,1);
+  assert.equal(result.lines['1'].sourceDirectionLocked,0);
+  assert.deepEqual(engine.exportSnapshot({now:start+41000}),before);
+ }
+ let engine=fresh(shared);
+ use(engine,gps(start,a,{coords:near}));
+ engine=restore(engine,start+2000,shared);
+ let result=use(engine,gps(start+10000,c));
+ assert.equal(result.lines['1'].routeDirectionLocked,0,'Mixed directions at shared Quay stay unresolved');
+ assert.equal(result.lines['1'].acceptedBySourceSequence,0);
+ engine=restore(engine,start+12000,shared);
+ result=use(engine,gps(start+20000,d));
+ assert.equal(result.lines['1'].routeDirectionLocked,1,'Third GPS disambiguates after two restores');
+ engine=fresh();
+ use(engine,gps(start,a,{coords:near}));
+ engine=restore(engine,start+2000);
+ result=use(engine,gps(start+10000,a,{coords:near}));
+ assert.equal(result.lines['1'].routeDirectionLocked,0,'Stationary restored candidates cannot lock');
+}
 const source=create({board,patterns});
 const s=mk(start,a,{kind:'entur-siri-provider-stop',
  extras:{quayId:a.quayId,providerReportedAtStop:true,

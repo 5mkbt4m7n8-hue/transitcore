@@ -261,7 +261,7 @@
      if(!p||index<0||index>=p.quays.length||originIndex<0||
         originIndex>index||moves<0||moves>24){valid=false;break;}
      hypotheses.push({pattern,index,quay:p.quays[index],
-      origin:p.quays[originIndex],moves});
+      direction:p.directionType,origin:p.quays[originIndex],moves});
     }
     if(!valid||tracks.has(row.key))continue;
     tracks.set(row.key,{hypotheses,direction:row.direction,
