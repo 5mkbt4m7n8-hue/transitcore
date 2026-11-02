@@ -70,4 +70,51 @@ assert.match(map,/T\.transformArea/);
 assert.match(map,/T\.visualTracks/);
 assert.match(map,/stationStyle==='double'/);
 
-console.log('InTransit Map Studio v0.2 geometry and integration OK');
+
+// v0.3: all visible LED circles must point to real canonical Quay identities.
+const D=require('../web/linear/network/display-stations.js');
+const double=structuredClone(original),untouchedStops=JSON.stringify(double.stops);
+const dsId=D.addDouble(double,'original-000');
+assert.equal(dsId,'display-original-000');
+assert.deepEqual(model.validate(double),[],'real-Quay double station is a valid additive layout');
+assert.equal(double.displayStationsVersion,1);
+assert.equal(JSON.stringify(double.stops),untouchedStops,'grouping does not modify underlying stop identity');
+const station=double.displayStations[0],geometry=D.geometry(double,station);
+assert.equal(geometry.members.length,2);
+assert.equal(new Set(station.members.map(m=>m.quayId)).size,2);
+assert(station.members.every(m=>double.stops.find(s=>s.id===m.mapStopId).bindings.some(b=>b.stopId===m.quayId)));
+assert(station.members.every(m=>m.placementReview==='unreviewed'),
+ 'visual side is never silently certified by original Quay order');
+assert.notEqual(geometry.members[0].point.x,geometry.members[1].point.x,'members lie on opposite track sides');
+const exported=tools.exportSVG(double);
+assert.match(exported,/data-display-station="display-original-000"/);
+assert.match(exported,/data-quay="NSR:Quay:71132"/);
+assert.match(exported,/data-quay="NSR:Quay:71134"/);
+// Real per-Quay preview: an active frame for Quay A cannot illuminate Quay B.
+const sourceStop=double.stops[0],ids=station.members.map(m=>m.quayId);
+const board={id:'trondheim-city-lines-catalog',nodes:ids.map((id,i)=>({
+ id,stationId:'NSR:StopPlace:41586',stopIds:[id],led:i,routes:['atb-bus-1-live']
+}))};
+const hardware={assignments:[{logicalLed:0,physicalLed:10},{logicalLed:1,physicalLed:11}]};
+const now=Date.now(),frame={generatedAt:new Date(now).toISOString(),ttlSeconds:30,
+ leds:[{id:10,state:'AT_STOP',rgb:[0,200,0],occupants:[{id:'example-bus',line:'1',state:'AT_STOP'}]}]};
+assert.equal(model.signals(sourceStop,board,hardware,frame,null,now,null,[ids[0]]).length,1);
+assert.equal(model.signals(sourceStop,board,hardware,frame,null,now,null,[ids[1]]).length,0);
+const shared={assignments:[{logicalLed:0,physicalLed:10},{logicalLed:1,physicalLed:10}]};
+assert.equal(model.signals(sourceStop,board,shared,frame,null,now,null,[ids[0]]).length,0,
+ 'a shared physical LED cannot fake an independent Quay observation');
+assert.equal(model.signals(sourceStop,board,shared,frame,null,now,null,[ids[1]]).length,0);
+const broken=structuredClone(double);broken.displayStations[0].members[1].quayId=ids[0];
+assert(model.validate(broken).length>0,'one Quay cannot occupy two grouped slots');
+const unresolved=structuredClone(original);
+assert.throws(()=>D.addDouble(unresolved,'original-003'),/bekreftet/);
+D.remove(double,dsId);
+assert.deepEqual(model.validate(double),[],'ungrouped original layout is valid');
+assert.equal(double.displayStations,undefined);
+assert.equal(JSON.stringify(double.stops),untouchedStops);
+assert.match(html,/network\/display-stations\.js/);
+assert.match(map,/D\.geometry\(/);
+assert.match(map,/group\.dataset\.quay/);
+assert.match(map,/D\.addDouble\(/);
+
+console.log('InTransit Map Studio v0.3 real-Quay LED grouping and geometry OK');
