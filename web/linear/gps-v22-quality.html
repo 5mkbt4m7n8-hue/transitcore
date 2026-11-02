@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>InTransit GPS V2.13 – automatisk døgnkontroll</title>
+<title>InTransit GPS V2.14 – automatisk døgnkontroll</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1018;--panel:#16202e;--line:#314457;--ink:#f3f7ff;--muted:#a6b8cc;--blue:#8ed1ff;--green:#4dde9c}
 *{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,sans-serif;margin:0}
@@ -26,7 +26,7 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
 </head>
 <body><main>
 <nav><a href="./">← Trondheim Linear</a> · <a href="./quality-lines.html">Kvalitet for alle linjer</a></nav>
-<h1>📡 InTransit GPS V2.13</h1>
+<h1>📡 InTransit GPS V2.14</h1>
 <p>Automatisk døgnkontroll for linje 1 og 11. Cloudflare samler anonyme målinger fra <strong>eksisterende femminuttersinnsamling</strong> og den eksisterende ekstra AtB-prøven ved minutt 2. V2.3 analyserer nå <strong>både linje 1 og 11</strong> i denne samme prøvepakken, uten nye Entur-kall eller at telefonen må være åpen.</p>
 <section>
  <div class="controls">
@@ -110,6 +110,12 @@ th{color:var(--muted);font-size:12px}th:first-child,td:first-child{text-align:le
  <p class="note">Oppstartseffekt: Hvis 240s-minnet er nytt, men 180s-minnet allerede er gjenopprettet, er en svakere 240s-prøve ikke bevis på svakere varig sporing. Tap der begge er gjenopprettet må derimot undersøkes videre.</p>
 </section>
 <section>
+ <h2>V2.14 · finnes GPS-data å analysere?</h2>
+ <p class="note">Nye prøver med både 180s- og 240s-varianten deles etter faktisk GPS-primærdekning. Uten GPS kan vi ikke evaluere retningslås. «Gjenkjent» gjelder en kortvarig HMAC-kobling, og rutemønster betyr kun en mulig kildebasert stoppsekvens – ikke faktisk passering.</p>
+ <div class="scroll"><table><thead><tr><th>Linje</th><th>Frames</th><th>Uten GPS</th><th>Med GPS</th><th>GPS-observasjoner</th><th>240s uten tidligere ID</th><th>240s kjent uten mønster</th><th>240s kjent med mønster</th></tr></thead>
+ <tbody id="v214Coverage"><tr><td colspan="8">Ingen målinger med V2.14-dekning ennå.</td></tr></tbody></table></div>
+</section>
+<section>
  <h2>V2.13 · hvorfor låses ikke kjøreretningen?</h2>
  <p class="note">Bare nye målinger hvor <strong>begge</strong> skyggevariantene er tilgjengelige inngår. For hver gjenkjent GPS-observasjon som hadde lagrede mønsterhypoteser før den nye prøven, registrerer vi nøyaktig én grunn. «Fremdrift» betyr kun at mønsterindeksen er gått videre i mulige stoppsekvenser – det er <strong>ikke bevis på en faktisk passering</strong>. Vi registrerer retningslås også når kandidat-Quayene er uendret.</p>
  <div class="scroll"><table>
@@ -151,6 +157,7 @@ async function render(){
  $('v28Stats').textContent='';$('v28Comparison').textContent='';
  $('v210Stats').textContent='';$('v210Lines').textContent='';
  $('v212Stats').textContent='';$('v213Reasons').textContent='';
+ $('v214Coverage').textContent='';
  try{
   let url=API;
   if($('day').value==='previous'){
@@ -323,6 +330,15 @@ async function render(){
    ['Locked','Retning låst i skyggen'],
    ['NotLocked','Entydig hypotese uten låsing (undersøk)']
   ];
+  $('v214Coverage').innerHTML=['1','11'].map(code=>{
+   const c=v29.paired?.lines?.[code]?.coverageV214;
+   if(!c?.frames)return '<tr><td>Linje '+code+
+    '</td><td colspan="7">Ingen V2.14-dekning ennå.</td></tr>';
+   return '<tr><td><strong>Linje '+code+'</strong></td>'+
+    [c.frames,c.withoutGpsFrames,c.withGpsFrames,c.primaryGps,
+     c.withoutPrior240,c.matchedWithoutPattern240,c.withPattern240]
+     .map(n=>'<td>'+count(n)+'</td>').join('')+'</tr>';
+  }).join('');
   $('v213Reasons').innerHTML=['1','11'].flatMap(code=>{
    const pair=v29.paired?.lines?.[code];
    if(!pair?.reasonFrames)return ['<tr><td>Linje '+code+

@@ -20,6 +20,15 @@ const REASON_V213=["NoAfter","NoAdvance","SomeStationary","MixedDirection","Mult
 const freshReasons=()=>Object.fromEntries(REASON_V213.map(k=>[k,0]));
 const hasReasons=values=>REASON_V213.every(k=>
  Number.isSafeInteger(values['directionReason'+k]));
+// V2.14: all counts are aggregate per source frame, no vehicle identity.
+const coverageZero=()=>({
+ frames:0,withGpsFrames:0,withoutGpsFrames:0,primaryGps:0,
+ matched180:0,matched240:0,
+ withoutPrior180:0,withoutPrior240:0,
+ matchedWithoutPattern180:0,matchedWithoutPattern240:0,
+ withPattern180:0,withPattern240:0,
+ gpsFramesWithoutPattern240:0
+});
 const MEMORY=['coldStart','catalogReset','continued','priorWithin3m',
  'priorAfter3m','priorUnknown'];
 const FRAME_MATCH=['priorFrameKnown','priorPrimary','currentPrimary',
@@ -463,7 +472,8 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
     restoredNarrowed:0,longNarrowed:0,
     restoredDirection:0,longDirection:0,
     restoredABC:0,longABC:0,
-    reasonFrames:0,reasonShort:freshReasons(),reasonLong:freshReasons()}]))}};
+    reasonFrames:0,reasonShort:freshReasons(),reasonLong:freshReasons(),
+    coverageV214:coverageZero()}]))}};
  const v25={frames:0,states:{fresh:0,restored:0,expired:0,
   catalogChanged:0,keyRotated:0},restoredTracks:0,tracksWritten:0,
   lines:Object.fromEntries(LINES.map(code=>[code,{frames:0,primary:0,matchedPrior:0,
@@ -511,7 +521,22 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
        dest.lossFramesOther++;dest.lostMatchesOther+=lost;
       }
      }else dest.sameFrames++;
-     if(hasReasons(short)&&hasReasons(long)){
+     if(hasReasons(short)&&hasReasons(long)&&short.primary===long.primary){
+      // Only twin-shadow V2.13 frames count. Incomplete source GPS is
+      // insufficient evidence, not a failure to classify direction.
+      const c=dest.coverageV214;
+      c.frames++;c.primaryGps+=long.primary;
+      if(long.primary===0)c.withoutGpsFrames++;
+      else c.withGpsFrames++;
+      c.matched180+=short.matchedPrior;c.matched240+=long.matchedPrior;
+      c.withoutPrior180+=short.primary-short.matchedPrior;
+      c.withoutPrior240+=long.primary-long.matchedPrior;
+      c.matchedWithoutPattern180+=short.matchedPrior-short.restoredWithCandidates;
+      c.matchedWithoutPattern240+=long.matchedPrior-long.restoredWithCandidates;
+      c.withPattern180+=short.restoredWithCandidates;
+      c.withPattern240+=long.restoredWithCandidates;
+      if(long.primary>0&&long.restoredWithCandidates===0)
+       c.gpsFramesWithoutPattern240++;
       dest.reasonFrames++;
       for(const key of REASON_V213){
        dest.reasonShort[key]+=short['directionReason'+key];
@@ -590,6 +615,7 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
    'V2.11 matchedPrior comparison uses identical frames with both shadows available, and reports positive and negative differences separately. Candidate comparisons have separate followup coverage. These are GPS observations, not unique vehicles or verified stop passages.',
    'V2.12 separates negative 240s/180s comparisons by V2.5/V2.10 snapshot status: 240s not restored while 180s restored, both restored, or other. This explains startup bias without claiming a per-vehicle identity or accuracy.',
    'V2.13 reason fields partition restored source-pattern hypotheses by first unmet direction-lock condition: no surviving candidate, no forward source-pattern move, partly stationary hypotheses, competing source directions, multiple Quays, locked direction or a ready-but-unlocked anomaly. These are source-pattern index hypotheses, NOT physical movement or direction truth. It counts direction independently of Quay-set changes.',
+   'V2.14 separates frames without GPS-primary buses from observations without prior HMAC or surviving source patterns. All coverage totals use only complete V2.13 paired frames. Zero reason counts in empty GPS frames are not GPS accuracy evidence.',
    'V2.5 shadow key and pattern indexes are pseudonymous, not fully anonymous; automatic Durable Object alarm deletes them after 3 minutes plus a small scheduling grace period.',
    'GPS diagnostic categories classify continuity and geographic candidates, not correct Quay, stops or verified journeys.',
    'Higher candidate support is not validated GPS accuracy.'
