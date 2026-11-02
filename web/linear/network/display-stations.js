@@ -48,6 +48,50 @@
   (layout.displayStations??=[]).push(ds);
   return id;
  }
+
+ // Group exactly two explicitly chosen real Quays, even when they belong to
+ // different, nearby schematic stop markers. Never infer a Quay from distance.
+ function nearbyPairs(layout,sourceStopId,maxDistance=90){
+  const source=layout.stops.find(stop=>stop.id===sourceStopId);
+  if(!source||source.verification!=='confirmed')return [];
+  return layout.stops.filter(stop=>stop.id!==source.id&&stop.verification==='confirmed')
+   .map(stop=>({stopId:stop.id,name:stop.name,
+    distance:Math.hypot(stop.x-source.x,stop.y-source.y),
+    sameStopPlace:Boolean(source.stationGroupId&&source.stationGroupId===stop.stationGroupId),
+    quays:uniqueQuays(stop)}))
+   .filter(item=>item.quays.length>0&&item.distance<=maxDistance)
+   .sort((a,b)=>Number(b.sameStopPlace)-Number(a.sameStopPlace)||a.distance-b.distance);
+ }
+ function addPair(layout,firstStopId,firstQuayId,secondStopId,secondQuayId){
+  const first=layout.stops.find(stop=>stop.id===firstStopId);
+  const second=layout.stops.find(stop=>stop.id===secondStopId);
+  if(!first||!second||first.id===second.id||first.verification!=='confirmed'||second.verification!=='confirmed')
+   throw Error('Velg to ulike, bekreftede kartstopp');
+  if(!uniqueQuays(first).includes(firstQuayId)||!uniqueQuays(second).includes(secondQuayId)||
+   firstQuayId===secondQuayId)throw Error('Velg en dokumentert, forskjellig Quay for hvert stopp');
+  const distance=Math.hypot(first.x-second.x,first.y-second.y);
+  if(distance>90)throw Error('Kartpunktene ligger for langt fra hverandre for denne grupperingen');
+  const inUse=new Set((layout.displayStations||[]).flatMap(ds=>ds.members.map(m=>m.mapStopId)));
+  if(inUse.has(first.id)||inUse.has(second.id))
+   throw Error('Et av stoppene inngår allerede i en visuell gruppe');
+  const id='display-pair-'+first.id+'-'+second.id;
+  if((layout.displayStations||[]).some(ds=>ds.id===id))
+   throw Error('Den visuelle gruppen eksisterer allerede');
+  const anchor={x:(first.x+second.x)/2,y:(first.y+second.y)/2};
+  const center={...anchor};
+  const track=closestTrack(layout,center);
+  const ds={id,anchor,style:{type:'double_outer_ring',outerShape:'capsule',
+   markerRadius:Math.max(3,Math.min(8,(first.radius+second.radius)/2)),ringPadding:4,ringWidth:1.2},
+   label:{mode:'shared',sourceMapStopId:first.id},reviewStatus:'unreviewed',
+   members:[{id:id+'-a',mapStopId:first.id,quayId:firstQuayId,slot:'a',
+    offset:{along:0,across:-9},placementReview:'unreviewed'},
+   {id:id+'-b',mapStopId:second.id,quayId:secondQuayId,slot:'b',
+    offset:{along:0,across:9},placementReview:'unreviewed'}]};
+  if(track)ds.trackAnchor=track;
+  layout.displayStationsVersion=1;
+  (layout.displayStations??=[]).push(ds);
+  return id;
+ }
  function remove(layout,id){
   const before=(layout.displayStations||[]).length;
   layout.displayStations=(layout.displayStations||[]).filter(ds=>ds.id!==id);
@@ -58,7 +102,9 @@
   const stop=layout.stops.find(s=>s.id===ds.members[0]?.mapStopId);
   if(!stop)throw Error('Stasjonsreferansen finnes ikke');
   // Initial prototype is attached to its source map marker, not free-floating.
-  const anchor={x:stop.x,y:stop.y};
+  const centers=[...new Set(ds.members.map(m=>m.mapStopId))].map(id=>layout.stops.find(s=>s.id===id)).filter(Boolean);
+  const anchor={x:centers.reduce((v,c)=>v+c.x,0)/centers.length,
+   y:centers.reduce((v,c)=>v+c.y,0)/centers.length};
   let tangent={x:0,y:1};
   if(ds.trackAnchor){
    const path=layout.paths.find(p=>p.id===ds.trackAnchor.pathId);
@@ -75,5 +121,5 @@
   const lowY=Math.min(...members.map(m=>m.point.y))-radius-padding,highY=Math.max(...members.map(m=>m.point.y))+radius+padding;
   return {anchor,members,outline:{x:lowX,y:lowY,width:highX-lowX,height:highY-lowY,radius:radius+padding}};
  }
- return {uniqueQuays,addDouble,remove,geometry};
+ return {uniqueQuays,nearbyPairs,addDouble,addPair,remove,geometry};
 });
