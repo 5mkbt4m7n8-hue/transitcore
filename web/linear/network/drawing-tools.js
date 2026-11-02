@@ -122,7 +122,7 @@
    '" fill="none" stroke="'+track.color+'" stroke-width="'+num(track.width)+
    '" stroke-linecap="round" stroke-linejoin="round"/>')).join('\n  ');
   const stops=(layout.stops||[]).map(stop=>{
-   const platforms=stop.stationStyle==='double'?[-1,1].map(side=>
+   const platforms=stop.stationStyle==='double'&&!groupedIds.has(stop.id)?[-1,1].map(side=>
     '<rect x="'+num(stop.x+side*(stop.radius+3)-2)+'" y="'+num(stop.y-stop.radius-3)+
     '" width="4" height="'+num(stop.radius*2+6)+'" rx="2" fill="none" stroke="#8dbde1" stroke-width="1.2"/>').join(''):'';
    const markers=groupedIds.has(stop.id)?'':stop.diodeMode==='split'?
