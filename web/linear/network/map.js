@@ -508,17 +508,17 @@
    if(diagnosticPanel&&selection?.type==='stop'){
     const ds=(layout.displayStations||[]).find(ds=>ds.members.some(m=>m.mapStopId===selection.id));
     if(ds){
-     diagnosticPanel.textContent=(demoActive?'SIMULERT – LED-kilder vist kun som diagnostikk\\n':'')+
+     diagnosticPanel.textContent=(demoActive?'SIMULERT – LED-kilder vist kun som diagnostikk\n':'')+
       ds.members.map((m,i)=>{
        const r=diagnostics.get(ds.id+'|'+m.quayId);
-       return (i?'B':'A')+' · '+m.quayId+'\\n'+
-        'Kartpunkt: '+m.mapStopId+' · tavlenode: '+(r?.boardNodeIds.join(', ')||'–')+'\\n'+
+       return (i?'B':'A')+' · '+m.quayId+'\n'+
+        'Kartpunkt: '+m.mapStopId+' · tavlenode: '+(r?.boardNodeIds.join(', ')||'–')+'\n'+
         'Logisk LED: '+(r?.logicalLeds.join(', ')||'–')+
-        ' · fysisk LED: '+(r?.physicalLeds.join(', ')||'–')+'\\n'+
+        ' · fysisk LED: '+(r?.physicalLeds.join(', ')||'–')+'\n'+
         'Kilde: '+(r?.sourceStatus||'UKJENT')+
         (r?.frameAgeSeconds===null?'':' · frame '+r.frameAgeSeconds+' s')+
         ' · grafisk side: '+m.placementReview;
-      }).join('\\n\\n');
+      }).join('\n\n');
     }
    }
    let all=[];
