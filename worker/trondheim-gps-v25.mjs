@@ -44,6 +44,27 @@ const FOLLOWUP_FIELDS=['restoredWithCandidates','restoredAmbiguous',
 // Quays, directions, HMAC tokens, or raw source vehicle identifiers.
 const REASON_KEYS=["NoAfter","NoAdvance","SomeStationary","MixedDirection","MultiQuay","Locked","NotLocked"];
 const REASON_FIELDS=REASON_KEYS.map(k=>'directionReason'+k);
+// V2.17: bounded aggregate classifications of accepted, pattern-compatible
+// locks. Neither a candidate Quay nor an index advance proves passage.
+export const LOCK_V217=['lockFirst','lockRepeated','lockQuaySame',
+ 'lockQuayChanged','lockTonstadShared','lockLerkendalCandidate','lockOther'];
+const FOCUS_LERKENDAL={
+ '1':{'NSR:Quay:73729':'inbound','NSR:Quay:102720':'outbound'},
+ '11':{'NSR:Quay:73420':'inbound','NSR:Quay:73421':'outbound'}
+};
+export function classifyV217Lock(prior,later,code){
+ if(classifyV213Direction(later,code)!=='Locked')return null;
+ const previous=candidateQuays(prior,code),current=candidateQuays(later,code);
+ const quay=[...current][0],unchanged=previous.size===current.size&&
+  [...previous].every(q=>current.has(q));
+ return [
+  prior?.direction?'lockRepeated':'lockFirst',
+  unchanged?'lockQuaySame':'lockQuayChanged',
+  code==='1'&&quay==='NSR:Quay:102733'?'lockTonstadShared':
+   FOCUS_LERKENDAL[code]?.[quay]===later.direction?
+    'lockLerkendalCandidate':'lockOther'
+ ];
+}
 export function classifyV213Direction(later,code){
  if(!later?.hypotheses?.length)return 'NoAfter';
  const h=later.hypotheses;
@@ -68,7 +89,7 @@ function candidateQuays(row,code){
  return candidates;
 }
 function followupEvidence(before,after,ids,tokens,code,acceptedAt){
- const out=Object.fromEntries([...FOLLOWUP_FIELDS,...REASON_FIELDS]
+ const out=Object.fromEntries([...FOLLOWUP_FIELDS,...REASON_FIELDS,...LOCK_V217]
   .map(k=>[k,0]));
  for(const id of ids){
   const key=code+'|'+tokens.get(id),prior=before.get(key);
@@ -87,6 +108,11 @@ function followupEvidence(before,after,ids,tokens,code,acceptedAt){
   // Analyze ALL restored follow-ups, including identical Quay candidate
   // sets; V2.6 directional metric only covered changed Quay sets.
   out['directionReason'+classifyV213Direction(later,code)]++;
+  // Count only current-frame accepted hypotheses, never a historical lock
+  // retained after rejection (V2.16). Three orthogonal partitions of the
+  // same accepted Locked observations, never individually persisted.
+  for(const category of classifyV217Lock(prior,later,code)||[])
+   out[category]++;
   if(!newQuays.size)continue;
   const changed=oldQuays.size!==newQuays.size||
    [...oldQuays].some(q=>!newQuays.has(q));
@@ -246,6 +272,16 @@ export function sanitizeV25(metrics,lane){
       REASON_FIELDS.reduce((sum,k)=>sum+x[k],0)!==x.restoredWithCandidates)
     return null;
    for(const k of REASON_FIELDS)lines[code][k]=x[k];
+  }
+  const hasLocks=LOCK_V217.some(k=>x[k]!==undefined);
+  if(hasLocks){
+   const sum=keys=>keys.reduce((n,k)=>n+x[k],0);
+   if(!hasReasons||!LOCK_V217.every(k=>bounded(x[k]))||
+      sum(['lockFirst','lockRepeated'])!==x.directionReasonLocked||
+      sum(['lockQuaySame','lockQuayChanged'])!==x.directionReasonLocked||
+      sum(['lockTonstadShared','lockLerkendalCandidate','lockOther'])!==
+       x.directionReasonLocked)return null;
+   for(const k of LOCK_V217)lines[code][k]=x[k];
   }
  }
  if(Object.keys(metrics.lines).length!==allowed.length)return null;

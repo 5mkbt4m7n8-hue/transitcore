@@ -32,6 +32,8 @@ const TIMING_V28=['frames','pairs','under3m','between3and4m','over4m',
  'threeFrameChains3m','threeFrameChains4m'];
 const count=x=>Number.isSafeInteger(x)&&x>=0?x:null;
 const V213_REASONS=["NoAfter","NoAdvance","SomeStationary","MixedDirection","MultiQuay","Locked","NotLocked"];
+const LOCK_V217=['lockFirst','lockRepeated','lockQuaySame','lockQuayChanged',
+ 'lockTonstadShared','lockLerkendalCandidate','lockOther'];
 const V214_COVERAGE=['frames','withGpsFrames','withoutGpsFrames','primaryGps',
  'matched180','matched240','withoutPrior180','withoutPrior240',
  'matchedWithoutPattern180','matchedWithoutPattern240',
@@ -76,7 +78,12 @@ export function summarizeV22Daily(payload){
        reasonLong:Object.fromEntries(V213_REASONS.map(k=>[
         k,count(payload.v29?.paired?.lines?.[line]?.reasonLong?.[k])])),
        coverageV214:Object.fromEntries(V214_COVERAGE.map(k=>[
-        k,count(payload.v29?.paired?.lines?.[line]?.coverageV214?.[k])]))
+        k,count(payload.v29?.paired?.lines?.[line]?.coverageV214?.[k])])),
+       lockFrames:count(payload.v29?.paired?.lines?.[line]?.lockFrames),
+       lockShort:Object.fromEntries(LOCK_V217.map(k=>[
+        k,count(payload.v29?.paired?.lines?.[line]?.lockShort?.[k])])),
+       lockLong:Object.fromEntries(LOCK_V217.map(k=>[
+        k,count(payload.v29?.paired?.lines?.[line]?.lockLong?.[k])]))
       }]))
     },
     lines:Object.fromEntries(['1','11'].map(line=>[line,
@@ -219,7 +226,15 @@ if(process.argv[1]&&import.meta.url===new URL('file://'+process.argv[1]).href){
       'extraMatches','lostMatches','restoredWithCandidates',
       'longWithCandidates'].map(k=>p[k]??'—').join(' | ')+' |';}).join('\n')+
     '\n\nKandidatevidens gjelder bare frames med V2.6-kandidatdekning.\n'+
-    '\n\n### V2.14 – GPS-dekning før retningsdiagnostikk\n\n'+
+    '\n\n### V2.17 – låsekvalitet uten fysisk bevis\n\n'+
+    '| Linje | V2.17-frames | Kategori | 180s | 240s |\n'+
+    '|---|---:|---|---:|---:|\n'+
+    ['1','11'].flatMap(line=>LOCK_V217.map(k=>{
+     const s=proof.daily.v29.paired.lines[line];
+     return '| '+line+' | '+(s.lockFrames??'—')+' | '+k+' | '+
+      (s.lockShort?.[k]??'—')+' | '+(s.lockLong?.[k]??'—')+' |';
+    })).join('\n')+'\n\nDette er hypotesekategorier, ikke uavhengig bekreftede busspasseringer.\n'+
+    '\n### V2.14 – GPS-dekning før retningsdiagnostikk\n\n'+
     '| Linje | Nye frames | Frames med GPS | Frames uten GPS | GPS-observasjoner | 240s ukjent | 240s gjenkjent uten mønster | 240s gjenkjent med mønster |\n'+
     '|---|---:|---:|---:|---:|---:|---:|---:|\n'+
     ['1','11'].map(line=>{

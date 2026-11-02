@@ -18,6 +18,10 @@ const FOLLOWUP_FIELDS=['restoredWithCandidates','restoredAmbiguous',
  'restoredChanged','restoredNarrowed','restoredDirection','restoredABC'];
 const REASON_V213=["NoAfter","NoAdvance","SomeStationary","MixedDirection","MultiQuay","Locked","NotLocked"];
 const freshReasons=()=>Object.fromEntries(REASON_V213.map(k=>[k,0]));
+const LOCK_V217=['lockFirst','lockRepeated','lockQuaySame','lockQuayChanged',
+ 'lockTonstadShared','lockLerkendalCandidate','lockOther'];
+const freshLocks=()=>Object.fromEntries(LOCK_V217.map(k=>[k,0]));
+const hasLocks=values=>LOCK_V217.every(k=>Number.isSafeInteger(values[k]));
 const hasReasons=values=>REASON_V213.every(k=>
  Number.isSafeInteger(values['directionReason'+k]));
 // V2.14: all counts are aggregate per source frame, no vehicle identity.
@@ -473,7 +477,8 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
     restoredDirection:0,longDirection:0,
     restoredABC:0,longABC:0,
     reasonFrames:0,reasonShort:freshReasons(),reasonLong:freshReasons(),
-    coverageV214:coverageZero()}]))}};
+    coverageV214:coverageZero(),
+    lockFrames:0,lockShort:freshLocks(),lockLong:freshLocks()}]))}};
  const v25={frames:0,states:{fresh:0,restored:0,expired:0,
   catalogChanged:0,keyRotated:0},restoredTracks:0,tracksWritten:0,
   lines:Object.fromEntries(LINES.map(code=>[code,{frames:0,primary:0,matchedPrior:0,
@@ -522,6 +527,13 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
       }
      }else dest.sameFrames++;
      if(hasReasons(short)&&hasReasons(long)&&short.primary===long.primary){
+      // Lock details only on truly paired V2.17 frames.
+      if(hasLocks(short)&&hasLocks(long)){
+       dest.lockFrames++;
+       for(const key of LOCK_V217){
+        dest.lockShort[key]+=short[key];dest.lockLong[key]+=long[key];
+       }
+      }
       // Only twin-shadow V2.13 frames count. Incomplete source GPS is
       // insufficient evidence, not a failure to classify direction.
       const c=dest.coverageV214;
@@ -598,9 +610,10 @@ export async function reportV22Storage(storage,{now=Date.now(),day=null}={}){
  return {version:1,scope:'trondheim-gps-v22-scheduled-quality',
   day:chosen,timezone:'Europe/Oslo',status:LANES.some(
    lane=>lanes[lane].samples>0)?'SAMPLES':'NO_SAMPLES',
-  diagnosticRevision:216,
+  diagnosticRevision:217,
   lanes,first,last,lines,spots,memory,v25,v29,
   limitations:[
+   'V2.17: lockFirst versus lockRepeated and candidate-Quay set sameness are hypothesis classifications, not independently confirmed GPS journeys or actual stop passages. Tonstadkrysset line 1 shares Quay 102733 in both directions; Lerkendal candidate Quays are direction-specific in route data, NOT proof of a particular bus position. Public audit does not correlate exact SIRI-VM journey/time/Quay with a shadow lock and makes no physical accuracy claim.',
    'V2.16: new follow-ups count NoAfter when the current GPS observation was not accepted; a retained historical lock is not current support. Earlier daily samples are unchanged. Locked is source-pattern compatibility, including accepted stationary follow-ups, not a new direction lock, physical passage or independently validated side of road.',
    'Sampling: 5-minute catalog plus existing offset Line 1 fast history; V2.3 dual-fast also measures Line 11 using the SAME AtB source response, no extra provider requests.',
    'V2.0 and V2.1 use the same sample; route hypotheses live in volatile DO memory and may reset.',
