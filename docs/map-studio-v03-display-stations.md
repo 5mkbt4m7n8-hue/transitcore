@@ -117,7 +117,7 @@ Foreslått *session-konfigurasjon*:
     "physicalLed": null,
     "mappingStatus": "awaiting-resolution",
     "sourceStatus": "NO_FRAME",
-    "signalState": "OFF",
+    "signalState": null,
     "isSimulated": false
   }
 }
@@ -133,7 +133,7 @@ Foreslått *session-konfigurasjon*:
 4. Finn fysisk LED **bare** hvis hardwareprofil har verifisert `logicalLed → physicalLed`-mapping. Den grafiske sirkelen er ikke et bevis for fysisk plassering.
 5. Bruk bare validerte signaler fra eksisterende `InTransitMapModel.resolve`, `signals` og gyldig frame, med korrekt valgt linjefilter og kildestatus. Ingen ny GPS- eller rutebestemmelse.
 6. Hvis begge Quay-er peker til én fysisk LED: flagg **AMBIGUOUS_SHARED_LED**. Ikke tenn én runding ut fra den andres signal.
-7. Uten gyldig frame vises `NO_FRAME` eller `STALE`, ikke falsk sikker «ingen buss». `OFF` betyr kun ingen gyldig aktiv observasjon i brukt frame. Bruk eksisterende tilstander som `AT_STOP`, `APPROACHING`, `PARKED` og `PASSED` der kildemodellen støtter dem.
+7. Uten gyldig frame vises `NO_FRAME` eller `STALE`, ikke falsk sikker «ingen buss». `OFF` betyr kun ingen gyldig aktiv observasjon i en **gyldig** brukt frame; ved `NO_FRAME`/`STALE` skal `signalState` være `null`. Bruk eksisterende tilstander som `AT_STOP`, `APPROACHING`, `PARKED` og `PASSED` der kildemodellen støtter dem.
 
 **Tre preview-typer:** logiske LED-er i tavleprofil; fysiske LED-er bare ved bekreftet kabling; og en egen 64×64 RGB-matriseprofil som projiserer tegning til piksler. Én grafisk markør kan bruke flere RGB-matrisepiksler — den er ikke nødvendigvis én fysisk diode. Demo-data må merkes `SIMULERT` og aldri framstå som LIVE.
 
