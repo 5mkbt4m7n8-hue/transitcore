@@ -443,6 +443,7 @@ for(const l of ['1','11']){
   'restoredChanged','restoredNarrowed','restoredDirection','restoredABC'])
   delete oldEvidence.lines[l][k];
  for(const key of v213Keys)delete oldEvidence.lines[l]['directionReason'+key];
+ for(const key of LOCK_V217)delete oldEvidence.lines[l][key];
 }
 assert(sanitizeV25(oldEvidence,'dual-fast'),'Old V2.5 reports stay readable');
 const altered=structuredClone(next);
