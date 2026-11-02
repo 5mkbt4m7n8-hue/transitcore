@@ -423,7 +423,7 @@
     const leftovers=D.uniqueQuays(stop).filter(id=>!groupedQuays.get(stop.id)?.has(id));
     const resolved=M.resolve(recordedStop(stop),activeBoard(),activeHardware())
      .filter(b=>!groupedQuays.get(stop.id)?.has(b.stopId));
-    if(stop.verification==='confirmed'&&!context.all&&!playback&&!resolved.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
+    if(stop.verification==='confirmed'&&!editing&&!context.all&&!playback&&!resolved.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
     const sides=stop.diodeMode==='split'?['left','right']:[null];
     sides.forEach((side,i)=>{
      const mapped=side===null?[]:Object.entries(stop.platformSides||{}).filter(([,r])=>r.verification==='user-reviewed'&&r.side===side).map(([id])=>id);
@@ -458,7 +458,7 @@
      const stop=layout.stops.find(s=>s.id===member.mapStopId);
      if(!stop)continue;
      const binding=M.resolve(recordedStop(stop),activeBoard(),activeHardware()).filter(b=>b.stopId===member.quayId);
-     if(stop.verification==='confirmed'&&!context.all&&!playback&&!binding.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
+     if(stop.verification==='confirmed'&&!editing&&!context.all&&!playback&&!binding.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
      count++;
      const marker=el('g',{class:'map-stop',transform:'translate('+point.x+' '+point.y+')',
       role:'button',tabindex:0,'aria-label':displayName(stop)+' · '+member.quayId});
