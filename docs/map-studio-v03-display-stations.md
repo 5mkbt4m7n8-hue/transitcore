@@ -1,6 +1,8 @@
 # InTransit Map Studio v0.3 — datamodell for ekte LED-tavlepreview
 
-**Status:** Teknisk spesifikasjon (ikke implementert). Lagres i utkast-PR #323. Verken runtime, produksjon, kartfil eller hardwarekoblinger endres her.
+**Status:** Delvis implementert i utkast-PR #323, **ikke publisert**. Første prototype kan eksplisitt gruppere to bekreftede Entur Quay-er som allerede er knyttet til **samme skjematiske kartpunkt**, og tegne to separat kildekoblede LED-rundinger. Stasjonsstil (ring/kapsel/separate rundinger), ringmargin og avstand kan endres. Felles ring får aldri LED-status. Eksisterende tavle-/GPS-kilde, originalkart og hardwareprofil endres ikke.
+
+**Gjenstår:** gruppering på tvers av to ulike `stops[]`-markører (selv om de ligger tett), full valgbar fysisk/64×64-preview, komplett visuell plassering/flerstoppseditor og egne nettleserregresjonstester for alle symbolvarianter. De øvrige seksjonene i dette dokumentet beskriver den langsiktige v0.3-modellen, ikke nødvendigvis funksjoner som er ferdig implementert.
 
 ## 1. Prinsipp og eksisterende data
 
