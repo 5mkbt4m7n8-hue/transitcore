@@ -26,7 +26,7 @@
  const markerKey=(stopId,quayId,groupId)=>groupId?'quay:'+quayId:'stop:'+stopId;
  function currentProfile(layout,settings={}){
   const result=layout.physicalBoardLayouts?.profiles?.[profileKey(settings)];
-  return result||{positions:{},labels:{}};
+  return result||{positions:{},labels:{},followStations:false};
  }
  function applyPositions(markers,labels,groups,profile,dims){
   for(const marker of markers){
@@ -58,6 +58,7 @@
    validQuay=new Set((layout.displayStations||[]).flatMap(ds=>ds.members.map(m=>'quay:'+m.quayId))),
    validLabels=new Set((layout.stops||[]).map(s=>s.id));
   if(!changes||typeof changes!=='object')throw Error('Ugyldig tavleplassering');
+  if(changes.followStations!==undefined&&typeof changes.followStations!=='boolean')throw Error('Ugyldig valg for grafisk linjetilpasning');
   const validatePosition=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&
    p.x>=0&&p.x<=1&&p.y>=0&&p.y<=1;
   for(const [marker,p] of Object.entries(changes.positions||{}))
@@ -71,7 +72,8 @@
   const existing=board.profiles[key]||{positions:{},labels:{}};
   const profile={
    positions:{...existing.positions,...(changes.positions||{})},
-   labels:{...existing.labels,...(changes.labels||{})}
+   labels:{...existing.labels,...(changes.labels||{})},
+   followStations:changes.followStations===undefined?existing.followStations===true:changes.followStations
   };
   if(Object.keys(board.profiles).length>=80&&!board.profiles[key])throw Error('For mange tavleformater');
   board.profiles[key]=profile;layout.physicalBoardLayouts=board;
@@ -190,15 +192,53 @@
   }
   return {markers,labels,groupOutlines,warnings};
  }
+ // Opt-in rendering of graphic route vertices where an ORIGINAL source stop is
+ // geometrically co-located with that vertex. This is NOT an Entur route link.
+ // All markers belonging to that map stop must have moved, and the vertex may
+ // not represent two distinct schematic map stops.
+ function followVertexPaths(layout,profile,dims,markers){
+  const untouched={paths:layout.paths,trackedVertices:0,ambiguous:0,unmatched:0};
+  if(profile.followStations!==true||!markers.some(m=>m.repositioned))return untouched;
+  const changed=new Map;
+  for(const stop of layout.stops){
+   const items=markers.filter(m=>m.stopId===stop.id);
+   if(!items.length||items.some(m=>!m.repositioned))continue;
+   const x=items.reduce((v,m)=>v+m.x,0)/items.length;
+   const y=items.reduce((v,m)=>v+m.y,0)/items.length;
+   changed.set(stop.id,{x:n((x-dims.offsetX)/dims.scale),y:n((y-dims.offsetY)/dims.scale)});
+  }
+  if(!changed.size)return untouched;
+  const result=layout.paths.map(path=>({...path,points:path.points.map(p=>{
+   const matches=layout.stops.filter(s=>Math.hypot(s.x-p.x,s.y-p.y)<0.025);
+   if(matches.length!==1){
+    if(matches.some(s=>changed.has(s.id)))untouched.ambiguous++;
+    return p;
+   }
+   const replacement=changed.get(matches[0].id);
+   if(replacement){untouched.trackedVertices++;return replacement;}
+   return p;
+  })}));
+  for(const stopId of changed.keys()){
+   if(!layout.paths.some(path=>path.points.some(p=>{
+    const stop=layout.stops.find(s=>s.id===stopId);
+    return stop&&Math.hypot(stop.x-p.x,stop.y-p.y)<0.025;
+   })))untouched.unmatched++;
+  }
+  return {...untouched,paths:result};
+ }
+
  function build(layout,settings={},options={}){
   if(!Array.isArray(layout?.stops)||!Array.isArray(layout?.paths))
    throw Error('Mangler kartets stasjoner eller linjer');
   const dims=dimensions(settings),base=currentProfile(layout,settings),override=options.previewOverrides||{},
-   profile={positions:{...base.positions,...(override.positions||{})},labels:{...base.labels,...(override.labels||{})}},
+   profile={positions:{...base.positions,...(override.positions||{})},labels:{...base.labels,...(override.labels||{})},followStations:base.followStations===true},
    {markers,labels,groupOutlines,warnings}=layoutElements(layout,dims,profile);
+  const adjusted=followVertexPaths(layout,profile,dims,markers);
+  if(adjusted.ambiguous)warnings.push({code:'ROUTE_VERTEX_AMBIGUOUS',message:adjusted.ambiguous+' linjeknekkpunkter er tvetydige og ble ikke automatisk flyttet'});
+  if(adjusted.unmatched)warnings.push({code:'ROUTE_VERTEX_MISSING',message:adjusted.unmatched+' flyttede stopp mangler eksakt sammenfallende grafisk linjepunkt'});
   const lit=new Set(options.litQuays||[]);
   const frame=options.simulated?'SIMULERT':'VISUELL FORHÅNDSVISNING – IKKE HARDWARE-VALIDERT';
-  const pathSvg=(layout.paths||[]).flatMap(path=>Drawing.visualTracks(path).map(track=>
+  const pathSvg=(adjusted.paths||[]).flatMap(path=>Drawing.visualTracks(path).map(track=>
    '<polyline data-route="'+enc(path.id)+'" points="'+track.points.map(point=>{
     const p=project(point,dims);return p.x+','+p.y;}).join(' ')+
     '" fill="none" stroke="'+hex(track.color)+'" stroke-width="'+n(Math.max(0.45,track.width*dims.scale))+
@@ -243,8 +283,9 @@
   return {svg,dimensions:dims,summary:{
    markers:markers.length,groups:groupOutlines.length,labels:settings.showLabels===false?0:labels.length,
    issues:warnings.length,overlaps:warnings.filter(w=>w.code==='LED_OVERLAP').length,
-   adjustedSpacing:warnings.filter(w=>w.code==='LED_SPACING_ADJUSTED').length
+   adjustedSpacing:warnings.filter(w=>w.code==='LED_SPACING_ADJUSTED').length,
+   trackedVertices:adjusted.trackedVertices,followStations:profile.followStations===true
   },warnings};
  }
- return {PRESETS,dimensions,project,layoutElements,build,profileKey,currentProfile,saveOverrides,resetOverrides,markerKey};
+ return {PRESETS,dimensions,project,layoutElements,build,profileKey,currentProfile,saveOverrides,resetOverrides,markerKey,followVertexPaths};
 });
