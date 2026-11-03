@@ -81,6 +81,23 @@ Originalens \`stops[]\`, \`paths[]\`, Quay-/StopPlace-ID-er og faktiske sanntids
 
 ### Bevisste begrensninger
 
-**Stasjonssymboler og navn flyttes i denne versjonen; linjegeometrien følger ikke automatisk.** Hvis en LED flyttes langt fra den tegnede traséen, vises en kontrolladvarsel. Dette er derfor en fleksibel **visuell prototype**, ikke en fullstendig ruteføring eller godkjent bore- og produksjonsfil.
+**Stasjonssymboler og navn kan flyttes uten å endre originalkartet.** Fra v0.7 kan brukeren selv aktivere «Linjene følger flyttede stasjoner» per tavleformat. Bare grafiske knekkpunkter som **allerede sammenfaller med ett entydig originalt kartstopp**, følger. Ved tvetydige/partielt flyttede plattformer beholdes den opprinnelige linjegeometrien. Dette er fortsatt en **visuell prototype**, ikke dokumentert rutetilknytning eller en godkjent produksjons-/borefil.
 
 Neste naturlige steg er å gjøre **grafiske traséer redigerbare per tavleformat**, med valgfri snapping mot flyttede LED-stasjoner. Dette må forbli adskilt fra det kanoniske Trondheim-kartet og rutekildene.
+
+
+## v0.7 – valgbar grafisk linjetilpasning per tavlemål
+
+Map Studio har nå et eget valg: **«Linjene følger flyttede stasjoner»**. Dette er i utgangspunktet **avslått**, og kan aktiveres separat på f.eks. 30 × 40 cm uten å påvirke 50 × 70 cm.
+
+Når valget er aktivt:
+
+1. SVG-rendereren sammenlikner originalens **skjematiske** stoppkoordinater med originalens tegnede linjeknekkpunkter. Bare eksakt sammenfall (toleranse 0,025 skjematiske enheter) vurderes.
+2. Hvis **nøyaktig ett** kartstopp ligger på punktet, og **alle det kartstoppets visuelle LED-markører** har fått egne tavleposisjoner, flyttes det aktuelle grafiske linjeknekkpunktet til symbolets nye plassering.
+3. For en eksplisitt dobbelstasjon med to Quay-er på samme kartstopp brukes **midtpunktet mellom begge LED-rundingene**. Et kartstopp med en delvis flyttet gruppering og andre, uflyttede Quay-er blir **ikke** automatisk koblet.
+4. Tegnede parallelle spor/fargestriper genereres deretter fra tilpassede grafiske knekkpunkter og bevarer den eksisterende geometriberegningen.
+5. Slås valget av, tegnes **originalens linjepunkter uendret** igjen. Endringen er lokal for det aktuelle tavleformatet. Eventuelle tvetydige eller manglende treff kan vises som visuelle varsler.
+
+Den valgte tilstanden lagres som valgfritt \`physicalBoardLayouts.profiles["30x40"].followStations: true\`, i tillegg til allerede støttede \`positions\` og \`labels\`. \`stops[]\` og \`paths[]\` endres aldri, og det opprettes **ingen nye faktiske rute-/Quay-/GPS-bindinger**. Dette er en grafisk tilpasning basert på **eksisterende skjematisk sammenfall**, ikke informasjon om hvor en buss fysisk kjører.
+
+For ekstreme flyttinger kan linjene bli skarpt bøyd. En framtidig rutekorridor-editor bør gi egne tavleknekkpunkter for å forme disse bøyene uten å forfalske originaltegningen.
