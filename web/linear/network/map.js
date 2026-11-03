@@ -40,10 +40,14 @@
    '<label>Yttermarg (mm) <input type="number" data-role="boardMargin" min="3" max="50" step="1" value="12"></label>'+
    '<label>Navnestørrelse (mm) <input type="number" data-role="boardLabelSize" min="1.5" max="8" step="0.1" value="2.4"></label>'+
    '<label class="map-board-show-labels"><input type="checkbox" data-role="boardLabels" checked> Vis navn</label>'+
+   '<label class="map-board-move-label"><input type="checkbox" data-role="boardMove"> Flytt stasjoner og navn</label>'+
+   '<button type="button" data-role="boardUndo">Angre siste endring</button>'+
+   '<button type="button" data-role="boardReset">Tilbakestill dette formatet</button>'+
    '<button type="button" data-role="boardExport">Eksporter SVG i fysisk størrelse</button>'+
    '</div><p class="map-board-info" data-role="boardMetrics" aria-live="polite"></p>'+
    '<div class="map-board-preview" data-role="boardSvgHost" aria-label="Skalerbar fysisk tavle i valgt format"></div>'+
    '<p class="map-board-warning" data-role="boardWarnings"></p>'+
+   '<small>Aktiver «Rediger kart» og deretter «Flytt stasjoner og navn». Dra en LED-runding eller felles ring for å flytte stasjonen; dra stasjonsnavnet separat. Piltaster flytter 1 mm (Shift: 5 mm). Plasseringer lagres separat for hvert valgt tavlemål i prosjekt-JSON. Linjene flyttes ikke automatisk når en stasjon flyttes.</small>'+
    '<small>Tavlemål og LED-diameter er i faktiske cm/mm. Utskrevet SVG har riktige mm-mål, men kontroller at utskriftsprogrammet ikke bruker «Tilpass side». Dette er en visuell tegning, ikke en verifisert kablingsplan eller fysisk LED-bestilling.</small>'+
    '</details>');
   const q=r=>host.querySelector(`[data-role="${r}"]`),svg=host.querySelector('svg'),editorPanel=host.querySelector('#networkEditor');
@@ -54,7 +58,7 @@
   const autoDraftKey='intransit-map-autodraft-v1',manualDraftKey='intransit-map-draft-v1';
   const drawingPrefs={gridVisible:true,gridSnap:true,angleStep:45,gridSize:10};
   const boardSettings={widthCm:30,heightCm:40,ledDiameterMm:5,marginMm:12,labelFontMm:2.4,showLabels:true};
-  let lastBoardResult=null;
+  let lastBoardResult=null,boardDrag=null;
   let regionSelecting=false,regionDraft=null,regionSelection=null;
    let previewMode='live',previewTargetId=null;
   const snapPoint=(p,previous=null)=>T.snap(p,{...drawingPrefs,previous});
@@ -65,13 +69,15 @@
     const target=(layout.displayStations||[]).find(ds=>ds.id===previewTargetId);
     const demo=editing&&previewMode!=='live'&&target;
     const litQuays=demo?target.members.filter((m,i)=>P.simulated(previewMode,i)?.state==='AT_STOP').map(m=>m.quayId):[];
-    const result=B.build(layout,boardSettings,{simulated:Boolean(demo),litQuays});
+    const result=B.build(layout,boardSettings,{simulated:Boolean(demo),litQuays,previewOverrides:boardDrag?.preview});
     lastBoardResult=result;
     q('boardSvgHost').innerHTML=result.svg.replace(/^<\?xml[^>]*>\s*/,'');
+    q('boardSvgHost').classList.toggle('map-board-move-active',editing&&q('boardMove').checked);
     q('boardMetrics').textContent=boardSettings.widthCm+' × '+boardSettings.heightCm+
      ' cm · LED Ø '+boardSettings.ledDiameterMm+' mm · '+result.summary.markers+
      ' markører · '+result.summary.labels+' navn · '+result.summary.overlaps+' LED-avstandskonflikter · utnyttet flate '+result.dimensions.usagePct+
-     ' %'+(demo?' · SIMULERT':' · kun grafisk preview');
+     ' %'+(demo?' · SIMULERT':' · kun grafisk preview')+
+     ' · format '+B.profileKey(boardSettings)+' · '+Object.keys(B.currentProfile(layout,boardSettings).positions||{}).length+' flyttede punkter';
     q('boardWarnings').textContent=result.warnings.length?
      'Kontrollpunkter ('+result.warnings.length+'): '+
      result.warnings.slice().sort((a,b)=>Number(b.code==='LED_OVERLAP')-Number(a.code==='LED_OVERLAP')).slice(0,4).map(w=>w.message).join(' · ')+
