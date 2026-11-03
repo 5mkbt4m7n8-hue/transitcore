@@ -292,4 +292,64 @@ assert.match(map,/boardHost\.addEventListener\('pointercancel'/);
 assert.match(map,/boardHost\.addEventListener\('keydown'/);
 assert.match(map,/B\.saveOverrides\(/);
 
-console.log('InTransit Map Studio v0.6 format-specific physical station placement and canonical integrity OK');
+
+// v0.7: route-follow is purely graphic and explicitly opt-in per physical size.
+const following=structuredClone(original),sourceStops=JSON.stringify(following.stops),
+ sourcePaths=JSON.stringify(following.paths),size3040={widthCm:30,heightCm:40};
+const graphicBefore=Physical.build(following,size3040);
+const routeLine=svg=>svg.match(/<polyline data-route="trace-01"[^>]*>/)?.[0];
+assert(routeLine(graphicBefore.svg));
+Physical.saveOverrides(following,size3040,{positions:{'stop:original-000':{x:.5,y:.5}}});
+const graphicStatic=Physical.build(following,size3040);
+assert.equal(routeLine(graphicStatic.svg),routeLine(graphicBefore.svg),
+ 'route geometry unchanged while physical follow switch is off');
+Physical.saveOverrides(following,size3040,{followStations:true});
+assert.deepEqual(model.validate(following),[]);
+const graphicLinked=Physical.build(following,size3040);
+assert.equal(graphicLinked.summary.followStations,true);
+assert(graphicLinked.summary.trackedVertices>=1,'coincident source vertex follows moved stop');
+assert.notEqual(routeLine(graphicLinked.svg),routeLine(graphicBefore.svg),
+ 'physical preview route bends to opt-in dragged station');
+assert.match(routeLine(graphicLinked.svg),/points="150,200 /);
+assert.equal(JSON.stringify(following.stops),sourceStops);
+assert.equal(JSON.stringify(following.paths),sourcePaths);
+assert.equal(Physical.build(following,{widthCm:50,heightCm:70}).summary.followStations,false,
+ '50×70 route geometry is not affected by 30×40 toggle');
+const routePreview=Physical.build(following,size3040,{
+ previewOverrides:{positions:{'stop:original-000':{x:.6,y:.6}}}
+});
+assert.match(routeLine(routePreview.svg),/points="180,240 /);
+assert.equal(routeLine(Physical.build(following,size3040).svg),routeLine(graphicLinked.svg),
+ 'drag preview does not overwrite saved graphic geometry');
+const invalidFollow=structuredClone(following);
+invalidFollow.physicalBoardLayouts.profiles['30x40'].followStations='yes';
+assert(model.validate(invalidFollow).length>0,'nonboolean route-follow rejected');
+assert.throws(()=>Physical.saveOverrides(following,size3040,{followStations:'yes'}),/Ugyldig valg/);
+const groupedFollow=structuredClone(original);
+D.addDouble(groupedFollow,'original-000');
+Physical.saveOverrides(groupedFollow,size3040,{positions:{
+ 'quay:NSR:Quay:71132':{x:.4,y:.45},
+ 'quay:NSR:Quay:71134':{x:.5,y:.45}
+},followStations:true});
+const groupedFollowing=Physical.build(groupedFollow,size3040);
+assert(groupedFollowing.summary.trackedVertices>0);
+assert.match(routeLine(groupedFollowing.svg),/points="135,180 /,
+ 'source route follows midpoint of two linked Quays when both moved');
+assert.equal(JSON.stringify(groupedFollow.stops),JSON.stringify(original.stops));
+assert.equal(JSON.stringify(groupedFollow.paths),JSON.stringify(original.paths));
+const partial=structuredClone(original);
+D.addPair(partial,'original-049','NSR:Quay:73101','original-050','NSR:Quay:73100');
+Physical.saveOverrides(partial,size3040,{positions:{
+ 'quay:NSR:Quay:73101':{x:.3,y:.3},
+ 'quay:NSR:Quay:73100':{x:.35,y:.3}
+},followStations:true});
+const partialGraphic=Physical.build(partial,size3040);
+// original-049/050 have remaining, unmoved Quays represented on the map;
+// never pull a route vertex towards just one Quay while another stays.
+assert.equal(partialGraphic.summary.trackedVertices,0);
+Physical.saveOverrides(following,size3040,{followStations:false});
+assert.equal(routeLine(Physical.build(following,size3040).svg),routeLine(graphicBefore.svg),
+ 'turning route-follow off restores the unaltered schematic line');
+assert.match(map,/data-role="boardFollow"/);
+
+console.log('InTransit Map Studio v0.7 optional physical route vertex following and source geometry integrity OK');
