@@ -682,6 +682,10 @@ try{
    window.__routePointerEvents.push({type:e.type,target:e.target.nodeName,route:e.target.getAttribute('data-board-route-path'),key:e.target.getAttribute('data-board-route-key')}),true);
   document.querySelector('[data-role=boardSvgHost]').addEventListener('pointermove',e=>
    window.__routePointerEvents.push({type:e.type,target:e.target.nodeName,route:e.target.getAttribute('data-board-route-path'),key:e.target.getAttribute('data-board-route-key')}),true);
+  for(const type of ['pointerup','pointercancel','lostpointercapture'])
+   document.querySelector('[data-role=boardSvgHost]').addEventListener(type,e=>
+    window.__routePointerEvents.push({type:e.type,target:e.target.nodeName,route:e.target.getAttribute('data-board-route-path'),key:e.target.getAttribute('data-board-route-key')}),true);
+
  });
 
  await routeVertex.scrollIntoViewIfNeeded();
@@ -692,11 +696,13 @@ try{
  await routePage.mouse.move(vertexBox.x+vertexBox.width/2+34,vertexBox.y+vertexBox.height/2+25,{steps:4});
  await routePage.mouse.up();
  const routeAfter=await routePage.locator(routeLineSelector).first().getAttribute('points');
+ console.log('ROUTE PAGE ERRORS',JSON.stringify(routeErrors));
  console.log('ROUTE DRAG TRACE',JSON.stringify(await routePage.evaluate(()=>({
   events:window.__routePointerEvents,
   checked:document.querySelector('[data-role=boardRouteEdit]').checked,
   warning:document.querySelector('[data-role=boardWarnings]').textContent,
-  saved:JSON.parse(localStorage.getItem('intransit-map-autodraft-v1'))?.layout?.physicalBoardLayouts||null
+  saved:JSON.parse(localStorage.getItem('intransit-map-autodraft-v1'))?.layout?.physicalBoardLayouts||null,
+  debug:document.querySelector('[data-role=boardSvgHost]').dataset.dragDebug||null
  }))));
 
  assert.notEqual(routeAfter,routeBase,'dragging a physical route vertex updates the preview');
