@@ -14,6 +14,76 @@
  const enc=value=>String(value??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[x]));
  const n=value=>Number(value.toFixed(3));
  const hex=value=>/^#[a-f\d]{6}$/i.test(value||'')?value:'#687e94';
+
+ // Physical board placement is an optional display-only overlay, keyed to the
+ // exact centimeter size; source stops, track geometry and Quay IDs are untouched.
+ function profileKey(settings={}){
+  const w=Number(settings.widthCm??30),h=Number(settings.heightCm??40);
+  if(!Number.isFinite(w)||!Number.isFinite(h)||w<10||w>200||h<10||h>200)throw Error('Ugyldig tavlestørrelse');
+  const fmt=v=>String(n(v));
+  return fmt(w)+'x'+fmt(h);
+ }
+ const markerKey=(stopId,quayId,groupId)=>groupId?'quay:'+quayId:'stop:'+stopId;
+ function currentProfile(layout,settings={}){
+  const result=layout.physicalBoardLayouts?.profiles?.[profileKey(settings)];
+  return result||{positions:{},labels:{}};
+ }
+ function applyPositions(markers,labels,groups,profile,dims){
+  for(const marker of markers){
+   const pos=profile.positions?.[marker.key];
+   if(pos&&Number.isFinite(pos.x)&&Number.isFinite(pos.y)){
+    marker.x=n(pos.x*dims.widthMm);marker.y=n(pos.y*dims.heightMm);
+    marker.repositioned=true;
+   }
+  }
+  for(const label of labels){
+   const pos=profile.labels?.[label.stopId];
+   if(pos&&Number.isFinite(pos.x)&&Number.isFinite(pos.y)){
+    label.x=n(pos.x*dims.widthMm);label.y=n(pos.y*dims.heightMm);
+    label.repositioned=true;
+   }
+  }
+  // Recompute the decorative ring after moving any of its real Quay markers.
+  for(const group of groups){
+   const items=markers.filter(marker=>marker.groupId===group.id);
+   if(!items.length)continue;
+   const half=dims.ledDiameterMm/2+2.2;
+   const x0=Math.min(...items.map(m=>m.x))-half,x1=Math.max(...items.map(m=>m.x))+half,
+    y0=Math.min(...items.map(m=>m.y))-half,y1=Math.max(...items.map(m=>m.y))+half;
+   Object.assign(group,{x:n(x0),y:n(y0),width:n(x1-x0),height:n(y1-y0)});
+  }
+ }
+ function saveOverrides(layout,settings,changes){
+  const key=profileKey(settings),validStop=new Set((layout.stops||[]).map(s=>'stop:'+s.id)),
+   validQuay=new Set((layout.displayStations||[]).flatMap(ds=>ds.members.map(m=>'quay:'+m.quayId))),
+   validLabels=new Set((layout.stops||[]).map(s=>s.id));
+  if(!changes||typeof changes!=='object')throw Error('Ugyldig tavleplassering');
+  const validatePosition=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&
+   p.x>=0&&p.x<=1&&p.y>=0&&p.y<=1;
+  for(const [marker,p] of Object.entries(changes.positions||{}))
+   if(!(validStop.has(marker)||validQuay.has(marker))||!validatePosition(p))
+    throw Error('Ukjent markør eller ugyldig LED-posisjon '+marker);
+  for(const [label,p] of Object.entries(changes.labels||{}))
+   if(!validLabels.has(label)||!validatePosition(p))
+    throw Error('Ukjent etikett eller ugyldig tekstposisjon '+label);
+  const board=layout.physicalBoardLayouts||{version:1,profiles:{}};
+  if(board.version!==1)throw Error('Ukjent tavleprofil');
+  const existing=board.profiles[key]||{positions:{},labels:{}};
+  const profile={
+   positions:{...existing.positions,...(changes.positions||{})},
+   labels:{...existing.labels,...(changes.labels||{})}
+  };
+  if(Object.keys(board.profiles).length>=80&&!board.profiles[key])throw Error('For mange tavleformater');
+  board.profiles[key]=profile;layout.physicalBoardLayouts=board;
+ }
+ function resetOverrides(layout,settings){
+  const key=profileKey(settings),board=layout.physicalBoardLayouts;
+  if(!board?.profiles?.[key])return false;
+  delete board.profiles[key];
+  if(!Object.keys(board.profiles).length)delete layout.physicalBoardLayouts;
+  return true;
+ }
+
  function dimensions(settings={}){
   const widthCm=Number(settings.widthCm??30),heightCm=Number(settings.heightCm??40),
    marginMm=Number(settings.marginMm??12),ledDiameterMm=Number(settings.ledDiameterMm??5),
@@ -38,7 +108,7 @@
    usagePct:n(contentWidthMm*contentHeightMm/widthMm/heightMm*100)};
  }
  function project(point,dims){return {x:n(dims.offsetX+point.x*dims.scale),y:n(dims.offsetY+point.y*dims.scale)};}
- function layoutElements(layout,dims){
+ function layoutElements(layout,dims,profile={positions:{},labels:{}}){
   const usedQuays=new Map;
   for(const ds of layout.displayStations||[])for(const m of ds.members){
    if(!usedQuays.has(m.mapStopId))usedQuays.set(m.mapStopId,new Set);
@@ -47,7 +117,7 @@
   const markers=[],groupOutlines=[],warnings=[];
   const addMarker=(point,origin,quayId,groupId='',explicit=false)=>{
    const p=project(point,dims);
-   markers.push({...p,stopId:origin.id,quayId,groupId,explicit});
+   markers.push({...p,key:markerKey(origin.id,quayId,groupId),stopId:origin.id,quayId,groupId,explicit});
   };
   for(const stop of layout.stops||[]){
    const known=Stations.uniqueQuays(stop),grouped=usedQuays.get(stop.id)||new Set;
@@ -90,9 +160,14 @@
    }
    for(const {member,point} of members){
     const origin=layout.stops.find(s=>s.id===member.mapStopId);
-    if(origin)markers.push({...point,stopId:origin.id,quayId:member.quayId,groupId:ds.id,explicit:true});
+    if(origin)markers.push({...point,key:markerKey(origin.id,member.quayId,ds.id),stopId:origin.id,quayId:member.quayId,groupId:ds.id,explicit:true});
    }
   }
+  const labels=(layout.stops||[]).filter(s=>s.label?.visible).map(stop=>{
+   const p=project(stop.label,dims);
+   return {...p,stopId:stop.id,name:stop.name};
+  });
+  applyPositions(markers,labels,groupOutlines,profile,dims);
   for(let i=0;i<markers.length;i++)for(let j=i+1;j<markers.length;j++){
    const a=markers[i],b=markers[j];
    if(a.groupId&&a.groupId===b.groupId)continue;
@@ -101,10 +176,6 @@
     warnings.push({code:'LED_OVERLAP',message:'LED-punkter ligger for tett: '+a.stopId+' / '+b.stopId});
    }
   }
-  const labels=(layout.stops||[]).filter(s=>s.label?.visible).map(stop=>{
-   const p=project(stop.label,dims);
-   return {...p,stopId:stop.id,name:stop.name};
-  });
   for(const label of labels)if(label.x<0||label.x>dims.widthMm||label.y<0||label.y>dims.heightMm)
    warnings.push({code:'LABEL_OUTSIDE',message:'Navn utenfor tavleflaten: '+label.stopId});
   // Warnings for text/LED collisions use a conservative width estimate.
@@ -119,7 +190,9 @@
  function build(layout,settings={},options={}){
   if(!Array.isArray(layout?.stops)||!Array.isArray(layout?.paths))
    throw Error('Mangler kartets stasjoner eller linjer');
-  const dims=dimensions(settings),{markers,labels,groupOutlines,warnings}=layoutElements(layout,dims);
+  const dims=dimensions(settings),base=currentProfile(layout,settings),override=options.previewOverrides||{},
+   profile={positions:{...base.positions,...(override.positions||{})},labels:{...base.labels,...(override.labels||{})}},
+   {markers,labels,groupOutlines,warnings}=layoutElements(layout,dims,profile);
   const lit=new Set(options.litQuays||[]);
   const frame=options.simulated?'SIMULERT':'VISUELL FORHÅNDSVISNING – IKKE HARDWARE-VALIDERT';
   const pathSvg=(layout.paths||[]).flatMap(path=>Drawing.visualTracks(path).map(track=>
@@ -128,10 +201,10 @@
     '" fill="none" stroke="'+hex(track.color)+'" stroke-width="'+n(Math.max(0.45,track.width*dims.scale))+
     '" stroke-linecap="round" stroke-linejoin="round"/>')).join('\n');
   const outlineSvg=groupOutlines.map(g=>g.kind==='capsule'?
-   '<rect data-display-station="'+enc(g.id)+'" x="'+g.x+'" y="'+g.y+
+   '<rect data-display-station="'+enc(g.id)+'" data-board-group="'+enc(g.id)+'" x="'+g.x+'" y="'+g.y+
     '" width="'+g.width+'" height="'+g.height+'" rx="'+n(Math.min(g.width,g.height)/2)+
     '" fill="none" stroke="#dae8f4" stroke-width="0.8"/>' :
-   '<ellipse data-display-station="'+enc(g.id)+'" cx="'+n(g.x+g.width/2)+'" cy="'+n(g.y+g.height/2)+
+   '<ellipse data-display-station="'+enc(g.id)+'" data-board-group="'+enc(g.id)+'" cx="'+n(g.x+g.width/2)+'" cy="'+n(g.y+g.height/2)+
     '" rx="'+n(g.width/2)+'" ry="'+n(g.height/2)+
     '" fill="none" stroke="#dae8f4" stroke-width="0.8"/>').join('\n');
   const ledSvg=markers.map(m=>{
@@ -140,13 +213,14 @@
    return '<circle data-stop="'+enc(m.stopId)+'"'+
     (m.quayId?' data-quay="'+enc(m.quayId)+'"':'')+
     (m.groupId?' data-display-station="'+enc(m.groupId)+'"':'')+
+    ' data-board-key="'+enc(m.key)+'"'+
     (m.overlap?' data-overlap="true"':'')+
     ' cx="'+m.x+'" cy="'+m.y+'" r="'+n(radius)+
     '" fill="'+(active?'#44e392':'#152a3c')+'" stroke="'+(m.overlap?'#ffad5b':m.explicit?'#bed3e6':'#7794a8')+
     '" stroke-width="'+(m.overlap?'1.2':m.explicit?'0.7':'0.5')+'"/>';
   }).join('\n');
   const labelSvg=(settings.showLabels===false?[]:labels).map(l=>
-   '<text data-label-stop="'+enc(l.stopId)+'" x="'+l.x+'" y="'+l.y+
+   '<text data-label-stop="'+enc(l.stopId)+'" data-board-label="'+enc(l.stopId)+'" x="'+l.x+'" y="'+l.y+
    '" fill="#dfeaff" font-size="'+dims.labelFontMm+
    '" font-family="sans-serif" stroke="#07121f" stroke-width="0.55" paint-order="stroke">'+enc(l.name)+'</text>').join('\n');
   const svg='<?xml version="1.0" encoding="UTF-8"?>\n'+
@@ -168,5 +242,5 @@
    adjustedSpacing:warnings.filter(w=>w.code==='LED_SPACING_ADJUSTED').length
   },warnings};
  }
- return {PRESETS,dimensions,project,layoutElements,build};
+ return {PRESETS,dimensions,project,layoutElements,build,profileKey,currentProfile,saveOverrides,resetOverrides};
 });
