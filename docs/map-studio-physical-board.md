@@ -101,3 +101,33 @@ Når valget er aktivt:
 Den valgte tilstanden lagres som valgfritt \`physicalBoardLayouts.profiles["30x40"].followStations: true\`, i tillegg til allerede støttede \`positions\` og \`labels\`. \`stops[]\` og \`paths[]\` endres aldri, og det opprettes **ingen nye faktiske rute-/Quay-/GPS-bindinger**. Dette er en grafisk tilpasning basert på **eksisterende skjematisk sammenfall**, ikke informasjon om hvor en buss fysisk kjører.
 
 For ekstreme flyttinger kan linjene bli skarpt bøyd. En framtidig rutekorridor-editor bør gi egne tavleknekkpunkter for å forme disse bøyene uten å forfalske originaltegningen.
+
+
+## v0.8 – ekstra linjeknekkpunkter på en fysisk tavle
+
+I Map Studio: åpne **Fysisk tavleforhåndsvisning**, aktiver **Rediger kart** og **Rediger linjeknekkpunkter**. Dette er en alternativ redigeringsmodus til **Flytt stasjoner og navn**.
+
+- **Blå, runde håndtak** viser eksisterende skjematiske knekkpunkter. Dra dem med mus eller finger, eller bruk piltaster for flytting på 1 mm (Shift: 5 mm).
+- Velg **Linje** og **Delstrekning**, klikk **+ Legg til knekkpunkt**. Et nytt, **gult** håndtak legges mellom de to eksisterende punktene. Dra det til ønsket vinkel/posisjon.
+- Marker et ekstra knekkpunkt i nedtrekkslisten og velg **Fjern valgt knekkpunkt**.
+- **Tilbakestill valgt trasé** fjerner alle manuelle knekkpunktjusteringer på valgt linje **bare for nåværende tavleformat**. **Angre** virker på hver handling.
+- Det fysiske formatet er fortsatt valgfritt: 30 × 40, 50 × 70, 40 × 40 eller egne centimeter-mål. En knekkpunktflytting i 30 × 40 påvirker ikke et 50 × 70-design.
+- Tidligere valg **Linjene følger flyttede stasjoner** kan fortsatt aktiveres. Manuelt redigerte knekkpunkter prioriteres ved tegning, uten at GPS-sporing eller rutedefinisjoner forandres.
+- Den **målsatte SVG-eksporten** inkluderer de justerte grafiske linjene, men inneholder **ikke de blå/gule redigeringshåndtakene**.
+
+Lagring skjer i den valgfrie \`physicalBoardLayouts.profiles[format].routes\`-strukturen:
+\`\`\`json
+{
+  "routes": {
+    "trace-01": {
+      "vertices": {"0": {"x": 0.5, "y": 0.3}},
+      "bends": [
+        {"id": "bend-1", "afterIndex": 0, "x": 0.51, "y": 0.35}
+      ]
+    }
+  }
+}
+\`\`\`
+Dette er **normaliserte tavlekoordinater**, ikke koordinater på originalen. Eksisterende \`paths[]\` og \`stops[]\` i Trondheim-modellen endres **aldri** når denne funksjonen brukes. Ingen Quay-ID-er eller sanntidshendelser blir opprettet eller påvirket.
+
+Det er fortsatt nødvendig å kontrollere linje-/stasjonsavstander visuelt. Verktøyet bekrefter **ikke** at en skjematisk tegnet linje er en faktisk gjennomkjørbar rute, og SVG-filen er ikke automatisk godkjent som fysisk boremal.
