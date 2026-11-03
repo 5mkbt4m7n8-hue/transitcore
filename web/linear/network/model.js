@@ -122,6 +122,33 @@
      for(const [key,value] of labels)
       if(!pos(value)||!validLabels.has(key))
        errors.push('Ugyldig tavle-etikett '+key+' i '+format);
+     if(profile.routes!==undefined){
+      if(!profile.routes||typeof profile.routes!=='object'||Array.isArray(profile.routes)||
+       Object.keys(profile.routes).length>layout.paths.length){
+       errors.push('Ugyldige tavletraséer i '+format);
+      }else for(const [routeId,route] of Object.entries(profile.routes)){
+       const source=layout.paths.find(path=>path.id===routeId);
+       if(!source||!route||typeof route!=='object'||Array.isArray(route)||
+        !route.vertices||typeof route.vertices!=='object'||Array.isArray(route.vertices)||
+        !Array.isArray(route.bends)||route.bends.length>1000||
+        Object.keys(route.vertices).length>source.points.length){
+        errors.push('Ugyldig fysisk linje '+routeId+' i '+format);continue;
+       }
+       for(const [index,position] of Object.entries(route.vertices)){
+        if(!/^(0|[1-9]\d*)$/.test(index)||Number(index)>=source.points.length||!pos(position))
+         errors.push('Ugyldig fysisk linjeknekkpunkt '+routeId+'/'+index);
+       }
+       const bendIds=new Set;
+       for(const bend of route.bends){
+        if(!bend||!/^bend-[1-9]\d*$/.test(bend.id||'')||bendIds.has(bend.id)||
+         !Number.isInteger(bend.afterIndex)||bend.afterIndex<0||
+         bend.afterIndex>=source.points.length-1||!pos(bend))
+         errors.push('Ugyldig ekstra knekkpunkt i '+routeId);
+        else bendIds.add(bend.id);
+       }
+      }
+     }
+
     }
    }
   }
