@@ -1,4 +1,4 @@
-import {v012A,v012B} from './browser-studio-v012.mjs';
+import {v012A,v012B,v012C} from './browser-studio-v012.mjs';
 import {v011,v011B,v011C} from './browser-studio-v011.mjs';
 import {phaseOne} from './browser-studio-phase-one.mjs';
 import {selectionRegression} from './browser-studio-selection.mjs';
@@ -19,6 +19,7 @@ const base=process.env.STUDIO_PREVIEW||`http://127.0.0.1:${server.address().port
 try{
  await v012A(browser,base);
  await v012B(browser,base);
+ await v012C(browser,base,process.env.INTRANSIT_SCREENSHOT_DIR);
  await v011(browser,base);
  await v011B(browser,base);
  await v011C(browser,base,process.env.INTRANSIT_SCREENSHOT_DIR);

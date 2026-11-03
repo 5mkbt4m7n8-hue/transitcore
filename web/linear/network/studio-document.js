@@ -46,12 +46,13 @@
  }
  function symbol(s){return {width:['capsule','leds','double'].includes(s.symbol)?(s.span||(s.symbol==='double'?24:30)):(s.size||10),height:s.size||10,angle:s.symbolAngle||0,ring:s.symbol==='ring'};}
  // Copies are artwork only: they receive neither source bindings nor new stop identities.
+ function visualCopy(source,patch){const copy={...clone(source),...patch};delete copy.traceEdges;delete copy.traceBase;delete copy.routeRefs;return copy;}
  function parallel(d,sourceId,count,spacing,ids){
   const source=d.artwork.lines.find(l=>l.id===sourceId);if(!source||source.locked||!Number.isInteger(count)||count<1||count>8||!Number.isFinite(spacing)||spacing<2||spacing>200||ids.length!==count)throw Error('Velg 1–8 kopier og avstand 2–200');
   const colors=['#e08a3b','#6e68bb','#cc5271','#218967'].filter(c=>c!==source.color);
   for(let lane=1;lane<=count;lane++){
    const points=offsetPoints(source.points,spacing*lane);
-   d.artwork.lines.push({...clone(source),id:ids[lane-1],name:source.name+' · '+lane,color:colors[(lane-1)%colors.length],points});
+   d.artwork.lines.push(visualCopy(source,{id:ids[lane-1],name:source.name+' · '+lane,color:colors[(lane-1)%colors.length],points}));
   }validate(d);
  }
 
@@ -97,7 +98,7 @@
  function linkedParallel(d,sourceId,count,spacing,side,groupId,newIds){
   const [source]=editableLines(d,[sourceId]);if(groupFor(d,sourceId)||!Number.isInteger(count)||count<2||count>9||newIds.length!==count-1)throw Error('Velg en separat linje og totalt 2–9 linjer');
   const colors=['#218967','#e08a3b','#6e68bb','#cc5271'].filter(c=>c!==source.color);
-  newIds.forEach((id,i)=>d.artwork.lines.push({...clone(source),id,name:source.name+' · '+(i+2),color:colors[i%colors.length]}));
+  newIds.forEach((id,i)=>d.artwork.lines.push(visualCopy(source,{id,name:source.name+' · '+(i+2),color:colors[i%colors.length]})));
   const g={id:groupId,kind:'parallel',memberIds:[sourceId,...newIds],generatedIds:[...newIds],spine:clone(source.points),spacing,side};addGroup(d,g);reflow(d,g);validate(d);
  }
  function updateParallel(d,groupId,count,spacing,side,newIds=[]){
@@ -107,7 +108,7 @@
   const removed=g.memberIds.slice(count);if(removed.some(id=>!g.generatedIds.includes(id)||d.bindings[id]||d.artwork.stops.some(s=>s.lineIds.includes(id)||s.leds?.some(l=>l.lineId===id))))throw Error('Linjer med stopp eller kildekobling kan ikke fjernes her. Løsne først.');
   d.artwork.lines=d.artwork.lines.filter(l=>!removed.includes(l.id));g.memberIds=g.memberIds.slice(0,count);g.generatedIds=g.generatedIds.filter(id=>!removed.includes(id));
   const source=d.artwork.lines.find(l=>l.id===g.memberIds[0]),colors=['#e08a3b','#6e68bb','#cc5271','#218967'];
-  newIds.forEach((id,i)=>{d.artwork.lines.push({...clone(source),id,name:source.name+' · '+(g.memberIds.length+1),color:colors[(g.memberIds.length-1)%colors.length]});g.memberIds.push(id);g.generatedIds.push(id);});
+  newIds.forEach((id,i)=>{d.artwork.lines.push(visualCopy(source,{id,name:source.name+' · '+(g.memberIds.length+1),color:colors[(g.memberIds.length-1)%colors.length]}));g.memberIds.push(id);g.generatedIds.push(id);});
   if(scaledOffsets)g.vertexOffsets=scaledOffsets;else delete g.vertexOffsets;Object.assign(g,{spacing,side});reflow(d,g);validate(d);
  }
  function joinPlan(d,ids){
@@ -179,6 +180,6 @@
  }
  function labelPreset(s,preset){const angles={'horizontal':0,'up':315,'down':45,'vertical':90,'right':0,'left':0};if(!(preset in angles))throw Error('Ukjent navneretning');s.labelAngle=angles[preset];if(preset==='right'||preset==='left'){s.labelSide=preset;s.labelDx=(preset==='left'?-1:1)*Math.abs(s.labelDx||12);}}
  const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
- function svg(d){validate(d);return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${d.width} ${d.height}"><rect width="100%" height="100%" fill="white"/>`+d.artwork.lines.filter(l=>l.visible).map(l=>`<polyline points="${l.points.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${l.color}" stroke-width="${l.width}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')+d.artwork.stops.filter(s=>s.visible).map(s=>stationShapes(d,s).map(part=>'<'+part.tag+' '+Object.entries(part.attrs).map(([k,v])=>k+'="'+escape(v)+'"').join(' ')+'/>' ).join('')+`<text x="${label(s).x}" y="${label(s).y}" text-anchor="${label(s).anchor}" transform="rotate(${label(s).angle} ${label(s).x} ${label(s).y})" font-family="sans-serif" font-size="${s.fontSize||12}" font-weight="${s.fontWeight||'normal'}">${escape(s.name)}</text>`).join('')+'</svg>';}
+ function svg(d){validate(d);return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${d.width} ${d.height}"><rect width="100%" height="100%" fill="white"/>`+d.artwork.lines.filter(l=>l.visible).map(l=>`<polyline points="${l.points.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${l.color}" stroke-width="${l.width}" stroke-linecap="round" stroke-linejoin="round" data-line-id="${escape(l.id)}" data-name="${escape(l.name)}"${l.routeRefs?' data-graphic-route="true" data-route-refs="'+escape(JSON.stringify(l.routeRefs))+'"':''}/>` ).join('')+d.artwork.stops.filter(s=>s.visible).map(s=>stationShapes(d,s).map(part=>'<'+part.tag+' '+Object.entries(part.attrs).map(([k,v])=>k+'="'+escape(v)+'"').join(' ')+'/>' ).join('')+`<text x="${label(s).x}" y="${label(s).y}" text-anchor="${label(s).anchor}" transform="rotate(${label(s).angle} ${label(s).x} ${label(s).y})" font-family="sans-serif" font-size="${s.fontSize||12}" font-weight="${s.fontWeight||'normal'}">${escape(s.name)}</text>`).join('')+'</svg>';}
  const api={blank,validate,fromTrondheim,history,svg,resize,label,symbol,parallel,arrangeLabels,extend,styleLines,removeObjects,spaceLines,labelPreset,groupFor,groupLines,shareRoute,linkedParallel,updateParallel,joinPlan,joinLines,detachGroup,transformIds,setLinePoints,setSpine,translate,project,stationCandidates,stationLayout,refreshStations,placeStation,detachStation,setStationSymbol,setLedSource,stationShapes};root.InTransitStudioDocument=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

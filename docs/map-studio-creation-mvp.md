@@ -1,6 +1,6 @@
-# Current editor: Map Studio v0.11
+# Current editor: Map Studio v0.12
 
-See [advanced route editing](map-studio-v011.md) for stable station references, live spacing, section extraction/removal and rectangle/rubber-band editing. The v0.10 notes below describe the preceding delivery; v0.11 replaces percentage-only station anchors.
+See [reusable routes and station styles](map-studio-v012.md) and [advanced route editing](map-studio-v011.md) for stable station references, live spacing, section extraction/removal and rectangle/rubber-band editing. The v0.10 notes below describe the preceding delivery; v0.11 replaces percentage-only station anchors.
 
 # Map Studio · focused creation MVP
 
