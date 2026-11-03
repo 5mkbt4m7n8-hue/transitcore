@@ -460,6 +460,20 @@ try{
  assert.equal(Object.keys(physicalMovedDraft.physicalBoardLayouts.profiles['35x52'].positions).length,2,'both group Quays moved together');
  assert(Math.abs(Number(await ledA.getAttribute('cx'))-startA)>1);
  assert(Math.abs(Number(await ledB.getAttribute('cx'))-startB)>1);
+
+ const originalRouteSvg=await page.locator('[data-role=boardSvgHost] polyline[data-route="trace-01"]').first().getAttribute('points');
+ await page.locator('[data-role=boardFollow]').check();
+ const followedRouteSvg=await page.locator('[data-role=boardSvgHost] polyline[data-route="trace-01"]').first().getAttribute('points');
+ assert.notEqual(followedRouteSvg,originalRouteSvg,'physical graphic route follows moved grouped Pirbadet stop');
+ assert.match(await page.locator('[data-role=boardMetrics]').innerText(),/linjetilpasning aktiv/);
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.physicalBoardLayouts.profiles['35x52'].followStations),true);
+ await page.locator('[data-role=boardFollow]').uncheck();
+ assert.equal(await page.locator('[data-role=boardSvgHost] polyline[data-route="trace-01"]').first().getAttribute('points'),originalRouteSvg,
+  'turning graphic follow off restores original path rendering');
+ await page.locator('[data-role=boardUndo]').click();
+ await page.locator('[data-role=boardUndo]').click();
+ assert.equal(await page.locator('[data-role=boardFollow]').isChecked(),false);
+
  const movedA=Number(await ledA.getAttribute('cx'));
  await page.locator('[data-role=boardPreset]').selectOption('30x40');
  assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'300mm');
