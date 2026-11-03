@@ -1,3 +1,7 @@
+# Current editor: Map Studio v0.11
+
+See [advanced route editing](map-studio-v011.md) for stable station references, live spacing, section extraction/removal and rectangle/rubber-band editing. The v0.10 notes below describe the preceding delivery; v0.11 replaces percentage-only station anchors.
+
 # Map Studio · focused creation MVP
 
 Open `web/linear/studio.html` (also `index.html?view=studio`). The older physical board editor remains available at `index.html?view=designer`, including its format-specific layouts and physical SVG export.

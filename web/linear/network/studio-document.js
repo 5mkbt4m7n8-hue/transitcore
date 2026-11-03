@@ -77,7 +77,7 @@
    for(const id of g.memberIds){if(used.has(id)||!d.artwork.lines.some(l=>l.id===id))throw Error('En linje kan bare tilhøre én gruppe');used.add(id);}
    if(g.kind==='parallel'||g.kind==='shared'){
     if(g.memberIds.length>9||!Number.isFinite(g.spacing)||g.spacing<2||g.spacing>200||!['left','right','center'].includes(g.side)||!Array.isArray(g.spine)||g.spine.length<2||g.spine.length>5000||!g.spine.every(point)||!Array.isArray(g.generatedIds)||new Set(g.generatedIds).size!==g.generatedIds.length||g.generatedIds.some(id=>!g.memberIds.includes(id))||g.generatedIds.includes(g.memberIds[0]))throw Error('Ugyldig felles trasé');
-    g.memberIds.forEach((id,i)=>{const expected=offsetPoints(g.spine,laneOffset(g,i)),actual=d.artwork.lines.find(l=>l.id===id).points;if(actual.length!==expected.length||actual.some((p,i)=>!samePoint(p,expected[i])))throw Error('Linjen avviker fra felles trasé');});
+    if(g.vertexOffsets&&(!Array.isArray(g.vertexOffsets)||g.vertexOffsets.length!==g.memberIds.length||g.vertexOffsets.some(a=>!Array.isArray(a)||a.length!==g.spine.length||a.some(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y)))))throw Error('Ugyldige parallelle punktforskyvninger');g.memberIds.forEach((id,i)=>{const expected=g.vertexOffsets?g.spine.map((p,j)=>({x:p.x+g.vertexOffsets[i][j].x,y:p.y+g.vertexOffsets[i][j].y})):offsetPoints(g.spine,laneOffset(g,i)),actual=d.artwork.lines.find(l=>l.id===id).points;if(actual.length!==expected.length||actual.some((p,i)=>!samePoint(p,expected[i])))throw Error('Linjen avviker fra felles trasé');});
    }
    if(g.kind==='joined'){
     if(g.memberIds.some(id=>{const l=d.artwork.lines.find(l=>l.id===id);return samePoint(l.points[0],l.points.at(-1));}))throw Error('Lukkede linjer kan ikke kobles til en åpen kjede');
@@ -90,7 +90,7 @@
  }
  function freeLines(d,ids){const lines=editableLines(d,ids);if(lines.length<2||ids.some(id=>groupFor(d,id)))throw Error('Velg minst to separate linjer. Løsne eksisterende grupper først.');return lines;}
  function addGroup(d,g){if((d.artwork.groups||[]).some(v=>v.id===g.id))throw Error('Gruppen finnes allerede');(d.artwork.groups??=[]).push(g);}
- function reflow(d,g,updateStations=true){stabilizeAnchors(d);if(updateStations)clearFixedStations(d,g.memberIds);g.memberIds.forEach((id,i)=>{d.artwork.lines.find(l=>l.id===id).points=offsetPoints(g.spine,laneOffset(g,i));});if(updateStations)refreshStations(d);}
+ function reflow(d,g,updateStations=true){stabilizeAnchors(d);if(updateStations)clearFixedStations(d,g.memberIds);g.memberIds.forEach((id,i)=>{d.artwork.lines.find(l=>l.id===id).points=g.vertexOffsets?g.spine.map((p,j)=>({x:p.x+g.vertexOffsets[i][j].x,y:p.y+g.vertexOffsets[i][j].y})):offsetPoints(g.spine,laneOffset(g,i));});if(updateStations)refreshStations(d);}
  function groupLines(d,ids,groupId){freeLines(d,ids);addGroup(d,{id:groupId,kind:'visual',memberIds:[...ids]});validate(d);}
  function shareRoute(d,ids,spacing,side,groupId){const lines=freeLines(d,ids);const g={id:groupId,kind:'shared',memberIds:[...ids],generatedIds:[],spine:clone(lines[0].points),spacing,side};addGroup(d,g);reflow(d,g);validate(d);}
  function linkedParallel(d,sourceId,count,spacing,side,groupId,newIds){
@@ -102,11 +102,12 @@
  function updateParallel(d,groupId,count,spacing,side,newIds=[]){
   const g=(d.artwork.groups||[]).find(g=>g.id===groupId);if(!g||!['parallel','shared'].includes(g.kind))throw Error('Velg en felles trasé');editableLines(d,g.memberIds);
   const min=g.memberIds.length-g.generatedIds.length;if(!Number.isInteger(count)||count<Math.max(2,min)||count>9||newIds.length!==Math.max(0,count-g.memberIds.length))throw Error('Behold originalene og velg totalt 2–9 linjer');
+  if(count===g.memberIds.length&&spacing===g.spacing&&side===g.side)return;const scaledOffsets=g.vertexOffsets&&count===g.memberIds.length&&side===g.side?g.vertexOffsets.map(a=>a.map(p=>({x:p.x*spacing/g.spacing,y:p.y*spacing/g.spacing}))):null;
   const removed=g.memberIds.slice(count);if(removed.some(id=>!g.generatedIds.includes(id)||d.bindings[id]||d.artwork.stops.some(s=>s.lineIds.includes(id)||s.leds?.some(l=>l.lineId===id))))throw Error('Linjer med stopp eller kildekobling kan ikke fjernes her. Løsne først.');
   d.artwork.lines=d.artwork.lines.filter(l=>!removed.includes(l.id));g.memberIds=g.memberIds.slice(0,count);g.generatedIds=g.generatedIds.filter(id=>!removed.includes(id));
   const source=d.artwork.lines.find(l=>l.id===g.memberIds[0]),colors=['#e08a3b','#6e68bb','#cc5271','#218967'];
   newIds.forEach((id,i)=>{d.artwork.lines.push({...clone(source),id,name:source.name+' · '+(g.memberIds.length+1),color:colors[(g.memberIds.length-1)%colors.length]});g.memberIds.push(id);g.generatedIds.push(id);});
-  Object.assign(g,{spacing,side});reflow(d,g);validate(d);
+  if(scaledOffsets)g.vertexOffsets=scaledOffsets;else delete g.vertexOffsets;Object.assign(g,{spacing,side});reflow(d,g);validate(d);
  }
  function joinPlan(d,ids){
   const lines=freeLines(d,ids),joins=[];
@@ -117,8 +118,8 @@
  function detachGroup(d,groupId){const g=(d.artwork.groups||[]).find(g=>g.id===groupId);if(!g)throw Error('Gruppen finnes ikke');editableLines(d,g.memberIds);for(const stop of d.artwork.stops)if(stop.anchor?.kind==='route'&&g.memberIds.includes(stop.anchor.lineId))stop.anchor.kind='station';d.artwork.groups=d.artwork.groups.filter(g=>g.id!==groupId);if(!d.artwork.groups.length)delete d.artwork.groups;validate(d);}
  function transformIds(d,ids){return [...new Set(ids.flatMap(id=>groupFor(d,id)?.memberIds||[id]))];}
  function setLinePoints(d,id,points,{preserveStations=false}={}){
-  const [line]=editableLines(d,[id]),g=groupFor(d,id);if(g)editableLines(d,g.memberIds);stabilizeAnchors(d);const affected=g?.memberIds||[id],frozen=preserveStations?d.artwork.stops.filter(s=>s.anchor&&s.lineIds.some(id=>affected.includes(id))).map(s=>({id:s.id,layout:stationLayout(d,s)})):[];if(!preserveStations)clearFixedStations(d,affected);
-  if(g&&['parallel','shared'].includes(g.kind)){g.spine=offsetPoints(points,-laneOffset(g,g.memberIds.indexOf(id)));reflow(d,g,false);}
+  const [line]=editableLines(d,[id]),g=groupFor(d,id);preserveStations ||= points.length!==line.points.length;if(g)editableLines(d,g.memberIds);stabilizeAnchors(d);const affected=g?.memberIds||[id],frozen=preserveStations?d.artwork.stops.filter(s=>s.anchor&&s.lineIds.some(id=>affected.includes(id))).map(s=>({id:s.id,layout:stationLayout(d,s)})):[];if(!preserveStations)clearFixedStations(d,affected);
+  if(g&&['parallel','shared'].includes(g.kind)){if(g.vertexOffsets&&points.length===g.spine.length){const offsets=g.vertexOffsets[g.memberIds.indexOf(id)];g.spine=points.map((p,i)=>({x:p.x-offsets[i].x,y:p.y-offsets[i].y}));}else{delete g.vertexOffsets;g.spine=offsetPoints(points,-laneOffset(g,g.memberIds.indexOf(id)));}reflow(d,g,false);}
   else{line.points=clone(points);if(g?.kind==='joined')for(const j of g.joins){if(j.a===id){const l=d.artwork.lines.find(l=>l.id===j.b);Object.assign(endPoint(l,j.bEnd),endPoint(line,j.aEnd));}if(j.b===id){const l=d.artwork.lines.find(l=>l.id===j.a);Object.assign(endPoint(l,j.aEnd),endPoint(line,j.bEnd));}}}
   for(const saved of frozen){const stop=d.artwork.stops.find(s=>s.id===saved.id),a=stop.anchor,primary=d.artwork.lines.find(l=>l.id===a.lineId),oldPoint=saved.layout.points.find(p=>p.lineId===a.lineId),p=project(oldPoint,primary);a.segment=p.segment;a.t=p.t;a.fixedPoints=clone(saved.layout.points);a.fixedAngle=saved.layout.angle;}refreshStations(d);validate(d);
  }
