@@ -26,7 +26,7 @@
  const markerKey=(stopId,quayId,groupId)=>groupId?'quay:'+quayId:'stop:'+stopId;
  function currentProfile(layout,settings={}){
   const result=layout.physicalBoardLayouts?.profiles?.[profileKey(settings)];
-  return result||{positions:{},labels:{},followStations:false};
+  return result||{positions:{},labels:{},routes:{},followStations:false};
  }
  function applyPositions(markers,labels,groups,profile,dims){
   for(const marker of markers){
@@ -73,7 +73,8 @@
   const profile={
    positions:{...existing.positions,...(changes.positions||{})},
    labels:{...existing.labels,...(changes.labels||{})},
-   followStations:changes.followStations===undefined?existing.followStations===true:changes.followStations
+   followStations:changes.followStations===undefined?existing.followStations===true:changes.followStations,
+   routes:existing.routes||{}
   };
   if(Object.keys(board.profiles).length>=80&&!board.profiles[key])throw Error('For mange tavleformater');
   board.profiles[key]=profile;layout.physicalBoardLayouts=board;
@@ -84,6 +85,112 @@
   delete board.profiles[key];
   if(!Object.keys(board.profiles).length)delete layout.physicalBoardLayouts;
   return true;
+ }
+
+
+ // An additive, physical-format-only route drawing layer. Coordinates are
+ // normalized to the physical board. It never writes source paths[].points.
+ const boardPoint=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&
+  p.x>=0&&p.x<=1&&p.y>=0&&p.y<=1;
+ const routeFor=(layout,pathId)=>{
+  const path=layout.paths?.find(p=>p.id===pathId);
+  if(!path)throw Error('Ukjent original linje '+pathId);
+  return path;
+ };
+ function editRoute(layout,settings,pathId,operation){
+  const path=routeFor(layout,pathId);
+  const old=currentProfile(layout,settings).routes?.[pathId]||{vertices:{},bends:[]};
+  const next={vertices:{...old.vertices},bends:(old.bends||[]).map(p=>({...p}))};
+  operation(next,path);
+  if(Object.keys(next.vertices).length>3000||next.bends.length>1000)
+   throw Error('For mange fysiske linjepunkter');
+  // Prepare the profile with the existing validated board transaction logic.
+  saveOverrides(layout,settings,{});
+  layout.physicalBoardLayouts.profiles[profileKey(settings)].routes[pathId]=next;
+ }
+ function setRoutePoint(layout,settings,pathId,key,position){
+  if(!boardPoint(position))throw Error('Linjeknekkpunkt må ligge inne på tavlen');
+  editRoute(layout,settings,pathId,(next,path)=>{
+   const p={x:n(position.x),y:n(position.y)};
+   if(typeof key==='number'){
+    if(!Number.isInteger(key)||key<0||key>=path.points.length)
+     throw Error('Ukjent linjeknekkpunkt');
+    next.vertices[String(key)]=p;
+   }else{
+    const bend=next.bends.find(b=>b.id===key);
+    if(!bend)throw Error('Ukjent ekstra knekkpunkt');
+    Object.assign(bend,p);
+   }
+  });
+ }
+ function addRouteBend(layout,settings,pathId,afterIndex,position){
+  const path=routeFor(layout,pathId);
+  if(!Number.isInteger(afterIndex)||afterIndex<0||afterIndex>=path.points.length-1)
+   throw Error('Ukjent linjedelstrekning');
+  if(!boardPoint(position))throw Error('Nytt knekkpunkt må ligge på tavlen');
+  let id;
+  editRoute(layout,settings,pathId,next=>{
+   if(next.bends.length>=1000)throw Error('For mange ekstra knekkpunkter');
+   let index=1;
+   const exists=new Set(next.bends.map(b=>b.id));
+   while(exists.has('bend-'+index))index++;
+   id='bend-'+index;
+   next.bends.push({id,afterIndex,x:n(position.x),y:n(position.y)});
+  });
+  return id;
+ }
+ function removeRouteBend(layout,settings,pathId,bendId){
+  editRoute(layout,settings,pathId,next=>{
+   const before=next.bends.length;
+   next.bends=next.bends.filter(b=>b.id!==bendId);
+   if(next.bends.length===before)throw Error('Knekkpunktet finnes ikke');
+  });
+ }
+ function resetRoute(layout,settings,pathId){
+  routeFor(layout,pathId);
+  const key=profileKey(settings),entry=layout.physicalBoardLayouts?.profiles?.[key];
+  if(!entry?.routes?.[pathId])return false;
+  delete entry.routes[pathId];return true;
+ }
+ function routeGeometry(layout,settings,options={}){
+  const dims=dimensions(settings);
+  const saved=currentProfile(layout,settings),changes=options.previewOverrides||{};
+  const profile={positions:{...saved.positions,...(changes.positions||{})},
+   labels:{...saved.labels,...(changes.labels||{})},
+   followStations:saved.followStations===true,
+   routes:{...saved.routes,...(changes.routes||{})}};
+  const {markers}=layoutElements(layout,dims,profile);
+  const followed=followVertexPaths(layout,profile,dims,markers);
+  return buildPhysicalRoutes(layout,followed.paths,profile,dims);
+ }
+ function buildPhysicalRoutes(layout,paths,profile,dims){
+  const handles=[];
+  const processed=paths.map(path=>{
+   const route=profile.routes?.[path.id]||{vertices:{},bends:[]};
+   const points=[];
+   for(let i=0;i<path.points.length;i++){
+    const value=route.vertices?.[String(i)];
+    const original=path.points[i],pt=value?
+     {x:n((value.x*dims.widthMm-dims.offsetX)/dims.scale),
+      y:n((value.y*dims.heightMm-dims.offsetY)/dims.scale)}:original;
+    points.push(pt);
+    const physical=project(pt,dims);
+    handles.push({pathId:path.id,key:String(i),type:'vertex',index:i,
+     x:physical.x,y:physical.y,overridden:Boolean(value)});
+    if(i<path.points.length-1){
+     for(const bend of route.bends||[]){
+      if(bend.afterIndex!==i)continue;
+      const p={x:n((bend.x*dims.widthMm-dims.offsetX)/dims.scale),
+       y:n((bend.y*dims.heightMm-dims.offsetY)/dims.scale)};
+      points.push(p);
+      handles.push({pathId:path.id,key:bend.id,type:'bend',afterIndex:i,
+       x:n(bend.x*dims.widthMm),y:n(bend.y*dims.heightMm),overridden:true});
+     }
+    }
+   }
+   return {...path,points};
+  });
+  return {paths:processed,handles};
  }
 
  function dimensions(settings={}){
@@ -231,18 +338,30 @@
   if(!Array.isArray(layout?.stops)||!Array.isArray(layout?.paths))
    throw Error('Mangler kartets stasjoner eller linjer');
   const dims=dimensions(settings),base=currentProfile(layout,settings),override=options.previewOverrides||{},
-   profile={positions:{...base.positions,...(override.positions||{})},labels:{...base.labels,...(override.labels||{})},followStations:base.followStations===true},
+   profile={positions:{...base.positions,...(override.positions||{})},labels:{...base.labels,...(override.labels||{})},followStations:base.followStations===true,
+   routes:{...(base.routes||{}),...(override.routes||{})}},
    {markers,labels,groupOutlines,warnings}=layoutElements(layout,dims,profile);
   const adjusted=followVertexPaths(layout,profile,dims,markers);
   if(adjusted.ambiguous)warnings.push({code:'ROUTE_VERTEX_AMBIGUOUS',message:adjusted.ambiguous+' linjeknekkpunkter er tvetydige og ble ikke automatisk flyttet'});
   if(adjusted.unmatched)warnings.push({code:'ROUTE_VERTEX_MISSING',message:adjusted.unmatched+' flyttede stopp mangler eksakt sammenfallende grafisk linjepunkt'});
+  const boardRoutes=buildPhysicalRoutes(layout,adjusted.paths,profile,dims);
   const lit=new Set(options.litQuays||[]);
   const frame=options.simulated?'SIMULERT':'VISUELL FORHÅNDSVISNING – IKKE HARDWARE-VALIDERT';
-  const pathSvg=(adjusted.paths||[]).flatMap(path=>Drawing.visualTracks(path).map(track=>
+  const pathSvg=(boardRoutes.paths||[]).flatMap(path=>Drawing.visualTracks(path).map(track=>
    '<polyline data-route="'+enc(path.id)+'" points="'+track.points.map(point=>{
     const p=project(point,dims);return p.x+','+p.y;}).join(' ')+
     '" fill="none" stroke="'+hex(track.color)+'" stroke-width="'+n(Math.max(0.45,track.width*dims.scale))+
     '" stroke-linecap="round" stroke-linejoin="round"/>')).join('\n');
+
+  const routeHandleSvg=options.showRouteHandles?boardRoutes.handles.map(handle=>
+   '<circle data-board-route-path="'+enc(handle.pathId)+
+   '" data-board-route-key="'+enc(handle.key)+
+   '" data-board-route-type="'+handle.type+
+   '" cx="'+handle.x+'" cy="'+handle.y+'" r="2.7"'+
+   ' fill="'+(handle.type==='bend'?'#ffd479':'#70d1fa')+
+   '" stroke="#06121e" stroke-width="0.9" tabindex="0" role="button" aria-label="'+
+   (handle.type==='bend'?'Flytt ekstra knekkpunkt':'Flytt linjeknekkpunkt')+' '+enc(handle.pathId)+
+   ' '+enc(handle.key)+'"/>' ).join('\n'):'';
   const outlineSvg=groupOutlines.map(g=>g.kind==='capsule'?
    '<rect data-display-station="'+enc(g.id)+'" data-board-group="'+enc(g.id)+'" x="'+g.x+'" y="'+g.y+
     '" width="'+g.width+'" height="'+g.height+'" rx="'+n(Math.min(g.width,g.height)/2)+
@@ -278,14 +397,16 @@
    '<g id="display-stations">'+outlineSvg+'</g>\n'+
    '<g id="led-markers">'+ledSvg+'</g>\n'+
    '<g id="labels">'+labelSvg+'</g>\n'+
+   '<g id="route-edit-handles">'+routeHandleSvg+'</g>\n'+
    (options.simulated?'<text x="6" y="'+n(dims.heightMm-4)+'" fill="#ffe1a1" font-size="3" font-family="sans-serif">SIMULERT</text>\n':'')+
    '</svg>\n';
   return {svg,dimensions:dims,summary:{
    markers:markers.length,groups:groupOutlines.length,labels:settings.showLabels===false?0:labels.length,
    issues:warnings.length,overlaps:warnings.filter(w=>w.code==='LED_OVERLAP').length,
    adjustedSpacing:warnings.filter(w=>w.code==='LED_SPACING_ADJUSTED').length,
-   trackedVertices:adjusted.trackedVertices,followStations:profile.followStations===true
+   trackedVertices:adjusted.trackedVertices,followStations:profile.followStations===true,
+   editedRouteVertices:boardRoutes.handles.filter(h=>h.overridden).length
   },warnings};
  }
- return {PRESETS,dimensions,project,layoutElements,build,profileKey,currentProfile,saveOverrides,resetOverrides,markerKey,followVertexPaths};
+ return {PRESETS,dimensions,project,layoutElements,build,profileKey,currentProfile,saveOverrides,resetOverrides,markerKey,followVertexPaths,routeGeometry,setRoutePoint,addRouteBend,removeRouteBend,resetRoute};
 });
