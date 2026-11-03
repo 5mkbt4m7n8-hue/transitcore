@@ -168,6 +168,9 @@
    return {...p,stopId:stop.id,name:stop.name};
   });
   applyPositions(markers,labels,groupOutlines,profile,dims);
+  const shifted=markers.filter(m=>m.repositioned).length;
+  if(shifted)warnings.push({code:'MOVED_MARKER',message:shifted+
+   ' tavlemarkører er flyttet separat; kartlinjene følger foreløpig ikke automatisk'});
   for(let i=0;i<markers.length;i++)for(let j=i+1;j<markers.length;j++){
    const a=markers[i],b=markers[j];
    if(a.groupId&&a.groupId===b.groupId)continue;
@@ -213,14 +216,15 @@
    return '<circle data-stop="'+enc(m.stopId)+'"'+
     (m.quayId?' data-quay="'+enc(m.quayId)+'"':'')+
     (m.groupId?' data-display-station="'+enc(m.groupId)+'"':'')+
-    ' data-board-key="'+enc(m.key)+'"'+
+    ' data-board-key="'+enc(m.key)+'" tabindex="0" role="button" aria-label="Flytt tavlestasjon '+enc(m.stopId)+'"'+
+    (m.repositioned?' data-board-moved="true"':'')+
     (m.overlap?' data-overlap="true"':'')+
     ' cx="'+m.x+'" cy="'+m.y+'" r="'+n(radius)+
     '" fill="'+(active?'#44e392':'#152a3c')+'" stroke="'+(m.overlap?'#ffad5b':m.explicit?'#bed3e6':'#7794a8')+
     '" stroke-width="'+(m.overlap?'1.2':m.explicit?'0.7':'0.5')+'"/>';
   }).join('\n');
   const labelSvg=(settings.showLabels===false?[]:labels).map(l=>
-   '<text data-label-stop="'+enc(l.stopId)+'" data-board-label="'+enc(l.stopId)+'" x="'+l.x+'" y="'+l.y+
+   '<text data-label-stop="'+enc(l.stopId)+'" data-board-label="'+enc(l.stopId)+'" tabindex="0" role="button" aria-label="Flytt tavlenavn '+enc(l.name)+'" x="'+l.x+'" y="'+l.y+
    '" fill="#dfeaff" font-size="'+dims.labelFontMm+
    '" font-family="sans-serif" stroke="#07121f" stroke-width="0.55" paint-order="stroke">'+enc(l.name)+'</text>').join('\n');
   const svg='<?xml version="1.0" encoding="UTF-8"?>\n'+
@@ -242,5 +246,5 @@
    adjustedSpacing:warnings.filter(w=>w.code==='LED_SPACING_ADJUSTED').length
   },warnings};
  }
- return {PRESETS,dimensions,project,layoutElements,build,profileKey,currentProfile,saveOverrides,resetOverrides};
+ return {PRESETS,dimensions,project,layoutElements,build,profileKey,currentProfile,saveOverrides,resetOverrides,markerKey};
 });
