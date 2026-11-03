@@ -488,6 +488,12 @@ try{
  await page.locator('[data-role=boardUndo]').click();
  assert.equal(await page.locator('[data-role=boardSvgHost] circle[data-board-moved="true"]').count(),2,'Undo restores exact two Quay offsets');
  await page.locator('[data-role=boardReset]').click();
+ // Return the shared Undo stack to the exact pre-board-test group state.
+ // The ordinary station-style Undo assertions later in this file depend on it.
+ await page.locator('[data-role=boardUndo]').click();
+ await page.locator('[data-role=boardUndo]').click();
+ assert(!await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.physicalBoardLayouts),
+  'board drag test leaves no uncommitted board edits or extra history entries');
  await page.locator('[data-role=boardMove]').uncheck();
 
 
