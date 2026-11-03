@@ -222,4 +222,74 @@ assert.match(map,/B\.build\(/);
 assert.match(map,/Eksporter SVG i fysisk størrelse/);
 assert.equal(JSON.stringify(pairLayout.stops),stopData,'physical board preview never rewrites real stops');
 
-console.log('InTransit Map Studio v0.5 real-size physical SVG preview and source integrity OK');
+
+// v0.6 – layout overrides are saved with the project, per exact physical
+// dimensions; they can move both station rings and text without touching GPS.
+const editableBoard=structuredClone(original),beforeStopModel=JSON.stringify(editableBoard.stops),
+ beforeTracks=JSON.stringify(editableBoard.paths);
+const compact={widthCm:30,heightCm:40,ledDiameterMm:5};
+const large={widthCm:50,heightCm:70,ledDiameterMm:5};
+assert.equal(Physical.profileKey(compact),'30x40');
+assert.equal(Physical.profileKey(large),'50x70');
+Physical.saveOverrides(editableBoard,compact,{
+ positions:{'stop:original-000':{x:.50,y:.50}},
+ labels:{'original-000':{x:.55,y:.54}}
+});
+assert.deepEqual(model.validate(editableBoard),[]);
+const compactSvg=Physical.build(editableBoard,compact).svg;
+assert.match(compactSvg,/data-board-key="stop:original-000"/);
+assert.match(compactSvg,/data-board-label="original-000"/);
+assert.match(compactSvg,/data-board-moved="true"/);
+assert.match(compactSvg,/data-board-key="stop:original-000"[^>]*cx="150" cy="200"/);
+assert.match(compactSvg,/data-board-label="original-000"[^>]*x="165" y="216"/);
+const largerSvg=Physical.build(editableBoard,large).svg;
+assert.doesNotMatch(largerSvg,/data-board-key="stop:original-000"[^>]*cx="250" cy="350"/);
+assert(!editableBoard.physicalBoardLayouts.profiles['50x70'],'50×70 has no inherited edits');
+const transient=Physical.build(editableBoard,compact,{
+ previewOverrides:{positions:{'stop:original-000':{x:.7,y:.6}}}
+}).svg;
+assert.match(transient,/data-board-key="stop:original-000"[^>]*cx="210" cy="240"/);
+assert.equal(Physical.build(editableBoard,compact).svg,compactSvg,'drag preview does not persist before drop');
+Physical.saveOverrides(editableBoard,large,{positions:{'stop:original-000':{x:.4,y:.35}}});
+assert.deepEqual(model.validate(editableBoard),[]);
+assert.equal(editableBoard.physicalBoardLayouts.profiles['30x40'].positions['stop:original-000'].x,.5);
+assert.equal(editableBoard.physicalBoardLayouts.profiles['50x70'].positions['stop:original-000'].x,.4);
+assert.equal(JSON.stringify(editableBoard.stops),beforeStopModel);
+assert.equal(JSON.stringify(editableBoard.paths),beforeTracks);
+const invalidBoard=structuredClone(editableBoard);
+invalidBoard.physicalBoardLayouts.profiles['30x40'].positions['stop:original-000'].x=1.1;
+assert(model.validate(invalidBoard).length>0);
+assert.throws(()=>Physical.saveOverrides(editableBoard,compact,{
+ positions:{'quay:NSR:Quay:999999':{x:.5,y:.5}}
+}),/Ukjent markør/);
+assert.throws(()=>Physical.saveOverrides(editableBoard,compact,{
+ labels:{'original-000':{x:-1,y:.2}}
+}),/ugyldig tekstposisjon/);
+Physical.resetOverrides(editableBoard,compact);
+assert.deepEqual(model.validate(editableBoard),[]);
+assert(!editableBoard.physicalBoardLayouts.profiles['30x40'],'reset removes only current format');
+assert(editableBoard.physicalBoardLayouts.profiles['50x70'],'other format survives reset');
+assert.equal(Physical.resetOverrides(editableBoard,compact),false);
+const groupedBoard=structuredClone(original);
+const groupId=D.addDouble(groupedBoard,'original-000');
+Physical.saveOverrides(groupedBoard,compact,{positions:{
+ 'quay:NSR:Quay:71132':{x:.45,y:.43},
+ 'quay:NSR:Quay:71134':{x:.48,y:.43}
+}});
+const groupedSvg=Physical.build(groupedBoard,compact).svg;
+assert.match(groupedSvg,/data-board-group="display-original-000"/);
+assert.match(groupedSvg,/data-board-key="quay:NSR:Quay:71132"/);
+assert.match(groupedSvg,/data-board-key="quay:NSR:Quay:71134"/);
+assert.deepEqual(model.validate(groupedBoard),[]);
+D.remove(groupedBoard,groupId);
+assert.deepEqual(model.validate(groupedBoard),[],'ungroup clears obsolete physical Quay assignments');
+assert.equal(groupedBoard.physicalBoardLayouts.profiles['30x40'].positions['quay:NSR:Quay:71132'],undefined);
+assert.equal(JSON.stringify(groupedBoard.stops),JSON.stringify(original.stops));
+assert.equal(JSON.stringify(groupedBoard.paths),JSON.stringify(original.paths));
+assert.match(map,/boardHost\.addEventListener\('pointerdown'/);
+assert.match(map,/boardHost\.addEventListener\('pointermove'/);
+assert.match(map,/boardHost\.addEventListener\('pointercancel'/);
+assert.match(map,/boardHost\.addEventListener\('keydown'/);
+assert.match(map,/B\.saveOverrides\(/);
+
+console.log('InTransit Map Studio v0.6 format-specific physical station placement and canonical integrity OK');
