@@ -436,6 +436,57 @@ try{
  await page.locator('[data-role=boardExport]').click();
  assert.equal((await physicalDownload).suggestedFilename(),'intransit-board-35x52cm.svg');
 
+ // In physical layout edit mode, dragging a grouped LED moves BOTH Quay circles
+ // without changing Trondheim stops or the source trace. Format positions are
+ // project JSON data with Undo, and are independent of 30×40/50×70 previews.
+ await page.locator('[data-role=boardMove]').check();
+ const beforePhysicalStop=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.stops.find(s=>s.id==='original-000'));
+ const ledA=page.locator('[data-role=boardSvgHost] circle[data-board-key="quay:NSR:Quay:71132"]');
+ const ledB=page.locator('[data-role=boardSvgHost] circle[data-board-key="quay:NSR:Quay:71134"]');
+ const startA=Number(await ledA.getAttribute('cx')),startB=Number(await ledB.getAttribute('cx'));
+ const ledBox=await ledA.boundingBox();
+ assert(ledBox&&ledBox.width>0);
+ await page.mouse.move(ledBox.x+ledBox.width/2,ledBox.y+ledBox.height/2);
+ await page.mouse.down();
+ await page.mouse.move(ledBox.x+ledBox.width/2+35,ledBox.y+ledBox.height/2+12,{steps:4});
+ await page.mouse.up();
+ const movedDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert.equal(movedDraft.stops.length,100);
+ assert.equal(movedDraft.stops.find(s=>s.id==='original-000').x,beforePhysicalStop.x);
+ assert.equal(movedDraft.stops.find(s=>s.id==='original-000').y,beforePhysicalStop.y);
+ assert.equal(Object.keys(movedDraft.physicalBoardLayouts.profiles['35x52'].positions).length,2,'both group Quays moved together');
+ assert(Math.abs(Number(await ledA.getAttribute('cx'))-startA)>1);
+ assert(Math.abs(Number(await ledB.getAttribute('cx'))-startB)>1);
+ const movedA=Number(await ledA.getAttribute('cx'));
+ await page.locator('[data-role=boardPreset]').selectOption('30x40');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'300mm');
+ assert.equal(await page.locator('[data-role=boardPreset]').inputValue(),'30x40');
+ await page.locator('[data-role=boardWidth]').fill('35');
+ await page.locator('[data-role=boardWidth]').press('Tab');
+ await page.locator('[data-role=boardHeight]').fill('52');
+ await page.locator('[data-role=boardHeight]').press('Tab');
+ assert.equal(Number(await ledA.getAttribute('cx')),movedA,'custom size retains its independent station placement');
+ const caption=page.locator('[data-role=boardSvgHost] text[data-board-label="original-000"]');
+ const captionBox=await caption.boundingBox();
+ assert(captionBox&&captionBox.width>0);
+ await page.mouse.move(captionBox.x+captionBox.width/2,captionBox.y+captionBox.height/2);
+ await page.mouse.down();
+ await page.mouse.move(captionBox.x+captionBox.width/2+20,captionBox.y+captionBox.height/2+10,{steps:3});
+ await page.mouse.up();
+ const labeledDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert(labeledDraft.physicalBoardLayouts.profiles['35x52'].labels['original-000'],'dragging a name saves separate board text coordinates');
+ await page.locator('[data-role=boardUndo]').click();
+ assert(!await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.physicalBoardLayouts.profiles['35x52'].labels['original-000']),
+  'Undo restores just the last label move');
+ await page.locator('[data-role=boardReset]').click();
+ assert.equal(await page.locator('[data-role=boardSvgHost] circle[data-board-moved="true"]').count(),0);
+ assert(!await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.physicalBoardLayouts?.profiles?.['35x52']));
+ await page.locator('[data-role=boardUndo]').click();
+ assert.equal(await page.locator('[data-role=boardSvgHost] circle[data-board-moved="true"]').count(),2,'Undo restores exact two Quay offsets');
+ await page.locator('[data-role=boardReset]').click();
+ await page.locator('[data-role=boardMove]').uncheck();
+
+
  assert.match(await page.locator('[data-role=displayPreviewReport]').innerText(),/NSR:Quay:71132/);
  assert.match(await page.locator('[data-role=displayPreviewReport]').innerText(),/NSR:Quay:71134/);
  await page.locator('[data-role=displayLedSimulation]').selectOption('a');
