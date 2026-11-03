@@ -662,5 +662,58 @@ try{
  assert(drawn.includes(String(s.x)),'Approved position is shown on public map');
  await publishedPage.close();
 
+ // Physical route editor opens in an isolated browser session so the shared
+ // main map-editor Undo history remains unaffected by this test.
+ const routePage=await browser.newPage({viewport:{width:1240,height:900}});
+ const routeErrors=[];routePage.on('pageerror',error=>routeErrors.push(error.message));
+ await routePage.goto('http://127.0.0.1:'+server.address().port+'/web/linear/index.html?view=network');
+ await routePage.waitForSelector('.map-stop');
+ await routePage.locator('[data-act=edit]').click();
+ await routePage.locator('[data-role=boardPanel] summary').click();
+ await routePage.locator('[data-role=boardSvgHost] svg').waitFor();
+ await routePage.locator('[data-role=boardRouteEdit]').check();
+ await routePage.locator('[data-role=boardPath]').selectOption('trace-01');
+ const routeLineSelector='[data-role=boardSvgHost] polyline[data-route="trace-01"]';
+ const routeBase=await routePage.locator(routeLineSelector).first().getAttribute('points');
+ const routeVertex=routePage.locator('[data-role=boardSvgHost] [data-board-route-path="trace-01"][data-board-route-key="0"]');
+ await routeVertex.scrollIntoViewIfNeeded();
+ const vertexBox=await routeVertex.boundingBox();
+ assert(vertexBox?.width>1,'draggable graphic route handle must be visible');
+ await routePage.mouse.move(vertexBox.x+vertexBox.width/2,vertexBox.y+vertexBox.height/2);
+ await routePage.mouse.down();
+ await routePage.mouse.move(vertexBox.x+vertexBox.width/2+34,vertexBox.y+vertexBox.height/2+25,{steps:4});
+ await routePage.mouse.up();
+ const routeAfter=await routePage.locator(routeLineSelector).first().getAttribute('points');
+ assert.notEqual(routeAfter,routeBase,'dragging a physical route vertex updates the preview');
+ const routeDraft=await routePage.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert(routeDraft.physicalBoardLayouts.profiles['30x40'].routes['trace-01'].vertices['0'],'route drag saved per-format');
+ assert.equal(routeDraft.paths[0].points.length,3,'source route vertices unchanged by graphic drag');
+ await routePage.locator('[data-role=boardPreset]').selectOption('50x70');
+ assert.equal(await routePage.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'500mm');
+ assert.equal((await routePage.locator('[data-role=boardSvgHost] [data-board-route-path="trace-01"][data-board-route-key="0"]').getAttribute('fill')),'#70d1fa');
+ await routePage.locator('[data-role=boardPreset]').selectOption('30x40');
+ assert.equal(await routePage.locator(routeLineSelector).first().getAttribute('points'),routeAfter,
+  '30×40 retains graphic bends after visiting a different format');
+ await routePage.locator('[data-role=boardSegment]').selectOption('0');
+ await routePage.locator('[data-role=boardAddBend]').click();
+ const routeAfterBend=await routePage.locator(routeLineSelector).first().getAttribute('points');
+ assert.notEqual(routeAfterBend,routeAfter,'adding intermediate bend changes polyline');
+ const bendHandle=routePage.locator('[data-role=boardSvgHost] [data-board-route-path="trace-01"][data-board-route-key="bend-1"]');
+ assert.equal(await bendHandle.count(),1,'new bend is individually draggable');
+ await bendHandle.focus();await bendHandle.press('ArrowRight');
+ assert.equal(await bendHandle.count(),1,'keyboard moves inserted bend without dropping it');
+ const bendDraft=await routePage.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert.equal(bendDraft.physicalBoardLayouts.profiles['30x40'].routes['trace-01'].bends.length,1);
+ assert.equal(bendDraft.paths[0].points.length,3,'inserted board bend is not saved into original schematic');
+ await routePage.locator('[data-role=boardBendSelect]').selectOption('bend-1');
+ await routePage.locator('[data-role=boardRemoveBend]').click();
+ assert.equal(await bendHandle.count(),0);
+ await routePage.locator('[data-role=boardResetRoute]').click();
+ assert.equal(await routePage.locator(routeLineSelector).first().getAttribute('points'),routeBase,'route reset restores source artwork');
+ const resetDraft=await routePage.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert(!resetDraft.physicalBoardLayouts.profiles['30x40'].routes['trace-01'],'route reset removes only board-specific graphic edits');
+ assert.deepEqual(routeErrors,[]);
+ await routePage.close();
+
  assert.deepEqual(errors,[]);console.log('Browser: map editor tap-placement, autosave, reload, discard, original geometry, route overlays, mobile and feed regression PASS');
 }finally{await browser.close();await new Promise(r=>server.close(r));}
