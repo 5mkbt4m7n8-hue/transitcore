@@ -38,3 +38,49 @@ Hvis Map Studios **SIMULERT**-testmodus er aktiv, vises de valgte simulerte Quay
 4. Maler for ramme, LED-montering og skrue-/marginplassering, først etter at fysisk byggeform er valgt.
 
 **Viktig:** Dette er fremdeles et visningsverktøy. LED-diameter, merkingsfarger og «passer i formatet»-indikator er ikke i seg selv verifisert monteringsgrunnlag eller komplette produksjonsfiler.
+
+
+## v0.6 – flytt stasjoner direkte på den fysiske tavlen
+
+**Implementert i utkast-PR #323, ikke produksjon.**
+
+Bruk **Rediger kart**, åpne panelet **Fysisk tavleforhåndsvisning (cm)**, og aktiver **Flytt stasjoner og navn**. Flytt markører med mus eller finger; du kan også fokusere en markør eller etikett med tastatur og bruke **piltastene** (1 mm, Shift + piltast 5 mm).
+
+- Dra én enkelt skjematisk stoppmarkør for å flytte dens tavlesymbol.
+- Dra en indre Quay-runding eller den dekorative ytre ringen i en *dobbelstasjon* for å flytte **begge Quay-rundingene som én stasjon**. Deres individuelle Quay-ID-er og LED-tilstander blir aldri slått sammen.
+- Dra stasjonsnavnet for å plassere det **uavhengig** av LED-rundingen. Når stasjonen tilhører et flerplattformanlegg med andre LED-er, påvirkes ikke de andres kartmarkører.
+- Plasseringen begrenses innenfor valgt tavlemål/marg og LED-radius.
+- Én fullført dra-bevegelse gir én transaksjon i prosjektets **Angre**-historikk. **Angre siste endring** bruker den samme historikken som resten av Map Studio.
+- **Tilbakestill dette formatet** fjerner bare tavleplasseringene for *nåværende størrelse*, og kan også angres.
+- **Eksporter JSON** inkluderer den nye plasseringen som en valgfri \`physicalBoardLayouts\`-struktur. Eksportert SVG gjenspeiler valgte stasjons- og etikettposisjoner.
+
+### Data og formatavhengighet
+
+Tavleposisjoner lagres som et visningslag:
+\`\`\`json
+{
+  "physicalBoardLayouts": {
+    "version": 1,
+    "profiles": {
+      "30x40": {
+        "positions": {
+          "stop:original-000": {"x": 0.5, "y": 0.4}
+        },
+        "labels": {
+          "original-000": {"x": 0.51, "y": 0.38}
+        }
+      }
+    }
+  }
+}
+\`\`\`
+
+Dette er **et eksempel på en valgfri datastruktur**, ikke en instruksjon om å endre eksisterende Trondheim-layout. Koordinatene er normalisert fra 0 til 1 innenfor tavlens eget fysiske format, ikke kartets \`stops[].x/y\`. Når en runding inngår i en gruppert stasjon, har den i stedet nøkkel \`quay:NSR:Quay:...\`. Profilnøkkelen \`30x40\` gjelder bare en 30 × 40 cm-tavle. **50 × 70 cm kan ha en helt annen plassering** uten å overskrive 30 × 40-oppsettet.
+
+Originalens \`stops[]\`, \`paths[]\`, Quay-/StopPlace-ID-er og faktiske sanntids-/GPS-bindinger beholdes alltid uendret. Når en gruppert stasjon oppheves, fjernes eventuelle foreldede \`quay:...\`-posisjoner i de relevante tavleprofilene.
+
+### Bevisste begrensninger
+
+**Stasjonssymboler og navn flyttes i denne versjonen; linjegeometrien følger ikke automatisk.** Hvis en LED flyttes langt fra den tegnede traséen, vises en kontrolladvarsel. Dette er derfor en fleksibel **visuell prototype**, ikke en fullstendig ruteføring eller godkjent bore- og produksjonsfil.
+
+Neste naturlige steg er å gjøre **grafiske traséer redigerbare per tavleformat**, med valgfri snapping mot flyttede LED-stasjoner. Dette må forbli adskilt fra det kanoniske Trondheim-kartet og rutekildene.
