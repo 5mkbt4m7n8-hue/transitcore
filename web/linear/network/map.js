@@ -299,7 +299,6 @@
   boardHost.addEventListener('pointerdown',event=>{
    if(!editing||(!q('boardMove').checked&&!q('boardRouteEdit').checked)||event.button!==0||boardDrag)return;
    const hit=boardHit(event),start=boardPointerPosition(event);
-   boardHost.dataset.dragDebug='down:'+JSON.stringify({hit:hit?.kind,start,route:hit?.pathId,key:hit?.key});
    if(!hit||!start)return;
    event.preventDefault();
    boardDrag={pointerId:event.pointerId,start,hit,preview:null,distance:0};
@@ -309,14 +308,12 @@
    if(!boardDrag||event.pointerId!==boardDrag.pointerId)return;
    const point=boardPointerPosition(event);if(!point)return;
    const move=boardOffset(boardDrag.hit,point.x-boardDrag.start.x,point.y-boardDrag.start.y);
-   boardHost.dataset.dragDebug='move:'+JSON.stringify({distance:move.distance,position:move.position});
-   boardDrag.preview=move.preview;boardDrag.distance=move.distance;
+   boardDrag.preview=move.preview;boardDrag.distance=move.distance;boardDrag.position=move.position;
    boardRender();
   });
   function finishBoardDrag(event,commit){
    if(!boardDrag||event.pointerId!==boardDrag.pointerId)return;
    const drag=boardDrag;boardDrag=null;
-   boardHost.dataset.dragDebug='up:'+JSON.stringify({commit,distance:drag.distance,position:drag.preview});
    try{if(boardHost.hasPointerCapture(event.pointerId))boardHost.releasePointerCapture(event.pointerId);}catch{}
    if(commit&&drag.distance>=0.25&&drag.preview){
     try{editor.change(next=>{
