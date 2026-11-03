@@ -41,6 +41,13 @@
    '<label>Navnestørrelse (mm) <input type="number" data-role="boardLabelSize" min="1.5" max="8" step="0.1" value="2.4"></label>'+
    '<label class="map-board-show-labels"><input type="checkbox" data-role="boardLabels" checked> Vis navn</label>'+
    '<label class="map-board-move-label"><input type="checkbox" data-role="boardMove"> Flytt stasjoner og navn</label>'+
+   '<label class="map-board-move-label"><input type="checkbox" data-role="boardRouteEdit"> Rediger linjeknekkpunkter</label>'+
+   '<label>Linje <select data-role="boardPath" aria-label="Velg grafisk linje"></select></label>'+
+   '<label>Delstrekning <select data-role="boardSegment" aria-label="Velg grafisk delstrekning"></select></label>'+
+   '<button type="button" data-role="boardAddBend">+ Legg til knekkpunkt</button>'+
+   '<label>Ekstra knekkpunkt <select data-role="boardBendSelect" aria-label="Velg ekstra knekkpunkt"></select></label>'+
+   '<button type="button" data-role="boardRemoveBend">Fjern valgt knekkpunkt</button>'+
+   '<button type="button" data-role="boardResetRoute">Tilbakestill valgt trasé</button>'+
    '<label class="map-board-follow-label"><input type="checkbox" data-role="boardFollow"> Linjene følger flyttede stasjoner</label>'+
    '<button type="button" data-role="boardUndo">Angre siste endring</button>'+
    '<button type="button" data-role="boardReset">Tilbakestill dette formatet</button>'+
@@ -48,7 +55,7 @@
    '</div><p class="map-board-info" data-role="boardMetrics" aria-live="polite"></p>'+
    '<div class="map-board-preview" data-role="boardSvgHost" aria-label="Skalerbar fysisk tavle i valgt format"></div>'+
    '<p class="map-board-warning" data-role="boardWarnings"></p>'+
-   '<small>Aktiver «Rediger kart» og deretter «Flytt stasjoner og navn». Dra en LED-runding eller felles ring for å flytte stasjonen; dra stasjonsnavnet separat. «Linjene følger flyttede stasjoner» tilpasser kun linjeknekkpunkter som opprinnelig sammenfaller nøyaktig med kartstoppet; dette er en grafisk effekt uten rutebekreftelse. Piltaster flytter 1 mm (Shift: 5 mm). Plasseringer lagres separat for hvert valgt tavlemål i prosjekt-JSON. Linjene flyttes ikke automatisk når en stasjon flyttes.</small>'+
+   '<small>Aktiver «Rediger kart». Velg «Flytt stasjoner og navn» eller «Rediger linjeknekkpunkter». Dra en LED-runding eller felles ring for å flytte stasjonen; dra stasjonsnavnet separat. «Linjene følger flyttede stasjoner» tilpasser kun linjeknekkpunkter som opprinnelig sammenfaller nøyaktig med kartstoppet; dette er en grafisk effekt uten rutebekreftelse. Piltaster flytter 1 mm (Shift: 5 mm). Plasseringer lagres separat for hvert valgt tavlemål i prosjekt-JSON. Linjene flyttes ikke automatisk når en stasjon flyttes.</small>'+
    '<small>Tavlemål og LED-diameter er i faktiske cm/mm. Utskrevet SVG har riktige mm-mål, men kontroller at utskriftsprogrammet ikke bruker «Tilpass side». Dette er en visuell tegning, ikke en verifisert kablingsplan eller fysisk LED-bestilling.</small>'+
    '</details>');
   const q=r=>host.querySelector(`[data-role="${r}"]`),svg=host.querySelector('svg'),editorPanel=host.querySelector('#networkEditor');
@@ -70,17 +77,21 @@
     const target=(layout.displayStations||[]).find(ds=>ds.id===previewTargetId);
     const demo=editing&&previewMode!=='live'&&target;
     const litQuays=demo?target.members.filter((m,i)=>P.simulated(previewMode,i)?.state==='AT_STOP').map(m=>m.quayId):[];
-    const result=B.build(layout,boardSettings,{simulated:Boolean(demo),litQuays,previewOverrides:boardDrag?.preview});
+    const result=B.build(layout,boardSettings,{simulated:Boolean(demo),litQuays,previewOverrides:boardDrag?.preview,
+     showRouteHandles:editing&&q('boardRouteEdit').checked});
     lastBoardResult=result;
+    boardRouteControls();
     q('boardFollow').checked=B.currentProfile(layout,boardSettings).followStations===true;
     q('boardSvgHost').innerHTML=result.svg.replace(/^<\?xml[^>]*>\s*/,'');
     q('boardSvgHost').classList.toggle('map-board-move-active',editing&&q('boardMove').checked);
+    q('boardSvgHost').classList.toggle('map-board-route-active',editing&&q('boardRouteEdit').checked);
     q('boardMetrics').textContent=boardSettings.widthCm+' × '+boardSettings.heightCm+
      ' cm · LED Ø '+boardSettings.ledDiameterMm+' mm · '+result.summary.markers+
      ' markører · '+result.summary.labels+' navn · '+result.summary.overlaps+' LED-avstandskonflikter · utnyttet flate '+result.dimensions.usagePct+
      ' %'+(demo?' · SIMULERT':' · kun grafisk preview')+
      ' · format '+B.profileKey(boardSettings)+' · '+Object.keys(B.currentProfile(layout,boardSettings).positions||{}).length+' flyttede punkter'+
-     (result.summary.followStations?' · linjetilpasning aktiv ('+result.summary.trackedVertices+' knekkpunkter)':' · linjetilpasning av');
+     (result.summary.followStations?' · linjetilpasning aktiv ('+result.summary.trackedVertices+' knekkpunkter)':' · linjetilpasning av')+
+     ' · '+result.summary.editedRouteVertices+' manuelt plasserte linjepunkter';
     q('boardWarnings').textContent=result.warnings.length?
      'Kontrollpunkter ('+result.warnings.length+'): '+
      result.warnings.slice().sort((a,b)=>Number(b.code==='LED_OVERLAP')-Number(a.code==='LED_OVERLAP')).slice(0,4).map(w=>w.message).join(' · ')+
@@ -174,7 +185,67 @@
    catch(error){q('boardWarnings').textContent=error.message;boardRender();}
   };
 
+
+  function boardRouteControls(){
+   const paths=layout.paths||[],pathSelect=q('boardPath');
+   const prev=pathSelect.value;
+   pathSelect.replaceChildren(...paths.map(path=>new Option(path.id,path.id)));
+   if(paths.some(p=>p.id===prev))pathSelect.value=prev;
+   const selected=paths.find(p=>p.id===pathSelect.value),segmentSelect=q('boardSegment');
+   const oldSegment=segmentSelect.value;
+   segmentSelect.replaceChildren(...(selected?.points||[]).slice(0,-1).map((_,i)=>
+    new Option('Segment '+(i+1),String(i))));
+   if([...segmentSelect.options].some(o=>o.value===oldSegment))segmentSelect.value=oldSegment;
+   const bendSelect=q('boardBendSelect'),oldBend=bendSelect.value;
+   const bends=B.currentProfile(layout,boardSettings).routes?.[selected?.id]?.bends||[];
+   bendSelect.replaceChildren(...bends.map(b=>new Option(b.id+' · etter segment '+(b.afterIndex+1),b.id)));
+   if(bends.some(b=>b.id===oldBend))bendSelect.value=oldBend;
+   q('boardRemoveBend').disabled=!bends.length;
+   q('boardResetRoute').disabled=!B.currentProfile(layout,boardSettings).routes?.[selected?.id];
+  }
+  q('boardPath').onchange=()=>{boardRouteControls();boardRender();};
+  q('boardRouteEdit').onchange=()=>{
+   if(q('boardRouteEdit').checked&&!editing){
+    q('boardRouteEdit').checked=false;
+    q('boardWarnings').textContent='Aktiver «Rediger kart» for å redigere tavlens linjer.';
+   }
+   if(q('boardRouteEdit').checked)q('boardMove').checked=false;
+   boardRouteControls();boardRender();
+  };
+  q('boardAddBend').onclick=()=>{
+   if(!editing||!q('boardRouteEdit').checked){
+    q('boardWarnings').textContent='Aktiver redigering av linjeknekkpunkter først.';return;
+   }
+   const pathId=q('boardPath').value,segment=Number(q('boardSegment').value);
+   try{
+    const g=B.routeGeometry(layout,boardSettings);
+    const first=g.handles.find(h=>h.pathId===pathId&&h.type==='vertex'&&h.index===segment),
+     last=g.handles.find(h=>h.pathId===pathId&&h.type==='vertex'&&h.index===segment+1),
+     d=B.dimensions(boardSettings);
+    if(!first||!last)throw Error('Fant ikke grafisk delstrekning');
+    const position={x:(first.x+last.x)/2/d.widthMm,y:(first.y+last.y)/2/d.heightMm};
+    editor.change(next=>B.addRouteBend(next,boardSettings,pathId,segment,position));
+    boardRouteControls();
+   }catch(error){q('boardWarnings').textContent=error.message;}
+  };
+  q('boardRemoveBend').onclick=()=>{
+   if(!editing||!q('boardRouteEdit').checked)return;
+   try{
+    editor.change(next=>B.removeRouteBend(next,boardSettings,q('boardPath').value,q('boardBendSelect').value));
+    boardRouteControls();
+   }catch(error){q('boardWarnings').textContent=error.message;}
+  };
+  q('boardResetRoute').onclick=()=>{
+   if(!editing)return;
+   try{
+    if(!B.currentProfile(layout,boardSettings).routes?.[q('boardPath').value])return;
+    editor.change(next=>B.resetRoute(next,boardSettings,q('boardPath').value));
+    boardRouteControls();
+   }catch(error){q('boardWarnings').textContent=error.message;}
+  };
+
   q('boardMove').onchange=()=>{
+   if(q('boardMove').checked)q('boardRouteEdit').checked=false;
    if(q('boardMove').checked&&!editing){
     q('boardMove').checked=false;
     q('boardWarnings').textContent='Aktiver «Rediger kart» for å flytte fysiske tavlesymboler.';
@@ -1028,7 +1099,7 @@
   host.querySelectorAll('[data-act]').forEach(button=>button.onclick=()=>{try{switch(button.dataset.act){
    case'in':zoom(.75);break;case'out':zoom(1.33);break;case'fit':box=[0,0,913,1280];setBox();break;
    case'edit':editing=!editing;
-    if(!editing){placementMode=null;moveStopId=null;boardDrag=null;q('boardMove').checked=false;cancelSketch();}
+    if(!editing){placementMode=null;moveStopId=null;boardDrag=null;q('boardMove').checked=false;q('boardRouteEdit').checked=false;cancelSketch();}
     editorPanel.hidden=!editing;button.setAttribute('aria-pressed',editing);draw();fields();break;
    case'nextPlatformReview':{
     const pending=M.platformAudit(layout).pending;
