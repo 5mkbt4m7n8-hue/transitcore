@@ -138,6 +138,21 @@
   // Board-only dragging: the canonical Trondheim stop and path coordinates
   // never participate in editor.change(), only physicalBoardLayouts does.
   function boardHit(event){
+   if(q('boardRouteEdit').checked){
+    const routeEl=event.target?.closest?.('[data-board-route-path][data-board-route-key]');
+    if(!routeEl||!q('boardSvgHost').contains(routeEl))return null;
+    const pathId=routeEl.getAttribute('data-board-route-path'),
+     key=routeEl.getAttribute('data-board-route-key'),
+     type=routeEl.getAttribute('data-board-route-type'),
+     handle=B.routeGeometry(layout,boardSettings).handles.find(h=>
+      h.pathId===pathId&&h.key===key&&h.type===type);
+    if(!handle)return null;
+    q('boardPath').value=pathId;
+    boardRouteControls();
+    if(type==='bend')q('boardBendSelect').value=key;
+    return {kind:'route',pathId,key,routeType:type,
+     items:[{key,x:handle.x,y:handle.y}],dims:B.dimensions(boardSettings)};
+   }
    const target=event.target?.closest?.('[data-board-label], [data-board-key], [data-board-group]');
    if(!target||!q('boardSvgHost').contains(target))return null;
    const dims=B.dimensions(boardSettings),profile=B.currentProfile(layout,boardSettings),
@@ -173,6 +188,18 @@
     x:Math.round((m.x+shiftX)/d.widthMm*1e6)/1e6,
     y:Math.round((m.y+shiftY)/d.heightMm*1e6)/1e6
    }]));
+   if(hit.kind==='route'){
+    const position=coords[hit.key];
+    const source=B.currentProfile(layout,boardSettings).routes?.[hit.pathId]||{vertices:{},bends:[]};
+    const modified={vertices:{...source.vertices},bends:(source.bends||[]).map(b=>({...b}))};
+    if(hit.routeType==='vertex')modified.vertices[hit.key]=position;
+    else{
+     const bend=modified.bends.find(b=>b.id===hit.key);
+     if(bend)Object.assign(bend,position);
+    }
+    return {preview:{routes:{[hit.pathId]:modified}},position,
+     distance:Math.hypot(shiftX,shiftY)};
+   }
    return {preview:{[hit.kind]:coords},distance:Math.hypot(shiftX,shiftY)};
   }
   q('boardFollow').onchange=()=>{
@@ -270,7 +297,7 @@
   };
   const boardHost=q('boardSvgHost');
   boardHost.addEventListener('pointerdown',event=>{
-   if(!editing||!q('boardMove').checked||event.button!==0||boardDrag)return;
+   if(!editing||(!q('boardMove').checked&&!q('boardRouteEdit').checked)||event.button!==0||boardDrag)return;
    const hit=boardHit(event),start=boardPointerPosition(event);
    if(!hit||!start)return;
    event.preventDefault();
@@ -289,7 +316,11 @@
    const drag=boardDrag;boardDrag=null;
    try{if(boardHost.hasPointerCapture(event.pointerId))boardHost.releasePointerCapture(event.pointerId);}catch{}
    if(commit&&drag.distance>=0.25&&drag.preview){
-    try{editor.change(next=>B.saveOverrides(next,boardSettings,drag.preview));}
+    try{editor.change(next=>{
+     if(drag.hit.kind==='route')B.setRoutePoint(next,boardSettings,drag.hit.pathId,
+      drag.hit.routeType==='vertex'?Number(drag.hit.key):drag.hit.key,drag.position);
+     else B.saveOverrides(next,boardSettings,drag.preview);
+    });}
     catch(error){q('boardWarnings').textContent=error.message;}
    }
    boardRender();
@@ -297,7 +328,7 @@
   boardHost.addEventListener('pointerup',event=>finishBoardDrag(event,true));
   boardHost.addEventListener('pointercancel',event=>finishBoardDrag(event,false));
   boardHost.addEventListener('keydown',event=>{
-   if(!editing||!q('boardMove').checked||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+   if(!editing||(!q('boardMove').checked&&!q('boardRouteEdit').checked)||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
    const hit=boardHit(event);if(!hit)return;
    const step=event.shiftKey?5:1;
    const dx=event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0;
@@ -305,7 +336,11 @@
    const move=boardOffset(hit,dx,dy);
    event.preventDefault();
    if(move.distance<=0)return;
-   try{editor.change(next=>B.saveOverrides(next,boardSettings,move.preview));}
+   try{editor.change(next=>{
+    if(hit.kind==='route')B.setRoutePoint(next,boardSettings,hit.pathId,
+     hit.routeType==='vertex'?Number(hit.key):hit.key,move.position);
+    else B.saveOverrides(next,boardSettings,move.preview);
+   });}
    catch(error){q('boardWarnings').textContent=error.message;}
   });
 
