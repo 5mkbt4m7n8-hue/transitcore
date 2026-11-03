@@ -1,3 +1,4 @@
+import {v011} from './browser-studio-v011.mjs';
 import {phaseOne} from './browser-studio-phase-one.mjs';
 import {selectionRegression} from './browser-studio-selection.mjs';
 import {phaseTwo} from './browser-studio-phase-two.mjs';
@@ -15,6 +16,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,...(process.env.BROWSER_PATH?{executablePath:process.env.BROWSER_PATH}:{})});
 const base=process.env.STUDIO_PREVIEW||`http://127.0.0.1:${server.address().port}/web/linear/`;
 try{
+ await v011(browser,base);
  await selectionRegression(browser,base);
  await phaseTwo(browser,base,process.env.INTRANSIT_SCREENSHOT_DIR);
  await phaseThree(browser,base,process.env.INTRANSIT_SCREENSHOT_DIR);

@@ -1,3 +1,4 @@
+import './test-studio-v011.mjs';
 import assert from 'node:assert/strict';
 import './test-studio-phase-two.mjs';
 import './test-studio-phase-three.mjs';

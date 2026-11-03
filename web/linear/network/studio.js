@@ -2,7 +2,7 @@
  'use strict';
  const D=InTransitStudioDocument,$=id=>document.getElementById(id),ns='http://www.w3.org/2000/svg',key='intransit-artwork-v1';
  let initial=D.blank(),warning='';try{const saved=localStorage.getItem(key);if(saved)initial=D.validate(JSON.parse(saved));}catch{warning='Kunne ikke gjenåpne lokal kopi. Åpne en lagret prosjektfil.';}
- let history=D.history(initial),doc=history.get(),selected=null,selection=[],endpoint=null,extension=null,tool='select',draft=[],hover=null,gesture=null,pendingStation=null,ledDetailsOpen=false,space=false,serial=Date.now(),camera={x:0,y:0,k:1};
+ let history=D.history(initial),doc=history.get(),selected=null,selection=[],endpoint=null,extension=null,tool='select',draft=[],hover=null,gesture=null,pendingStation=null,propertyEdit=null,ledDetailsOpen=false,space=false,serial=Date.now(),camera={x:0,y:0,k:1};
  const canvas=$('canvas'),stage=$('stage');
  const make=(tag,attrs={},text)=>{const n=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);if(text!==undefined)n.textContent=text;return n;};
  const all=()=>[...doc.artwork.lines,...doc.artwork.stops],object=()=>all().find(o=>o.id===selected),isLine=o=>o&&Array.isArray(o.points),id=prefix=>prefix+'-'+(++serial);
@@ -13,14 +13,14 @@
  function pruneSelection(){selection=selection.filter(id=>all().some(o=>o.id===id));selected=selection.includes(selected)?selected:selection.at(-1)||null;endpoint=null;}
  const status=s=>$('status').textContent=s;
  function persist(){try{localStorage.setItem(key,JSON.stringify(doc));status('Lagret på denne enheten');}catch{status('Lokal lagring er utilgjengelig. Bruk Lagre prosjekt.');}}
- function commit(fn){pendingStation=null;history.change(fn);doc=history.get();selection=selection.filter(id=>all().some(o=>o.id===id));selected=selection.includes(selected)?selected:selection.at(-1)||null;if(endpoint&&!selection.includes(endpoint.id))endpoint=null;persist();render();}
+ function commit(fn){finishSpacing();pendingStation=null;history.change(fn);doc=history.get();selection=selection.filter(id=>all().some(o=>o.id===id));selected=selection.includes(selected)?selected:selection.at(-1)||null;if(endpoint&&!selection.includes(endpoint.id))endpoint=null;persist();render();}
  function view(){canvas.setAttribute('viewBox',`${camera.x} ${camera.y} ${stage.clientWidth/camera.k} ${stage.clientHeight/camera.k}`);$('zoom').textContent=Math.round(camera.k*100)+' %';}
  function fit(){camera.k=Math.max(.05,Math.min((stage.clientWidth-64)/doc.width,(stage.clientHeight-64)/doc.height));camera.x=(doc.width-stage.clientWidth/camera.k)/2;camera.y=(doc.height-stage.clientHeight/camera.k)/2;view();}
  function zoom(f,x=stage.clientWidth/2,y=stage.clientHeight/2){const k=Math.max(.05,Math.min(6,camera.k*f));camera.x+=x/camera.k-x/k;camera.y+=y/camera.k-y/k;camera.k=k;view();draw();}
  function point(e){const r=canvas.getBoundingClientRect();return {x:camera.x+(e.clientX-r.left)/camera.k,y:camera.y+(e.clientY-r.top)/camera.k};}
  const bounded=p=>({x:Math.max(0,Math.min(doc.width,p.x)),y:Math.max(0,Math.min(doc.height,p.y))});
  function snap(p,previous){p=bounded(p);if($('snap').checked)p={x:Math.round(p.x/20)*20,y:Math.round(p.y/20)*20};if(previous&&$('angle').checked){const dx=p.x-previous.x,dy=p.y-previous.y,a=Math.round(Math.atan2(dy,dx)/(Math.PI/4))*Math.PI/4,len=Math.hypot(dx,dy);p={x:previous.x+Math.cos(a)*len,y:previous.y+Math.sin(a)*len};}return bounded(p);}
- function setTool(t){if(draft.length&&t!==tool){status('Linjetegningen ble avbrutt');cancelDraft();}tool=t;selectOnly(null);hover=null;render();}
+ function setTool(t){finishSpacing();if(draft.length&&t!==tool){status('Linjetegningen ble avbrutt');cancelDraft();}tool=t;selectOnly(null);hover=null;render();}
  function draw(){
   $('paper').replaceChildren(make('rect',{x:0,y:0,width:doc.width,height:doc.height,fill:'white'}),...($('snap').checked?[make('rect',{x:0,y:0,width:doc.width,height:doc.height,fill:'url(#grid)'})]:[]));
   const nodes=[],handles=[],halos=[];
@@ -58,6 +58,8 @@
  function attempt(fn){try{commit(fn);}catch(e){status(e.message);}}
  function numberField(box,text,value,min,max){const label=document.createElement('label'),input=document.createElement('input');label.textContent=text;input.type='number';input.value=value;input.min=min;input.max=max;label.append(input);box.append(label);return input;}
  function sideField(box,text,value='right'){const label=document.createElement('label'),input=document.createElement('select');label.textContent=text;input.setAttribute('aria-label',text);for(const [v,t]of [['right','Høyre'],['left','Venstre'],['center','Sentrert']])input.add(new Option(t,v));input.value=value;label.append(input);box.append(label);return input;}
+ function finishSpacing(cancel=false){if(!propertyEdit)return;const edit=propertyEdit;propertyEdit=null;doc=edit.before;if(!cancel&&edit.valid&&edit.result){history.change(d=>Object.assign(d,edit.result));doc=history.get();persist();}else if(cancel||!edit.valid){edit.input.value=edit.original;edit.input.removeAttribute('aria-invalid');}draw();$('undo').disabled=!history.canUndo();$('redo').disabled=!history.canRedo();}
+ function liveSpacing(input,g){input.oninput=()=>{propertyEdit??={before:history.get(),input,original:g.spacing};const edit=propertyEdit,next=structuredClone(edit.before);try{D.updateParallel(next,g.id,g.memberIds.length,Number(input.value),g.side);edit.valid=true;edit.result=next;doc=next;input.removeAttribute('aria-invalid');draw();status('Forhåndsvisning av traséavstand');}catch(e){edit.valid=false;input.setAttribute('aria-invalid','true');status(e.message);}};input.onchange=input.onblur=()=>finishSpacing();input.onkeydown=e=>{if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();e.stopPropagation();finishSpacing(e.key==='Escape');}};}
  function groupProperties(box,g){
   const details=document.createElement('details');details.open=true;const summary=document.createElement('summary');summary.textContent=g.kind==='visual'?'Visuell gruppe':g.kind==='joined'?'Koblede endepunkter':'Koblet felles trasé';details.append(summary);
   const note=document.createElement('p');note.textContent=g.memberIds.length+' selvstendige linjer. Dra en linje for å flytte hele gruppen. '+(g.spine?'Dra et punkt for å forme felles trasé. Farge og tykkelse gjelder linjen du velger.':'Kildekoblinger, farger og linje-ID-er beholdes.');details.append(note);
@@ -65,7 +67,7 @@
   const select=document.createElement('button');select.textContent='Velg hele gruppen';select.onclick=()=>{selection=[...g.memberIds];selected=selection.at(-1);endpoint=null;render();};details.append(select);
   if(g.spine){
    const count=numberField(details,'Antall linjer',g.memberIds.length,Math.max(2,g.memberIds.length-g.generatedIds.length),9),spacing=numberField(details,'Traséavstand',g.spacing,2,200),side=sideField(details,'Plassering',g.side);
-   const b=document.createElement('button');b.textContent='Oppdater parallelle linjer';b.disabled=locked;b.onclick=()=>attempt(d=>D.updateParallel(d,g.id,Number(count.value),Number(spacing.value),side.value,Array.from({length:Math.max(0,Math.min(9,Number(count.value))-g.memberIds.length)},()=>id('line'))));details.append(b);
+   spacing.disabled=locked;liveSpacing(spacing,g);const b=document.createElement('button');b.textContent='Oppdater parallelle linjer';b.disabled=locked;b.onclick=()=>attempt(d=>D.updateParallel(d,g.id,Number(count.value),Number(spacing.value),side.value,Array.from({length:Math.max(0,Math.min(9,Number(count.value))-g.memberIds.length)},()=>id('line'))));details.append(b);
    const help=document.createElement('p');help.textContent='Antallet inkluderer originalene. Reduksjon fjerner bare nye kopier uten stopp eller kildekoblinger. Høyre/venstre følger retningen fra første til siste punkt.';details.append(help);
   }
   const detach=document.createElement('button');detach.textContent='Løsne linjene';detach.disabled=locked;detach.onclick=()=>attempt(d=>D.detachGroup(d,g.id));details.append(detach);const help=document.createElement('p');help.textContent='Løsne beholder dagens geometri. Angre gjenoppretter handlingen og eventuell tidligere geometri.';details.append(help);box.append(details);
@@ -211,7 +213,7 @@
  canvas.addEventListener('dblclick',e=>{if(e.ctrlKey||e.metaKey||e.shiftKey||space||tool!=='select'||selection.length!==1)return;const o=object();if(!isLine(o)||o.locked||e.target.dataset.id!==o.id||e.target.hasAttribute('data-vertex'))return;const p=nearest(point(e),o),points=structuredClone(o.points);points.splice(p.index,0,{x:p.x,y:p.y});attempt(d=>D.setLinePoints(d,o.id,points));});
  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
  document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));$('start').onclick=()=>setTool('pen');$('finish').onclick=finish;$('cancel').onclick=()=>{cancelDraft();setTool('select');};
- function travel(redo){pendingStation=null;cancelDraft();if(tool==='pen')tool='select';history[redo?'redo':'undo']();doc=history.get();pruneSelection();persist();render();}
+ function travel(redo){finishSpacing();pendingStation=null;cancelDraft();if(tool==='pen')tool='select';history[redo?'redo':'undo']();doc=history.get();pruneSelection();persist();render();}
  $('undo').onclick=()=>travel(false);$('redo').onclick=()=>travel(true);$('fit').onclick=fit;$('in').onclick=()=>zoom(1.25);$('out').onclick=()=>zoom(.8);$('snap').onchange=draw;
  $('title').onchange=e=>commit(d=>d.title=e.target.value);
  document.addEventListener('keydown',e=>{
@@ -224,7 +226,7 @@
   if(e.code==='Space'){e.preventDefault();if(!gesture){space=true;canvas.style.cursor='grab';canvas.dataset.tool='hand';}return;}
   if(e.key==='Escape'){if(gesture){doc=gesture.before||doc;gesture=null;}cancelDraft();selectOnly(null);tool='select';render();}else if(e.key==='Enter'&&tool==='pen')finish();else if(e.key==='Backspace'&&tool==='pen'){e.preventDefault();if(draft.length>(extension?1:0))draft.pop();render();}else if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();if(tool!=='pen')remove();}else if(!e.ctrlKey&&!e.metaKey&&({v:'select',h:'hand',p:'pen',s:'stop'})[e.key.toLowerCase()])setTool(({v:'select',h:'hand',p:'pen',s:'stop'})[e.key.toLowerCase()]);
  });document.addEventListener('keyup',e=>{if(e.code==='Space'){space=false;canvas.style.cursor='';canvas.dataset.tool=tool;}});window.addEventListener('blur',()=>{space=false;canvas.style.cursor='';canvas.dataset.tool=tool;if(gesture){doc=gesture.before||doc;gesture=null;render();}});
- function replace(next){history=D.history(D.validate(next));doc=history.get();selectOnly(null);cancelDraft();tool='select';persist();render();fit();}
+ function replace(next){finishSpacing(true);history=D.history(D.validate(next));doc=history.get();selectOnly(null);cancelDraft();tool='select';persist();render();fit();}
  $('new').onclick=()=>$('newDialog').showModal();$('newDialog').addEventListener('close',()=>{if($('newDialog').returnValue==='create'){const d=D.blank();d.title=$('newTitle').value||'Nytt kart';[d.width,d.height]=$('newSize').value.split(',').map(Number);replace(d);}});
  $('template').onclick=async()=>{if(!confirm('Erstatt arbeidsflaten med en kopi av Trondheim? Lagre prosjektet først hvis du vil beholde en egen fil.'))return;try{const r=await fetch('network/trondheim-layout.json');if(!r.ok)throw Error('Kartet kunne ikke lastes');replace(D.fromTrondheim(await r.json()));}catch(e){status(e.message);}};
  function download(name,text,type){const url=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
