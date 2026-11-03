@@ -2,13 +2,13 @@
  'use strict';
  const D=InTransitStudioDocument,$=id=>document.getElementById(id),ns='http://www.w3.org/2000/svg',key='intransit-artwork-v1';
  let initial=D.blank(),warning='';try{const saved=localStorage.getItem(key);if(saved)initial=D.validate(JSON.parse(saved));}catch{warning='Kunne ikke gjenåpne lokal kopi. Åpne en lagret prosjektfil.';}
- let history=D.history(initial),doc=history.get(),selected=null,selection=[],endpoint=null,extension=null,tool='select',draft=[],hover=null,gesture=null,pendingStation=null,propertyEdit=null,ledDetailsOpen=false,space=false,serial=Date.now(),camera={x:0,y:0,k:1};
+ let history=D.history(initial),doc=history.get(),selected=null,selection=[],endpoint=null,extension=null,tool='select',draft=[],hover=null,gesture=null,pendingStation=null,propertyEdit=null,section=null,ledDetailsOpen=false,space=false,serial=Date.now(),camera={x:0,y:0,k:1};
  const canvas=$('canvas'),stage=$('stage');
  const make=(tag,attrs={},text)=>{const n=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);if(text!==undefined)n.textContent=text;return n;};
  const all=()=>[...doc.artwork.lines,...doc.artwork.stops],object=()=>all().find(o=>o.id===selected),isLine=o=>o&&Array.isArray(o.points),id=prefix=>prefix+'-'+(++serial);
  const marked=()=>all().filter(o=>selection.includes(o.id));
- function selectOnly(value){pendingStation=null;selected=value;selection=value?[value]:[];endpoint=null;}
- function choose(value,add=false){pendingStation=null;endpoint=null;if(!add){selectOnly(value);return;}if(!value)return;if(selection.includes(value))selection=selection.filter(id=>id!==value);else selection.push(value);selected=selection.at(-1)||null;}
+ function selectOnly(value){section=null;pendingStation=null;selected=value;selection=value?[value]:[];endpoint=null;}
+ function choose(value,add=false){section=null;pendingStation=null;endpoint=null;if(!add){selectOnly(value);return;}if(!value)return;if(selection.includes(value))selection=selection.filter(id=>id!==value);else selection.push(value);selected=selection.at(-1)||null;}
  function cancelDraft(){draft=[];hover=null;extension=null;}
  function pruneSelection(){selection=selection.filter(id=>all().some(o=>o.id===id));selected=selection.includes(selected)?selected:selection.at(-1)||null;endpoint=null;}
  const status=s=>$('status').textContent=s;
@@ -38,6 +38,7 @@
    nodes.push(make('text',{x:label.x,y:label.y,'text-anchor':label.anchor,transform:'rotate('+label.angle+' '+label.x+' '+label.y+')','font-family':'system-ui,sans-serif','font-size':12,fill:'#203c32','data-id':s.id,'data-label':'true'},s.name));
   }
   if(draft.length){const pts=[...draft,...(hover?[hover]:[])];nodes.push(make('polyline',{points:pts.map(p=>p.x+','+p.y).join(' '),fill:'none',stroke:extension?doc.artwork.lines.find(l=>l.id===extension.id).color:'#267a59','stroke-width':extension?doc.artwork.lines.find(l=>l.id===extension.id).width:6,'stroke-linejoin':'round','stroke-dasharray':'8 4','pointer-events':'none'}));draft.forEach(p=>handles.push(make('circle',{cx:p.x,cy:p.y,r:4/camera.k,'pointer-events':'none'})));}
+  if(section){const line=all().find(o=>o.id===section.id);for(const p of [section.from,section.to].filter(Boolean))handles.push(make('circle',{cx:p.x,cy:p.y,r:7/camera.k,style:'fill:#e08a3b;stroke:#64390f','pointer-events':'none'}));if(section.from&&section.to)try{const range=D.sectionRange(doc,line.id,section.from,section.to);handles.push(make('polyline',{points:range.points.map(p=>p.x+','+p.y).join(' '),fill:'none',stroke:'#e08a3b','stroke-width':(line.width+5),'stroke-dasharray':'6 3','pointer-events':'none'}));}catch{}}
   if(pendingStation){for(const c of pendingStation.candidates)handles.push(make('circle',{cx:c.x,cy:c.y,r:9/camera.k,fill:'none',stroke:'#267a59','stroke-dasharray':'3 3','pointer-events':'none','data-snap-candidate':c.lineId}));handles.push(make('circle',{cx:pendingStation.p.x,cy:pendingStation.p.y,r:5/camera.k,fill:'#e08a3b','pointer-events':'none','data-snap-preview':'true'}));}
   // Selection decoration sits below every route, preserving each route's color.
   $('art').replaceChildren(...halos,...nodes);$('handles').replaceChildren(...handles);
@@ -121,6 +122,17 @@
    for(const led of (s.leds||[]).filter(l=>s.lineIds.includes(l.lineId))){const label=document.createElement('label'),input=document.createElement('select'),name=all().find(o=>o.id===led.lineId).name;label.textContent='LED-kilde for '+name;input.setAttribute('aria-label','LED-kilde for '+name);input.add(new Option('Ingen datakilde (grafisk punkt)',''));for(const source of doc.artwork.stops)for(const quayId of doc.bindings[source.id]?.quayIds||[])input.add(new Option(source.name+' · '+quayId,JSON.stringify([source.id,quayId])));input.value=led.sourceStopId?JSON.stringify([led.sourceStopId,led.quayId]):'';input.disabled=s.locked;input.onchange=()=>attempt(d=>D.setLedSource(d,s.id,led.id,...(input.value?JSON.parse(input.value):[null,null])));label.append(input);details.append(label);}box.append(details);
   }
  }
+ function beginSection(id){finishSpacing();pendingStation=null;selection=[id];selected=id;endpoint=null;section={id,from:null,to:null,name:(object().name+' · utskilt').slice(0,200),policy:''};render();canvas.focus({preventScroll:true});}
+ function performSection(operation){if(!section?.from||!section?.to){status('Velg to grensepunkter først');return;}const current=section;try{let result;commit(d=>{result=D.editSection(d,current.id,current.from,current.to,{operation,stationPolicy:current.policy,name:current.name,newIds:{section:id('line'),after:id('line')}});});selectOnly(result.selectedId);render();}catch(e){status(e.message);}}
+ function sectionProperties(box){const current=section,line=all().find(o=>o.id===current.id),title=document.createElement('h3');title.textContent='Velg strekning';box.append(title);const note=document.createElement('p');note.textContent='Klikk to punkter på linjen, eller velg to stopp nedenfor. Oransje viser den sammenhengende strekningen. Ingen endring skjer før du velger en handling.';box.append(note);
+  for(const [label,key]of [['Fra stopp','from'],['Til stopp','to']]){const l=document.createElement('label'),input=document.createElement('select');l.textContent=label;input.setAttribute('aria-label',label);input.add(new Option('Velg stopp',''));for(const stop of doc.artwork.stops)input.add(new Option(stop.name,stop.id));input.value=current[key+'Stop']||'';input.onchange=()=>{const stop=all().find(o=>o.id===input.value);if(stop){current[key]=D.project(stop,line);current[key+'Stop']=stop.id;render();}};l.append(input);box.append(l);}
+  let range=null,affected=[];try{range=D.sectionRange(doc,line.id,current.from,current.to);affected=D.sectionStations(doc,line.id,current.from,current.to);}catch{}
+  const name=document.createElement('label'),input=document.createElement('input');name.textContent='Navn på utskilt strekning';input.value=current.name;input.maxLength=200;input.oninput=()=>current.name=input.value;name.append(input);box.append(name);
+  const help=document.createElement('p');help.textContent=affected.length?'Stasjoner på strekningen: '+affected.map(s=>s.name).join(', ')+'. Ingen stasjoner slettes eller flyttes. Velg håndtering før handlingen.':'Stasjoner utenfor den valgte strekningen beholdes.';box.append(help);
+  const policy=document.createElement('label'),choice=document.createElement('select');policy.textContent='Stasjoner på strekningen';choice.setAttribute('aria-label','Stasjoner på strekningen');for(const [v,t]of [['','Velg håndtering'],['keep','Behold på stedet; løsne fra denne strekningen'],['extract','Behold på stedet; knytt til utskilt del']])choice.add(new Option(t,v));choice.value=current.policy;choice.onchange=()=>{current.policy=choice.value;render();};policy.append(choice);box.append(policy);
+  if(D.groupFor(doc,line.id)){const p=document.createElement('p');p.textContent='Handlingen løsner linjegruppen. Andre linjer beholder formen. Kildedata endres ikke.';box.append(p);}
+  for(const [label,operation]of [['Skill ut strekning','extract'],['Fjern valgt strekning','remove']]){const b=document.createElement('button');b.textContent=label;b.disabled=!range||line.locked||affected.length&&!current.policy||operation==='remove'&&current.policy==='extract';b.onclick=()=>performSection(operation);box.append(b);}const cancel=document.createElement('button');cancel.textContent='Avbryt strekning';cancel.onclick=()=>{section=null;render();};box.append(cancel);
+ }
  function multiProperties(box){
   const objects=marked(),lines=objects.filter(isLine),locked=objects.some(o=>o.locked),p=document.createElement('p');p.textContent=objects.length+' objekter valgt. Ctrl-klikk legger til eller fjerner fra utvalget.';box.append(p);
   if(lines.length===objects.length){
@@ -131,7 +143,7 @@
   const del=document.createElement('button');del.textContent='Slett markerte';del.disabled=locked;del.onclick=remove;box.append(del);if(locked){const note=document.createElement('p');note.textContent='Utvalget inneholder låste lag. Lås opp eller fjern dem fra utvalget for å redigere samlet.';box.append(note);}
  }
  function properties(){
-  const box=$('properties'),ledDetails=box.querySelector('[data-led-details]');if(ledDetails)ledDetailsOpen=ledDetails.open;box.replaceChildren();box.dataset.stationChoice=String(!!pendingStation);if(pendingStation){stationChoice(box);return;}const o=object();let target=box;if(extension){const p=document.createElement('p');p.textContent='Du fortsetter den valgte linjen. Klikk nye punkter. Enter lagrer, Esc avbryter, og Backspace fjerner siste nye punkt.';box.append(p);return;}if(selection.length>1){multiProperties(box);return;}
+  const box=$('properties'),ledDetails=box.querySelector('[data-led-details]');if(ledDetails)ledDetailsOpen=ledDetails.open;box.replaceChildren();box.dataset.stationChoice=String(!!pendingStation);if(pendingStation){stationChoice(box);return;}if(section){sectionProperties(box);return;}const o=object();let target=box;if(extension){const p=document.createElement('p');p.textContent='Du fortsetter den valgte linjen. Klikk nye punkter. Enter lagrer, Esc avbryter, og Backspace fjerner siste nye punkt.';box.append(p);return;}if(selection.length>1){multiProperties(box);return;}
   if(!o){artboard(box);const p=document.createElement('p');p.textContent=tool==='pen'?'Klikk for hvert knekkpunkt. Enter fullfører linjen. Esc avbryter.':tool==='stop'?'Klikk på kartet for å plassere et stopp. Gi stoppet navn her.':'Velg et stopp eller en linje i kartet eller laglisten. Dra for å flytte. Dobbeltklikk en valgt linje for å legge til et punkt.';box.append(p);return;}
   function field(label,type,value,fn){const l=document.createElement('label'),i=document.createElement('input');l.textContent=label;i.type=type;i.value=value;i.disabled=o.locked;i.maxLength=200;i.onchange=()=>{try{commit(d=>fn(d.artwork[isLine(o)?'lines':'stops'].find(v=>v.id===o.id),i.value));}catch(e){status(e.message);render();}};l.append(i);target.append(l);return i;}
   field(isLine(o)?'Linjenavn':'Stoppnavn','text',o.name,(n,v)=>n.name=v);
@@ -147,7 +159,7 @@
   }
   function choice(text,value,options,fn){const l=document.createElement('label'),i=document.createElement('select');l.textContent=text;i.setAttribute('aria-label',text);for(const [v,t]of options)i.add(new Option(t,v));i.value=value;i.disabled=o.locked;i.onchange=()=>commit(d=>fn(d.artwork.stops.find(n=>n.id===o.id),i.value,d));l.append(i);target.append(l);}
   if(isLine(o)){
-   const g=D.groupFor(doc,o.id);if(g)groupProperties(box,g);else parallelCreator(box,o);
+   const sectionButton=document.createElement('button');sectionButton.textContent='Velg strekning';sectionButton.disabled=o.locked;sectionButton.onclick=()=>beginSection(o.id);box.append(sectionButton);const g=D.groupFor(doc,o.id);if(g)groupProperties(box,g);else parallelCreator(box,o);
    if(tool==='select'&&endpoint?.id===o.id){const b=document.createElement('button');b.textContent='Fortsett linjen';b.disabled=o.locked;b.onclick=startExtension;box.append(b);}else{const p=document.createElement('p');p.textContent='Velg et av de store endepunktene for å fortsette linjen.';box.append(p);}
    const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Parallelle linjekopier';details.append(summary);
    const count=document.createElement('input'),spacing=document.createElement('input');count.type=spacing.type='number';count.value=1;count.min=1;count.max=8;spacing.value=14;spacing.min=2;spacing.max=200;
@@ -175,6 +187,7 @@
   else if(tool==='pen'){const q=snap(p,draft.at(-1));if(!draft.length||Math.hypot(q.x-draft.at(-1).x,q.y-draft.at(-1).y)>1)draft.push(q);hover=null;render();return;}
   else if(tool==='stop'){const s={id:id('stop'),name:'Nytt stopp',...bounded(p),labelDx:12,labelDy:-12,lineIds:[],visible:true,locked:false};positionStation(s,p,true);return;}
   else{
+   if(section&&!e.ctrlKey&&!e.metaKey){const line=all().find(o=>o.id===section.id),p= D.project(point(e),line);if(p.dist<=Math.max(14/camera.k,line.width/2)){if(!section.from||section.to){section.from=p;section.to=null;}else section.to=p;render();}return;}
    // Wide transparent hit areas and endpoint handles can overlap another route.
    // Resolve route selection by distance to the actual path, with stable paint-order ties.
    let hitId=hit?.dataset.id||null;
@@ -210,16 +223,18 @@
  });
  function end(e,cancel=false){if(!gesture)return;const g=gesture;gesture=null;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(g.kind==='pan')return;if(g.kind==='stop'){doc=g.before;if(!cancel&&g.moved)positionStation(g.original,g.raw);else render();return;}const result=doc;doc=g.before;if(!cancel){try{commit(d=>Object.assign(d,result));}catch(err){status(err.message);doc=history.get();render();}}else render();}
  canvas.addEventListener('pointerup',e=>end(e));canvas.addEventListener('pointercancel',e=>end(e,true));
- canvas.addEventListener('dblclick',e=>{if(e.ctrlKey||e.metaKey||e.shiftKey||space||tool!=='select'||selection.length!==1)return;const o=object();if(!isLine(o)||o.locked||e.target.dataset.id!==o.id||e.target.hasAttribute('data-vertex'))return;const p=nearest(point(e),o),points=structuredClone(o.points);points.splice(p.index,0,{x:p.x,y:p.y});attempt(d=>D.setLinePoints(d,o.id,points));});
+ canvas.addEventListener('dblclick',e=>{if(section||e.ctrlKey||e.metaKey||e.shiftKey||space||tool!=='select'||selection.length!==1)return;const o=object();if(!isLine(o)||o.locked||e.target.dataset.id!==o.id||e.target.hasAttribute('data-vertex'))return;const p=nearest(point(e),o),points=structuredClone(o.points);points.splice(p.index,0,{x:p.x,y:p.y});attempt(d=>D.setLinePoints(d,o.id,points));});
  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
  document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));$('start').onclick=()=>setTool('pen');$('finish').onclick=finish;$('cancel').onclick=()=>{cancelDraft();setTool('select');};
- function travel(redo){finishSpacing();pendingStation=null;cancelDraft();if(tool==='pen')tool='select';history[redo?'redo':'undo']();doc=history.get();pruneSelection();persist();render();}
+ function travel(redo){finishSpacing();section=null;pendingStation=null;cancelDraft();if(tool==='pen')tool='select';history[redo?'redo':'undo']();doc=history.get();pruneSelection();persist();render();}
  $('undo').onclick=()=>travel(false);$('redo').onclick=()=>travel(true);$('fit').onclick=fit;$('in').onclick=()=>zoom(1.25);$('out').onclick=()=>zoom(.8);$('snap').onchange=draw;
  $('title').onchange=e=>commit(d=>d.title=e.target.value);
  document.addEventListener('keydown',e=>{
+  if(section&&e.key==='Escape'){e.preventDefault();section=null;render();return;}
   if(pendingStation&&e.key==='Escape'){e.preventDefault();const placement=pendingStation;selectOnly(placement.create?null:placement.stop.id);render();return;}
 
   if(e.target.closest('input,select,textarea')||e.target.isContentEditable||$('newDialog').open)return;
+  if(section&&e.key==='Delete'){e.preventDefault();performSection('remove');return;}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();travel(e.shiftKey);return;}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();travel(true);return;}
   if(e.altKey||e.ctrlKey||e.metaKey)return;
@@ -233,5 +248,5 @@
  $('save').onclick=()=>{download('intransit-prosjekt.json',JSON.stringify(doc,null,2),'application/json');status('Prosjektfil lastet ned');};$('export').onclick=()=>download('intransit-kart.svg',D.svg(doc),'image/svg+xml');$('open').onclick=()=>$('file').click();$('file').onchange=async()=>{const f=$('file').files[0];if(!f)return;try{if(f.size>5e6)throw Error('Prosjektfilen er for stor');const next=D.validate(JSON.parse(await f.text()));replace(next);status('Prosjekt åpnet');}catch(e){status('Kunne ikke åpne prosjekt: '+e.message);}$('file').value='';};
  new ResizeObserver(()=>view()).observe(stage);render();fit();if(warning)status(warning);
  // Read-only state for browser regressions; mutations always use the UI.
- window.InTransitStudio={snapshot:()=>structuredClone({doc,camera,selected,selection,endpoint,extension,tool,draft,pendingStation})};
+ window.InTransitStudio={snapshot:()=>structuredClone({doc,camera,selected,selection,endpoint,extension,tool,draft,pendingStation,section})};
 })();
