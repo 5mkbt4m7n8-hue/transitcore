@@ -171,8 +171,8 @@
   });
   applyPositions(markers,labels,groupOutlines,profile,dims);
   const shifted=markers.filter(m=>m.repositioned).length;
-  if(shifted)warnings.push({code:'MOVED_MARKER',message:shifted+
-   ' tavlemarkører er flyttet separat; kartlinjene følger foreløpig ikke automatisk'});
+  if(shifted&&!profile.followStations)warnings.push({code:'MOVED_MARKER',message:shifted+
+   ' tavlemarkører er flyttet separat; grafiske linjer er ikke koblet til flytting'});
   for(let i=0;i<markers.length;i++)for(let j=i+1;j<markers.length;j++){
    const a=markers[i],b=markers[j];
    if(a.groupId&&a.groupId===b.groupId)continue;
