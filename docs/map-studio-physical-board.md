@@ -131,3 +131,19 @@ Lagring skjer i den valgfrie \`physicalBoardLayouts.profiles[format].routes\`-st
 Dette er **normaliserte tavlekoordinater**, ikke koordinater på originalen. Eksisterende \`paths[]\` og \`stops[]\` i Trondheim-modellen endres **aldri** når denne funksjonen brukes. Ingen Quay-ID-er eller sanntidshendelser blir opprettet eller påvirket.
 
 Det er fortsatt nødvendig å kontrollere linje-/stasjonsavstander visuelt. Verktøyet bekrefter **ikke** at en skjematisk tegnet linje er en faktisk gjennomkjørbar rute, og SVG-filen er ikke automatisk godkjent som fysisk boremal.
+
+## v0.9 – egen tavledesigner
+
+Åpne `web/linear/index.html?view=designer`, eller velg **Tavledesigner** fra kartet.
+
+1. Velg **Størrelse** (30 × 40, 50 × 70, 40 × 40 cm eller **Egne mål**).
+2. **Flytt stasjon / navn** er aktivt fra start. Klikk på objektet og dra det. Navn kan flyttes separat. Gult omriss viser valgt objekt. Piltaster flytter 1 mm, Shift + piltast 5 mm.
+3. Velg **Form linje** og klikk på linjen. Bare punktene til valgt linje vises. Dra blå punkter, eller velg en delstrekning og **Legg til punkt**. Ekstra punkter kan fjernes.
+4. Bruk **Angre siste endring** ved behov. Endringer lagres automatisk i denne nettleseren. **Lagre prosjekt** lagrer arbeidskopi og laster ned JSON som kan åpnes med **Åpne prosjekt**. **Last ned tavlen (SVG)** gir en fysisk tegning med mm-mål.
+5. **Se tavlen** skjuler håndtakene. **Forstørrelse** hjelper med små navn og presis flytting. På berøringsskjerm kan du bla i den forstørrede tegningen i **Se tavlen**, og deretter velge et redigeringsverktøy.
+
+**Flere innstillinger** inneholder LED-diameter, marg, navnestørrelse, linjer som følger stasjoner og tilbakestilling. Linjefølging er fortsatt et eksplisitt valg per format. Den tekniske kildekarteditoren finnes fortsatt under **Sanntidskart → Rediger kart**.
+
+Hvert cm-format beholder sine egne visuelle plasseringer og linjepunkter. Verktøybytte endrer ingen kartdata. Original Trondheim-geometri og reelle Quay-koblinger forblir autoritative. Oransje ringer varsler om tett LED-avstand; dette er en skisse, ikke en godkjent kablings- eller boreplan. Ingen produksjonsdeploy.
+
+Nettleserregresjonene dekker direkte inngang, stasjonsflytting/markering, Angre, formatbytte, linjevalg i tegningen, linjeflytting, nye punkter, prosjektlastning etter oppdatering, eksport, zoom, mobilbredde, forhåndsvisning og retur til sanntidskart. Eksisterende tavle- og karttester beholdes.

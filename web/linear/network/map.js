@@ -66,7 +66,7 @@
   const autoDraftKey='intransit-map-autodraft-v1',manualDraftKey='intransit-map-draft-v1';
   const drawingPrefs={gridVisible:true,gridSnap:true,angleStep:45,gridSize:10};
   const boardSettings={widthCm:30,heightCm:40,ledDiameterMm:5,marginMm:12,labelFontMm:2.4,showLabels:true};
-  let lastBoardResult=null,boardDrag=null;
+  let lastBoardResult=null,boardDrag=null,designer=null;
   let regionSelecting=false,regionDraft=null,regionSelection=null;
    let previewMode='live',previewTargetId=null;
   const snapPoint=(p,previous=null)=>T.snap(p,{...drawingPrefs,previous});
@@ -83,6 +83,7 @@
     boardRouteControls();
     q('boardFollow').checked=B.currentProfile(layout,boardSettings).followStations===true;
     q('boardSvgHost').innerHTML=result.svg.replace(/^<\?xml[^>]*>\s*/,'');
+    designer?.decorate();
     q('boardSvgHost').classList.toggle('map-board-move-active',editing&&q('boardMove').checked);
     q('boardSvgHost').classList.toggle('map-board-route-active',editing&&q('boardRouteEdit').checked);
     q('boardMetrics').textContent=boardSettings.widthCm+' × '+boardSettings.heightCm+
@@ -92,7 +93,9 @@
      ' · format '+B.profileKey(boardSettings)+' · '+Object.keys(B.currentProfile(layout,boardSettings).positions||{}).length+' flyttede punkter'+
      (result.summary.followStations?' · linjetilpasning aktiv ('+result.summary.trackedVertices+' knekkpunkter)':' · linjetilpasning av')+
      ' · '+result.summary.editedRouteVertices+' manuelt plasserte linjepunkter';
-    q('boardWarnings').textContent=result.warnings.length?
+    if(designer?.isActive())q('boardMetrics').textContent=boardSettings.widthCm+' × '+boardSettings.heightCm+' cm · '+result.summary.markers+' stasjonspunkter · eget oppsett for dette formatet';
+    q('boardWarnings').textContent=designer?.isActive()?(result.summary.overlaps+' steder har lyspunkter som ligger for tett. Oransje ringer viser hvor du bør kontrollere avstanden. Tavlen er en visuell skisse.'):
+     result.warnings.length?
      'Kontrollpunkter ('+result.warnings.length+'): '+
      result.warnings.slice().sort((a,b)=>Number(b.code==='LED_OVERLAP')-Number(a.code==='LED_OVERLAP')).slice(0,4).map(w=>w.message).join(' · ')+
      (result.warnings.length>4?' · …':''):'Ingen registrerte overlapp i denne visningen.';
@@ -168,6 +171,12 @@
     parts.markers.filter(item=>item.key===target.getAttribute('data-board-key'));
    return selected.length?{kind:'positions',items:selected.map(item=>({key:item.key,x:item.x,y:item.y})),dims}:null;
   }
+  function focusBoardHit(hit){
+   const node=[...q('boardSvgHost').querySelectorAll('[tabindex]')].find(n=>
+    hit.kind==='route'?n.dataset.boardRoutePath===hit.pathId&&n.dataset.boardRouteKey===hit.key:
+    hit.kind==='labels'?n.dataset.boardLabel===hit.items[0].key:n.dataset.boardKey===hit.items[0].key);
+   node?.focus({preventScroll:true});
+  }
   function boardPointerPosition(event){
    const svgElement=q('boardSvgHost').querySelector('svg');
    if(!svgElement)return null;
@@ -216,16 +225,16 @@
   function boardRouteControls(){
    const paths=layout.paths||[],pathSelect=q('boardPath');
    const prev=pathSelect.value;
-   pathSelect.replaceChildren(...paths.map(path=>new Option(path.id,path.id)));
+   pathSelect.replaceChildren(...paths.map(path=>new Option('Linje '+(paths.indexOf(path)+1),path.id)));
    if(paths.some(p=>p.id===prev))pathSelect.value=prev;
    const selected=paths.find(p=>p.id===pathSelect.value),segmentSelect=q('boardSegment');
    const oldSegment=segmentSelect.value;
    segmentSelect.replaceChildren(...(selected?.points||[]).slice(0,-1).map((_,i)=>
-    new Option('Segment '+(i+1),String(i))));
+    new Option('Del '+(i+1),String(i))));
    if([...segmentSelect.options].some(o=>o.value===oldSegment))segmentSelect.value=oldSegment;
    const bendSelect=q('boardBendSelect'),oldBend=bendSelect.value;
    const bends=B.currentProfile(layout,boardSettings).routes?.[selected?.id]?.bends||[];
-   bendSelect.replaceChildren(...bends.map(b=>new Option(b.id+' · etter segment '+(b.afterIndex+1),b.id)));
+   bendSelect.replaceChildren(...bends.map(b=>new Option('Ekstra punkt '+(bends.indexOf(b)+1)+' · del '+(b.afterIndex+1),b.id)));
    if(bends.some(b=>b.id===oldBend))bendSelect.value=oldBend;
    q('boardRemoveBend').disabled=!bends.length;
    q('boardResetRoute').disabled=!B.currentProfile(layout,boardSettings).routes?.[selected?.id];
@@ -301,6 +310,7 @@
    const hit=boardHit(event),start=boardPointerPosition(event);
    if(!hit||!start)return;
    event.preventDefault();
+   event.target.closest('[tabindex]')?.focus({preventScroll:true});
    boardDrag={pointerId:event.pointerId,start,hit,preview:null,distance:0};
    boardHost.setPointerCapture(event.pointerId);
   });
@@ -323,7 +333,7 @@
     });}
     catch(error){q('boardWarnings').textContent=error.message;}
    }
-   boardRender();
+   boardRender();focusBoardHit(drag.hit);
   }
   boardHost.addEventListener('pointerup',event=>finishBoardDrag(event,true));
   boardHost.addEventListener('pointercancel',event=>finishBoardDrag(event,false));
@@ -340,12 +350,12 @@
     if(hit.kind==='route')B.setRoutePoint(next,boardSettings,hit.pathId,
      hit.routeType==='vertex'?Number(hit.key):hit.key,move.position);
     else B.saveOverrides(next,boardSettings,move.preview);
-   });}
+   });focusBoardHit(hit);}
    catch(error){q('boardWarnings').textContent=error.message;}
   });
 
   const draftStatus=q('draftStatus');
-  function setDraftStatus(message){draftStatus.textContent=message;}
+  function setDraftStatus(message){draftStatus.textContent=message;if(q('designerStatus'))q('designerStatus').textContent=message;}
    const displayName=stop=>localNames[stop.id]||stop.name;
    const geoHref=id=>id&&initial.stops.some(stop=>stop.id===id)?N.geographicUrl(id):'./geo/';
    function syncGeoLink(id){q('geoLink').href=geoHref(id);}
@@ -1212,7 +1222,7 @@
     break;
    }
   }}catch(e){q('details').textContent=e.message;}});
-  q('import').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>2000000)throw Error('JSON er for stor');editor.import(JSON.parse(await file.text()));}catch(error){q('details').textContent=error.message;}finally{e.target.value='';}};
+  q('import').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>2000000)throw Error('JSON er for stor');editor.import(JSON.parse(await file.text()));setDraftStatus('Prosjekt åpnet');}catch(error){q('details').textContent=error.message;setDraftStatus('Kunne ikke åpne prosjekt: '+error.message);}finally{e.target.value='';}};
   q('liveDebug').ontoggle=()=>renderLiveDebug();
   q('debugStop').onchange=()=>{
    debugStopId=q('debugStop').value;debugQuayId='';debugSide=null;
@@ -1336,7 +1346,19 @@
   if(new URLSearchParams(location.search).get('debug')==='1'){q('liveDebug').open=true;renderLiveDebug();}
   if(new URLSearchParams(location.search).get('history')==='1')historyUI.open();
   if(publishedWarning)q('cloudStatus').textContent=publishedWarning;
-  return {update(next){context=next;frame=next.frame;if(!playback)draw();},clear(){frame=null;if(!playback)paint();},
+  designer=root.InTransitBoardDesigner.create(host,{
+   enableEditing(){previewMode='live';if(!editing)host.querySelector('[data-act="edit"]').click();},
+   disableEditing(){if(editing)host.querySelector('[data-act="edit"]').click();},
+   render:boardRender,
+   save(){
+    try{localStorage.setItem(manualDraftKey,editor.export());setDraftStatus('Arbeidskopi lagret på denne enheten. Prosjektfil lastes ned.');}
+    catch{setDraftStatus('Lokal lagring er utilgjengelig. Behold prosjektfilen som lastes ned.');}
+    download('trondheim-layout.json',editor.export());
+   },
+   open(){q('import').click();},
+   name(id){const stop=layout.stops.find(s=>s.id===id);return stop?displayName(stop):'';}
+  });
+  return {design(value=true){designer.enter(value);},update(next){context=next;frame=next.frame;if(!playback&&!designer?.isActive())draw();},clear(){frame=null;if(!playback)paint();},
    focusStop(id){const stop=layout.stops.find(s=>s.id===id);if(!stop)return false;
     selection={type:'stop',id:stop.id};box=[stop.x-80,stop.y-112,160,224];setBox();draw();fields();details(stop);return true;}};
  }};

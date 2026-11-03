@@ -223,3 +223,64 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-board-controls [data-role=boardRemoveBend],
 .map-board-controls [data-role=boardResetRoute]{border:1px solid #9c7880;background:#41303a}
 .map-board-controls button:disabled{opacity:.45;cursor:not-allowed}
+/* Guided physical designer: live network stays in its own workspace. */
+.designer-nav{display:flex;gap:8px;padding:12px 0}
+.designer-nav button[aria-pressed=true],.designer-tools button[aria-pressed=true]{background:#28614f;border-color:#96e0be;color:#fff}
+.designer-intro,.designer-tools,.designer-help{display:none}
+.designer-primary,.designer-route{margin:0}
+.designer-advanced>summary{padding:10px;cursor:pointer}
+.board-designer-mode main{max-width:1320px}
+.board-designer-mode main> :not(h1):not(.sub):not(.view-switch):not(#networkView){display:none!important}
+.board-designer-mode main>.sub{display:none}
+.board-designer-mode .view-switch{display:none}
+.board-designer-mode main>h1{font-size:18px;color:#aec3d6}
+.board-designer .map-shell> :not(.map-physical-board){display:none!important}
+.board-designer .map-physical-board{display:block;margin:0;padding:18px}
+.board-designer .map-physical-board>summary{display:none}
+.board-designer .designer-intro,.board-designer .designer-tools,.board-designer .designer-help{display:block}
+.designer-intro h2{font-size:26px;margin:0 0 8px}
+.designer-intro p{color:#c3d4e3;margin:6px 0;line-height:1.5}
+.board-designer .designer-tools{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0}
+.designer-tools button{min-height:44px}
+.designer-help{padding:12px;border-left:3px solid #9de3bf;background:#17352f;color:#e6fff2;line-height:1.5}
+.board-designer .designer-route{display:none}
+.board-designer [data-tool=route] .designer-route{display:grid}
+.board-designer .designer-advanced .map-board-move-label{display:none!important}
+.board-designer .designer-body>small{display:none}
+.board-designer .map-board-preview{max-width:none;max-height:78vh;background:#20303e;margin:12px 0}
+.board-designer .map-board-preview svg{max-height:74vh}
+.board-designer [data-tool=route] polyline[data-route]{pointer-events:stroke;cursor:pointer;stroke-width:2}
+.board-designer [data-selected=true]{filter:drop-shadow(0 0 2px #ffd27b);stroke:#ffce70;stroke-width:1.2}
+.board-designer .map-board-info{font-size:12px}
+.board-designer .map-board-warning{max-height:80px;overflow:auto}
+.board-designer [hidden]{display:none!important}
+@media(min-width:900px){
+ .board-designer .designer-body{display:grid;grid-template-columns:310px minmax(0,1fr);gap:0 24px;align-items:start}
+ .board-designer .designer-body>*{grid-column:1}
+ .board-designer .map-board-preview{grid-column:2;grid-row:1/10;margin:0;min-height:65vh}
+ .board-designer .designer-primary{grid-template-columns:1fr 1fr}
+ .board-designer .designer-primary>label:first-child{grid-column:1/-1}
+ .board-designer .designer-route{grid-template-columns:1fr}
+}
+
+.board-designer-mode body>details,.board-designer-mode>details{display:none!important}
+.board-designer .map-board-preview{display:block;height:74vh;min-width:0}
+.board-designer .map-board-preview svg{margin:auto}
+.designer-tools label{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.designer-tools [data-role=designerStatus]{width:100%;color:#a7ddc1;font-size:12px}
+@media(max-width:899px){
+ .board-designer .designer-body{display:flex;flex-direction:column}
+ .board-designer .designer-body>*{width:100%;min-width:0;box-sizing:border-box}
+ .board-designer .designer-intro{order:0}
+ .board-designer .designer-primary{order:1}
+ .board-designer .designer-tools{order:2}
+ .board-designer .designer-help{order:3}
+ .board-designer .map-board-preview{order:4}
+ .board-designer .designer-route{order:5}
+ .board-designer .designer-advanced{order:6}
+ .board-designer .map-board-info{order:7}
+ .board-designer .map-board-warning{order:8}
+ .board-designer .designer-intro p:last-child{display:none}
+ .board-designer .designer-intro h2{font-size:22px}
+ .board-designer .map-physical-board{padding:12px}
+}

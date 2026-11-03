@@ -415,7 +415,7 @@ try{
  assert.equal(await page.locator('.map-display-outline').count(),1,'one shared outline without an LED');
 
  // Board dimensions are real physical cm/mm, independent of a 64×64 grid.
- await page.locator('[data-role=boardPanel] summary').click();
+ await page.locator('[data-role=boardPanel] > summary').click();
  await page.locator('[data-role=boardSvgHost] svg').waitFor();
  assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'300mm');
  assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('height'),'400mm');
@@ -669,7 +669,7 @@ try{
  await routePage.goto('http://127.0.0.1:'+server.address().port+'/web/linear/index.html?view=network');
  await routePage.waitForSelector('.map-stop');
  await routePage.locator('[data-act=edit]').click();
- await routePage.locator('[data-role=boardPanel] summary').click();
+ await routePage.locator('[data-role=boardPanel] > summary').click();
  await routePage.locator('[data-role=boardSvgHost] svg').waitFor();
  await routePage.locator('[data-role=boardRouteEdit]').check();
  await routePage.locator('[data-role=boardPath]').selectOption('trace-01');
@@ -714,6 +714,96 @@ try{
  assert(!resetDraft.physicalBoardLayouts.profiles['30x40'].routes['trace-01'],'route reset removes only board-specific graphic edits');
  assert.deepEqual(routeErrors,[]);
  await routePage.close();
+
+ // Guided designer must open directly, without any editor toggles or live feed.
+ const design=await browser.newPage({viewport:{width:1280,height:960}}),designErrors=[];
+ design.on('pageerror',e=>designErrors.push(e.message));
+ await design.goto('http://127.0.0.1:'+server.address().port+'/web/linear/index.html?view=designer');
+ await design.locator('.board-designer [data-role=boardSvgHost] svg').waitFor();
+ assert.equal(await design.locator('.map-viewport').isVisible(),false);
+ assert.equal(await design.locator('[data-role=boardMove]').isChecked(),true);
+ assert.equal(await design.locator('[data-role=boardWidth]').isVisible(),false);
+ assert.equal(await design.locator('[data-role=boardPath]').isVisible(),false);
+ const symbol='[data-role=boardSvgHost] [data-board-key]';
+ const start=await design.locator(symbol).first().getAttribute('cx');
+ await design.locator(symbol).first().scrollIntoViewIfNeeded();
+ const target=await design.locator(symbol).first().boundingBox();
+ await design.mouse.move(target.x+target.width/2,target.y+target.height/2);
+ await design.mouse.down();await design.mouse.move(target.x+target.width/2+20,target.y+target.height/2+10,{steps:4});await design.mouse.up();
+ assert.notEqual(await design.locator(symbol).first().getAttribute('cx'),start);
+ assert.equal(await design.locator('[data-selected=true]').count()>0,true,'selection survives redraw');
+ const keyboardBefore=Number(await design.locator(symbol).first().getAttribute('cx'));
+ await design.keyboard.press('ArrowRight');await design.keyboard.press('ArrowRight');
+ assert(Math.abs(Number(await design.locator(symbol).first().getAttribute('cx'))-keyboardBefore-2)<.01,'selection retains keyboard focus through redraws');
+ await design.locator('[data-role=boardUndo]').click();await design.locator('[data-role=boardUndo]').click();
+ const moved=await design.locator(symbol).first().getAttribute('cx');
+ await design.locator('[data-role=boardPreset]').selectOption('50x70');
+ assert.equal(await design.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'500mm');
+ await design.locator('[data-role=boardPreset]').selectOption('30x40');
+ assert.equal(await design.locator(symbol).first().getAttribute('cx'),moved);
+ await design.locator('[data-role=boardUndo]').click();
+ assert.equal(await design.locator(symbol).first().getAttribute('cx'),start);
+ await design.locator('[data-zoom]').selectOption('2');
+ const zoomedWidth=await design.locator('[data-role=boardSvgHost] svg').evaluate(n=>n.getBoundingClientRect().width);
+ await design.locator('[data-zoom]').selectOption('1');
+ assert(zoomedWidth>await design.locator('[data-role=boardSvgHost] svg').evaluate(n=>n.getBoundingClientRect().width)*1.9);
+ await design.locator('[data-tool=route]').click();
+ const pickLine=await design.locator('[data-role=boardSvgHost] polyline[data-route="trace-02"]').first().evaluate(n=>{
+  const matrix=n.getScreenCTM();for(let f=.1;f<1;f+=.1){const p=n.getPointAtLength(n.getTotalLength()*f),screen=new DOMPoint(p.x,p.y).matrixTransform(matrix);
+   if(document.elementFromPoint(screen.x,screen.y)===n)return {x:screen.x,y:screen.y};}return null;
+ });
+ assert(pickLine,'line has an accessible hit area');await design.mouse.click(pickLine.x,pickLine.y);
+ assert.equal(await design.locator('[data-role=boardPath]').inputValue(),'trace-02','clicking artwork selects the line');
+ const dLine='[data-role=boardSvgHost] polyline[data-route="trace-01"]';
+ await design.locator('[data-role=boardPath]').selectOption('trace-01');
+ const dBase=await design.locator(dLine).first().getAttribute('points');
+ const dHandle=design.locator('[data-board-route-path="trace-01"][data-board-route-key="0"]');
+ const hb=await dHandle.boundingBox();
+ await design.mouse.move(hb.x+hb.width/2,hb.y+hb.height/2);await design.mouse.down();
+ await design.mouse.move(hb.x+hb.width/2+25,hb.y+hb.height/2+15,{steps:3});await design.mouse.up();
+ assert.notEqual(await design.locator(dLine).first().getAttribute('points'),dBase);
+ await design.locator('[data-role=boardAddBend]').click();
+ assert.equal(await design.locator('[data-board-route-type=bend]').count(),1);
+ const downloadProject=design.waitForEvent('download');await design.locator('[data-save]').click();
+ assert.equal((await downloadProject).suggestedFilename(),'trondheim-layout.json');
+ const saved=await design.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert.deepEqual(saved.stops,original.stops,'physical editing preserves all Quay bindings and stop coordinates');
+ assert.deepEqual(saved.paths,original.paths,'physical editing preserves original traced paths');
+ await design.locator('[data-role=import]').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{broken')});
+ assert.match(await design.locator('[data-role=designerStatus]').textContent(),/Kunne ikke åpne prosjekt/);
+ assert.deepEqual(await design.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout),saved,'invalid import leaves project untouched');
+ await design.locator('[data-role=import]').setInputFiles({name:'project.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(saved))});
+ await design.waitForFunction(()=>document.querySelector('[data-role=designerStatus]')?.textContent==='Prosjekt åpnet');
+ await design.reload();await design.locator('.board-designer [data-role=boardSvgHost] svg').waitFor();
+ await design.locator('[data-tool=route]').click();
+ assert.equal(await design.locator('[data-board-route-type=bend]').count(),1,'project restored after reload');
+ if(process.env.INTRANSIT_SCREENSHOT_DIR)await design.screenshot({path:join(process.env.INTRANSIT_SCREENSHOT_DIR,'guided-designer-desktop.png'),fullPage:true});
+ await design.setViewportSize({width:390,height:844});
+ assert.equal(await design.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'mobile has no horizontal overflow');
+ await design.locator('[data-tool=move]').click();
+ const touchDraft=await design.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ await design.locator('[data-tool=preview]').click();
+ assert.equal(await design.locator('[data-role=boardMove]').isChecked(),false);
+ assert.equal(await design.locator('[data-board-route-path]').count(),0,'preview hides editing handles');
+ assert.deepEqual(await design.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout),touchDraft,'tool switching makes no data edits');
+ if(process.env.INTRANSIT_SCREENSHOT_DIR)await design.screenshot({path:join(process.env.INTRANSIT_SCREENSHOT_DIR,'guided-designer-mobile.png'),fullPage:true});
+ await design.locator('[data-view=live]').click();
+ assert.equal(await design.locator('.map-viewport').isVisible(),true);
+ assert.equal(await design.locator('[data-act=edit]').getAttribute('aria-pressed'),'false');
+ assert.deepEqual(designErrors,[]);await design.close();
+ // Native touch input, not synthetic mouse events, in an isolated phone context.
+ const phone=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+ await phone.goto('http://127.0.0.1:'+server.address().port+'/web/linear/index.html?view=designer');
+ const phoneSymbol=phone.locator('[data-role=boardSvgHost] [data-board-key]').first();
+ await phoneSymbol.waitFor();await phone.waitForLoadState('networkidle');await phoneSymbol.scrollIntoViewIfNeeded();
+ const touchBox=await phoneSymbol.boundingBox(),touchStart=await phoneSymbol.getAttribute('cx');
+ const session=await phone.context().newCDPSession(phone);
+ const touchPoint={x:touchBox.x+touchBox.width/2,y:touchBox.y+touchBox.height/2};
+ await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[touchPoint]});
+ await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:touchPoint.x+22,y:touchPoint.y+12}]});
+ await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ assert.notEqual(await phoneSymbol.getAttribute('cx'),touchStart,'finger drag moves physical station on phone');
+ await phone.close();
 
  assert.deepEqual(errors,[]);console.log('Browser: map editor tap-placement, autosave, reload, discard, original geometry, route overlays, mobile and feed regression PASS');
 }finally{await browser.close();await new Promise(r=>server.close(r));}
