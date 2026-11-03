@@ -442,18 +442,10 @@ try{
  await page.locator('[data-role=boardMove]').check();
  const beforePhysicalStop=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.stops.find(s=>s.id==='original-000'));
 
- await page.evaluate(()=>{
-  window.__boardDragTrace=[];
-  const host=document.querySelector('[data-role=boardSvgHost]');
-  for(const name of ['pointerdown','pointermove','pointerup'])host.addEventListener(name,e=>{
-   window.__boardDragTrace.push({event:name,target:e.target.tagName,key:e.target.getAttribute?.('data-board-key'),
-    group:e.target.getAttribute?.('data-display-station'),label:e.target.getAttribute?.('data-board-label')});
-  },true);
- });
-
  const ledA=page.locator('[data-role=boardSvgHost] circle[data-board-key="quay:NSR:Quay:71132"]');
  const ledB=page.locator('[data-role=boardSvgHost] circle[data-board-key="quay:NSR:Quay:71134"]');
  const startA=Number(await ledA.getAttribute('cx')),startB=Number(await ledB.getAttribute('cx'));
+ await ledA.scrollIntoViewIfNeeded();
  const ledBox=await ledA.boundingBox();
  assert(ledBox&&ledBox.width>0);
  await page.mouse.move(ledBox.x+ledBox.width/2,ledBox.y+ledBox.height/2);
@@ -461,12 +453,6 @@ try{
  await page.mouse.move(ledBox.x+ledBox.width/2+35,ledBox.y+ledBox.height/2+12,{steps:4});
  await page.mouse.up();
 
- console.log('BOARD MOVE DIAGNOSTIC',JSON.stringify(await page.evaluate(()=>({
-  enabled:document.querySelector('[data-role=boardMove]').checked,
-  editorShown:!document.querySelector('#networkEditor').hidden,
-  pointerEvents:window.__boardDragTrace,
-  layouts:JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.physicalBoardLayouts||null
- }))));
  const physicalMovedDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
  assert.equal(physicalMovedDraft.stops.length,100);
  assert.equal(physicalMovedDraft.stops.find(s=>s.id==='original-000').x,beforePhysicalStop.x);
@@ -484,6 +470,7 @@ try{
  await page.locator('[data-role=boardHeight]').press('Tab');
  assert.equal(Number(await ledA.getAttribute('cx')),movedA,'custom size retains its independent station placement');
  const caption=page.locator('[data-role=boardSvgHost] text[data-board-label="original-000"]');
+ await caption.scrollIntoViewIfNeeded();
  const captionBox=await caption.boundingBox();
  assert(captionBox&&captionBox.width>0);
  await page.mouse.move(captionBox.x+captionBox.width/2,captionBox.y+captionBox.height/2);
