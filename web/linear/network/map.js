@@ -1015,7 +1015,7 @@
   host.querySelectorAll('[data-act]').forEach(button=>button.onclick=()=>{try{switch(button.dataset.act){
    case'in':zoom(.75);break;case'out':zoom(1.33);break;case'fit':box=[0,0,913,1280];setBox();break;
    case'edit':editing=!editing;
-    if(!editing){placementMode=null;moveStopId=null;cancelSketch();}
+    if(!editing){placementMode=null;moveStopId=null;boardDrag=null;q('boardMove').checked=false;cancelSketch();}
     editorPanel.hidden=!editing;button.setAttribute('aria-pressed',editing);draw();fields();break;
    case'nextPlatformReview':{
     const pending=M.platformAudit(layout).pending;
