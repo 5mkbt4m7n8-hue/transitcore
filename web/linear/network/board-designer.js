@@ -4,13 +4,13 @@
  // the physical-board transaction/validation and per-format storage below it.
  root.InTransitBoardDesigner={create(host,api){
   const q=r=>host.querySelector(`[data-role="${r}"]`),panel=q('boardPanel');
-  let active=false,tool='move',selected=null,zoom=1;
+  let active=false,tool='move',selected=null,zoom=1,baseWidth=null;
   const nav=document.createElement('nav');nav.className='designer-nav';
   nav.setAttribute('aria-label','Kart eller tavledesign');
   nav.innerHTML='<button type="button" data-view="live" aria-pressed="true">Sanntidskart</button><button type="button" data-view="board" aria-pressed="false">Tavledesigner</button>';
   host.prepend(nav);
   const intro=document.createElement('section');intro.className='designer-intro';
-  intro.innerHTML='<h2>Lag din InTransit-tavle</h2><p>1. Velg størrelse. 2. Velg en stasjon eller linje. 3. Dra for å forme tavlen.</p><p>Du arbeider med en egen tegning for hvert tavleformat. Originalkart og holdeplasskoblinger beholdes.</p>';
+  intro.innerHTML='<h2>Lag din InTransit-tavle</h2><p><a href="studio.html">Åpne Map Studio · lag nye kart og linjer</a></p><p>1. Velg størrelse. 2. Velg en stasjon eller linje. 3. Dra for å forme tavlen.</p><p>Du arbeider med en egen tegning for hvert tavleformat. Originalkart og holdeplasskoblinger beholdes.</p>';
   panel.querySelector('summary').after(intro);
   const controls=panel.querySelector('.map-board-controls');
   const primary=document.createElement('div');primary.className='designer-primary';
@@ -85,12 +85,12 @@
   function decorate(){
    if(!active)return;
    const svg=board.querySelector('svg');
-   if(svg){const vb=svg.viewBox.baseVal;svg.style.width=Math.max(80,Math.min(board.clientWidth-24,innerHeight*.70*vb.width/vb.height))*zoom+'px';svg.style.maxWidth='none';svg.style.maxHeight='none';}
+   if(svg){const vb=svg.viewBox.baseVal;if(baseWidth===null)baseWidth=Math.max(80,Math.min(board.clientWidth-24,innerHeight*.70*vb.width/vb.height));svg.style.width=baseWidth*zoom+'px';svg.style.maxWidth='none';svg.style.maxHeight='none';}
    board.querySelectorAll('[data-selected]').forEach(n=>n.removeAttribute('data-selected'));
    if(selected)board.querySelectorAll('['+selected.attribute+']').forEach(n=>{if(n.getAttribute(selected.attribute)===selected.value)n.dataset.selected='true';});
    if(tool==='route')board.querySelectorAll('[data-board-route-path]').forEach(n=>{n.style.display=n.dataset.boardRoutePath===q('boardPath').value?'':'none';});
   }
-  root.addEventListener('resize',()=>decorate());
+  root.addEventListener('resize',()=>{baseWidth=null;decorate();});
   return {enter,decorate,isActive:()=>active};
  }};
 })(globalThis);

@@ -82,8 +82,12 @@
     lastBoardResult=result;
     boardRouteControls();
     q('boardFollow').checked=B.currentProfile(layout,boardSettings).followStations===true;
-    q('boardSvgHost').innerHTML=result.svg.replace(/^<\?xml[^>]*>\s*/,'');
+    // Replacing the SVG momentarily collapses the scrollable surface. Retain
+    // the viewport across redraws, including a click with no actual movement.
+    const surface=q('boardSvgHost'),left=surface.scrollLeft,top=surface.scrollTop;
+    surface.innerHTML=result.svg.replace(/^<\?xml[^>]*>\s*/,'');
     designer?.decorate();
+    surface.scrollLeft=left;surface.scrollTop=top;
     q('boardSvgHost').classList.toggle('map-board-move-active',editing&&q('boardMove').checked);
     q('boardSvgHost').classList.toggle('map-board-route-active',editing&&q('boardRouteEdit').checked);
     q('boardMetrics').textContent=boardSettings.widthCm+' × '+boardSettings.heightCm+

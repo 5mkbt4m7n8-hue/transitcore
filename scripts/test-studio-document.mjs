@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url),D=require('../web/linear/network/studio-document.js'),source=require('../web/linear/network/trondheim-layout.json');
+const original=JSON.stringify(source),copy=D.fromTrondheim(source),h=D.history(copy);
+assert.equal(copy.artwork.stops.length,100);
+assert.deepEqual(copy.bindings['stop-0'].sourceBindings,source.stops[0].bindings);
+assert(copy.bindings['stop-0'].quayIds.includes('NSR:Quay:71132'));
+const bindings=JSON.stringify(copy.bindings);
+h.change(d=>{d.artwork.stops[0].x+=10;d.artwork.stops[0].name='Eget navn';d.artwork.lines[0].points[0].x+=5;});
+assert.equal(JSON.stringify(source),original,'canonical source stays untouched');
+assert.equal(JSON.stringify(h.get().bindings),bindings,'artwork edits preserve bindings');
+h.undo();assert.deepEqual(h.get(),copy);h.redo();assert.notDeepEqual(h.get(),copy);
+h.undo();h.change(d=>d.title='Ny gren');assert.equal(h.canRedo(),false);
+const blank=D.blank(),fresh=D.history(blank);
+fresh.change(d=>{d.artwork.lines.push({id:'l',name:'Linje <1>',color:'#218967',width:6,visible:true,locked:false,points:[{x:20,y:30},{x:80,y:90}]});d.artwork.stops.push({id:'s',name:'A & B <C>',x:20,y:30,labelDx:12,labelDy:-12,lineIds:['l'],visible:true,locked:false});});
+assert.deepEqual(D.validate(JSON.parse(JSON.stringify(fresh.get()))),fresh.get());
+assert.match(D.svg(fresh.get()),/A &amp; B &lt;C&gt;/);
+const before=fresh.get();assert.throws(()=>fresh.change(d=>d.artwork.stops[0].x=Infinity));assert.deepEqual(fresh.get(),before,'rejected edits are atomic');
+for(const mutate of [d=>d.artwork.stops.push({...d.artwork.stops[0]}),d=>d.artwork.lines[0].color='url(evil)',d=>d.artwork.stops[0].lineIds=['missing'],d=>d.bindings.unknown={source:'trondheim',sourceId:'x',quayIds:[]}]){const bad=structuredClone(before);mutate(bad);assert.throws(()=>D.validate(bad));}
+console.log('Studio document: creation, history, import validation, SVG and canonical isolation passed');
