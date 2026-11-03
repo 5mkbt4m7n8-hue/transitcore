@@ -2,18 +2,18 @@
  'use strict';
  const D=InTransitStudioDocument,$=id=>document.getElementById(id),ns='http://www.w3.org/2000/svg',key='intransit-artwork-v1';
  let initial=D.blank(),warning='';try{const saved=localStorage.getItem(key);if(saved)initial=D.validate(JSON.parse(saved));}catch{warning='Kunne ikke gjenåpne lokal kopi. Åpne en lagret prosjektfil.';}
- let history=D.history(initial),doc=history.get(),selected=null,selection=[],endpoint=null,extension=null,tool='select',draft=[],hover=null,gesture=null,space=false,serial=Date.now(),camera={x:0,y:0,k:1};
+ let history=D.history(initial),doc=history.get(),selected=null,selection=[],endpoint=null,extension=null,tool='select',draft=[],hover=null,gesture=null,pendingStation=null,ledDetailsOpen=false,space=false,serial=Date.now(),camera={x:0,y:0,k:1};
  const canvas=$('canvas'),stage=$('stage');
  const make=(tag,attrs={},text)=>{const n=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);if(text!==undefined)n.textContent=text;return n;};
  const all=()=>[...doc.artwork.lines,...doc.artwork.stops],object=()=>all().find(o=>o.id===selected),isLine=o=>o&&Array.isArray(o.points),id=prefix=>prefix+'-'+(++serial);
  const marked=()=>all().filter(o=>selection.includes(o.id));
- function selectOnly(value){selected=value;selection=value?[value]:[];endpoint=null;}
- function choose(value,add=false){endpoint=null;if(!add){selectOnly(value);return;}if(!value)return;if(selection.includes(value))selection=selection.filter(id=>id!==value);else selection.push(value);selected=selection.at(-1)||null;}
+ function selectOnly(value){pendingStation=null;selected=value;selection=value?[value]:[];endpoint=null;}
+ function choose(value,add=false){pendingStation=null;endpoint=null;if(!add){selectOnly(value);return;}if(!value)return;if(selection.includes(value))selection=selection.filter(id=>id!==value);else selection.push(value);selected=selection.at(-1)||null;}
  function cancelDraft(){draft=[];hover=null;extension=null;}
  function pruneSelection(){selection=selection.filter(id=>all().some(o=>o.id===id));selected=selection.includes(selected)?selected:selection.at(-1)||null;endpoint=null;}
  const status=s=>$('status').textContent=s;
  function persist(){try{localStorage.setItem(key,JSON.stringify(doc));status('Lagret på denne enheten');}catch{status('Lokal lagring er utilgjengelig. Bruk Lagre prosjekt.');}}
- function commit(fn){history.change(fn);doc=history.get();selection=selection.filter(id=>all().some(o=>o.id===id));selected=selection.includes(selected)?selected:selection.at(-1)||null;if(endpoint&&!selection.includes(endpoint.id))endpoint=null;persist();render();}
+ function commit(fn){pendingStation=null;history.change(fn);doc=history.get();selection=selection.filter(id=>all().some(o=>o.id===id));selected=selection.includes(selected)?selected:selection.at(-1)||null;if(endpoint&&!selection.includes(endpoint.id))endpoint=null;persist();render();}
  function view(){canvas.setAttribute('viewBox',`${camera.x} ${camera.y} ${stage.clientWidth/camera.k} ${stage.clientHeight/camera.k}`);$('zoom').textContent=Math.round(camera.k*100)+' %';}
  function fit(){camera.k=Math.max(.05,Math.min((stage.clientWidth-64)/doc.width,(stage.clientHeight-64)/doc.height));camera.x=(doc.width-stage.clientWidth/camera.k)/2;camera.y=(doc.height-stage.clientHeight/camera.k)/2;view();}
  function zoom(f,x=stage.clientWidth/2,y=stage.clientHeight/2){const k=Math.max(.05,Math.min(6,camera.k*f));camera.x+=x/camera.k-x/k;camera.y+=y/camera.k-y/k;camera.k=k;view();draw();}
@@ -33,11 +33,12 @@
   }
   for(const s of doc.artwork.stops.filter(s=>s.visible)){
    if(selection.includes(s.id))nodes.push(make('circle',{cx:s.x,cy:s.y,r:11,fill:'#bcdfcb','pointer-events':'none'}));
-   const shape=D.symbol(s),label=D.label(s);
-   nodes.push(make('rect',{x:s.x-shape.width/2,y:s.y-5,width:shape.width,height:10,rx:5,fill:shape.ring?'#203c32':'white',stroke:'#203c32','stroke-width':2,transform: 'rotate('+shape.angle+' '+s.x+' '+s.y+')','data-id':s.id}));
+   const label=D.label(s);
+   for(const part of D.stationShapes(doc,s))nodes.push(make(part.tag,{...part.attrs,'data-id':s.id}));
    nodes.push(make('text',{x:label.x,y:label.y,'text-anchor':label.anchor,transform:'rotate('+label.angle+' '+label.x+' '+label.y+')','font-family':'system-ui,sans-serif','font-size':12,fill:'#203c32','data-id':s.id,'data-label':'true'},s.name));
   }
   if(draft.length){const pts=[...draft,...(hover?[hover]:[])];nodes.push(make('polyline',{points:pts.map(p=>p.x+','+p.y).join(' '),fill:'none',stroke:extension?doc.artwork.lines.find(l=>l.id===extension.id).color:'#267a59','stroke-width':extension?doc.artwork.lines.find(l=>l.id===extension.id).width:6,'stroke-linejoin':'round','stroke-dasharray':'8 4','pointer-events':'none'}));draft.forEach(p=>handles.push(make('circle',{cx:p.x,cy:p.y,r:4/camera.k,'pointer-events':'none'})));}
+  if(pendingStation){for(const c of pendingStation.candidates)handles.push(make('circle',{cx:c.x,cy:c.y,r:9/camera.k,fill:'none',stroke:'#267a59','stroke-dasharray':'3 3','pointer-events':'none','data-snap-candidate':c.lineId}));handles.push(make('circle',{cx:pendingStation.p.x,cy:pendingStation.p.y,r:5/camera.k,fill:'#e08a3b','pointer-events':'none','data-snap-preview':'true'}));}
   // Selection decoration sits below every route, preserving each route's color.
   $('art').replaceChildren(...halos,...nodes);$('handles').replaceChildren(...handles);
   $('welcome').hidden=all().length>0||draft.length>0||tool==='pen'||tool==='stop';
@@ -87,6 +88,37 @@
   const count=numberField(details,'Totalt antall linjer',3,2,9),spacing=numberField(details,'Ny traséavstand',14,2,200),side=sideField(details,'Ny plassering');
   const b=document.createElement('button');b.textContent='Opprett parallelle linjer';b.disabled=o.locked;b.onclick=()=>attempt(d=>D.linkedParallel(d,o.id,Number(count.value),Number(spacing.value),side.value,id('group'),Array.from({length:Math.max(0,Math.min(9,Number(count.value))-1)},()=>id('line'))));details.append(b);const note=document.createElement('p');note.textContent='Beholder originalen og lager egne linjer med hver sin farge. Antall, avstand, side og felles form kan endres etterpå.';details.append(note);box.append(details);
  }
+ function finishStationPlacement(placement,ids,kind){
+  const {stop,p,create}=placement;try{pendingStation=null;tool='select';selectOnly(stop.id);commit(d=>{if(create)d.artwork.stops.push(structuredClone(stop));D.placeStation(d,stop.id,ids.length?p:snap(p),ids,kind);});if(create){const input=document.querySelector('#properties input');input.focus({preventScroll:true});input.select();}}
+  catch(e){pendingStation=placement;status(e.message);render();}
+ }
+ function positionStation(stop,p,create=false,force=false){
+  p=bounded(p);const candidates=D.stationCandidates(doc,p,camera.k),placement={stop:structuredClone(stop),p,create,candidates};
+  if(candidates.length>1||force&&candidates.length){tool='select';selectOnly(stop.id);pendingStation=placement;status('Flere linjer er nær stoppet. Velg linje, trasé eller felles stasjon.');render();}
+  else finishStationPlacement(placement,candidates.map(c=>c.lineId),candidates.length?'line':'free');
+ }
+ function stationChoice(box){
+  const placement=pendingStation,heading=document.createElement('h3');heading.textContent='Velg hvor stoppet skal festes';box.append(heading);
+  const note=document.createElement('p');note.textContent='Flere linjer ligger nær pekeren. Ingen endring lagres før du velger. Esc avbryter.';box.append(note);
+  const groups=[...new Set(placement.candidates.map(c=>D.groupFor(doc,c.lineId)).filter(g=>g?.spine))],ids=[...new Set([...placement.candidates.map(c=>c.lineId),...groups.flatMap(g=>g.memberIds.filter(id=>all().find(o=>o.id===id).visible))])],checks=[];
+  for(const id of ids){const line=all().find(o=>o.id===id),button=document.createElement('button');button.textContent='Fest til '+line.name;button.onclick=()=>finishStationPlacement(placement,[id],'line');box.append(button);}
+  for(const g of groups){const visible=g.memberIds.filter(id=>all().find(o=>o.id===id).visible);if(visible.length<2)continue;const button=document.createElement('button');button.textContent='Følg felles trasé · '+visible.map(id=>all().find(o=>o.id===id).name).join(', ');button.onclick=()=>finishStationPlacement(placement,visible,'route');box.append(button);}
+  const common=document.createElement('details'),summary=document.createElement('summary');common.open=true;common.className='station-lines';summary.textContent='Felles stasjon';common.append(summary);
+  for(const id of ids){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.checked=true;label.append(input,document.createTextNode(all().find(o=>o.id===id).name));common.append(label);checks.push({id,input});}
+  const shared=document.createElement('button');shared.textContent='Felles stasjon på valgte linjer';const update=()=>shared.disabled=checks.filter(c=>c.input.checked).length<2;for(const c of checks)c.input.onchange=update;update();shared.onclick=()=>finishStationPlacement(placement,checks.filter(c=>c.input.checked).map(c=>c.id),'station');common.append(shared);box.append(common);
+  const free=document.createElement('button');free.textContent='Plasser fritt';free.onclick=()=>finishStationPlacement(placement,[],'free');box.append(free);const help=document.createElement('p');help.textContent='Fri plassering beholder eksisterende linje- og kildekoblinger. Bruk Løsne fra linjene for å fjerne linjekoblingene.';box.append(help);
+  const cancel=document.createElement('button');cancel.textContent='Avbryt plassering';cancel.onclick=()=>{pendingStation=null;selectOnly(placement.create?null:placement.stop.id);render();};box.append(cancel);
+ }
+ function stationProperties(box,s){
+  const note=document.createElement('p');note.textContent=s.lineIds.length?'Tilknyttede linjer: '+s.lineIds.map(id=>all().find(o=>o.id===id).name).join(', '):'Stoppet har ingen linjekobling.';box.append(note);
+  const attach=document.createElement('button');attach.textContent='Fest til linjer her';attach.disabled=s.locked;attach.onclick=()=>positionStation(s,s,false,true);box.append(attach);
+  const detach=document.createElement('button');detach.textContent='Løsne fra linjene';detach.disabled=s.locked||!s.lineIds.length;detach.onclick=()=>attempt(d=>D.detachStation(d,s.id));box.append(detach);
+  if(s.anchor&&['double','capsule','leds'].includes(s.symbol)){const fit=document.createElement('button');fit.textContent='Tilpass symbolet til linjene';fit.disabled=s.locked;fit.onclick=()=>attempt(d=>{d.artwork.stops.find(o=>o.id===s.id).autoSymbol=true;D.refreshStations(d);});box.append(fit);}
+  if(s.symbol==='leds'){
+   const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Separate LED-punkter';details.dataset.ledDetails='true';details.open=ledDetailsOpen;details.append(summary);const help=document.createElement('p');help.textContent='Ett grafisk punkt per linje. Velg eventuell eksisterende Quay-kilde for hvert punkt. Kildene beholdes separat; editoren viser ikke sanntidstilstand.';details.append(help);
+   for(const led of (s.leds||[]).filter(l=>s.lineIds.includes(l.lineId))){const label=document.createElement('label'),input=document.createElement('select'),name=all().find(o=>o.id===led.lineId).name;label.textContent='LED-kilde for '+name;input.setAttribute('aria-label','LED-kilde for '+name);input.add(new Option('Ingen datakilde (grafisk punkt)',''));for(const source of doc.artwork.stops)for(const quayId of doc.bindings[source.id]?.quayIds||[])input.add(new Option(source.name+' · '+quayId,JSON.stringify([source.id,quayId])));input.value=led.sourceStopId?JSON.stringify([led.sourceStopId,led.quayId]):'';input.disabled=s.locked;input.onchange=()=>attempt(d=>D.setLedSource(d,s.id,led.id,...(input.value?JSON.parse(input.value):[null,null])));label.append(input);details.append(label);}box.append(details);
+  }
+ }
  function multiProperties(box){
   const objects=marked(),lines=objects.filter(isLine),locked=objects.some(o=>o.locked),p=document.createElement('p');p.textContent=objects.length+' objekter valgt. Ctrl-klikk legger til eller fjerner fra utvalget.';box.append(p);
   if(lines.length===objects.length){
@@ -97,7 +129,7 @@
   const del=document.createElement('button');del.textContent='Slett markerte';del.disabled=locked;del.onclick=remove;box.append(del);if(locked){const note=document.createElement('p');note.textContent='Utvalget inneholder låste lag. Lås opp eller fjern dem fra utvalget for å redigere samlet.';box.append(note);}
  }
  function properties(){
-  const box=$('properties');box.replaceChildren();const o=object();let target=box;if(extension){const p=document.createElement('p');p.textContent='Du fortsetter den valgte linjen. Klikk nye punkter. Enter lagrer, Esc avbryter, og Backspace fjerner siste nye punkt.';box.append(p);return;}if(selection.length>1){multiProperties(box);return;}
+  const box=$('properties'),ledDetails=box.querySelector('[data-led-details]');if(ledDetails)ledDetailsOpen=ledDetails.open;box.replaceChildren();box.dataset.stationChoice=String(!!pendingStation);if(pendingStation){stationChoice(box);return;}const o=object();let target=box;if(extension){const p=document.createElement('p');p.textContent='Du fortsetter den valgte linjen. Klikk nye punkter. Enter lagrer, Esc avbryter, og Backspace fjerner siste nye punkt.';box.append(p);return;}if(selection.length>1){multiProperties(box);return;}
   if(!o){artboard(box);const p=document.createElement('p');p.textContent=tool==='pen'?'Klikk for hvert knekkpunkt. Enter fullfører linjen. Esc avbryter.':tool==='stop'?'Klikk på kartet for å plassere et stopp. Gi stoppet navn her.':'Velg et stopp eller en linje i kartet eller laglisten. Dra for å flytte. Dobbeltklikk en valgt linje for å legge til et punkt.';box.append(p);return;}
   function field(label,type,value,fn){const l=document.createElement('label'),i=document.createElement('input');l.textContent=label;i.type=type;i.value=value;i.disabled=o.locked;i.maxLength=200;i.onchange=()=>{try{commit(d=>fn(d.artwork[isLine(o)?'lines':'stops'].find(v=>v.id===o.id),i.value));}catch(e){status(e.message);render();}};l.append(i);target.append(l);return i;}
   field(isLine(o)?'Linjenavn':'Stoppnavn','text',o.name,(n,v)=>n.name=v);
@@ -106,12 +138,12 @@
    choice('Navneretning','custom',[['custom','Egen vinkel'],['horizontal','Vannrett · 0°'],['up','Skrått opp · −45°'],['down','Skrått ned · 45°'],['vertical','Loddrett · 90°'],['right','Vannrett til høyre'],['left','Vannrett til venstre']],(n,v)=>{if(v!=='custom')D.labelPreset(n,v);});
    field('Navnevinkel (0–360°)','number',o.labelAngle||0,(n,v)=>n.labelAngle=Number(v));
    choice('Navneside',o.labelSide||'right',[['right','Høyre'],['left','Venstre']],(n,v)=>{n.labelSide=v;n.labelDx=(v==='left'?-1:1)*Math.abs(n.labelDx||12);});
-   choice('Stoppsymbol',o.symbol||'circle',[['circle','Sirkel'],['ring','Fylt sirkel'],['capsule','Felles stopp']],(n,v)=>n.symbol=v);
-   if(o.symbol==='capsule'){field('Bredde over linjene','number',o.span||30,(n,v)=>n.span=Number(v));field('Symbolvinkel (0–360°)','number',o.symbolAngle||0,(n,v)=>n.symbolAngle=Number(v));}
+   choice('Stoppsymbol',o.symbol||'circle',[['circle','Sirkel'],['ring','Fylt sirkel'],['double','Dobbelt stopp'],['capsule','Felles stopp'],['leds','Felles LED-punkter']],(n,v,d)=>D.setStationSymbol(d,n.id,v));
+   if(['capsule','double','leds'].includes(o.symbol)){field('Bredde over linjene','number',o.span||30,(n,v)=>{n.span=Number(v);n.autoSymbol=false;});field('Symbolvinkel (0–360°)','number',o.symbolAngle||0,(n,v)=>{n.symbolAngle=Number(v);n.autoSymbol=false;});}stationProperties(box,o);
    const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Nøyaktig plassering';details.append(summary);box.append(details);target=details;
-   field('Navneavstand vannrett','number',o.labelDx,(n,v)=>n.labelDx=Number(v));field('Navneavstand loddrett','number',o.labelDy,(n,v)=>n.labelDy=Number(v));field('X','number',o.x,(n,v)=>n.x=Number(v));field('Y','number',o.y,(n,v)=>n.y=Number(v));target=box;
+   field('Navneavstand vannrett','number',o.labelDx,(n,v)=>n.labelDx=Number(v));field('Navneavstand loddrett','number',o.labelDy,(n,v)=>n.labelDy=Number(v));field('X','number',o.x,(n,v)=>{n.x=Number(v);delete n.anchor;});field('Y','number',o.y,(n,v)=>{n.y=Number(v);delete n.anchor;});target=box;
   }
-  function choice(text,value,options,fn){const l=document.createElement('label'),i=document.createElement('select');l.textContent=text;i.setAttribute('aria-label',text);for(const [v,t]of options)i.add(new Option(t,v));i.value=value;i.disabled=o.locked;i.onchange=()=>commit(d=>fn(d.artwork.stops.find(n=>n.id===o.id),i.value));l.append(i);target.append(l);}
+  function choice(text,value,options,fn){const l=document.createElement('label'),i=document.createElement('select');l.textContent=text;i.setAttribute('aria-label',text);for(const [v,t]of options)i.add(new Option(t,v));i.value=value;i.disabled=o.locked;i.onchange=()=>commit(d=>fn(d.artwork.stops.find(n=>n.id===o.id),i.value,d));l.append(i);target.append(l);}
   if(isLine(o)){
    const g=D.groupFor(doc,o.id);if(g)groupProperties(box,g);else parallelCreator(box,o);
    if(tool==='select'&&endpoint?.id===o.id){const b=document.createElement('button');b.textContent='Fortsett linjen';b.disabled=o.locked;b.onclick=startExtension;box.append(b);}else{const p=document.createElement('p');p.textContent='Velg et av de store endepunktene for å fortsette linjen.';box.append(p);}
@@ -139,7 +171,7 @@
   if(e.button!==0&&e.button!==1)return;e.preventDefault();canvas.focus({preventScroll:true});const p=point(e),hit=e.target.closest('[data-id]');
   if(tool==='hand'||space||e.button===1){gesture={kind:'pan',start:{x:e.clientX,y:e.clientY},camera:{...camera}};}
   else if(tool==='pen'){const q=snap(p,draft.at(-1));if(!draft.length||Math.hypot(q.x-draft.at(-1).x,q.y-draft.at(-1).y)>1)draft.push(q);hover=null;render();return;}
-  else if(tool==='stop'){let q=snap(p),line=doc.artwork.lines.filter(l=>l.visible&&!l.locked).map(l=>({l,p:nearest(q,l)})).sort((a,b)=>a.p.dist-b.p.dist)[0];const attached=line&&line.p.dist<14/camera.k;if(attached)q={x:line.p.x,y:line.p.y};const s={id:id('stop'),name:'Nytt stopp',...q,labelDx:12,labelDy:-12,lineIds:attached?[line.l.id]:[],visible:true,locked:false};selectOnly(s.id);tool='select';commit(d=>d.artwork.stops.push(s));const input=document.querySelector('#properties input');input.focus({preventScroll:true});input.select();return;}
+  else if(tool==='stop'){const s={id:id('stop'),name:'Nytt stopp',...bounded(p),labelDx:12,labelDy:-12,lineIds:[],visible:true,locked:false};positionStation(s,p,true);return;}
   else{
    // Wide transparent hit areas and endpoint handles can overlap another route.
    // Resolve route selection by distance to the actual path, with stable paint-order ties.
@@ -161,27 +193,30 @@
   if(!gesture){if(tool==='pen'&&draft.length){hover=snap(point(e),draft.at(-1));draw();}return;}
   if(gesture.kind==='pan'){camera.x=gesture.camera.x-(e.clientX-gesture.start.x)/camera.k;camera.y=gesture.camera.y-(e.clientY-gesture.start.y)/camera.k;view();return;}
   const p=point(e),g=gesture,o=g.original;let dx=p.x-g.start.x,dy=p.y-g.start.y;
-  if(g.kind==='stop'||g.kind==='vertex'){const origin=g.kind==='vertex'?o.points[g.vertex]:o,q=snap({x:origin.x+dx,y:origin.y+dy});dx=q.x-origin.x;dy=q.y-origin.y;}
+  if(g.kind==='stop'){g.raw=bounded({x:o.x+dx,y:o.y+dy});g.moved ||= Math.hypot(dx,dy)*camera.k>=3;if(!g.moved)return;doc=structuredClone(g.before);const n=all().find(v=>v.id===o.id),candidates=D.stationCandidates(doc,g.raw,camera.k);Object.assign(n,candidates.length===1?{x:candidates[0].x,y:candidates[0].y}:g.raw);delete n.anchor;draw();return;}
+  if(g.kind==='vertex'){const origin=g.kind==='vertex'?o.points[g.vertex]:o,q=snap({x:origin.x+dx,y:origin.y+dy});dx=q.x-origin.x;dy=q.y-origin.y;}
   const previous=doc;doc=structuredClone(g.before);const n=all().find(v=>v.id===o.id);
   try{
   if(g.kind==='group'){
    const points=g.objects.flatMap(o=>isLine(o)?o.points:[o]);dx=Math.max(-Math.min(...points.map(p=>p.x)),Math.min(doc.width-Math.max(...points.map(p=>p.x)),dx));dy=Math.max(-Math.min(...points.map(p=>p.y)),Math.min(doc.height-Math.max(...points.map(p=>p.y)),dy));D.translate(doc,g.objects.map(o=>o.id),dx,dy);
   }
   else if(g.kind==='label'){n.labelDx=o.labelDx+dx;n.labelDy=o.labelDy+dy;}
-  else if(g.kind==='line'){dx=Math.max(-Math.min(...o.points.map(p=>p.x)),Math.min(doc.width-Math.max(...o.points.map(p=>p.x)),dx));dy=Math.max(-Math.min(...o.points.map(p=>p.y)),Math.min(doc.height-Math.max(...o.points.map(p=>p.y)),dy));n.points=o.points.map(p=>({x:p.x+dx,y:p.y+dy}));}
+  else if(g.kind==='line'){dx=Math.max(-Math.min(...o.points.map(p=>p.x)),Math.min(doc.width-Math.max(...o.points.map(p=>p.x)),dx));dy=Math.max(-Math.min(...o.points.map(p=>p.y)),Math.min(doc.height-Math.max(...o.points.map(p=>p.y)),dy));D.translate(doc,[o.id],dx,dy);}
   else if(g.kind==='vertex'){const points=structuredClone(o.points);points[g.vertex]=bounded({x:o.points[g.vertex].x+dx,y:o.points[g.vertex].y+dy});D.setLinePoints(doc,o.id,points);}
   else Object.assign(n,bounded({x:o.x+dx,y:o.y+dy}));D.validate(doc);
   }catch(e){doc=previous;status(e.message);return;}draw();
  });
- function end(e,cancel=false){if(!gesture)return;const g=gesture;gesture=null;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(g.kind==='pan')return;const result=doc;doc=g.before;if(!cancel){try{commit(d=>Object.assign(d,result));}catch(err){status(err.message);doc=history.get();render();}}else render();}
+ function end(e,cancel=false){if(!gesture)return;const g=gesture;gesture=null;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(g.kind==='pan')return;if(g.kind==='stop'){doc=g.before;if(!cancel&&g.moved)positionStation(g.original,g.raw);else render();return;}const result=doc;doc=g.before;if(!cancel){try{commit(d=>Object.assign(d,result));}catch(err){status(err.message);doc=history.get();render();}}else render();}
  canvas.addEventListener('pointerup',e=>end(e));canvas.addEventListener('pointercancel',e=>end(e,true));
  canvas.addEventListener('dblclick',e=>{if(e.ctrlKey||e.metaKey||e.shiftKey||space||tool!=='select'||selection.length!==1)return;const o=object();if(!isLine(o)||o.locked||e.target.dataset.id!==o.id||e.target.hasAttribute('data-vertex'))return;const p=nearest(point(e),o),points=structuredClone(o.points);points.splice(p.index,0,{x:p.x,y:p.y});attempt(d=>D.setLinePoints(d,o.id,points));});
  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
  document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));$('start').onclick=()=>setTool('pen');$('finish').onclick=finish;$('cancel').onclick=()=>{cancelDraft();setTool('select');};
- function travel(redo){cancelDraft();if(tool==='pen')tool='select';history[redo?'redo':'undo']();doc=history.get();pruneSelection();persist();render();}
+ function travel(redo){pendingStation=null;cancelDraft();if(tool==='pen')tool='select';history[redo?'redo':'undo']();doc=history.get();pruneSelection();persist();render();}
  $('undo').onclick=()=>travel(false);$('redo').onclick=()=>travel(true);$('fit').onclick=fit;$('in').onclick=()=>zoom(1.25);$('out').onclick=()=>zoom(.8);$('snap').onchange=draw;
  $('title').onchange=e=>commit(d=>d.title=e.target.value);
  document.addEventListener('keydown',e=>{
+  if(pendingStation&&e.key==='Escape'){e.preventDefault();const placement=pendingStation;selectOnly(placement.create?null:placement.stop.id);render();return;}
+
   if(e.target.closest('input,select,textarea')||e.target.isContentEditable||$('newDialog').open)return;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();travel(e.shiftKey);return;}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();travel(true);return;}
@@ -196,5 +231,5 @@
  $('save').onclick=()=>{download('intransit-prosjekt.json',JSON.stringify(doc,null,2),'application/json');status('Prosjektfil lastet ned');};$('export').onclick=()=>download('intransit-kart.svg',D.svg(doc),'image/svg+xml');$('open').onclick=()=>$('file').click();$('file').onchange=async()=>{const f=$('file').files[0];if(!f)return;try{if(f.size>5e6)throw Error('Prosjektfilen er for stor');const next=D.validate(JSON.parse(await f.text()));replace(next);status('Prosjekt åpnet');}catch(e){status('Kunne ikke åpne prosjekt: '+e.message);}$('file').value='';};
  new ResizeObserver(()=>view()).observe(stage);render();fit();if(warning)status(warning);
  // Read-only state for browser regressions; mutations always use the UI.
- window.InTransitStudio={snapshot:()=>structuredClone({doc,camera,selected,selection,endpoint,extension,tool,draft})};
+ window.InTransitStudio={snapshot:()=>structuredClone({doc,camera,selected,selection,endpoint,extension,tool,draft,pendingStation})};
 })();

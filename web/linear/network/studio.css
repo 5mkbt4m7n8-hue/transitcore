@@ -3,3 +3,5 @@
 aside{overflow:auto}aside section{flex-shrink:0}.layers{flex:0 0 auto;min-height:0;max-height:40vh}aside summary{cursor:pointer;font-weight:600}aside details label{margin-top:12px}aside details button{margin:4px 0}#properties details{padding:12px 0}
 
 .swatches{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}.swatches button{width:27px;height:27px;padding:0;border:2px solid white;box-shadow:0 0 0 1px #9aada3}.swatches button[aria-pressed=true]{outline:2px solid #174f3c;outline-offset:2px}#handles circle[data-endpoint=true]{stroke-width:3}#handles circle[data-active=true]{fill:#b5e3cd;stroke:#103d2a}
+
+.station-lines label{display:flex;align-items:center;gap:8px}.station-lines input[type=checkbox]{width:auto}#properties[data-station-choice=true]>button{display:block;margin:6px 0;max-width:100%}.station-lines button{max-width:100%}

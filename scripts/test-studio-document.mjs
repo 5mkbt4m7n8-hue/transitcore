@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import './test-studio-phase-two.mjs';
+import './test-studio-phase-three.mjs';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),D=require('../web/linear/network/studio-document.js'),source=require('../web/linear/network/trondheim-layout.json');
 const original=JSON.stringify(source),copy=D.fromTrondheim(source),h=D.history(copy);

@@ -16,13 +16,14 @@
   for(const s of d.artwork.stops){
    if(s.labelAngle!==undefined&&(!Number.isFinite(s.labelAngle)||s.labelAngle<0||s.labelAngle>360))throw Error('Navnevinkel må være mellom 0 og 360');
    if(s.labelSide!==undefined&&!['left','right'].includes(s.labelSide))throw Error('Ugyldig navneside');
-   if(s.symbol!==undefined&&!['circle','ring','capsule'].includes(s.symbol))throw Error('Ugyldig stoppsymbol');
+   if(s.symbol!==undefined&&!['circle','ring','double','capsule','leds'].includes(s.symbol))throw Error('Ugyldig stoppsymbol');
    if(s.span!==undefined&&(!Number.isFinite(s.span)||s.span<10||s.span>500))throw Error('Ugyldig symbolbredde');
    if(s.symbolAngle!==undefined&&(!Number.isFinite(s.symbolAngle)||s.symbolAngle<0||s.symbolAngle>360))throw Error('Ugyldig symbolvinkel');
   }
   if(!d.bindings||typeof d.bindings!=='object'||Array.isArray(d.bindings))throw Error('Ugyldige kildekoblinger');
   for(const [id,b] of Object.entries(d.bindings))if(!ids.has(id)||!b||b.source!=='trondheim'||typeof b.sourceId!=='string'||!Array.isArray(b.quayIds)||!b.quayIds.every(q=>typeof q==='string'))throw Error('Ugyldig kildekobling');
   validateGroups(d,point);
+  validateStations(d);
   return d;
  }
  function fromTrondheim(source){
@@ -42,7 +43,7 @@
    if(!s.locked){s.labelDx=best.c.dx;s.labelDy=best.c.dy;s.labelSide=best.c.side;}used.push(best.box);
   }
  }
- function symbol(s){return {width:s.symbol==='capsule'?(s.span||30):10,height:10,angle:s.symbolAngle||0,ring:s.symbol==='ring'};}
+ function symbol(s){return {width:['capsule','leds','double'].includes(s.symbol)?(s.span||(s.symbol==='double'?24:30)):10,height:10,angle:s.symbolAngle||0,ring:s.symbol==='ring'};}
  // Copies are artwork only: they receive neither source bindings nor new stop identities.
  function parallel(d,sourceId,count,spacing,ids){
   const source=d.artwork.lines.find(l=>l.id===sourceId);if(!source||source.locked||!Number.isInteger(count)||count<1||count>8||!Number.isFinite(spacing)||spacing<2||spacing>200||ids.length!==count)throw Error('Velg 1–8 kopier og avstand 2–200');
@@ -56,13 +57,13 @@
  function editableLines(d,ids){const lines=ids.map(id=>d.artwork.lines.find(l=>l.id===id));if(!ids.length||new Set(ids).size!==ids.length||lines.some(l=>!l||l.locked))throw Error('Velg ulåste linjer');return lines;}
  function extend(d,id,end,points){const [line]=editableLines(d,[id]);if(!['start','end'].includes(end)||!Array.isArray(points)||!points.length)throw Error('Velg et endepunkt og tegn videre');const g=groupFor(d,id);if(g?.kind==='joined'&&g.joins.some(j=>j.a===id&&j.aEnd===end||j.b===id&&j.bEnd===end))throw Error('Dette endepunktet er koblet. Løsne koblingen først.');const anchor=end==='start'?line.points[0]:line.points.at(-1);let last=anchor;for(const p of points){if(p.x===last.x&&p.y===last.y)throw Error('To linjepunkter kan ikke ligge oppå hverandre');last=p;}setLinePoints(d,id,end==='start'?[...clone(points).reverse(),...line.points]:[...line.points,...clone(points)]);}
  function styleLines(d,ids,patch){const lines=editableLines(d,ids);if(Object.keys(patch).some(k=>!['color','width'].includes(k)))throw Error('Ugyldig linjeegenskap');for(const l of lines)Object.assign(l,patch);validate(d);}
- function removeObjects(d,ids){const objects=[...d.artwork.lines,...d.artwork.stops];if(!ids.length||ids.some(id=>{const o=objects.find(o=>o.id===id);return !o||o.locked;}))throw Error('Lås opp de markerte lagene før sletting');const set=new Set(ids);for(const g of d.artwork.groups||[])if(g.memberIds.some(id=>set.has(id)))detachGroup(d,g.id);d.artwork.lines=d.artwork.lines.filter(l=>!set.has(l.id));d.artwork.stops=d.artwork.stops.filter(s=>!set.has(s.id));for(const s of d.artwork.stops)s.lineIds=s.lineIds.filter(id=>!set.has(id));for(const id of set)delete d.bindings[id];validate(d);}
+ function removeObjects(d,ids){const objects=[...d.artwork.lines,...d.artwork.stops];if(!ids.length||ids.some(id=>{const o=objects.find(o=>o.id===id);return !o||o.locked;}))throw Error('Lås opp de markerte lagene før sletting');const set=new Set(ids);for(const g of d.artwork.groups||[])if(g.memberIds.some(id=>set.has(id)))detachGroup(d,g.id);d.artwork.lines=d.artwork.lines.filter(l=>!set.has(l.id));d.artwork.stops=d.artwork.stops.filter(s=>!set.has(s.id));for(const s of d.artwork.stops){s.lineIds=s.lineIds.filter(id=>!set.has(id));if(s.anchor&&set.has(s.anchor.lineId))delete s.anchor;if(s.leds){s.leds=s.leds.filter(l=>!set.has(l.lineId));for(const led of s.leds)if(set.has(led.sourceStopId)){delete led.sourceStopId;delete led.quayId;}}}for(const id of set)delete d.bindings[id];refreshStations(d);validate(d);}
  function offsetPoints(points,distance){
   const normals=points.slice(1).map((p,i)=>{const a=points[i],dx=p.x-a.x,dy=p.y-a.y,len=Math.hypot(dx,dy);if(!len)throw Error('Fjern doble linjepunkter først');return {x:-dy/len,y:dx/len};});
   const result=points.map((p,i)=>{const a=normals[Math.max(0,i-1)],b=normals[Math.min(normals.length-1,i)],den=1+a.x*b.x+a.y*b.y;if(den<.125)throw Error('For skarp sving for felles avstand');return {x:p.x+(a.x+b.x)/den*distance,y:p.y+(a.y+b.y)/den*distance};});
   for(let i=1;i<points.length;i++)if((result[i].x-result[i-1].x)*(points[i].x-points[i-1].x)+(result[i].y-result[i-1].y)*(points[i].y-points[i-1].y)<=1e-8)throw Error('For stor avstand ved en kort sving. Reduser avstanden.');return result;
  }
- function spaceLines(d,ids,spacing){const lines=editableLines(d,ids);if(ids.some(id=>groupFor(d,id)))throw Error('Juster den koblede traséen eller løsne gruppen først');if(lines.length<2||!Number.isFinite(spacing)||spacing<2||spacing>200)throw Error('Velg minst to linjer og avstand 2–200');const points=clone(lines[0].points);lines.slice(1).forEach((l,i)=>l.points=offsetPoints(points,spacing*(i+1)));validate(d);}
+ function spaceLines(d,ids,spacing){const lines=editableLines(d,ids);if(ids.some(id=>groupFor(d,id)))throw Error('Juster den koblede traséen eller løsne gruppen først');if(lines.length<2||!Number.isFinite(spacing)||spacing<2||spacing>200)throw Error('Velg minst to linjer og avstand 2–200');const points=clone(lines[0].points);lines.slice(1).forEach((l,i)=>l.points=offsetPoints(points,spacing*(i+1)));refreshStations(d);validate(d);}
  // Optional groups extend v1 documents without changing route or source identities.
  const groupFor=(d,id)=>(d.artwork.groups||[]).find(g=>g.memberIds.includes(id));
  const endPoint=(l,end)=>end==='start'?l.points[0]:l.points.at(-1);
@@ -89,7 +90,7 @@
  }
  function freeLines(d,ids){const lines=editableLines(d,ids);if(lines.length<2||ids.some(id=>groupFor(d,id)))throw Error('Velg minst to separate linjer. Løsne eksisterende grupper først.');return lines;}
  function addGroup(d,g){if((d.artwork.groups||[]).some(v=>v.id===g.id))throw Error('Gruppen finnes allerede');(d.artwork.groups??=[]).push(g);}
- function reflow(d,g){g.memberIds.forEach((id,i)=>{d.artwork.lines.find(l=>l.id===id).points=offsetPoints(g.spine,laneOffset(g,i));});}
+ function reflow(d,g){g.memberIds.forEach((id,i)=>{d.artwork.lines.find(l=>l.id===id).points=offsetPoints(g.spine,laneOffset(g,i));});refreshStations(d);}
  function groupLines(d,ids,groupId){freeLines(d,ids);addGroup(d,{id:groupId,kind:'visual',memberIds:[...ids]});validate(d);}
  function shareRoute(d,ids,spacing,side,groupId){const lines=freeLines(d,ids);const g={id:groupId,kind:'shared',memberIds:[...ids],generatedIds:[],spine:clone(lines[0].points),spacing,side};addGroup(d,g);reflow(d,g);validate(d);}
  function linkedParallel(d,sourceId,count,spacing,side,groupId,newIds){
@@ -101,7 +102,7 @@
  function updateParallel(d,groupId,count,spacing,side,newIds=[]){
   const g=(d.artwork.groups||[]).find(g=>g.id===groupId);if(!g||!['parallel','shared'].includes(g.kind))throw Error('Velg en felles trasé');editableLines(d,g.memberIds);
   const min=g.memberIds.length-g.generatedIds.length;if(!Number.isInteger(count)||count<Math.max(2,min)||count>9||newIds.length!==Math.max(0,count-g.memberIds.length))throw Error('Behold originalene og velg totalt 2–9 linjer');
-  const removed=g.memberIds.slice(count);if(removed.some(id=>!g.generatedIds.includes(id)||d.bindings[id]||d.artwork.stops.some(s=>s.lineIds.includes(id))))throw Error('Linjer med stopp eller kildekobling kan ikke fjernes her. Løsne først.');
+  const removed=g.memberIds.slice(count);if(removed.some(id=>!g.generatedIds.includes(id)||d.bindings[id]||d.artwork.stops.some(s=>s.lineIds.includes(id)||s.leds?.some(l=>l.lineId===id))))throw Error('Linjer med stopp eller kildekobling kan ikke fjernes her. Løsne først.');
   d.artwork.lines=d.artwork.lines.filter(l=>!removed.includes(l.id));g.memberIds=g.memberIds.slice(0,count);g.generatedIds=g.generatedIds.filter(id=>!removed.includes(id));
   const source=d.artwork.lines.find(l=>l.id===g.memberIds[0]),colors=['#e08a3b','#6e68bb','#cc5271','#218967'];
   newIds.forEach((id,i)=>{d.artwork.lines.push({...clone(source),id,name:source.name+' · '+(g.memberIds.length+1),color:colors[(g.memberIds.length-1)%colors.length]});g.memberIds.push(id);g.generatedIds.push(id);});
@@ -113,21 +114,64 @@
   const candidate=clone(d);addGroup(candidate,{id:'join-preview',kind:'joined',memberIds:[...ids],joins});try{validate(candidate);}catch{throw Error('Endepunktene må møtes i én åpen kjede uten forgrening eller løkke.');}return joins;
  }
  function joinLines(d,ids,groupId){const joins=joinPlan(d,ids);addGroup(d,{id:groupId,kind:'joined',memberIds:[...ids],joins});validate(d);}
- function detachGroup(d,groupId){const g=(d.artwork.groups||[]).find(g=>g.id===groupId);if(!g)throw Error('Gruppen finnes ikke');editableLines(d,g.memberIds);d.artwork.groups=d.artwork.groups.filter(g=>g.id!==groupId);if(!d.artwork.groups.length)delete d.artwork.groups;validate(d);}
+ function detachGroup(d,groupId){const g=(d.artwork.groups||[]).find(g=>g.id===groupId);if(!g)throw Error('Gruppen finnes ikke');editableLines(d,g.memberIds);for(const stop of d.artwork.stops)if(stop.anchor?.kind==='route'&&g.memberIds.includes(stop.anchor.lineId))stop.anchor.kind='station';d.artwork.groups=d.artwork.groups.filter(g=>g.id!==groupId);if(!d.artwork.groups.length)delete d.artwork.groups;validate(d);}
  function transformIds(d,ids){return [...new Set(ids.flatMap(id=>groupFor(d,id)?.memberIds||[id]))];}
  function setLinePoints(d,id,points){
   const [line]=editableLines(d,[id]),g=groupFor(d,id);if(g)editableLines(d,g.memberIds);
   if(g&&['parallel','shared'].includes(g.kind)){g.spine=offsetPoints(points,-laneOffset(g,g.memberIds.indexOf(id)));reflow(d,g);}
   else{line.points=clone(points);if(g?.kind==='joined')for(const j of g.joins){if(j.a===id){const l=d.artwork.lines.find(l=>l.id===j.b);Object.assign(endPoint(l,j.bEnd),endPoint(line,j.aEnd));}if(j.b===id){const l=d.artwork.lines.find(l=>l.id===j.a);Object.assign(endPoint(l,j.aEnd),endPoint(line,j.bEnd));}}}
-  validate(d);
+  refreshStations(d);validate(d);
  }
  function translate(d,ids,dx,dy){
   const targets=transformIds(d,ids),objects=[...d.artwork.lines,...d.artwork.stops].filter(o=>targets.includes(o.id));if(!Number.isFinite(dx)||!Number.isFinite(dy)||objects.length!==targets.length||objects.some(o=>o.locked))throw Error('Lås opp hele gruppen før flytting');
-  for(const o of objects){if(o.points)o.points=o.points.map(p=>({x:p.x+dx,y:p.y+dy}));else{o.x+=dx;o.y+=dy;}}
-  for(const g of d.artwork.groups||[])if(g.spine&&g.memberIds.some(id=>targets.includes(id)))g.spine=g.spine.map(p=>({x:p.x+dx,y:p.y+dy}));validate(d);
+  for(const o of objects){if(o.points)o.points=o.points.map(p=>({x:p.x+dx,y:p.y+dy}));else{o.x+=dx;o.y+=dy;if(o.anchor&&!targets.includes(o.anchor.lineId))delete o.anchor;}}
+  for(const g of d.artwork.groups||[])if(g.spine&&g.memberIds.some(id=>targets.includes(id)))g.spine=g.spine.map(p=>({x:p.x+dx,y:p.y+dy}));refreshStations(d);validate(d);
+ }
+ // Station snapping uses raw drawing coordinates and a tolerance in screen pixels.
+ function project(p,line){let best=null,total=0;const lengths=line.points.slice(1).map((b,i)=>Math.hypot(b.x-line.points[i].x,b.y-line.points[i].y)),length=lengths.reduce((a,b)=>a+b,0);line.points.slice(1).forEach((b,i)=>{const a=line.points[i],dx=b.x-a.x,dy=b.y-a.y,len=lengths[i],t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(len*len||1))),q={x:a.x+t*dx,y:a.y+t*dy},dist=Math.hypot(q.x-p.x,q.y-p.y);if(!best||dist<best.dist)best={...q,dist,progress:length?(total+t*len)/length:0,angle:Math.atan2(dy,dx)*180/Math.PI};total+=len;});return best;}
+ function along(line,progress){const lengths=line.points.slice(1).map((b,i)=>Math.hypot(b.x-line.points[i].x,b.y-line.points[i].y));let distance=lengths.reduce((a,b)=>a+b,0)*progress;for(let i=0;i<lengths.length;i++){if(distance<=lengths[i]||i===lengths.length-1){const a=line.points[i],b=line.points[i+1],t=lengths[i]?distance/lengths[i]:0;return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,angle:Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI};}distance-=lengths[i];}}
+ function stationCandidates(d,p,zoom,tolerance=14){if(!Number.isFinite(zoom)||zoom<=0||!Number.isFinite(tolerance)||tolerance<0)throw Error('Ugyldig snap-toleranse');return d.artwork.lines.filter(l=>l.visible).map(l=>({lineId:l.id,...project(p,l)})).filter(c=>c.dist*zoom<=tolerance).sort((a,b)=>a.dist-b.dist||a.lineId.localeCompare(b.lineId));}
+ function stationLayout(d,s){
+  const primary=d.artwork.lines.find(l=>l.id===s.anchor.lineId),p=along(primary,s.anchor.progress),points=s.lineIds.map(lineId=>({lineId,...project(p,d.artwork.lines.find(l=>l.id===lineId))}));
+  let a=points[0],b=a,distance=0;for(const x of points)for(const y of points){const dist=Math.hypot(y.x-x.x,y.y-x.y);if(dist>distance){a=x;b=y;distance=dist;}}
+  return {x:(a.x+b.x)/2,y:(a.y+b.y)/2,span:Math.max(10,distance+12),angle:distance?Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI:p.angle+90,points};
+ }
+ function refreshStations(d){for(const s of d.artwork.stops.filter(s=>s.anchor)){const layout=stationLayout(d,s);if(s.locked&&(!samePoint(s,layout)||s.autoSymbol&&(Math.abs(s.span-layout.span)>1e-7||Math.abs(s.symbolAngle-(layout.angle+360)%360)>1e-7)))throw Error('Et tilknyttet stopp er låst. Lås opp stoppet før traséen endres.');s.x=layout.x;s.y=layout.y;if(s.autoSymbol){s.span=layout.span;s.symbolAngle=(layout.angle+360)%360;}}}
+ function ensureLeds(s){s.leds??=[];for(const lineId of s.lineIds)if(!s.leds.some(l=>l.lineId===lineId)){let n=1;while(s.leds.some(l=>l.id===s.id+'-led-'+n))n++;s.leds.push({id:s.id+'-led-'+n,lineId});}}
+ function placeStation(d,id,p,lineIds=[],kind='line'){
+  const s=d.artwork.stops.find(s=>s.id===id);if(!s||s.locked||!['line','route','station','free'].includes(kind)||new Set(lineIds).size!==lineIds.length||lineIds.some(id=>!d.artwork.lines.some(l=>l.id===id&&l.visible)))throw Error('Velg et ulåst stopp og synlige linjer');
+  if(!lineIds.length){Object.assign(s,{x:p.x,y:p.y});delete s.anchor;}
+  else{
+   if(kind==='free'||kind==='line'&&lineIds.length!==1)throw Error('Velg én linje eller en felles stasjon');
+   if(kind==='route'){const g=groupFor(d,lineIds[0]);if(!g?.spine||lineIds.some(id=>!g.memberIds.includes(id)))throw Error('Velg linjer i en felles trasé');}
+   s.lineIds=[...lineIds];s.anchor={kind,lineId:lineIds[0],progress:project(p,d.artwork.lines.find(l=>l.id===lineIds[0])).progress};s.autoSymbol=true;ensureLeds(s);
+   if(kind==='station'&&!['double','capsule','leds'].includes(s.symbol))s.symbol=lineIds.length===2?'double':'capsule';refreshStations(d);
+  }validate(d);
+ }
+ function detachStation(d,id){const s=d.artwork.stops.find(s=>s.id===id);if(!s||s.locked)throw Error('Velg et ulåst stopp');delete s.anchor;s.lineIds=[];validate(d);}
+ function setStationSymbol(d,id,value){const s=d.artwork.stops.find(s=>s.id===id);if(!s||s.locked)throw Error('Velg et ulåst stopp');s.symbol=value;ensureLeds(s);validate(d);}
+ function setLedSource(d,stopId,ledId,sourceStopId,quayId){const s=d.artwork.stops.find(s=>s.id===stopId),led=s?.leds?.find(l=>l.id===ledId);if(!led||s.locked)throw Error('Velg et ulåst LED-punkt');if(sourceStopId){led.sourceStopId=sourceStopId;led.quayId=quayId;}else{delete led.sourceStopId;delete led.quayId;}validate(d);}
+ function validateStations(d){
+  const ledIds=new Set();for(const s of d.artwork.stops){
+   if(new Set(s.lineIds).size!==s.lineIds.length)throw Error('Doble linjekoblinger');
+   if(s.autoSymbol!==undefined&&typeof s.autoSymbol!=='boolean')throw Error('Ugyldig symboltilpasning');
+   if(s.anchor&&(!['line','route','station'].includes(s.anchor.kind)||!s.lineIds.includes(s.anchor.lineId)||!Number.isFinite(s.anchor.progress)||s.anchor.progress<0||s.anchor.progress>1||s.anchor.kind==='line'&&s.lineIds.length!==1))throw Error('Ugyldig stasjonsanker');
+   if(s.anchor?.kind==='route'){const g=groupFor(d,s.anchor.lineId);if(!g?.spine||s.lineIds.some(id=>!g.memberIds.includes(id)))throw Error('Ugyldig felles trasé for stopp');}
+   if(s.anchor){const layout=stationLayout(d,s);if(!samePoint(s,layout))throw Error('Stoppet avviker fra linjeankeret');if(s.autoSymbol&&(Math.abs(s.span-layout.span)>1e-7||Math.abs(s.symbolAngle-(layout.angle+360)%360)>1e-7))throw Error('Stoppsymbolet avviker fra linjene');}
+   if(s.leds!==undefined){if(!Array.isArray(s.leds)||s.leds.length>500)throw Error('Ugyldige LED-punkter');const routes=new Set();for(const l of s.leds){if(!l||typeof l.id!=='string'||!l.id||l.id.length>250||ledIds.has(l.id)||routes.has(l.lineId)||!d.artwork.lines.some(line=>line.id===l.lineId))throw Error('Ugyldig LED-identitet');ledIds.add(l.id);routes.add(l.lineId);if(l.sourceStopId!==undefined||l.quayId!==undefined){const b=d.bindings[l.sourceStopId];if(!d.artwork.stops.some(stop=>stop.id===l.sourceStopId)||!b?.quayIds.includes(l.quayId))throw Error('LED-kilden må være en eksisterende Quay-kobling');}}}
+  }
+ }
+ function stationShapes(d,s){
+  const shape=symbol(s),angle=shape.angle*Math.PI/180,at=x=>({x:s.x+x*Math.cos(angle),y:s.y+x*Math.sin(angle)}),parts=[];
+  if(s.symbol==='double'){const a=at(-Math.max(0,shape.width/2-5)),b=at(Math.max(0,shape.width/2-5));parts.push({tag:'line',attrs:{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'#203c32','stroke-width':3}});for(const p of [a,b])parts.push({tag:'circle',attrs:{cx:p.x,cy:p.y,r:5,fill:'white',stroke:'#203c32','stroke-width':2}});}
+  else parts.push({tag:'rect',attrs:{x:s.x-shape.width/2,y:s.y-5,width:shape.width,height:10,rx:5,fill:shape.ring?'#203c32':'white',stroke:'#203c32','stroke-width':2,transform:'rotate('+shape.angle+' '+s.x+' '+s.y+')'}});
+  if(s.symbol==='leds'){
+   const points=s.anchor?stationLayout(d,s).points:s.lineIds.map((lineId,i)=>({lineId,...at(s.lineIds.length>1?(i/(s.lineIds.length-1)-.5)*Math.max(0,shape.width-12):0)}));
+   for(const p of points){const led=s.leds?.find(l=>l.lineId===p.lineId);if(led)parts.push({tag:'circle',attrs:{cx:p.x,cy:p.y,r:3.5,fill:d.artwork.lines.find(l=>l.id===p.lineId).color,stroke:'#203c32','stroke-width':1,'data-led-id':led.id,'data-line-id':p.lineId,...(led.quayId?{'data-quay-id':led.quayId}:{})}});}
+  }return parts;
  }
  function labelPreset(s,preset){const angles={'horizontal':0,'up':315,'down':45,'vertical':90,'right':0,'left':0};if(!(preset in angles))throw Error('Ukjent navneretning');s.labelAngle=angles[preset];if(preset==='right'||preset==='left'){s.labelSide=preset;s.labelDx=(preset==='left'?-1:1)*Math.abs(s.labelDx||12);}}
  const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
- function svg(d){validate(d);return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${d.width} ${d.height}"><rect width="100%" height="100%" fill="white"/>`+d.artwork.lines.filter(l=>l.visible).map(l=>`<polyline points="${l.points.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${l.color}" stroke-width="${l.width}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')+d.artwork.stops.filter(s=>s.visible).map(s=>`<rect x="${s.x-symbol(s).width/2}" y="${s.y-5}" width="${symbol(s).width}" height="10" rx="5" fill="${symbol(s).ring?'#16312d':'white'}" stroke="#16312d" stroke-width="2" transform="rotate(${symbol(s).angle} ${s.x} ${s.y})"/><text x="${label(s).x}" y="${label(s).y}" text-anchor="${label(s).anchor}" transform="rotate(${label(s).angle} ${label(s).x} ${label(s).y})" font-family="sans-serif" font-size="12">${escape(s.name)}</text>`).join('')+'</svg>';}
- const api={blank,validate,fromTrondheim,history,svg,resize,label,symbol,parallel,arrangeLabels,extend,styleLines,removeObjects,spaceLines,labelPreset,groupFor,groupLines,shareRoute,linkedParallel,updateParallel,joinPlan,joinLines,detachGroup,transformIds,setLinePoints,translate};root.InTransitStudioDocument=api;if(typeof module!=='undefined')module.exports=api;
+ function svg(d){validate(d);return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${d.width} ${d.height}"><rect width="100%" height="100%" fill="white"/>`+d.artwork.lines.filter(l=>l.visible).map(l=>`<polyline points="${l.points.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${l.color}" stroke-width="${l.width}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')+d.artwork.stops.filter(s=>s.visible).map(s=>stationShapes(d,s).map(part=>'<'+part.tag+' '+Object.entries(part.attrs).map(([k,v])=>k+'="'+escape(v)+'"').join(' ')+'/>' ).join('')+`<text x="${label(s).x}" y="${label(s).y}" text-anchor="${label(s).anchor}" transform="rotate(${label(s).angle} ${label(s).x} ${label(s).y})" font-family="sans-serif" font-size="12">${escape(s.name)}</text>`).join('')+'</svg>';}
+ const api={blank,validate,fromTrondheim,history,svg,resize,label,symbol,parallel,arrangeLabels,extend,styleLines,removeObjects,spaceLines,labelPreset,groupFor,groupLines,shareRoute,linkedParallel,updateParallel,joinPlan,joinLines,detachGroup,transformIds,setLinePoints,translate,project,stationCandidates,stationLayout,refreshStations,placeStation,detachStation,setStationSymbol,setLedSource,stationShapes};root.InTransitStudioDocument=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

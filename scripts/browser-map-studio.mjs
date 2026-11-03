@@ -1,6 +1,7 @@
 import {phaseOne} from './browser-studio-phase-one.mjs';
 import {selectionRegression} from './browser-studio-selection.mjs';
 import {phaseTwo} from './browser-studio-phase-two.mjs';
+import {phaseThree} from './browser-studio-phase-three.mjs';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFile,mkdir} from 'node:fs/promises';
@@ -16,6 +17,7 @@ const base=process.env.STUDIO_PREVIEW||`http://127.0.0.1:${server.address().port
 try{
  await selectionRegression(browser,base);
  await phaseTwo(browser,base,process.env.INTRANSIT_SCREENSHOT_DIR);
+ await phaseThree(browser,base,process.env.INTRANSIT_SCREENSHOT_DIR);
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
  // Legacy designer: selection and drag must retain nonzero scroll at 300%.
  await page.goto(base+'index.html?view=designer');await page.locator('[data-role=boardSvgHost] svg').waitFor();await page.locator('[data-zoom]').selectOption('3');
