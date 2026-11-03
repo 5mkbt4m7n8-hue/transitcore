@@ -47,12 +47,22 @@
   const source=d.artwork.lines.find(l=>l.id===sourceId);if(!source||source.locked||!Number.isInteger(count)||count<1||count>8||!Number.isFinite(spacing)||spacing<2||spacing>200||ids.length!==count)throw Error('Velg 1–8 kopier og avstand 2–200');
   const colors=['#e08a3b','#6e68bb','#cc5271','#218967'].filter(c=>c!==source.color);
   for(let lane=1;lane<=count;lane++){
-   const normals=source.points.slice(1).map((p,i)=>{const a=source.points[i],dx=p.x-a.x,dy=p.y-a.y,len=Math.hypot(dx,dy);if(!len)throw Error('Fjern doble linjepunkter før kopiering');return {x:-dy/len,y:dx/len};});
-   const points=source.points.map((p,i)=>{const a=normals[Math.max(0,i-1)],b=normals[Math.min(normals.length-1,i)],den=1+a.x*b.x+a.y*b.y;if(den<.125)throw Error('For skarp sving for parallelle kopier');return {x:p.x+(a.x+b.x)/den*spacing*lane,y:p.y+(a.y+b.y)/den*spacing*lane};});
+   const points=offsetPoints(source.points,spacing*lane);
    d.artwork.lines.push({...clone(source),id:ids[lane-1],name:source.name+' · '+lane,color:colors[(lane-1)%colors.length],points});
   }validate(d);
  }
+
+ function editableLines(d,ids){const lines=ids.map(id=>d.artwork.lines.find(l=>l.id===id));if(!ids.length||new Set(ids).size!==ids.length||lines.some(l=>!l||l.locked))throw Error('Velg ulåste linjer');return lines;}
+ function extend(d,id,end,points){const [line]=editableLines(d,[id]);if(!['start','end'].includes(end)||!Array.isArray(points)||!points.length)throw Error('Velg et endepunkt og tegn videre');const anchor=end==='start'?line.points[0]:line.points.at(-1);let last=anchor;for(const p of points){if(p.x===last.x&&p.y===last.y)throw Error('To linjepunkter kan ikke ligge oppå hverandre');last=p;}line.points=end==='start'?[...clone(points).reverse(),...line.points]:[...line.points,...clone(points)];validate(d);}
+ function styleLines(d,ids,patch){const lines=editableLines(d,ids);if(Object.keys(patch).some(k=>!['color','width'].includes(k)))throw Error('Ugyldig linjeegenskap');for(const l of lines)Object.assign(l,patch);validate(d);}
+ function removeObjects(d,ids){const objects=[...d.artwork.lines,...d.artwork.stops];if(!ids.length||ids.some(id=>{const o=objects.find(o=>o.id===id);return !o||o.locked;}))throw Error('Lås opp de markerte lagene før sletting');const set=new Set(ids);d.artwork.lines=d.artwork.lines.filter(l=>!set.has(l.id));d.artwork.stops=d.artwork.stops.filter(s=>!set.has(s.id));for(const s of d.artwork.stops)s.lineIds=s.lineIds.filter(id=>!set.has(id));for(const id of set)delete d.bindings[id];validate(d);}
+ function offsetPoints(points,distance){
+  const normals=points.slice(1).map((p,i)=>{const a=points[i],dx=p.x-a.x,dy=p.y-a.y,len=Math.hypot(dx,dy);if(!len)throw Error('Fjern doble linjepunkter først');return {x:-dy/len,y:dx/len};});
+  return points.map((p,i)=>{const a=normals[Math.max(0,i-1)],b=normals[Math.min(normals.length-1,i)],den=1+a.x*b.x+a.y*b.y;if(den<.125)throw Error('For skarp sving for felles avstand');return {x:p.x+(a.x+b.x)/den*distance,y:p.y+(a.y+b.y)/den*distance};});
+ }
+ function spaceLines(d,ids,spacing){const lines=editableLines(d,ids);if(lines.length<2||!Number.isFinite(spacing)||spacing<2||spacing>200)throw Error('Velg minst to linjer og avstand 2–200');const points=clone(lines[0].points);lines.slice(1).forEach((l,i)=>l.points=offsetPoints(points,spacing*(i+1)));validate(d);}
+ function labelPreset(s,preset){const angles={'horizontal':0,'up':315,'down':45,'vertical':90,'right':0,'left':0};if(!(preset in angles))throw Error('Ukjent navneretning');s.labelAngle=angles[preset];if(preset==='right'||preset==='left'){s.labelSide=preset;s.labelDx=(preset==='left'?-1:1)*Math.abs(s.labelDx||12);}}
  const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
  function svg(d){validate(d);return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${d.width} ${d.height}"><rect width="100%" height="100%" fill="white"/>`+d.artwork.lines.filter(l=>l.visible).map(l=>`<polyline points="${l.points.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${l.color}" stroke-width="${l.width}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')+d.artwork.stops.filter(s=>s.visible).map(s=>`<rect x="${s.x-symbol(s).width/2}" y="${s.y-5}" width="${symbol(s).width}" height="10" rx="5" fill="${symbol(s).ring?'#16312d':'white'}" stroke="#16312d" stroke-width="2" transform="rotate(${symbol(s).angle} ${s.x} ${s.y})"/><text x="${label(s).x}" y="${label(s).y}" text-anchor="${label(s).anchor}" transform="rotate(${label(s).angle} ${label(s).x} ${label(s).y})" font-family="sans-serif" font-size="12">${escape(s.name)}</text>`).join('')+'</svg>';}
- const api={blank,validate,fromTrondheim,history,svg,resize,label,symbol,parallel,arrangeLabels};root.InTransitStudioDocument=api;if(typeof module!=='undefined')module.exports=api;
+ const api={blank,validate,fromTrondheim,history,svg,resize,label,symbol,parallel,arrangeLabels,extend,styleLines,removeObjects,spaceLines,labelPreset};root.InTransitStudioDocument=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

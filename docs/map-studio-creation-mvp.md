@@ -35,3 +35,21 @@ Select a line and expand **Parallelle linjekopier**. Set the number of extra lin
 A stop may use **Felles stopp**, with width and rotation, to draw one capsule spanning several lanes. It remains one stop object with one unchanged binding record, not several invented Quays. This is a visual symbol; automatic association to parallel routes, per-lane stop snapping and data merging are not implemented. New lines receive no source binding. The filled-circle option offers a second simple symbol style.
 
 The layer list is collapsed by default; no tools were added. Model and browser regressions cover dimension history/export, label rotation and side, Space pan during pen drafting and text entry, parallel spacing and selection, shared symbol, save/open/reload and original Trondheim counts.
+
+## v0.10 · phase 1 (daily drawing)
+
+Task: https://github.com/5mkbt4m7n8-hue/transitcore/pull/323#issuecomment-6600670090
+
+Select one line, click either large endpoint, then **Fortsett linjen** in Properties. Click further vertices; Enter commits the entire extension to the same line, Esc cancels it. Backspace removes draft vertices but keeps the starting anchor. The line keeps its ID, name, color, width and bindings. Both ends support the existing 45° snap (including 90° turns). The draft preview uses the source style. No automatic endpoint merging occurs.
+
+Ctrl-click (Cmd-click on macOS) in the canvas or layer list toggles objects in the selection. Selected objects have visible highlights. Two or more lines expose **Farger i bruk**, **Velg ny farge**, **Felles linjetykkelse** and collapsed **Felles avstand**. Each action is one history transaction. Felles avstand explicitly repositions selected lines along the first selected line's geometry in selection order, retaining separate identities/styles and bindings. It is an editable geometry operation, not a persistent linked route group. Locked selections cannot be batch edited or deleted. Dragging a multi-selection moves the whole unlocked selection together.
+
+Delete removes selected unlocked objects in one transaction and cleans surviving stop line references. Ctrl+Z undoes; Ctrl+Y and Ctrl+Shift+Z redo. Esc cancels drafts or in-progress drags. Text inputs, textareas, selects, contenteditable and modified browser shortcuts retain native behavior. Selection and endpoint activation are transient UI state; they are not stored in project JSON or restored on reload. The editable geometry and logical references are persisted.
+
+**Farger i bruk** is computed from the active project's line colors, including hidden layers. **Navneretning** provides horizontal, −45° (315°), +45°, 90°, horizontal right and horizontal left. Angle presets do not change the stop or its label anchor. Horizontal side presets change the side and preserve the offset magnitude; the arbitrary 0–360° field remains available. Default and presets do not introduce upside-down text.
+
+Existing artboard resizing is reused: growth or valid reduction does not stretch artwork or move the camera. Drawing coordinates, physical cm formats and zoom remain independent. Existing regression coverage includes the 30×40, 50×70 and 40×40 physical profiles. No canonical Trondheim, GPS, Entur, Worker or hardware files are changed.
+
+Phase 1 is the current testable delivery. Remaining phase 2: persistent lane groups with side/center controls and adjustable count/spacing after creation; explicit endpoint joining, shared visual alignment and grouping/ungrouping. Remaining phase 3: zoom-aware station drag snapping with ambiguity choice, logical shared-station route associations and additional symbols/independent LED points. The previous independent copies and visual capsule remain available, with their existing limits.
+
+The imported browser regression module `scripts/browser-studio-phase-one.mjs` runs as part of `browser-map-studio.mjs` in CI. It exercises a blank map, extensions at both ends, cancellation and draft Backspace, 45°/90° geometry, Space during continuation, pointer-anchored zoom, multi-selection in canvas/layers, batch color/width/spacing/delete history, project swatches, label presets and arbitrary angle, native text Delete, SVG, JSON import/reload, artboard growth/reduction and rejected cropping. Model tests additionally verify atomic errors, locked selections and original bindings/identity.

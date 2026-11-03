@@ -1,3 +1,4 @@
+import {phaseOne} from './browser-studio-phase-one.mjs';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFile,mkdir} from 'node:fs/promises';
@@ -61,6 +62,7 @@ try{
  page.once('dialog',d=>d.accept());await page.locator('#template').click();await page.waitForFunction(()=>InTransitStudio.snapshot().doc.artwork.stops.length===100);const copied=await state();assert.equal(Object.keys(copied.doc.bindings).length,100);assert.equal(copied.doc.artwork.lines.length,18);assert.equal(await page.locator('.layers').getAttribute('open'),null,'layers stay collapsed after reload');
  if(process.env.INTRANSIT_SCREENSHOT_DIR){await mkdir(process.env.INTRANSIT_SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:process.env.INTRANSIT_SCREENSHOT_DIR+'/map-studio-desktop.png'});}
  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'mobile fits viewport');
+ await phaseOne(browser,base,process.env.INTRANSIT_SCREENSHOT_DIR);
  assert.deepEqual(errors,[]);console.log('Studio browser: Space/typing, artboard, rotated labels, shared symbol, parallel copies/export/persistence, legacy viewport, creation, naming, pan/zoom, selection, stop/vertex drag, history, save/open, recovery and canonical copy passed');
  }
 }finally{await browser.close();await new Promise(r=>server.close(r));}

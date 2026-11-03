@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import {readFile,mkdir} from 'node:fs/promises';
+
+export async function phaseOne(browser,base,screenshotDir){
+ const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ try{
+  await page.goto(base+'studio.html');await page.waitForFunction(()=>!!window.InTransitStudio);
+  const state=()=>page.evaluate(()=>InTransitStudio.snapshot()),at=async(x,y)=>{const {camera:c}=await state(),r=await page.locator('#canvas').boundingBox();return {x:r.x+(x-c.x)*c.k,y:r.y+(y-c.y)*c.k};};
+  const click=async(x,y,options)=>{const p=await at(x,y);await page.mouse.click(p.x,p.y,options);};
+  const key=async k=>{await page.locator('#canvas').focus();await page.keyboard.press(k);};
+  const line=()=>state().then(s=>s.doc.artwork.lines[0]);
+  await page.locator('[data-tool=pen]').click();for(const p of [[200,300],[400,300],[600,500]])await click(...p);await key('Enter');
+  const initial=await line();assert.equal(initial.color,'#218967');assert.equal(initial.points.length,3);
+  const beforeZoom=(await state()).camera,rawZoomAt=await at(450,400),zoomAt={x:Math.round(rawZoomAt.x),y:Math.round(rawZoomAt.y)};await page.mouse.move(zoomAt.x,zoomAt.y);await page.mouse.wheel(0,-100);await page.waitForFunction(k=>InTransitStudio.snapshot().camera.k!==k,beforeZoom.k);const afterZoom=(await state()).camera,r=await page.locator('#canvas').boundingBox();assert(Math.abs(afterZoom.x+(zoomAt.x-r.x)/afterZoom.k-(beforeZoom.x+(zoomAt.x-r.x)/beforeZoom.k))<1e-6);assert(Math.abs(afterZoom.y+(zoomAt.y-r.y)/afterZoom.k-(beforeZoom.y+(zoomAt.y-r.y)/beforeZoom.k))<1e-6);
+  await page.locator('#handles [data-endpoint=true]').last().click();await page.getByRole('button',{name:'Fortsett linjen',exact:true}).click();
+  const extending=await state();assert.equal(extending.extension.end,'end');
+  // Temporary hand must retain the continuation identity and return to pen.
+  const pos=await at(500,550);await page.keyboard.down('Space');await page.mouse.move(pos.x,pos.y);await page.mouse.down();await page.mouse.move(pos.x+25,pos.y+15);await page.mouse.up();await page.keyboard.up('Space');assert.deepEqual((await state()).extension,extending.extension);assert.equal((await state()).tool,'pen');
+  const panCamera=(await state()).camera;await click(600,700);await key('Enter');let result=await line();assert.equal((await state()).doc.artwork.lines.length,1);assert.equal(result.id,initial.id);assert.equal(result.color,initial.color);assert.equal(result.width,initial.width);assert.equal(result.points.length,4);assert.equal(result.points[3].x,result.points[2].x);assert.deepEqual((await state()).camera,panCamera);
+  await key('Control+z');assert.deepEqual(await line(),initial);await key('Control+y');assert.deepEqual(await line(),result);await key('Control+z');await key('Control+Shift+z');assert.deepEqual(await line(),result);
+  await page.locator('#handles [data-endpoint=true]').first().click();await page.getByRole('button',{name:'Fortsett linjen',exact:true}).click();await click(100,200);await click(100,100);const beforeCancel=(await state()).doc;await key('Escape');assert.deepEqual((await state()).doc,beforeCancel,'Esc discards entire unfinished extension');
+  await click(400,300);await page.locator('#handles [data-endpoint=true]').first().click();await page.getByRole('button',{name:'Fortsett linjen',exact:true}).click();await click(100,200);await key('Backspace');assert.equal((await state()).draft.length,1);await key('Backspace');assert.equal((await state()).draft.length,1);await click(100,200);await key('Enter');
+  result=await line();assert.equal(result.points.length,5);assert.deepEqual(result.points.slice(1),beforeCancel.artwork.lines[0].points);assert(Math.abs(result.points[1].x-result.points[0].x-(result.points[1].y-result.points[0].y))<1e-6,'start extension follows 45 degrees');
+  // Create project colors and independent parallel lines using the existing controls.
+  await page.getByText('Parallelle linjekopier',{exact:true}).click();await page.getByLabel('Antall ekstra linjer',{exact:true}).fill('2');await page.getByRole('button',{name:'Lag parallelle kopier',exact:true}).click();assert.equal((await state()).doc.artwork.lines.length,3);
+  const originals=(await state()).doc.artwork.lines;const colors=[...new Set(originals.map(l=>l.color))];assert.equal(await page.getByRole('button',{name:'Bruk farge '+colors[1],exact:true}).count(),1);
+  await page.locator('.layers summary').click();
+  await page.locator('#layers .pick').last().click();await page.locator('#layers .pick').nth(1).click({modifiers:['Control']});assert.equal((await state()).selection.length,2);
+  const selected=(await state()).selection;assert.equal(await page.locator('#layers > div[data-selected=true]').count(),2);assert.equal(await page.locator('#art polyline[stroke="#98cdb7"]').count(),2);
+  const preStyle=(await state()).doc;await page.getByRole('button',{name:'Bruk farge '+colors[2],exact:true}).click();assert((await state()).doc.artwork.lines.filter(l=>selected.includes(l.id)).every(l=>l.color===colors[2]));await key('Control+z');assert.deepEqual((await state()).doc,preStyle,'one undo restores all selected colors');await key('Control+y');
+  await page.getByLabel('Felles linjetykkelse',{exact:true}).fill('9');await page.getByLabel('Felles linjetykkelse',{exact:true}).press('Tab');assert((await state()).doc.artwork.lines.filter(l=>selected.includes(l.id)).every(l=>l.width===9));
+  await page.getByText('Felles avstand',{exact:true}).click();await page.getByLabel('Avstand i kartet',{exact:true}).fill('24');const beforeSpace=(await state()).doc;await page.getByRole('button',{name:'Bruk felles avstand',exact:true}).click();assert.notDeepEqual((await state()).doc,beforeSpace);await key('Control+z');assert.deepEqual((await state()).doc,beforeSpace);await key('Control+y');
+  // Direct canvas Ctrl-click toggles instead of replacing the selection.
+  await key('Escape');const l0=(await state()).doc.artwork.lines[0],l1=(await state()).doc.artwork.lines[1];const mid=l=>({x:(l.points.at(-1).x+l.points.at(-2).x)/2,y:(l.points.at(-1).y+l.points.at(-2).y)/2});let m=mid(l0);await click(m.x,m.y);m=mid(l1);await page.keyboard.down('Control');await click(m.x,m.y);await page.keyboard.up('Control');assert.equal((await state()).selection.length,2);
+  assert.deepEqual((await state()).camera,panCamera,'all selections, style and spacing edits preserve camera');
+  const beforeDelete=(await state()).doc;await key('Delete');assert.equal((await state()).doc.artwork.lines.length,1);assert.deepEqual((await state()).selection,[],'delete clears removed selections');assert.equal(await page.getByText('Tegneområde',{exact:true}).count(),1);await key('Control+z');assert.deepEqual((await state()).doc,beforeDelete);await key('Control+y');assert.equal((await state()).doc.artwork.lines.length,1);await key('Control+Shift+z');assert.equal((await state()).doc.artwork.lines.length,1);await key('Control+z');
+  // Label direction presets do not move anchors or the stop, arbitrary angle remains available.
+  await page.locator('[data-tool=stop]').click();await click(400,800);await page.getByLabel('Stoppnavn',{exact:true}).fill('Teststasjon');await page.getByLabel('Stoppnavn',{exact:true}).press('Tab');const stop=(await state()).doc.artwork.stops[0];
+  for(const [preset,angle]of [['up',315],['down',45],['vertical',90],['horizontal',0]]){await page.getByLabel('Navneretning',{exact:true}).selectOption(preset);const s=(await state()).doc.artwork.stops[0];assert.equal(s.labelAngle,angle);assert.equal(s.labelDx,stop.labelDx);assert.equal(s.labelDy,stop.labelDy);assert.equal(s.x,stop.x);assert.equal(s.y,stop.y);}
+  await page.getByLabel('Navneretning',{exact:true}).selectOption('left');assert.equal((await state()).doc.artwork.stops[0].labelSide,'left');await page.getByLabel('Navnevinkel (0–360°)',{exact:true}).fill('23.5');await page.getByLabel('Navnevinkel (0–360°)',{exact:true}).press('Tab');assert.equal((await state()).doc.artwork.stops[0].labelAngle,23.5);
+  // Browser/text editing shortcuts retain native behavior.
+  await page.getByLabel('Stoppnavn',{exact:true}).focus();await page.keyboard.press('Control+a');await page.keyboard.press('Delete');assert.equal((await state()).doc.artwork.stops.length,1);await page.getByLabel('Stoppnavn',{exact:true}).fill('Teststasjon');await page.getByLabel('Stoppnavn',{exact:true}).press('Tab');
+  const exportWait=page.waitForEvent('download');await page.locator('#export').click();assert.match(await readFile(await (await exportWait).path(),'utf8'),/rotate\(23.5 /);
+  const expected=(await state()).doc,saveWait=page.waitForEvent('download');await page.locator('#save').click();const saved=await readFile(await (await saveWait).path(),'utf8');assert.deepEqual(JSON.parse(saved),expected);
+  await page.reload();await page.waitForFunction(()=>!!window.InTransitStudio);assert.deepEqual((await state()).doc,expected);assert.deepEqual((await state()).selection,[],'selection is transient, geometry and logical references persist');
+  await page.locator('#file').setInputFiles({name:'phase1.json',mimeType:'application/json',buffer:Buffer.from(saved)});await page.waitForFunction(()=>document.getElementById('status').textContent==='Prosjekt åpnet');assert.deepEqual((await state()).doc,expected);
+  // Artboard can grow and shrink without scaling. Out-of-bounds reduction is rejected.
+  await page.getByText('Tegneområde',{exact:true}).click();await page.locator('#artWidth').fill('1400');await page.locator('#artHeight').fill('1600');await page.getByRole('button',{name:'Endre tegneområde',exact:true}).click();assert.deepEqual((await state()).doc.artwork,expected.artwork);
+  await page.getByText('Tegneområde',{exact:true}).click();await page.locator('#artWidth').fill('1000');await page.locator('#artHeight').fill('1200');await page.getByRole('button',{name:'Endre tegneområde',exact:true}).click();assert.deepEqual((await state()).doc.artwork,expected.artwork);const shrunk=(await state()).doc;
+  await page.getByText('Tegneområde',{exact:true}).click();await page.locator('#artWidth').fill('100');await page.getByRole('button',{name:'Endre tegneområde',exact:true}).click();assert.deepEqual((await state()).doc,shrunk);
+  if(screenshotDir){await mkdir(screenshotDir,{recursive:true});await page.locator('.layers summary').click();await page.locator('#layers .pick').last().click();await page.locator('#layers .pick').nth(1).click({modifiers:['Control']});await page.screenshot({path:screenshotDir+'/map-studio-v010-phase1.png'});}
+  assert.deepEqual(errors,[]);console.log('Studio v0.10 phase 1: extend both ends/cancel/history/Space, multiselect/style/spacing/delete, project colors, label presets, dimensions and persistence passed');
+ }finally{await page.close();}
+}

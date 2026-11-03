@@ -59,6 +59,9 @@ on:
       - 'worker/linear-publish.mjs'
       - 'worker/led-feed-worker.mjs'
       - 'scripts/browser-intransit-map.mjs'
+      - 'scripts/browser-map-studio.mjs'
+      - 'scripts/browser-studio-phase-one.mjs'
+      - 'scripts/test-studio-document.mjs'
       - 'scripts/audit-intransit-route-evidence.mjs'
       - '.github/workflows/linear-mobile.yml'
   push:
@@ -107,6 +110,9 @@ on:
       - 'worker/linear-publish.mjs'
       - 'worker/led-feed-worker.mjs'
       - 'scripts/browser-intransit-map.mjs'
+      - 'scripts/browser-map-studio.mjs'
+      - 'scripts/browser-studio-phase-one.mjs'
+      - 'scripts/test-studio-document.mjs'
       - 'scripts/audit-intransit-route-evidence.mjs'
       - '.github/workflows/linear-mobile.yml'
 permissions:
