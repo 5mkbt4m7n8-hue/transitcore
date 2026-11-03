@@ -393,7 +393,7 @@ maliciousRoute.physicalBoardLayouts.profiles['30x40'].routes['trace-01'].vertice
 assert(model.validate(maliciousRoute).length>0,'route vertex index must be a canonical original index');
 assert.throws(()=>Physical.setRoutePoint(boardBends,bendsSize,'trace-01',999,{x:.3,y:.3}),/Ukjent/);
 assert.throws(()=>Physical.addRouteBend(boardBends,bendsSize,'trace-01',999,{x:.3,y:.3}),/Ukjent/);
-assert.throws(()=>Physical.addRouteBend(boardBends,bendsSize,'trace-01',0,{x:2,y:.3}),/inne/);
+assert.throws(()=>Physical.addRouteBend(boardBends,bendsSize,'trace-01',0,{x:2,y:.3}),/må ligge på tavlen/);
 assert.match(map,/data-role="boardRouteEdit"/);
 assert.match(map,/data-role="boardAddBend"/);
 assert.match(map,/B\.setRoutePoint\(/);
