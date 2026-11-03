@@ -212,3 +212,14 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-board-move-active [data-board-group]:focus-visible{outline:2px solid #f3cc83}
 .map-board-move-active circle[data-board-moved="true"]{stroke:#f8d38f;stroke-width:1.1}
 .map-board-controls [data-role=boardReset]{background:#3b2e25;border:1px solid #b69366}
+
+/* v0.8 – opt-in graphic route editing independent from source transit traces. */
+.map-board-route-active svg{touch-action:none;user-select:none}
+.map-board-route-active [data-board-route-path]{cursor:grab;outline-offset:3px}
+.map-board-route-active [data-board-route-path]:focus-visible{outline:2px solid #fff1b6}
+.map-board-route-active [data-board-route-type=vertex]{filter:drop-shadow(0 0 1.4px #40a9de)}
+.map-board-route-active [data-board-route-type=bend]{filter:drop-shadow(0 0 1.5px #db9d34)}
+.map-board-controls [data-role=boardAddBend]{border:1px solid #9bc3d9;background:#173c51}
+.map-board-controls [data-role=boardRemoveBend],
+.map-board-controls [data-role=boardResetRoute]{border:1px solid #9c7880;background:#41303a}
+.map-board-controls button:disabled{opacity:.45;cursor:not-allowed}
