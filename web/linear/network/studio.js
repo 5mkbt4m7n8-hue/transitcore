@@ -28,20 +28,42 @@
   }
   for(const s of doc.artwork.stops.filter(s=>s.visible)){
    if(s.id===selected)nodes.push(make('circle',{cx:s.x,cy:s.y,r:11,fill:'#bcdfcb','pointer-events':'none'}));
-   nodes.push(make('circle',{cx:s.x,cy:s.y,r:5,fill:'white',stroke:'#203c32','stroke-width':2,'data-id':s.id}));
-   nodes.push(make('text',{x:s.x+s.labelDx,y:s.y+s.labelDy,'font-family':'system-ui,sans-serif','font-size':12,fill:'#203c32','data-id':s.id,'data-label':'true'},s.name));
+   const shape=D.symbol(s),label=D.label(s);
+   nodes.push(make('rect',{x:s.x-shape.width/2,y:s.y-5,width:shape.width,height:10,rx:5,fill:shape.ring?'#203c32':'white',stroke:'#203c32','stroke-width':2,transform: 'rotate('+shape.angle+' '+s.x+' '+s.y+')','data-id':s.id}));
+   nodes.push(make('text',{x:label.x,y:label.y,'text-anchor':label.anchor,transform:'rotate('+label.angle+' '+label.x+' '+label.y+')','font-family':'system-ui,sans-serif','font-size':12,fill:'#203c32','data-id':s.id,'data-label':'true'},s.name));
   }
   if(draft.length){const pts=[...draft,...(hover?[hover]:[])];nodes.push(make('polyline',{points:pts.map(p=>p.x+','+p.y).join(' '),fill:'none',stroke:'#267a59','stroke-width':6,'stroke-linejoin':'round','stroke-dasharray':'8 4','pointer-events':'none'}));draft.forEach(p=>handles.push(make('circle',{cx:p.x,cy:p.y,r:4/camera.k,'pointer-events':'none'})));}
   $('art').replaceChildren(...nodes);$('handles').replaceChildren(...handles);
   $('welcome').hidden=all().length>0||draft.length>0||tool==='pen'||tool==='stop';
  }
+ function artboard(box){
+  const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Tegneområde';details.append(summary);
+  const w=document.createElement('input'),h=document.createElement('input');w.type=h.type='number';w.value=doc.width;h.value=doc.height;w.min=h.min=100;w.max=h.max=10000;w.id='artWidth';h.id='artHeight';
+  for(const [text,i]of [['Bredde',w],['Høyde',h]]){const l=document.createElement('label');l.textContent=text;l.append(i);details.append(l);}
+  const apply=document.createElement('button');apply.textContent='Endre tegneområde';apply.onclick=()=>{try{commit(d=>D.resize(d,Number(w.value),Number(h.value)));}catch(e){status('Området må være 100–10000 og romme alle punktene.');}};
+  const swap=document.createElement('button');swap.textContent='Bytt bredde og høyde';swap.onclick=()=>{const v=w.value;w.value=h.value;h.value=v;};details.append(swap,apply);const arrange=document.createElement('button');arrange.textContent='Foreslå navneplassering';arrange.onclick=()=>commit(d=>D.arrangeLabels(d));details.append(arrange);const p=document.createElement('p');p.textContent='Kartkoordinater, uavhengig av tavlens cm-format. Punktene flyttes ikke. Bruk Tilpass kart for å se hele området.';details.append(p);box.append(details);
+ }
  function properties(){
-  const box=$('properties');box.replaceChildren();const o=object();
-  if(!o){const p=document.createElement('p');p.textContent=tool==='pen'?'Klikk for hvert knekkpunkt. Enter fullfører linjen. Esc avbryter.':tool==='stop'?'Klikk på kartet for å plassere et stopp. Gi stoppet navn her.':'Velg et stopp eller en linje i kartet eller laglisten. Dra for å flytte. Dobbeltklikk en valgt linje for å legge til et punkt.';box.append(p);return;}
-  function field(label,type,value,fn){const l=document.createElement('label'),i=document.createElement('input');l.textContent=label;i.type=type;i.value=value;i.disabled=o.locked;i.maxLength=200;i.onchange=()=>{try{commit(d=>fn(d.artwork[isLine(o)?'lines':'stops'].find(v=>v.id===o.id),i.value));}catch(e){status(e.message);render();}};l.append(i);box.append(l);}
+  const box=$('properties');box.replaceChildren();const o=object();let target=box;
+  if(!o){artboard(box);const p=document.createElement('p');p.textContent=tool==='pen'?'Klikk for hvert knekkpunkt. Enter fullfører linjen. Esc avbryter.':tool==='stop'?'Klikk på kartet for å plassere et stopp. Gi stoppet navn her.':'Velg et stopp eller en linje i kartet eller laglisten. Dra for å flytte. Dobbeltklikk en valgt linje for å legge til et punkt.';box.append(p);return;}
+  function field(label,type,value,fn){const l=document.createElement('label'),i=document.createElement('input');l.textContent=label;i.type=type;i.value=value;i.disabled=o.locked;i.maxLength=200;i.onchange=()=>{try{commit(d=>fn(d.artwork[isLine(o)?'lines':'stops'].find(v=>v.id===o.id),i.value));}catch(e){status(e.message);render();}};l.append(i);target.append(l);return i;}
   field(isLine(o)?'Linjenavn':'Stoppnavn','text',o.name,(n,v)=>n.name=v);
-  if(isLine(o)){field('Liniefarge','color',o.color,(n,v)=>n.color=v);field('Linjetykkelse','number',o.width,(n,v)=>n.width=Number(v));}
-  else{field('X','number',o.x,(n,v)=>n.x=Number(v));field('Y','number',o.y,(n,v)=>n.y=Number(v));}
+  if(isLine(o)){field('Linjefarge','color',o.color,(n,v)=>n.color=v);field('Linjetykkelse','number',o.width,(n,v)=>n.width=Number(v));}
+  else{
+   field('Navnevinkel (0–360°)','number',o.labelAngle||0,(n,v)=>n.labelAngle=Number(v));
+   choice('Navneside',o.labelSide||'right',[['right','Høyre'],['left','Venstre']],(n,v)=>{n.labelSide=v;n.labelDx=(v==='left'?-1:1)*Math.abs(n.labelDx||12);});
+   choice('Stoppsymbol',o.symbol||'circle',[['circle','Sirkel'],['ring','Fylt sirkel'],['capsule','Felles stopp']],(n,v)=>n.symbol=v);
+   if(o.symbol==='capsule'){field('Bredde over linjene','number',o.span||30,(n,v)=>n.span=Number(v));field('Symbolvinkel (0–360°)','number',o.symbolAngle||0,(n,v)=>n.symbolAngle=Number(v));}
+   const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Nøyaktig plassering';details.append(summary);box.append(details);target=details;
+   field('Navneavstand vannrett','number',o.labelDx,(n,v)=>n.labelDx=Number(v));field('Navneavstand loddrett','number',o.labelDy,(n,v)=>n.labelDy=Number(v));field('X','number',o.x,(n,v)=>n.x=Number(v));field('Y','number',o.y,(n,v)=>n.y=Number(v));target=box;
+  }
+  function choice(text,value,options,fn){const l=document.createElement('label'),i=document.createElement('select');l.textContent=text;i.setAttribute('aria-label',text);for(const [v,t]of options)i.add(new Option(t,v));i.value=value;i.disabled=o.locked;i.onchange=()=>commit(d=>fn(d.artwork.stops.find(n=>n.id===o.id),i.value));l.append(i);target.append(l);}
+  if(isLine(o)){
+   const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Parallelle linjekopier';details.append(summary);
+   const count=document.createElement('input'),spacing=document.createElement('input');count.type=spacing.type='number';count.value=1;count.min=1;count.max=8;spacing.value=14;spacing.min=2;spacing.max=200;
+   for(const [text,input]of [['Antall ekstra linjer',count],['Avstand i kartet',spacing]]){const l=document.createElement('label');l.textContent=text;l.append(input);details.append(l);}
+   const b=document.createElement('button');b.textContent='Lag parallelle kopier';b.disabled=o.locked;b.onclick=()=>{try{const n=Number(count.value);if(!Number.isInteger(n)||n<1||n>8)throw Error('Velg 1–8 kopier');commit(d=>D.parallel(d,o.id,n,Number(spacing.value),Array.from({length:n},()=>id('line'))));}catch(e){status(e.message);}};details.append(b);const p=document.createElement('p');p.textContent='Kopiene får egne farger og kan velges og redigeres separat. Avstanden gjelder når kopiene lages. Felles stopp tegnes én gang med symbolet «Felles stopp».';details.append(p);box.append(details);
+  }
   const p=document.createElement('p');p.textContent=o.locked?'Laget er låst. Lås det opp i laglisten.':isLine(o)?'Dra punktene for å forme linjen. Dra linjen for å flytte hele laget.':'Dra stoppet for å flytte det. Dra navnet separat.';box.append(p);
   const del=document.createElement('button');del.textContent='Slett '+(isLine(o)?'linje':'stopp');del.disabled=o.locked;del.onclick=remove;box.append(del);
  }
@@ -75,18 +97,18 @@
  });
  function end(e,cancel=false){if(!gesture)return;const g=gesture;gesture=null;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(g.kind==='pan')return;const result=doc;doc=g.before;if(!cancel){try{commit(d=>Object.assign(d,result));}catch(err){status(err.message);doc=history.get();render();}}else render();}
  canvas.addEventListener('pointerup',e=>end(e));canvas.addEventListener('pointercancel',e=>end(e,true));
- canvas.addEventListener('dblclick',e=>{if(tool!=='select')return;const o=object();if(!isLine(o)||o.locked||e.target.dataset.id!==o.id||e.target.hasAttribute('data-vertex'))return;const p=nearest(point(e),o);commit(d=>d.artwork.lines.find(l=>l.id===o.id).points.splice(p.index,0,{x:p.x,y:p.y}));});
+ canvas.addEventListener('dblclick',e=>{if(space||tool!=='select')return;const o=object();if(!isLine(o)||o.locked||e.target.dataset.id!==o.id||e.target.hasAttribute('data-vertex'))return;const p=nearest(point(e),o);commit(d=>d.artwork.lines.find(l=>l.id===o.id).points.splice(p.index,0,{x:p.x,y:p.y}));});
  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
  document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));$('start').onclick=()=>setTool('pen');$('finish').onclick=finish;$('cancel').onclick=()=>{draft=[];setTool('select');};
  function travel(redo){draft=[];history[redo?'redo':'undo']();doc=history.get();if(!object())selected=null;persist();render();}
  $('undo').onclick=()=>travel(false);$('redo').onclick=()=>travel(true);$('fit').onclick=fit;$('in').onclick=()=>zoom(1.25);$('out').onclick=()=>zoom(.8);$('snap').onchange=draw;
  $('title').onchange=e=>commit(d=>d.title=e.target.value);
  document.addEventListener('keydown',e=>{
-  if(e.target.matches('input,select,textarea')||$('newDialog').open)return;
+  if(e.target.closest('input,select,textarea')||e.target.isContentEditable||$('newDialog').open)return;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();travel(e.shiftKey);return;}
-  if(e.code==='Space'){e.preventDefault();space=true;canvas.style.cursor='grab';return;}
+  if(e.code==='Space'){e.preventDefault();if(!gesture){space=true;canvas.style.cursor='grab';canvas.dataset.tool='hand';}return;}
   if(e.key==='Escape'){draft=[];selected=null;tool='select';render();}else if(e.key==='Enter'&&tool==='pen')finish();else if(e.key==='Backspace'&&tool==='pen'){e.preventDefault();draft.pop();render();}else if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();remove();}else if(!e.ctrlKey&&!e.metaKey&&({v:'select',h:'hand',p:'pen',s:'stop'})[e.key.toLowerCase()])setTool(({v:'select',h:'hand',p:'pen',s:'stop'})[e.key.toLowerCase()]);
- });document.addEventListener('keyup',e=>{if(e.code==='Space'){space=false;canvas.style.cursor='';}});window.addEventListener('blur',()=>{space=false;canvas.style.cursor='';});
+ });document.addEventListener('keyup',e=>{if(e.code==='Space'){space=false;canvas.style.cursor='';canvas.dataset.tool=tool;}});window.addEventListener('blur',()=>{space=false;canvas.style.cursor='';});
  function replace(next){history=D.history(D.validate(next));doc=history.get();selected=null;draft=[];tool='select';persist();render();fit();}
  $('new').onclick=()=>$('newDialog').showModal();$('newDialog').addEventListener('close',()=>{if($('newDialog').returnValue==='create'){const d=D.blank();d.title=$('newTitle').value||'Nytt kart';[d.width,d.height]=$('newSize').value.split(',').map(Number);replace(d);}});
  $('template').onclick=async()=>{if(!confirm('Erstatt arbeidsflaten med en kopi av Trondheim? Lagre prosjektet først hvis du vil beholde en egen fil.'))return;try{const r=await fetch('network/trondheim-layout.json');if(!r.ok)throw Error('Kartet kunne ikke lastes');replace(D.fromTrondheim(await r.json()));}catch(e){status(e.message);}};

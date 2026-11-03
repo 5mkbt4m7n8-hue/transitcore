@@ -18,3 +18,15 @@ assert.match(D.svg(fresh.get()),/A &amp; B &lt;C&gt;/);
 const before=fresh.get();assert.throws(()=>fresh.change(d=>d.artwork.stops[0].x=Infinity));assert.deepEqual(fresh.get(),before,'rejected edits are atomic');
 for(const mutate of [d=>d.artwork.stops.push({...d.artwork.stops[0]}),d=>d.artwork.lines[0].color='url(evil)',d=>d.artwork.stops[0].lineIds=['missing'],d=>d.bindings.unknown={source:'trondheim',sourceId:'x',quayIds:[]}]){const bad=structuredClone(before);mutate(bad);assert.throws(()=>D.validate(bad));}
 console.log('Studio document: creation, history, import validation, SVG and canonical isolation passed');
+
+assert.equal(copy.artwork.lines.length,18);
+const edit=D.history(before);edit.change(d=>D.resize(d,1600,900));assert.match(D.svg(edit.get()),/viewBox="0 0 1600 900"/);assert.deepEqual(edit.get().artwork,before.artwork);edit.undo();assert.deepEqual(edit.get(),before);edit.redo();assert.equal(edit.get().width,1600);
+const stable=edit.get();assert.throws(()=>edit.change(d=>D.resize(d,10001,900)));assert.deepEqual(edit.get(),stable);
+edit.change(d=>{const s=d.artwork.stops[0];s.labelAngle=315;s.labelSide='left';s.labelDx=-12;s.symbol='capsule';s.span=50;s.symbolAngle=90;});
+assert.match(D.svg(edit.get()),/text-anchor="end" transform="rotate\(315 /);assert.equal(D.symbol(edit.get().artwork.stops[0]).width,50);
+assert.deepEqual(D.validate(JSON.parse(JSON.stringify(edit.get()))),edit.get());
+for(const n of [-1,361,Infinity])assert.throws(()=>edit.change(d=>d.artwork.stops[0].labelAngle=n));
+const lanes=D.history(before);lanes.change(d=>{d.artwork.lines[0].points=[{x:100,y:100},{x:300,y:100},{x:300,y:300}];D.parallel(d,'l',2,20,['l2','l3']);});
+assert.deepEqual(lanes.get().artwork.lines[1].points,[{x:100,y:120},{x:280,y:120},{x:280,y:300}]);assert.deepEqual(lanes.get().artwork.lines[2].points,[{x:100,y:140},{x:260,y:140},{x:260,y:300}]);assert.equal(lanes.get().artwork.stops.length,1);assert.deepEqual(lanes.get().bindings,before.bindings);const three=lanes.get();lanes.undo();assert.deepEqual(lanes.get(),before);lanes.redo();assert.deepEqual(lanes.get(),three);
+const labels=structuredClone(before);labels.artwork.stops.push({...labels.artwork.stops[0],id:'s2'});D.arrangeLabels(labels);assert.notDeepEqual(D.label(labels.artwork.stops[0]),D.label(labels.artwork.stops[1]));
+console.log('Studio enhancements: dimensions, rotation, label suggestions, parallel spacing, shared symbol, history and persistence passed');

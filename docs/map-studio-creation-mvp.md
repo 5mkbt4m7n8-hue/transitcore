@@ -21,3 +21,17 @@ The Trondheim template copies geometry and retains original stop binding records
 `browser-map-studio.mjs` reproduces the old designer jump with `STUDIO_BASELINE=1`: a click at 300% changes scroll (120,300) to (0,26). The fix restores scroll after SVG replacement and caches the fitted base width independently of selection and scrollbar changes. The same test verifies click, drag and arrow-key viewport stability on the fixed code. It also creates a new line and named stop through the UI, pans/zooms, selects via artwork/layers, drags stops/vertices, checks undo/redo, downloads/reopens JSON, rejects an invalid document without losing work, reloads, and copies Trondheim. Model tests verify atomic invalid-edit rejection, history branching, SVG escaping and canonical/binding isolation. Both run in the existing no-deploy Linear CI workflow alongside the full editor and feed suites.
 
 PR #323 stays draft. No production deployment or merge is part of this preview.
+
+## Workspace enhancements (November 3)
+
+Space is a temporary pan override: it preserves the selected object, previous tool, pen draft, zoom and document history. Inputs, textareas, selects and contenteditable retain their keyboard input. Key release/window blur clears the override.
+
+Press Esc or click empty space, then expand **Tegneområde** in Properties. Enter width/height (100–10000 drawing units), optionally swap for portrait/landscape, then **Endre tegneområde**. Existing geometry stays in place and the camera stays stable; **Tilpass kart** shows the new bounds. Invalid sizes and shrinking across existing points are rejected atomically. SVG viewBox and JSON/local recovery use these dimensions. Physical cm sizes and canonical Trondheim are separate and unchanged.
+
+Selected stops offer **Navneside**, **Navnevinkel (0–360°)**, and a draggable label anchor. Exact offsets live in a collapsed section. **Foreslå navneplassering** tries alternate sides/offsets using conservative rotated text boxes; it preserves locked labels and angles. It is a best-effort suggestion, not a guarantee for dense maps or all fonts.
+
+Select a line and expand **Parallelle linjekopier**. Set the number of extra lines (1–8) and lane spacing in map units (2–200). Copies use polyline offset intersections, distinct colors and independent selectable layers. Sharp reversals/duplicate vertices or out-of-bounds copies are rejected. Copies remain independent after creation: changing spacing later or editing the source does not update existing copies. Linked lane groups and per-route live identity remain future work.
+
+A stop may use **Felles stopp**, with width and rotation, to draw one capsule spanning several lanes. It remains one stop object with one unchanged binding record, not several invented Quays. This is a visual symbol; automatic association to parallel routes, per-lane stop snapping and data merging are not implemented. New lines receive no source binding. The filled-circle option offers a second simple symbol style.
+
+The layer list is collapsed by default; no tools were added. Model and browser regressions cover dimension history/export, label rotation and side, Space pan during pen drafting and text entry, parallel spacing and selection, shared symbol, save/open/reload and original Trondheim counts.
