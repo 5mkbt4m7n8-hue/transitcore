@@ -110,7 +110,8 @@
      if(!match||Number(match[1])<10||Number(match[1])>200||
       Number(match[2])<10||Number(match[2])>200||!profile||
       !profile.positions||typeof profile.positions!=='object'||Array.isArray(profile.positions)||
-      !profile.labels||typeof profile.labels!=='object'||Array.isArray(profile.labels)){
+      !profile.labels||typeof profile.labels!=='object'||Array.isArray(profile.labels)||
+      (profile.followStations!==undefined&&typeof profile.followStations!=='boolean')){
       errors.push('Ugyldig fysisk tavleformat '+format);continue;
      }
      const markers=Object.entries(profile.positions),labels=Object.entries(profile.labels);
