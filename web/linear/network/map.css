@@ -199,3 +199,16 @@ body.network-mode .tools label,body.network-mode .tools select,.map-toolbar labe
 .map-board-preview{display:flex;align-items:center;justify-content:center;max-width:780px;min-height:80px;max-height:75vh;overflow:auto;padding:12px;margin:10px auto;background:#142638;border:1px solid #35546c;border-radius:12px}
 .map-board-preview svg{display:block;max-width:100%;max-height:calc(75vh - 28px);width:auto;height:auto;flex:none;box-shadow:0 12px 30px rgba(0,0,0,.4)}
 @media(max-width:560px){.map-board-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.map-board-controls button{grid-column:1/-1}.map-board-preview{padding:5px}}
+
+/* v0.6 physical-only placement editor; enable touch drag only in explicit move mode. */
+.map-board-move-label{display:flex!important;align-items:center;gap:8px;min-height:38px}
+.map-board-move-label input{width:18px;height:18px;accent-color:#7bdbae}
+.map-board-move-active svg{touch-action:none;user-select:none}
+.map-board-move-active [data-board-key],
+.map-board-move-active [data-board-label],
+.map-board-move-active [data-board-group]{cursor:grab;outline-offset:3px}
+.map-board-move-active [data-board-key]:focus-visible,
+.map-board-move-active [data-board-label]:focus-visible,
+.map-board-move-active [data-board-group]:focus-visible{outline:2px solid #f3cc83}
+.map-board-move-active circle[data-board-moved="true"]{stroke:#f8d38f;stroke-width:1.1}
+.map-board-controls [data-role=boardReset]{background:#3b2e25;border:1px solid #b69366}
