@@ -75,6 +75,29 @@ async function probe(label,origin){
   result.ttlSeconds=data.ttlSeconds;
   result.activeLedCount=data.leds.length;
   result.sequence=data.sequence;
+  // Release health only: aggregate GPS proximity metadata, no raw positions or IDs.
+  result.gpsNearestStopCount=data.leds.filter(led=>
+   led.vehicle?.positionType==='gps-nearest-stop' ||
+   led.occupants?.some(o=>o.positionType==='gps-nearest-stop')).length;
+  result.offRouteNearestStops=data.leds.filter(led=>
+   led.vehicle?.routeListedHere===false ||
+   led.occupants?.some(o=>o.routeListedHere===false)).length;
+  // Release #276: genuine GPS occupants carry explicit uncertainty metadata,
+  // and their proximity must never be mislabeled as a confirmed AT_STOP.
+  const gpsOccupants=data.leds.flatMap(led=>led.occupants||led.vehicle?[...(led.occupants||[]),...(led.vehicle?[led.vehicle]:[])]:[])
+   .filter(o=>o?.positionType==='gps-nearest-stop');
+  result.gpsObservations=gpsOccupants.length;
+  result.evidenceCount=gpsOccupants.filter(o=>['route-destination','gps-only','direction-conflict'].includes(o.platformEvidence)).length;
+  result.unconfirmedCount=gpsOccupants.filter(o=>o.platformConfirmed===false).length;
+  result.nearestQuayCount=gpsOccupants.filter(o=>Number.isInteger(o.nearestQuayLed)).length;
+  result.gpsAtStopCount=data.leds.filter(led=>led.state==='AT_STOP'&&
+    (led.vehicle?.positionType==='gps-nearest-stop'||led.occupants?.some(o=>o.positionType==='gps-nearest-stop'))).length;
+  result.release276Ready=result.gpsObservations>0&&
+    result.gpsObservations===result.evidenceCount&&
+    result.gpsObservations===result.unconfirmedCount&&
+    result.gpsObservations===result.nearestQuayCount&&
+    result.gpsAtStopCount===0;
+  if(label==='production'&&!result.release276Ready)result.verdict='OLD_OR_INVALID_WORKER_276';
  }catch(error){
   result.verdict='INVALID_OR_UNREACHABLE';
   result.reason=(error?.code||error?.name||'error').slice(0,55);
@@ -134,3 +157,102 @@ if(production.verdict!=='VALID'){
  process.exitCode=1;
 }
 if(staging.verdict!=='VALID')console.warn('STAGING_NOT_VERIFIED: Check gateway before relying on staging for catalog testing.');
+
+
+// Read-only post-release checks. Never print stored occupants, vehicle IDs,
+// provider response bodies, or client-side editing drafts.
+async function pageReleaseCheck(){
+ const result={url:'Linear GitHub Pages'};
+ try{
+  const {response,body,bytes}=await fetchBounded('https://5mkbt4m7n8-hue.github.io/transitcore/web/linear/index.html');
+  result.http=response.status;result.bytes=bytes;
+  result.unified=body.includes('boards/trondheim-city-lines-catalog.json')&&
+   !body.includes('boards/trondheim-bus-board.json');
+  result.proximityPopup=body.includes('gps-nearest-stop')&&
+   body.includes('GPS innenfor stoppradius');
+  result.release276UI=body.includes('unconfirmed')&&
+   body.includes('Plattform valgt ut fra linje og destinasjon')&&
+   body.includes('Retning:');
+  const profile=await fetchBounded('https://5mkbt4m7n8-hue.github.io/transitcore/config/routes/atb-bus-11-live.json');
+  result.line11Label=profile.response.ok
+   ?JSON.parse(profile.body).directions?.find(direction=>direction.reverseShape)?.label:null;
+  result.verdict=response.status===200&&result.unified&&result.proximityPopup&&
+   result.release276UI&&result.line11Label==='mot Blakli'?'VALID':'NOT_YET_PUBLISHED';
+ }catch(error){result.verdict='UNAVAILABLE';result.reason=(error?.name||'network').slice(0,40)}
+ return result;
+}
+async function historyReleaseCheck(){
+ const result={boardId,source:'public_history'};
+ const endpoint='https://transitcore-led-feed.lgb84.workers.dev/v1/trondheim/history';
+ try{
+  const {response,body}=await fetchBounded(endpoint);
+  result.http=response.status;
+  if(!response.ok){result.verdict='UNAVAILABLE';return result;}
+  const index=JSON.parse(body);
+  result.recordingProfile=index.boardProfile||null;
+  result.cadenceMinutes=index.cadenceMinutes||null;
+  result.currentDay=index.currentDay||null;
+  result.availableDays=(index.days||[]).length;
+  if(index.boardProfile!==boardId){result.verdict='OLD_RECORDER';return result;}
+  const today=(index.days||[]).find(entry=>entry.day===index.currentDay);
+  result.todaySamples=today?.count||0;
+  if(!today){result.verdict='NO_CURRENT_RECORDS';return result;}
+  let records=[],cursor=null,pages=0;
+  do {
+   if(++pages>24)throw Error('history_pagination_limit');
+   const args=new URLSearchParams({day:index.currentDay,limit:'20'});
+   if(cursor)args.set('cursor',cursor);
+   const data=await fetchBounded(endpoint+'?'+args);
+   if(!data.response.ok)throw Error('history_records_http_'+data.response.status);
+   const page=JSON.parse(data.body);
+   if(!Array.isArray(page.records))throw Error('invalid_history_records');
+   records.push(...page.records);
+   cursor=page.nextCursor||null;
+  }while(cursor);
+  const activated=Date.parse('2026-10-29T06:19:00Z');
+  const afterRelease=records.filter(item=>Date.parse(item.capturedAt)>=activated);
+  const catalogFrames=afterRelease.filter(item=>item.status==='OK'&&
+   item.frame?.boardProfile===boardId&&item.frame?.ledCount===expectedCount);
+  result.postReleaseSamples=afterRelease.length;
+  result.postReleaseCatalogSamples=catalogFrames.length;
+  result.latestSampleTime=records.at(-1)?.capturedAt||null;
+  result.latestSampleStatus=records.at(-1)?.status||null;
+  const latestError=String(records.at(-1)?.status==='ERROR'?records.at(-1)?.error||'':'');
+  result.recordErrorStage=/^(configuration|live_data|motion):/.exec(latestError)?.[1]||null;
+  result.recordErrorSubrequests=/subrequest/i.test(latestError);
+  result.recordErrorTimeout=/timed out|timeout/i.test(latestError);
+  result.recordErrorInvalidFrame=/invalid_recorded_frame|invalid_recorded_led/.test(latestError);
+  result.recordErrorOversize=/frame_too_large/.test(latestError);
+  result.verdict=catalogFrames.length?'VALID':'AWAITING_NEW_CATALOG_SAMPLE';
+ }catch(error){result.verdict='UNAVAILABLE';result.reason=(error?.message||'unknown').slice(0,70);}
+ return result;
+}
+async function legacyMonitorReleaseCheck(){
+ const result={boardId:'trondheim-bus-board'};
+ try{
+  const url='https://transitcore-led-feed.lgb84.workers.dev/v1/boards/trondheim-bus-board/history';
+  const {response,body}=await fetchBounded(url);
+  result.http=response.status;
+  if(!response.ok){result.verdict='UNAVAILABLE';return result;}
+  const last=JSON.parse(body).lastScheduled;
+  if(!last){result.verdict='MISSING';return result;}
+  result.lastScheduledTime=last.checkedAt||null;
+  result.lastScheduledAgeSeconds=Number.isFinite(Date.parse(last.checkedAt))
+   ?Math.round((Date.now()-Date.parse(last.checkedAt))/1000):null;
+  result.source=last.source||null;
+  result.state=['OK','FEED_ERROR','PROFILE_MISMATCH'].includes(last.state)?last.state:'UNKNOWN';
+  result.verdict=result.source==='scheduled'&&result.state==='OK'&&
+   result.lastScheduledAgeSeconds>=0&&result.lastScheduledAgeSeconds<660?'VALID':'NOT_RECENTLY_OK';
+ }catch(e){result.verdict='UNAVAILABLE';result.reason=(e?.name||'network').slice(0,40);}
+ return result;
+}
+const [site,history,monitor]=await Promise.all([
+ pageReleaseCheck(),historyReleaseCheck(),legacyMonitorReleaseCheck()
+]);
+console.log('PUBLISHED_SITE '+JSON.stringify(site));
+console.log('HISTORY_RELEASE '+JSON.stringify(history));
+console.log('LEGACY_MONITOR '+JSON.stringify(monitor));
+if(site.verdict!=='VALID'||production.verdict!=='VALID')process.exitCode=1;
+// Recording runs every five minutes, not on demand; report missing samples
+// without assuming an error until a full monitoring window has elapsed.
+if(history.verdict==='OLD_RECORDER'||history.verdict==='UNAVAILABLE')process.exitCode=1;
