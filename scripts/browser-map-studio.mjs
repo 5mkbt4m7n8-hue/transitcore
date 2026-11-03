@@ -1,4 +1,5 @@
 import {phaseOne} from './browser-studio-phase-one.mjs';
+import {selectionRegression} from './browser-studio-selection.mjs';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {readFile,mkdir} from 'node:fs/promises';
@@ -12,6 +13,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,...(process.env.BROWSER_PATH?{executablePath:process.env.BROWSER_PATH}:{})});
 const base=process.env.STUDIO_PREVIEW||`http://127.0.0.1:${server.address().port}/web/linear/`;
 try{
+ await selectionRegression(browser,base);
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
  // Legacy designer: selection and drag must retain nonzero scroll at 300%.
  await page.goto(base+'index.html?view=designer');await page.locator('[data-role=boardSvgHost] svg').waitFor();await page.locator('[data-zoom]').selectOption('3');
