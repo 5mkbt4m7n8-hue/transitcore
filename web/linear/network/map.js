@@ -120,6 +120,111 @@
    }catch(error){q('boardWarnings').textContent='Eksport feilet: '+error.message;}
   };
 
+
+  // Board-only dragging: the canonical Trondheim stop and path coordinates
+  // never participate in editor.change(), only physicalBoardLayouts does.
+  function boardHit(event){
+   const target=event.target?.closest?.('[data-board-label], [data-board-key], [data-board-group]');
+   if(!target||!q('boardSvgHost').contains(target))return null;
+   const dims=B.dimensions(boardSettings),profile=B.currentProfile(layout,boardSettings),
+    parts=B.layoutElements(layout,dims,profile);
+   const labelId=target.getAttribute('data-board-label');
+   if(labelId){
+    const label=parts.labels.find(item=>item.stopId===labelId);
+    return label?{kind:'labels',items:[{key:labelId,x:label.x,y:label.y}],dims}:null;
+   }
+   const groupId=target.getAttribute('data-board-group')||
+    target.getAttribute('data-display-station');
+   const selected=groupId?parts.markers.filter(item=>item.groupId===groupId):
+    parts.markers.filter(item=>item.key===target.getAttribute('data-board-key'));
+   return selected.length?{kind:'positions',items:selected.map(item=>({key:item.key,x:item.x,y:item.y})),dims}:null;
+  }
+  function boardPointerPosition(event){
+   const svgElement=q('boardSvgHost').querySelector('svg');
+   if(!svgElement)return null;
+   const rect=svgElement.getBoundingClientRect(),d=B.dimensions(boardSettings);
+   if(rect.width<1||rect.height<1)return null;
+   return {x:(event.clientX-rect.left)*d.widthMm/rect.width,
+    y:(event.clientY-rect.top)*d.heightMm/rect.height};
+  }
+  function boardOffset(hit,dx,dy){
+   const d=hit.dims;
+   const clearance=hit.kind==='positions'?d.marginMm+d.ledDiameterMm/2:d.marginMm/2;
+   const minDx=Math.max(...hit.items.map(m=>clearance-m.x));
+   const maxDx=Math.min(...hit.items.map(m=>d.widthMm-clearance-m.x));
+   const minDy=Math.max(...hit.items.map(m=>clearance-m.y));
+   const maxDy=Math.min(...hit.items.map(m=>d.heightMm-clearance-m.y));
+   const shiftX=Math.min(maxDx,Math.max(minDx,dx)),shiftY=Math.min(maxDy,Math.max(minDy,dy));
+   const coords=Object.fromEntries(hit.items.map(m=>[m.key,{
+    x:Math.round((m.x+shiftX)/d.widthMm*1e6)/1e6,
+    y:Math.round((m.y+shiftY)/d.heightMm*1e6)/1e6
+   }]));
+   return {preview:{[hit.kind]:coords},distance:Math.hypot(shiftX,shiftY)};
+  }
+  q('boardMove').onchange=()=>{
+   if(q('boardMove').checked&&!editing){
+    q('boardMove').checked=false;
+    q('boardWarnings').textContent='Aktiver «Rediger kart» for å flytte fysiske tavlesymboler.';
+   }
+   boardRender();
+  };
+  q('boardUndo').onclick=()=>{
+   boardDrag=null;editor.undo();boardRender();
+  };
+  q('boardReset').onclick=()=>{
+   boardDrag=null;
+   if(!editing){
+    q('boardWarnings').textContent='Aktiver «Rediger kart» for å tilbakestille tavleformatet.';
+    return;
+   }
+   if(!layout.physicalBoardLayouts?.profiles?.[B.profileKey(boardSettings)]){
+    q('boardWarnings').textContent='Ingen endrede plasseringer i dette tavleformatet.';
+    return;
+   }
+   try{editor.change(next=>B.resetOverrides(next,boardSettings));boardRender();}
+   catch(error){q('boardWarnings').textContent=error.message;}
+  };
+  const boardHost=q('boardSvgHost');
+  boardHost.addEventListener('pointerdown',event=>{
+   if(!editing||!q('boardMove').checked||event.button!==0||boardDrag)return;
+   const hit=boardHit(event),start=boardPointerPosition(event);
+   if(!hit||!start)return;
+   event.preventDefault();
+   boardDrag={pointerId:event.pointerId,start,hit,preview:null,distance:0};
+   boardHost.setPointerCapture(event.pointerId);
+  });
+  boardHost.addEventListener('pointermove',event=>{
+   if(!boardDrag||event.pointerId!==boardDrag.pointerId)return;
+   const point=boardPointerPosition(event);if(!point)return;
+   const move=boardOffset(boardDrag.hit,point.x-boardDrag.start.x,point.y-boardDrag.start.y);
+   boardDrag.preview=move.preview;boardDrag.distance=move.distance;
+   boardRender();
+  });
+  function finishBoardDrag(event,commit){
+   if(!boardDrag||event.pointerId!==boardDrag.pointerId)return;
+   const drag=boardDrag;boardDrag=null;
+   try{if(boardHost.hasPointerCapture(event.pointerId))boardHost.releasePointerCapture(event.pointerId);}catch{}
+   if(commit&&drag.distance>=0.25&&drag.preview){
+    try{editor.change(next=>B.saveOverrides(next,boardSettings,drag.preview));}
+    catch(error){q('boardWarnings').textContent=error.message;}
+   }
+   boardRender();
+  }
+  boardHost.addEventListener('pointerup',event=>finishBoardDrag(event,true));
+  boardHost.addEventListener('pointercancel',event=>finishBoardDrag(event,false));
+  boardHost.addEventListener('keydown',event=>{
+   if(!editing||!q('boardMove').checked||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+   const hit=boardHit(event);if(!hit)return;
+   const step=event.shiftKey?5:1;
+   const dx=event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0;
+   const dy=event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0;
+   const move=boardOffset(hit,dx,dy);
+   event.preventDefault();
+   if(move.distance<=0)return;
+   try{editor.change(next=>B.saveOverrides(next,boardSettings,move.preview));}
+   catch(error){q('boardWarnings').textContent=error.message;}
+  });
+
   const draftStatus=q('draftStatus');
   function setDraftStatus(message){draftStatus.textContent=message;}
    const displayName=stop=>localNames[stop.id]||stop.name;
