@@ -450,11 +450,11 @@ try{
  await page.mouse.down();
  await page.mouse.move(ledBox.x+ledBox.width/2+35,ledBox.y+ledBox.height/2+12,{steps:4});
  await page.mouse.up();
- const movedDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
- assert.equal(movedDraft.stops.length,100);
- assert.equal(movedDraft.stops.find(s=>s.id==='original-000').x,beforePhysicalStop.x);
- assert.equal(movedDraft.stops.find(s=>s.id==='original-000').y,beforePhysicalStop.y);
- assert.equal(Object.keys(movedDraft.physicalBoardLayouts.profiles['35x52'].positions).length,2,'both group Quays moved together');
+ const physicalMovedDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert.equal(physicalMovedDraft.stops.length,100);
+ assert.equal(physicalMovedDraft.stops.find(s=>s.id==='original-000').x,beforePhysicalStop.x);
+ assert.equal(physicalMovedDraft.stops.find(s=>s.id==='original-000').y,beforePhysicalStop.y);
+ assert.equal(Object.keys(physicalMovedDraft.physicalBoardLayouts.profiles['35x52'].positions).length,2,'both group Quays moved together');
  assert(Math.abs(Number(await ledA.getAttribute('cx'))-startA)>1);
  assert(Math.abs(Number(await ledB.getAttribute('cx'))-startB)>1);
  const movedA=Number(await ledA.getAttribute('cx'));
