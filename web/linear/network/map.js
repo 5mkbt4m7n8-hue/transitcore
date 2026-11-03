@@ -41,13 +41,14 @@
    '<label>Navnestørrelse (mm) <input type="number" data-role="boardLabelSize" min="1.5" max="8" step="0.1" value="2.4"></label>'+
    '<label class="map-board-show-labels"><input type="checkbox" data-role="boardLabels" checked> Vis navn</label>'+
    '<label class="map-board-move-label"><input type="checkbox" data-role="boardMove"> Flytt stasjoner og navn</label>'+
+   '<label class="map-board-follow-label"><input type="checkbox" data-role="boardFollow"> Linjene følger flyttede stasjoner</label>'+
    '<button type="button" data-role="boardUndo">Angre siste endring</button>'+
    '<button type="button" data-role="boardReset">Tilbakestill dette formatet</button>'+
    '<button type="button" data-role="boardExport">Eksporter SVG i fysisk størrelse</button>'+
    '</div><p class="map-board-info" data-role="boardMetrics" aria-live="polite"></p>'+
    '<div class="map-board-preview" data-role="boardSvgHost" aria-label="Skalerbar fysisk tavle i valgt format"></div>'+
    '<p class="map-board-warning" data-role="boardWarnings"></p>'+
-   '<small>Aktiver «Rediger kart» og deretter «Flytt stasjoner og navn». Dra en LED-runding eller felles ring for å flytte stasjonen; dra stasjonsnavnet separat. Piltaster flytter 1 mm (Shift: 5 mm). Plasseringer lagres separat for hvert valgt tavlemål i prosjekt-JSON. Linjene flyttes ikke automatisk når en stasjon flyttes.</small>'+
+   '<small>Aktiver «Rediger kart» og deretter «Flytt stasjoner og navn». Dra en LED-runding eller felles ring for å flytte stasjonen; dra stasjonsnavnet separat. «Linjene følger flyttede stasjoner» tilpasser kun linjeknekkpunkter som opprinnelig sammenfaller nøyaktig med kartstoppet; dette er en grafisk effekt uten rutebekreftelse. Piltaster flytter 1 mm (Shift: 5 mm). Plasseringer lagres separat for hvert valgt tavlemål i prosjekt-JSON. Linjene flyttes ikke automatisk når en stasjon flyttes.</small>'+
    '<small>Tavlemål og LED-diameter er i faktiske cm/mm. Utskrevet SVG har riktige mm-mål, men kontroller at utskriftsprogrammet ikke bruker «Tilpass side». Dette er en visuell tegning, ikke en verifisert kablingsplan eller fysisk LED-bestilling.</small>'+
    '</details>');
   const q=r=>host.querySelector(`[data-role="${r}"]`),svg=host.querySelector('svg'),editorPanel=host.querySelector('#networkEditor');
@@ -71,13 +72,15 @@
     const litQuays=demo?target.members.filter((m,i)=>P.simulated(previewMode,i)?.state==='AT_STOP').map(m=>m.quayId):[];
     const result=B.build(layout,boardSettings,{simulated:Boolean(demo),litQuays,previewOverrides:boardDrag?.preview});
     lastBoardResult=result;
+    q('boardFollow').checked=B.currentProfile(layout,boardSettings).followStations===true;
     q('boardSvgHost').innerHTML=result.svg.replace(/^<\?xml[^>]*>\s*/,'');
     q('boardSvgHost').classList.toggle('map-board-move-active',editing&&q('boardMove').checked);
     q('boardMetrics').textContent=boardSettings.widthCm+' × '+boardSettings.heightCm+
      ' cm · LED Ø '+boardSettings.ledDiameterMm+' mm · '+result.summary.markers+
      ' markører · '+result.summary.labels+' navn · '+result.summary.overlaps+' LED-avstandskonflikter · utnyttet flate '+result.dimensions.usagePct+
      ' %'+(demo?' · SIMULERT':' · kun grafisk preview')+
-     ' · format '+B.profileKey(boardSettings)+' · '+Object.keys(B.currentProfile(layout,boardSettings).positions||{}).length+' flyttede punkter';
+     ' · format '+B.profileKey(boardSettings)+' · '+Object.keys(B.currentProfile(layout,boardSettings).positions||{}).length+' flyttede punkter'+
+     (result.summary.followStations?' · linjetilpasning aktiv ('+result.summary.trackedVertices+' knekkpunkter)':' · linjetilpasning av');
     q('boardWarnings').textContent=result.warnings.length?
      'Kontrollpunkter ('+result.warnings.length+'): '+
      result.warnings.slice().sort((a,b)=>Number(b.code==='LED_OVERLAP')-Number(a.code==='LED_OVERLAP')).slice(0,4).map(w=>w.message).join(' · ')+
@@ -161,6 +164,16 @@
    }]));
    return {preview:{[hit.kind]:coords},distance:Math.hypot(shiftX,shiftY)};
   }
+  q('boardFollow').onchange=()=>{
+   if(!editing){
+    q('boardFollow').checked=B.currentProfile(layout,boardSettings).followStations===true;
+    q('boardWarnings').textContent='Aktiver «Rediger kart» for å endre linjetilpasning.';
+    return;
+   }
+   try{editor.change(next=>B.saveOverrides(next,boardSettings,{followStations:q('boardFollow').checked}));}
+   catch(error){q('boardWarnings').textContent=error.message;boardRender();}
+  };
+
   q('boardMove').onchange=()=>{
    if(q('boardMove').checked&&!editing){
     q('boardMove').checked=false;
