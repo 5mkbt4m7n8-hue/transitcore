@@ -93,9 +93,13 @@
   return id;
  }
  function remove(layout,id){
-  const before=(layout.displayStations||[]).length;
-  layout.displayStations=(layout.displayStations||[]).filter(ds=>ds.id!==id);
-  if(layout.displayStations.length===before)throw Error('Ukjent visuell stasjon');
+  const removed=(layout.displayStations||[]).find(ds=>ds.id===id);
+  if(!removed)throw Error('Ukjent visuell stasjon');
+  layout.displayStations=layout.displayStations.filter(ds=>ds.id!==id);
+  // A grouped Quay no longer has an independent physical marker after
+  // ungrouping; clear only those obsolete per-board overrides.
+  for(const profile of Object.values(layout.physicalBoardLayouts?.profiles||{}))
+   for(const member of removed.members)delete profile.positions['quay:'+member.quayId];
   if(!layout.displayStations.length){delete layout.displayStations;delete layout.displayStationsVersion;}
  }
  function geometry(layout,ds){
