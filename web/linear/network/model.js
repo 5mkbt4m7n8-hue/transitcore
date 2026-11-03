@@ -92,6 +92,38 @@
     }
    }
   }
+  // Per-size physical artwork is independent of verified canonical GPS/Quay data.
+  // Positions use board-normalized coordinates, never GPS or map coordinates.
+  if(layout.physicalBoardLayouts!==undefined){
+   const board=layout.physicalBoardLayouts,profiles=board?.profiles;
+   if(!board||board.version!==1||!profiles||typeof profiles!=='object'||Array.isArray(profiles)||
+    Object.keys(profiles).length>80)errors.push('Ugyldig samling fysiske tavleformater');
+   else{
+    const validStops=new Set(layout.stops.map(s=>'stop:'+s.id)),
+     validLabels=new Set(layout.stops.map(s=>s.id)),
+     validQuays=new Set((layout.displayStations||[]).flatMap(ds=>
+      (ds.members||[]).map(m=>'quay:'+m.quayId)));
+    const pos=p=>p&&typeof p==='object'&&!Array.isArray(p)&&
+     Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=0&&p.x<=1&&p.y>=0&&p.y<=1;
+    for(const [format,profile] of Object.entries(profiles)){
+     const match=/^(\d{1,3}(?:\.\d{1,3})?)x(\d{1,3}(?:\.\d{1,3})?)$/.exec(format);
+     if(!match||Number(match[1])<10||Number(match[1])>200||
+      Number(match[2])<10||Number(match[2])>200||!profile||
+      !profile.positions||typeof profile.positions!=='object'||Array.isArray(profile.positions)||
+      !profile.labels||typeof profile.labels!=='object'||Array.isArray(profile.labels)){
+      errors.push('Ugyldig fysisk tavleformat '+format);continue;
+     }
+     const markers=Object.entries(profile.positions),labels=Object.entries(profile.labels);
+     if(markers.length>3000||labels.length>3000){errors.push('For mange flyttede stasjoner i '+format);continue;}
+     for(const [key,value] of markers)
+      if(!pos(value)||!(validStops.has(key)||validQuays.has(key)))
+       errors.push('Ugyldig flyttet LED-stasjon '+key+' i '+format);
+     for(const [key,value] of labels)
+      if(!pos(value)||!validLabels.has(key))
+       errors.push('Ugyldig tavle-etikett '+key+' i '+format);
+    }
+   }
+  }
   return errors;
  }
  // Side assignments are manual visual reviews, never inferred from direction 0/1.
