@@ -352,4 +352,50 @@ assert.equal(routeLine(Physical.build(following,size3040).svg),routeLine(graphic
  'turning route-follow off restores the unaltered schematic line');
 assert.match(map,/data-role="boardFollow"/);
 
-console.log('InTransit Map Studio v0.7 optional physical route vertex following and source geometry integrity OK');
+
+// v0.8: editable physical route vertices and inserted bends are format-scoped.
+const boardBends=structuredClone(original),bendsSourcePaths=JSON.stringify(boardBends.paths),
+ bendsSourceStops=JSON.stringify(boardBends.stops),bendsSize={widthCm:30,heightCm:40};
+const beforeBends=Physical.build(boardBends,bendsSize,{showRouteHandles:true});
+const bendPath=svg=>svg.match(/<polyline data-route="trace-01"[^>]*>/)?.[0];
+assert.match(beforeBends.svg,/data-board-route-path="trace-01" data-board-route-key="0"/);
+Physical.setRoutePoint(boardBends,bendsSize,'trace-01',0,{x:.5,y:.5});
+assert.deepEqual(model.validate(boardBends),[]);
+const manuallyMoved=Physical.build(boardBends,bendsSize);
+assert.notEqual(bendPath(manuallyMoved.svg),bendPath(beforeBends.svg));
+assert.match(bendPath(manuallyMoved.svg),/points="150,200 /);
+const addedBend=Physical.addRouteBend(boardBends,bendsSize,'trace-01',0,{x:.55,y:.42});
+assert.equal(addedBend,'bend-1');
+assert.deepEqual(model.validate(boardBends),[]);
+const inserted=Physical.build(boardBends,bendsSize,{showRouteHandles:true});
+assert.match(inserted.svg,/data-board-route-path="trace-01" data-board-route-key="bend-1"/);
+assert.match(bendPath(inserted.svg),/165,168/);
+Physical.setRoutePoint(boardBends,bendsSize,'trace-01',addedBend,{x:.57,y:.44});
+assert.match(bendPath(Physical.build(boardBends,bendsSize).svg),/171,176/);
+assert.equal(Physical.build(boardBends,{widthCm:50,heightCm:70}).summary.editedRouteVertices,0,
+ 'a different physical size has no route edits');
+const transientBend=Physical.build(boardBends,bendsSize,{previewOverrides:{routes:{
+ 'trace-01':{vertices:{0:{x:.65,y:.65}},bends:[]}
+}}});
+assert.match(bendPath(transientBend.svg),/195,260/);
+assert.match(bendPath(Physical.build(boardBends,bendsSize).svg),/171,176/);
+Physical.removeRouteBend(boardBends,bendsSize,'trace-01',addedBend);
+assert.deepEqual(model.validate(boardBends),[]);
+assert.equal(Physical.build(boardBends,bendsSize,{showRouteHandles:true}).svg.includes('data-board-route-key="bend-1"'),false);
+assert.equal(Physical.resetRoute(boardBends,bendsSize,'trace-01'),true);
+assert.equal(Physical.resetRoute(boardBends,bendsSize,'trace-01'),false);
+assert.equal(bendPath(Physical.build(boardBends,bendsSize).svg),bendPath(beforeBends.svg));
+assert.equal(JSON.stringify(boardBends.paths),bendsSourcePaths);
+assert.equal(JSON.stringify(boardBends.stops),bendsSourceStops);
+const maliciousRoute=structuredClone(original);
+Physical.setRoutePoint(maliciousRoute,bendsSize,'trace-01',0,{x:.45,y:.48});
+maliciousRoute.physicalBoardLayouts.profiles['30x40'].routes['trace-01'].vertices['4000']={x:.1,y:.1};
+assert(model.validate(maliciousRoute).length>0,'route vertex index must be a canonical original index');
+assert.throws(()=>Physical.setRoutePoint(boardBends,bendsSize,'trace-01',999,{x:.3,y:.3}),/Ukjent/);
+assert.throws(()=>Physical.addRouteBend(boardBends,bendsSize,'trace-01',999,{x:.3,y:.3}),/Ukjent/);
+assert.throws(()=>Physical.addRouteBend(boardBends,bendsSize,'trace-01',0,{x:2,y:.3}),/inne/);
+assert.match(map,/data-role="boardRouteEdit"/);
+assert.match(map,/data-role="boardAddBend"/);
+assert.match(map,/B\.setRoutePoint\(/);
+
+console.log('InTransit Map Studio v0.8 independent physical route bends and SVG preview OK');
