@@ -2,7 +2,7 @@
  'use strict';
  const D=InTransitStudioDocument,$=id=>document.getElementById(id),ns='http://www.w3.org/2000/svg',key='intransit-artwork-v1';
  let initial=D.blank(),warning='';try{const saved=localStorage.getItem(key);if(saved)initial=D.validate(JSON.parse(saved));}catch{warning='Kunne ikke gjenåpne lokal kopi. Åpne en lagret prosjektfil.';}
- let history=D.history(initial),doc=history.get(),selected=null,selection=[],endpoint=null,extension=null,tool='select',draft=[],hover=null,gesture=null,pendingStation=null,propertyEdit=null,section=null,area=null,ledDetailsOpen=false,space=false,serial=Date.now(),camera={x:0,y:0,k:1};
+ let history=D.history(initial),doc=history.get(),selected=null,selection=[],endpoint=null,extension=null,tool='select',draft=[],hover=null,gesture=null,pendingStation=null,propertyEdit=null,section=null,area=null,ledDetailsOpen=false,endpointMode='direction',space=false,serial=Date.now(),camera={x:0,y:0,k:1};
  const canvas=$('canvas'),stage=$('stage');
  const make=(tag,attrs={},text)=>{const n=document.createElementNS(ns,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);if(text!==undefined)n.textContent=text;return n;};
  const all=()=>[...doc.artwork.lines,...doc.artwork.stops],object=()=>all().find(o=>o.id===selected),isLine=o=>o&&Array.isArray(o.points),id=prefix=>prefix+'-'+(++serial);
@@ -13,7 +13,7 @@
  function pruneSelection(){selection=selection.filter(id=>all().some(o=>o.id===id));selected=selection.includes(selected)?selected:selection.at(-1)||null;endpoint=null;}
  const status=s=>$('status').textContent=s;
  function persist(){try{localStorage.setItem(key,JSON.stringify(doc));status('Lagret på denne enheten');}catch{status('Lokal lagring er utilgjengelig. Bruk Lagre prosjekt.');}}
- function commit(fn){finishSpacing();pendingStation=null;history.change(fn);doc=history.get();selection=selection.filter(id=>all().some(o=>o.id===id));selected=selection.includes(selected)?selected:selection.at(-1)||null;if(endpoint&&!selection.includes(endpoint.id))endpoint=null;persist();render();}
+ function commit(fn){finishSpacing();pendingStation=null;history.change(d=>{const prior=d.artwork.stops.find(s=>s.id===selected),before=prior?JSON.stringify(D.stationStyle(prior)):null;fn(d);const after=d.artwork.stops.find(s=>s.id===selected);if(after&&before!==JSON.stringify(D.stationStyle(after)))D.rememberStationStyle(d,after);});doc=history.get();selection=selection.filter(id=>all().some(o=>o.id===id));selected=selection.includes(selected)?selected:selection.at(-1)||null;if(endpoint&&!selection.includes(endpoint.id))endpoint=null;persist();render();}
  function view(){canvas.setAttribute('viewBox',`${camera.x} ${camera.y} ${stage.clientWidth/camera.k} ${stage.clientHeight/camera.k}`);$('zoom').textContent=Math.round(camera.k*100)+' %';}
  function fit(){camera.k=Math.max(.05,Math.min((stage.clientWidth-64)/doc.width,(stage.clientHeight-64)/doc.height));camera.x=(doc.width-stage.clientWidth/camera.k)/2;camera.y=(doc.height-stage.clientHeight/camera.k)/2;view();}
  function zoom(f,x=stage.clientWidth/2,y=stage.clientHeight/2){const k=Math.max(.05,Math.min(6,camera.k*f));camera.x+=x/camera.k-x/k;camera.y+=y/camera.k-y/k;camera.k=k;view();draw();}
@@ -35,9 +35,10 @@
    if(selection.includes(s.id))nodes.push(make('circle',{cx:s.x,cy:s.y,r:11,fill:'#bcdfcb','pointer-events':'none'}));
    const label=D.label(s);
    for(const part of D.stationShapes(doc,s))nodes.push(make(part.tag,{...part.attrs,'data-id':s.id}));
-   nodes.push(make('text',{x:label.x,y:label.y,'text-anchor':label.anchor,transform:'rotate('+label.angle+' '+label.x+' '+label.y+')','font-family':'system-ui,sans-serif','font-size':12,fill:'#203c32','data-id':s.id,'data-label':'true'},s.name));
+   nodes.push(make('text',{x:label.x,y:label.y,'text-anchor':label.anchor,transform:'rotate('+label.angle+' '+label.x+' '+label.y+')','font-family':'system-ui,sans-serif','font-size':s.fontSize||12,'font-weight':s.fontWeight||'normal',fill:'#203c32','data-id':s.id,'data-label':'true'},s.name));
   }
   if(draft.length){const pts=[...draft,...(hover?[hover]:[])];nodes.push(make('polyline',{points:pts.map(p=>p.x+','+p.y).join(' '),fill:'none',stroke:extension?doc.artwork.lines.find(l=>l.id===extension.id).color:'#267a59','stroke-width':extension?doc.artwork.lines.find(l=>l.id===extension.id).width:6,'stroke-linejoin':'round','stroke-dasharray':'8 4','pointer-events':'none'}));draft.forEach(p=>handles.push(make('circle',{cx:p.x,cy:p.y,r:4/camera.k,'pointer-events':'none'})));}
+  if(gesture?.guide){const g=gesture.guide;handles.push(make('line',{x1:g.origin.x,y1:g.origin.y,x2:g.point.x,y2:g.point.y,stroke:'#e08a3b','stroke-width':2/camera.k,'stroke-dasharray':'5 4','pointer-events':'none','data-direction-guide':'true'}));}
   const activeArea=gesture?.kind==='rubber'?(gesture.nextArea||area):area;if(activeArea){const b=activeArea.bounds;handles.push(make('rect',{x:b.x1,y:b.y1,width:b.x2-b.x1,height:b.y2-b.y1,fill:'#e08a3b11',stroke:'#b96918','stroke-width':1/camera.k,'stroke-dasharray':'5 3','pointer-events':'none','data-area-frame':'true'}));for(const [id,indices]of Object.entries(activeArea.vertices)){const l=all().find(o=>o.id===id);if(l?.visible)for(const i of indices){const p=l.points[i];if(p)handles.push(make('circle',{cx:p.x,cy:p.y,r:6/camera.k,style:'fill:#e08a3b;stroke:#64390f','data-id':id,'data-area-vertex':i}));}}for(const part of activeArea.sections){const l=all().find(o=>o.id===part.id);if(l?.visible){const ref=u=>({segment:Math.min(Math.floor(u),l.points.length-2),t:u>=l.points.length-1?1:u-Math.floor(u)});try{const range=D.sectionRange(doc,l.id,ref(part.from),ref(part.to));handles.push(make('polyline',{points:range.points.map(p=>p.x+','+p.y).join(' '),fill:'none',stroke:'#e08a3b88','stroke-width':l.width+3,'pointer-events':'none'}));}catch{}}}}
   if(gesture?.kind==='marquee'){const a=gesture.start,b=gesture.current||a;handles.push(make('rect',{x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),width:Math.abs(b.x-a.x),height:Math.abs(b.y-a.y),fill:'#21896718',stroke:'#218967','stroke-width':1/camera.k,'stroke-dasharray':'5 3','pointer-events':'none','data-marquee':'true'}));}
   if(section){const line=all().find(o=>o.id===section.id);for(const p of [section.from,section.to].filter(Boolean))handles.push(make('circle',{cx:p.x,cy:p.y,r:7/camera.k,style:'fill:#e08a3b;stroke:#64390f','pointer-events':'none'}));if(section.from&&section.to)try{const range=D.sectionRange(doc,line.id,section.from,section.to);handles.push(make('polyline',{points:range.points.map(p=>p.x+','+p.y).join(' '),fill:'none',stroke:'#e08a3b','stroke-width':(line.width+5),'stroke-dasharray':'6 3','pointer-events':'none'}));}catch{}}
@@ -94,7 +95,7 @@
   const b=document.createElement('button');b.textContent='Opprett parallelle linjer';b.disabled=o.locked;b.onclick=()=>attempt(d=>D.linkedParallel(d,o.id,Number(count.value),Number(spacing.value),side.value,id('group'),Array.from({length:Math.max(0,Math.min(9,Number(count.value))-1)},()=>id('line'))));details.append(b);const note=document.createElement('p');note.textContent='Beholder originalen og lager egne linjer med hver sin farge. Antall, avstand, side og felles form kan endres etterpå.';details.append(note);box.append(details);
  }
  function finishStationPlacement(placement,ids,kind){
-  const {stop,p,create}=placement;try{pendingStation=null;tool='select';selectOnly(stop.id);commit(d=>{if(create)d.artwork.stops.push(structuredClone(stop));D.placeStation(d,stop.id,ids.length?p:snap(p),ids,kind);});if(create){const input=document.querySelector('#properties input');input.focus({preventScroll:true});input.select();}}
+  const {stop,p,create}=placement;try{pendingStation=null;tool='select';selectOnly(stop.id);commit(d=>{if(create)d.artwork.stops.push(structuredClone(stop));D.placeStation(d,stop.id,ids.length?p:snap(p),ids,kind);if(create&&d.stationStyle)Object.assign(d.artwork.stops.find(s=>s.id===stop.id),d.stationStyle,{autoSymbol:false});});if(create){const input=document.querySelector('#properties input');input.focus({preventScroll:true});input.select();}}
   catch(e){pendingStation=placement;status(e.message);render();}
  }
  function positionStation(stop,p,create=false,force=false){
@@ -114,7 +115,8 @@
   const free=document.createElement('button');free.textContent='Plasser fritt';free.onclick=()=>finishStationPlacement(placement,[],'free');box.append(free);const help=document.createElement('p');help.textContent='Fri plassering beholder eksisterende linje- og kildekoblinger. Bruk Løsne fra linjene for å fjerne linjekoblingene.';box.append(help);
   const cancel=document.createElement('button');cancel.textContent='Avbryt plassering';cancel.onclick=()=>{pendingStation=null;selectOnly(placement.create?null:placement.stop.id);render();};box.append(cancel);
  }
- function stationProperties(box,s){
+ function stationStyleControls(box,s){const p=document.createElement('p');p.textContent=doc.stationStyle?'Neste stopp bruker sist brukte utseende. Identiteter og kilder kopieres ikke.':'Neste stopp bruker standardutseende.';box.append(p);if(s){const use=document.createElement('button');use.textContent='Bruk utseendet som mal';use.onclick=()=>attempt(d=>D.rememberStationStyle(d,d.artwork.stops.find(o=>o.id===s.id)));box.append(use);}const reset=document.createElement('button');reset.textContent='Bruk standardstasjon';reset.onclick=()=>attempt(d=>D.defaultStationStyle(d));box.append(reset);}
+ function stationProperties(box,s){stationStyleControls(box,s);
   const note=document.createElement('p');note.textContent=s.lineIds.length?'Tilknyttede linjer: '+s.lineIds.map(id=>all().find(o=>o.id===id).name).join(', '):'Stoppet har ingen linjekobling.';box.append(note);
   const attach=document.createElement('button');attach.textContent='Fest til linjer her';attach.disabled=s.locked;attach.onclick=()=>positionStation(s,s,false,true);box.append(attach);
   const detach=document.createElement('button');detach.textContent='Løsne fra linjene';detach.disabled=s.locked||!s.lineIds.length;detach.onclick=()=>attempt(d=>D.detachStation(d,s.id));box.append(detach);
@@ -148,12 +150,13 @@
  }
  function properties(){
   const box=$('properties'),ledDetails=box.querySelector('[data-led-details]');if(ledDetails)ledDetailsOpen=ledDetails.open;box.replaceChildren();box.dataset.stationChoice=String(!!pendingStation);if(pendingStation){stationChoice(box);return;}if(section){sectionProperties(box);return;}if(area){areaProperties(box);return;}const o=object();let target=box;if(extension){const p=document.createElement('p');p.textContent='Du fortsetter den valgte linjen. Klikk nye punkter. Enter lagrer, Esc avbryter, og Backspace fjerner siste nye punkt.';box.append(p);return;}if(selection.length>1){multiProperties(box);return;}
-  if(!o){artboard(box);const p=document.createElement('p');p.textContent=tool==='pen'?'Klikk for hvert knekkpunkt. Enter fullfører linjen. Esc avbryter.':tool==='stop'?'Klikk på kartet for å plassere et stopp. Gi stoppet navn her.':'Velg et stopp eller en linje i kartet eller laglisten. Dra for å flytte. Dobbeltklikk en valgt linje for å legge til et punkt.';box.append(p);return;}
+  if(!o){if(tool==='stop')stationStyleControls(box);artboard(box);const p=document.createElement('p');p.textContent=tool==='pen'?'Klikk for hvert knekkpunkt. Enter fullfører linjen. Esc avbryter.':tool==='stop'?'Klikk på kartet for å plassere et stopp. Gi stoppet navn her.':'Velg et stopp eller en linje i kartet eller laglisten. Dra for å flytte. Dobbeltklikk en valgt linje for å legge til et punkt.';box.append(p);return;}
   function field(label,type,value,fn){const l=document.createElement('label'),i=document.createElement('input');l.textContent=label;i.type=type;i.value=value;i.disabled=o.locked;i.maxLength=200;i.onchange=()=>{try{commit(d=>fn(d.artwork[isLine(o)?'lines':'stops'].find(v=>v.id===o.id),i.value));}catch(e){status(e.message);render();}};l.append(i);target.append(l);return i;}
   field(isLine(o)?'Linjenavn':'Stoppnavn','text',o.name,(n,v)=>n.name=v);
   if(isLine(o)){lineColors(box,[o]);field('Linjetykkelse','number',o.width,(n,v)=>n.width=Number(v));}
   else{
    choice('Navneretning','custom',[['custom','Egen vinkel'],['horizontal','Vannrett · 0°'],['up','Skrått opp · −45°'],['down','Skrått ned · 45°'],['vertical','Loddrett · 90°'],['right','Vannrett til høyre'],['left','Vannrett til venstre']],(n,v)=>{if(v!=='custom')D.labelPreset(n,v);});
+   field('Stasjonsstørrelse','number',o.size||10,(n,v)=>n.size=Number(v));field('Skriftstørrelse','number',o.fontSize||12,(n,v)=>n.fontSize=Number(v));
    field('Navnevinkel (0–360°)','number',o.labelAngle||0,(n,v)=>n.labelAngle=Number(v));
    choice('Navneside',o.labelSide||'right',[['right','Høyre'],['left','Venstre']],(n,v)=>{n.labelSide=v;n.labelDx=(v==='left'?-1:1)*Math.abs(n.labelDx||12);});
    choice('Stoppsymbol',o.symbol||'circle',[['circle','Sirkel'],['ring','Fylt sirkel'],['double','Dobbelt stopp'],['capsule','Felles stopp'],['leds','Felles LED-punkter']],(n,v,d)=>D.setStationSymbol(d,n.id,v));
@@ -163,7 +166,7 @@
   }
   function choice(text,value,options,fn){const l=document.createElement('label'),i=document.createElement('select');l.textContent=text;i.setAttribute('aria-label',text);for(const [v,t]of options)i.add(new Option(t,v));i.value=value;i.disabled=o.locked;i.onchange=()=>commit(d=>fn(d.artwork.stops.find(n=>n.id===o.id),i.value,d));l.append(i);target.append(l);}
   if(isLine(o)){
-   const sectionButton=document.createElement('button');sectionButton.textContent='Velg strekning';sectionButton.disabled=o.locked;sectionButton.onclick=()=>beginSection(o.id);box.append(sectionButton);const g=D.groupFor(doc,o.id);if(g)groupProperties(box,g);else parallelCreator(box,o);
+   const directionLabel=document.createElement('label'),direction=document.createElement('select');directionLabel.textContent='Endepunktretning';direction.setAttribute('aria-label','Endepunktretning');for(const [v,t]of [['direction','Følg eksisterende retning'],['octilinear','0° / 45° / 90°'],['free','Fri vinkel']])direction.add(new Option(t,v));direction.value=endpointMode;direction.onchange=()=>endpointMode=direction.value;directionLabel.append(direction);box.append(directionLabel);const hint=document.createElement('p');hint.textContent='Dra endepunkt: eksisterende retning låses. Shift gir 45°-snap; Alt gir fri vinkel.';box.append(hint);const sectionButton=document.createElement('button');sectionButton.textContent='Velg strekning';sectionButton.disabled=o.locked;sectionButton.onclick=()=>beginSection(o.id);box.append(sectionButton);const g=D.groupFor(doc,o.id);if(g)groupProperties(box,g);else parallelCreator(box,o);
    if(tool==='select'&&endpoint?.id===o.id){const b=document.createElement('button');b.textContent='Fortsett linjen';b.disabled=o.locked;b.onclick=startExtension;box.append(b);}else{const p=document.createElement('p');p.textContent='Velg et av de store endepunktene for å fortsette linjen.';box.append(p);}
    const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Parallelle linjekopier';details.append(summary);
    const count=document.createElement('input'),spacing=document.createElement('input');count.type=spacing.type='number';count.value=1;count.min=1;count.max=8;spacing.value=14;spacing.min=2;spacing.max=200;
@@ -189,7 +192,7 @@
   if(e.button!==0&&e.button!==1)return;e.preventDefault();canvas.focus({preventScroll:true});const p=point(e),hit=e.target.closest('[data-id]');
   if(tool==='hand'||space||e.button===1){gesture={kind:'pan',start:{x:e.clientX,y:e.clientY},camera:{...camera}};}
   else if(tool==='pen'){const q=snap(p,draft.at(-1));if(!draft.length||Math.hypot(q.x-draft.at(-1).x,q.y-draft.at(-1).y)>1)draft.push(q);hover=null;render();return;}
-  else if(tool==='stop'){const s={id:id('stop'),name:'Nytt stopp',...bounded(p),labelDx:12,labelDy:-12,lineIds:[],visible:true,locked:false};positionStation(s,p,true);return;}
+  else if(tool==='stop'){const s=D.newStation(doc,id('stop'),bounded(p));positionStation(s,p,true);return;}
   else{
    if(section&&!e.ctrlKey&&!e.metaKey){const line=all().find(o=>o.id===section.id),p= D.project(point(e),line);if(p.dist<=Math.max(14/camera.k,line.width/2)){if(!section.from||section.to){section.from=p;section.to=null;}else section.to=p;render();}return;}
    if(area&&!e.ctrlKey&&!e.metaKey&&p.x>=area.bounds.x1&&p.x<=area.bounds.x2&&p.y>=area.bounds.y1&&p.y<=area.bounds.y2){gesture={kind:'rubber',start:p,before:doc,area:structuredClone(area),hitId:hit?.dataset.id||null};canvas.setPointerCapture(e.pointerId);return;}
@@ -225,7 +228,7 @@
   }
   else if(g.kind==='label'){n.labelDx=o.labelDx+dx;n.labelDy=o.labelDy+dy;}
   else if(g.kind==='line'){dx=Math.max(-Math.min(...o.points.map(p=>p.x)),Math.min(doc.width-Math.max(...o.points.map(p=>p.x)),dx));dy=Math.max(-Math.min(...o.points.map(p=>p.y)),Math.min(doc.height-Math.max(...o.points.map(p=>p.y)),dy));D.translate(doc,[o.id],dx,dy);}
-  else if(g.kind==='vertex'){const points=structuredClone(o.points);points[g.vertex]=bounded({x:o.points[g.vertex].x+dx,y:o.points[g.vertex].y+dy});D.setLinePoints(doc,o.id,points);}
+  else if(g.kind==='vertex'){if(g.vertex===0||g.vertex===o.points.length-1){const raw=point(e),mode=e.altKey?'free':e.shiftKey?'octilinear':endpointMode,next=D.dragEndpoint(doc,o.id,g.vertex,bounded(raw),{mode,grid:$('snap').checked?20:0});g.guide={origin:o.points[g.vertex===0?1:g.vertex-1],point:next};}else{const points=structuredClone(o.points);points[g.vertex]=bounded({x:o.points[g.vertex].x+dx,y:o.points[g.vertex].y+dy});D.setLinePoints(doc,o.id,points);}}
   else Object.assign(n,bounded({x:o.x+dx,y:o.y+dy}));D.validate(doc);
   }catch(e){doc=previous;status(e.message);return;}draw();
  });

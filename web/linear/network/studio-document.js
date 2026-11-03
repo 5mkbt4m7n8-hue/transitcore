@@ -14,6 +14,7 @@
   for(const l of d.artwork.lines)if(!color.test(l.color)||!Number.isFinite(l.width)||l.width<1||l.width>40||!Array.isArray(l.points)||l.points.length<2||l.points.length>5000||!l.points.every(point))throw Error('Ugyldig linje');
   for(const s of d.artwork.stops)if(!point(s)||!Number.isFinite(s.labelDx)||!Number.isFinite(s.labelDy)||Math.abs(s.labelDx)>1000||Math.abs(s.labelDy)>1000||!Array.isArray(s.lineIds)||s.lineIds.some(id=>!d.artwork.lines.some(l=>l.id===id)))throw Error('Ugyldig stopp');
   for(const s of d.artwork.stops){
+   if(s.size!==undefined&&(!Number.isFinite(s.size)||s.size<6||s.size>60))throw Error('Ugyldig stasjonsstørrelse');if(s.fontSize!==undefined&&(!Number.isFinite(s.fontSize)||s.fontSize<6||s.fontSize>48))throw Error('Ugyldig skriftstørrelse');if(s.fontWeight!==undefined&&!['normal','bold'].includes(s.fontWeight))throw Error('Ugyldig skrifttykkelse');
    if(s.labelAngle!==undefined&&(!Number.isFinite(s.labelAngle)||s.labelAngle<0||s.labelAngle>360))throw Error('Navnevinkel må være mellom 0 og 360');
    if(s.labelSide!==undefined&&!['left','right'].includes(s.labelSide))throw Error('Ugyldig navneside');
    if(s.symbol!==undefined&&!['circle','ring','double','capsule','leds'].includes(s.symbol))throw Error('Ugyldig stoppsymbol');
@@ -43,7 +44,7 @@
    if(!s.locked){s.labelDx=best.c.dx;s.labelDy=best.c.dy;s.labelSide=best.c.side;}used.push(best.box);
   }
  }
- function symbol(s){return {width:['capsule','leds','double'].includes(s.symbol)?(s.span||(s.symbol==='double'?24:30)):10,height:10,angle:s.symbolAngle||0,ring:s.symbol==='ring'};}
+ function symbol(s){return {width:['capsule','leds','double'].includes(s.symbol)?(s.span||(s.symbol==='double'?24:30)):(s.size||10),height:s.size||10,angle:s.symbolAngle||0,ring:s.symbol==='ring'};}
  // Copies are artwork only: they receive neither source bindings nor new stop identities.
  function parallel(d,sourceId,count,spacing,ids){
   const source=d.artwork.lines.find(l=>l.id===sourceId);if(!source||source.locked||!Number.isInteger(count)||count<1||count>8||!Number.isFinite(spacing)||spacing<2||spacing>200||ids.length!==count)throw Error('Velg 1–8 kopier og avstand 2–200');
@@ -168,8 +169,8 @@
  }
  function stationShapes(d,s){
   const shape=symbol(s),angle=shape.angle*Math.PI/180,at=x=>({x:s.x+x*Math.cos(angle),y:s.y+x*Math.sin(angle)}),parts=[];
-  if(s.symbol==='double'){const a=at(-Math.max(0,shape.width/2-5)),b=at(Math.max(0,shape.width/2-5));parts.push({tag:'line',attrs:{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'#203c32','stroke-width':3}});for(const p of [a,b])parts.push({tag:'circle',attrs:{cx:p.x,cy:p.y,r:5,fill:'white',stroke:'#203c32','stroke-width':2}});}
-  else parts.push({tag:'rect',attrs:{x:s.x-shape.width/2,y:s.y-5,width:shape.width,height:10,rx:5,fill:shape.ring?'#203c32':'white',stroke:'#203c32','stroke-width':2,transform:'rotate('+shape.angle+' '+s.x+' '+s.y+')'}});
+  if(s.symbol==='double'){const a=at(-Math.max(0,shape.width/2-shape.height/2)),b=at(Math.max(0,shape.width/2-shape.height/2));parts.push({tag:'line',attrs:{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'#203c32','stroke-width':3}});for(const p of [a,b])parts.push({tag:'circle',attrs:{cx:p.x,cy:p.y,r:shape.height/2,fill:'white',stroke:'#203c32','stroke-width':2}});}
+  else parts.push({tag:'rect',attrs:{x:s.x-shape.width/2,y:s.y-shape.height/2,width:shape.width,height:shape.height,rx:shape.height/2,fill:shape.ring?'#203c32':'white',stroke:'#203c32','stroke-width':2,transform:'rotate('+shape.angle+' '+s.x+' '+s.y+')'}});
   if(s.symbol==='leds'){
    const points=s.anchor?stationLayout(d,s).points:s.lineIds.map((lineId,i)=>({lineId,...at(s.lineIds.length>1?(i/(s.lineIds.length-1)-.5)*Math.max(0,shape.width-12):0)}));
    for(const p of points){const led=s.leds?.find(l=>l.lineId===p.lineId);if(led)parts.push({tag:'circle',attrs:{cx:p.x,cy:p.y,r:3.5,fill:d.artwork.lines.find(l=>l.id===p.lineId).color,stroke:'#203c32','stroke-width':1,'data-led-id':led.id,'data-line-id':p.lineId,...(led.quayId?{'data-quay-id':led.quayId}:{})}});}
@@ -177,6 +178,6 @@
  }
  function labelPreset(s,preset){const angles={'horizontal':0,'up':315,'down':45,'vertical':90,'right':0,'left':0};if(!(preset in angles))throw Error('Ukjent navneretning');s.labelAngle=angles[preset];if(preset==='right'||preset==='left'){s.labelSide=preset;s.labelDx=(preset==='left'?-1:1)*Math.abs(s.labelDx||12);}}
  const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
- function svg(d){validate(d);return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${d.width} ${d.height}"><rect width="100%" height="100%" fill="white"/>`+d.artwork.lines.filter(l=>l.visible).map(l=>`<polyline points="${l.points.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${l.color}" stroke-width="${l.width}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')+d.artwork.stops.filter(s=>s.visible).map(s=>stationShapes(d,s).map(part=>'<'+part.tag+' '+Object.entries(part.attrs).map(([k,v])=>k+'="'+escape(v)+'"').join(' ')+'/>' ).join('')+`<text x="${label(s).x}" y="${label(s).y}" text-anchor="${label(s).anchor}" transform="rotate(${label(s).angle} ${label(s).x} ${label(s).y})" font-family="sans-serif" font-size="12">${escape(s.name)}</text>`).join('')+'</svg>';}
+ function svg(d){validate(d);return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${d.width} ${d.height}"><rect width="100%" height="100%" fill="white"/>`+d.artwork.lines.filter(l=>l.visible).map(l=>`<polyline points="${l.points.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${l.color}" stroke-width="${l.width}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')+d.artwork.stops.filter(s=>s.visible).map(s=>stationShapes(d,s).map(part=>'<'+part.tag+' '+Object.entries(part.attrs).map(([k,v])=>k+'="'+escape(v)+'"').join(' ')+'/>' ).join('')+`<text x="${label(s).x}" y="${label(s).y}" text-anchor="${label(s).anchor}" transform="rotate(${label(s).angle} ${label(s).x} ${label(s).y})" font-family="sans-serif" font-size="${s.fontSize||12}" font-weight="${s.fontWeight||'normal'}">${escape(s.name)}</text>`).join('')+'</svg>';}
  const api={blank,validate,fromTrondheim,history,svg,resize,label,symbol,parallel,arrangeLabels,extend,styleLines,removeObjects,spaceLines,labelPreset,groupFor,groupLines,shareRoute,linkedParallel,updateParallel,joinPlan,joinLines,detachGroup,transformIds,setLinePoints,translate,project,stationCandidates,stationLayout,refreshStations,placeStation,detachStation,setStationSymbol,setLedSource,stationShapes};root.InTransitStudioDocument=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);
