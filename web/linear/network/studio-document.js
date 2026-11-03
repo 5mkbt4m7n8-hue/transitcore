@@ -22,6 +22,7 @@
   }
   if(!d.bindings||typeof d.bindings!=='object'||Array.isArray(d.bindings))throw Error('Ugyldige kildekoblinger');
   for(const [id,b] of Object.entries(d.bindings))if(!ids.has(id)||!b||b.source!=='trondheim'||typeof b.sourceId!=='string'||!Array.isArray(b.quayIds)||!b.quayIds.every(q=>typeof q==='string'))throw Error('Ugyldig kildekobling');
+  validateGroups(d,point);
   return d;
  }
  function fromTrondheim(source){
@@ -53,16 +54,80 @@
  }
 
  function editableLines(d,ids){const lines=ids.map(id=>d.artwork.lines.find(l=>l.id===id));if(!ids.length||new Set(ids).size!==ids.length||lines.some(l=>!l||l.locked))throw Error('Velg ulåste linjer');return lines;}
- function extend(d,id,end,points){const [line]=editableLines(d,[id]);if(!['start','end'].includes(end)||!Array.isArray(points)||!points.length)throw Error('Velg et endepunkt og tegn videre');const anchor=end==='start'?line.points[0]:line.points.at(-1);let last=anchor;for(const p of points){if(p.x===last.x&&p.y===last.y)throw Error('To linjepunkter kan ikke ligge oppå hverandre');last=p;}line.points=end==='start'?[...clone(points).reverse(),...line.points]:[...line.points,...clone(points)];validate(d);}
+ function extend(d,id,end,points){const [line]=editableLines(d,[id]);if(!['start','end'].includes(end)||!Array.isArray(points)||!points.length)throw Error('Velg et endepunkt og tegn videre');const g=groupFor(d,id);if(g?.kind==='joined'&&g.joins.some(j=>j.a===id&&j.aEnd===end||j.b===id&&j.bEnd===end))throw Error('Dette endepunktet er koblet. Løsne koblingen først.');const anchor=end==='start'?line.points[0]:line.points.at(-1);let last=anchor;for(const p of points){if(p.x===last.x&&p.y===last.y)throw Error('To linjepunkter kan ikke ligge oppå hverandre');last=p;}setLinePoints(d,id,end==='start'?[...clone(points).reverse(),...line.points]:[...line.points,...clone(points)]);}
  function styleLines(d,ids,patch){const lines=editableLines(d,ids);if(Object.keys(patch).some(k=>!['color','width'].includes(k)))throw Error('Ugyldig linjeegenskap');for(const l of lines)Object.assign(l,patch);validate(d);}
- function removeObjects(d,ids){const objects=[...d.artwork.lines,...d.artwork.stops];if(!ids.length||ids.some(id=>{const o=objects.find(o=>o.id===id);return !o||o.locked;}))throw Error('Lås opp de markerte lagene før sletting');const set=new Set(ids);d.artwork.lines=d.artwork.lines.filter(l=>!set.has(l.id));d.artwork.stops=d.artwork.stops.filter(s=>!set.has(s.id));for(const s of d.artwork.stops)s.lineIds=s.lineIds.filter(id=>!set.has(id));for(const id of set)delete d.bindings[id];validate(d);}
+ function removeObjects(d,ids){const objects=[...d.artwork.lines,...d.artwork.stops];if(!ids.length||ids.some(id=>{const o=objects.find(o=>o.id===id);return !o||o.locked;}))throw Error('Lås opp de markerte lagene før sletting');const set=new Set(ids);for(const g of d.artwork.groups||[])if(g.memberIds.some(id=>set.has(id)))detachGroup(d,g.id);d.artwork.lines=d.artwork.lines.filter(l=>!set.has(l.id));d.artwork.stops=d.artwork.stops.filter(s=>!set.has(s.id));for(const s of d.artwork.stops)s.lineIds=s.lineIds.filter(id=>!set.has(id));for(const id of set)delete d.bindings[id];validate(d);}
  function offsetPoints(points,distance){
   const normals=points.slice(1).map((p,i)=>{const a=points[i],dx=p.x-a.x,dy=p.y-a.y,len=Math.hypot(dx,dy);if(!len)throw Error('Fjern doble linjepunkter først');return {x:-dy/len,y:dx/len};});
-  return points.map((p,i)=>{const a=normals[Math.max(0,i-1)],b=normals[Math.min(normals.length-1,i)],den=1+a.x*b.x+a.y*b.y;if(den<.125)throw Error('For skarp sving for felles avstand');return {x:p.x+(a.x+b.x)/den*distance,y:p.y+(a.y+b.y)/den*distance};});
+  const result=points.map((p,i)=>{const a=normals[Math.max(0,i-1)],b=normals[Math.min(normals.length-1,i)],den=1+a.x*b.x+a.y*b.y;if(den<.125)throw Error('For skarp sving for felles avstand');return {x:p.x+(a.x+b.x)/den*distance,y:p.y+(a.y+b.y)/den*distance};});
+  for(let i=1;i<points.length;i++)if((result[i].x-result[i-1].x)*(points[i].x-points[i-1].x)+(result[i].y-result[i-1].y)*(points[i].y-points[i-1].y)<=1e-8)throw Error('For stor avstand ved en kort sving. Reduser avstanden.');return result;
  }
- function spaceLines(d,ids,spacing){const lines=editableLines(d,ids);if(lines.length<2||!Number.isFinite(spacing)||spacing<2||spacing>200)throw Error('Velg minst to linjer og avstand 2–200');const points=clone(lines[0].points);lines.slice(1).forEach((l,i)=>l.points=offsetPoints(points,spacing*(i+1)));validate(d);}
+ function spaceLines(d,ids,spacing){const lines=editableLines(d,ids);if(ids.some(id=>groupFor(d,id)))throw Error('Juster den koblede traséen eller løsne gruppen først');if(lines.length<2||!Number.isFinite(spacing)||spacing<2||spacing>200)throw Error('Velg minst to linjer og avstand 2–200');const points=clone(lines[0].points);lines.slice(1).forEach((l,i)=>l.points=offsetPoints(points,spacing*(i+1)));validate(d);}
+ // Optional groups extend v1 documents without changing route or source identities.
+ const groupFor=(d,id)=>(d.artwork.groups||[]).find(g=>g.memberIds.includes(id));
+ const endPoint=(l,end)=>end==='start'?l.points[0]:l.points.at(-1);
+ const samePoint=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)<1e-7;
+ const laneOffset=(g,i)=>g.spacing*(g.side==='left'?-i:g.side==='center'?i-(g.memberIds.length-1)/2:i);
+ function validateGroups(d,point){
+  const groups=d.artwork.groups;if(groups===undefined)return;if(!Array.isArray(groups)||groups.length>250)throw Error('Ugyldige linjegrupper');
+  const used=new Set(),groupIds=new Set();
+  for(const g of groups){
+   if(!g||typeof g.id!=='string'||!g.id||g.id.length>200||groupIds.has(g.id)||!['parallel','shared','visual','joined'].includes(g.kind)||!Array.isArray(g.memberIds)||g.memberIds.length<2||g.memberIds.length>500)throw Error('Ugyldig linjegruppe');groupIds.add(g.id);
+   for(const id of g.memberIds){if(used.has(id)||!d.artwork.lines.some(l=>l.id===id))throw Error('En linje kan bare tilhøre én gruppe');used.add(id);}
+   if(g.kind==='parallel'||g.kind==='shared'){
+    if(g.memberIds.length>9||!Number.isFinite(g.spacing)||g.spacing<2||g.spacing>200||!['left','right','center'].includes(g.side)||!Array.isArray(g.spine)||g.spine.length<2||g.spine.length>5000||!g.spine.every(point)||!Array.isArray(g.generatedIds)||new Set(g.generatedIds).size!==g.generatedIds.length||g.generatedIds.some(id=>!g.memberIds.includes(id))||g.generatedIds.includes(g.memberIds[0]))throw Error('Ugyldig felles trasé');
+    g.memberIds.forEach((id,i)=>{const expected=offsetPoints(g.spine,laneOffset(g,i)),actual=d.artwork.lines.find(l=>l.id===id).points;if(actual.length!==expected.length||actual.some((p,i)=>!samePoint(p,expected[i])))throw Error('Linjen avviker fra felles trasé');});
+   }
+   if(g.kind==='joined'){
+    if(g.memberIds.some(id=>{const l=d.artwork.lines.find(l=>l.id===id);return samePoint(l.points[0],l.points.at(-1));}))throw Error('Lukkede linjer kan ikke kobles til en åpen kjede');
+    if(!Array.isArray(g.joins)||g.joins.length!==g.memberIds.length-1)throw Error('Ugyldig endepunktkobling');
+    const endpoints=new Set(),edges=new Map(g.memberIds.map(id=>[id,[]]));
+    for(const j of g.joins){if(!g.memberIds.includes(j.a)||!g.memberIds.includes(j.b)||j.a===j.b||!['start','end'].includes(j.aEnd)||!['start','end'].includes(j.bEnd)||endpoints.has(j.a+':'+j.aEnd)||endpoints.has(j.b+':'+j.bEnd))throw Error('Forgrenet endepunktkobling');endpoints.add(j.a+':'+j.aEnd);endpoints.add(j.b+':'+j.bEnd);edges.get(j.a).push(j.b);edges.get(j.b).push(j.a);if(!samePoint(endPoint(d.artwork.lines.find(l=>l.id===j.a),j.aEnd),endPoint(d.artwork.lines.find(l=>l.id===j.b),j.bEnd)))throw Error('Endepunktene møtes ikke');}
+    const seen=new Set(),visit=id=>{if(seen.has(id))return;seen.add(id);for(const next of edges.get(id))visit(next);};visit(g.memberIds[0]);if(seen.size!==g.memberIds.length)throw Error('Traséen må være sammenhengende');
+   }
+  }
+ }
+ function freeLines(d,ids){const lines=editableLines(d,ids);if(lines.length<2||ids.some(id=>groupFor(d,id)))throw Error('Velg minst to separate linjer. Løsne eksisterende grupper først.');return lines;}
+ function addGroup(d,g){if((d.artwork.groups||[]).some(v=>v.id===g.id))throw Error('Gruppen finnes allerede');(d.artwork.groups??=[]).push(g);}
+ function reflow(d,g){g.memberIds.forEach((id,i)=>{d.artwork.lines.find(l=>l.id===id).points=offsetPoints(g.spine,laneOffset(g,i));});}
+ function groupLines(d,ids,groupId){freeLines(d,ids);addGroup(d,{id:groupId,kind:'visual',memberIds:[...ids]});validate(d);}
+ function shareRoute(d,ids,spacing,side,groupId){const lines=freeLines(d,ids);const g={id:groupId,kind:'shared',memberIds:[...ids],generatedIds:[],spine:clone(lines[0].points),spacing,side};addGroup(d,g);reflow(d,g);validate(d);}
+ function linkedParallel(d,sourceId,count,spacing,side,groupId,newIds){
+  const [source]=editableLines(d,[sourceId]);if(groupFor(d,sourceId)||!Number.isInteger(count)||count<2||count>9||newIds.length!==count-1)throw Error('Velg en separat linje og totalt 2–9 linjer');
+  const colors=['#218967','#e08a3b','#6e68bb','#cc5271'].filter(c=>c!==source.color);
+  newIds.forEach((id,i)=>d.artwork.lines.push({...clone(source),id,name:source.name+' · '+(i+2),color:colors[i%colors.length]}));
+  const g={id:groupId,kind:'parallel',memberIds:[sourceId,...newIds],generatedIds:[...newIds],spine:clone(source.points),spacing,side};addGroup(d,g);reflow(d,g);validate(d);
+ }
+ function updateParallel(d,groupId,count,spacing,side,newIds=[]){
+  const g=(d.artwork.groups||[]).find(g=>g.id===groupId);if(!g||!['parallel','shared'].includes(g.kind))throw Error('Velg en felles trasé');editableLines(d,g.memberIds);
+  const min=g.memberIds.length-g.generatedIds.length;if(!Number.isInteger(count)||count<Math.max(2,min)||count>9||newIds.length!==Math.max(0,count-g.memberIds.length))throw Error('Behold originalene og velg totalt 2–9 linjer');
+  const removed=g.memberIds.slice(count);if(removed.some(id=>!g.generatedIds.includes(id)||d.bindings[id]||d.artwork.stops.some(s=>s.lineIds.includes(id))))throw Error('Linjer med stopp eller kildekobling kan ikke fjernes her. Løsne først.');
+  d.artwork.lines=d.artwork.lines.filter(l=>!removed.includes(l.id));g.memberIds=g.memberIds.slice(0,count);g.generatedIds=g.generatedIds.filter(id=>!removed.includes(id));
+  const source=d.artwork.lines.find(l=>l.id===g.memberIds[0]),colors=['#e08a3b','#6e68bb','#cc5271','#218967'];
+  newIds.forEach((id,i)=>{d.artwork.lines.push({...clone(source),id,name:source.name+' · '+(g.memberIds.length+1),color:colors[(g.memberIds.length-1)%colors.length]});g.memberIds.push(id);g.generatedIds.push(id);});
+  Object.assign(g,{spacing,side});reflow(d,g);validate(d);
+ }
+ function joinPlan(d,ids){
+  const lines=freeLines(d,ids),joins=[];
+  for(let i=0;i<lines.length;i++)for(let k=i+1;k<lines.length;k++)for(const aEnd of ['start','end'])for(const bEnd of ['start','end'])if(samePoint(endPoint(lines[i],aEnd),endPoint(lines[k],bEnd)))joins.push({a:lines[i].id,aEnd,b:lines[k].id,bEnd});
+  const candidate=clone(d);addGroup(candidate,{id:'join-preview',kind:'joined',memberIds:[...ids],joins});try{validate(candidate);}catch{throw Error('Endepunktene må møtes i én åpen kjede uten forgrening eller løkke.');}return joins;
+ }
+ function joinLines(d,ids,groupId){const joins=joinPlan(d,ids);addGroup(d,{id:groupId,kind:'joined',memberIds:[...ids],joins});validate(d);}
+ function detachGroup(d,groupId){const g=(d.artwork.groups||[]).find(g=>g.id===groupId);if(!g)throw Error('Gruppen finnes ikke');editableLines(d,g.memberIds);d.artwork.groups=d.artwork.groups.filter(g=>g.id!==groupId);if(!d.artwork.groups.length)delete d.artwork.groups;validate(d);}
+ function transformIds(d,ids){return [...new Set(ids.flatMap(id=>groupFor(d,id)?.memberIds||[id]))];}
+ function setLinePoints(d,id,points){
+  const [line]=editableLines(d,[id]),g=groupFor(d,id);if(g)editableLines(d,g.memberIds);
+  if(g&&['parallel','shared'].includes(g.kind)){g.spine=offsetPoints(points,-laneOffset(g,g.memberIds.indexOf(id)));reflow(d,g);}
+  else{line.points=clone(points);if(g?.kind==='joined')for(const j of g.joins){if(j.a===id){const l=d.artwork.lines.find(l=>l.id===j.b);Object.assign(endPoint(l,j.bEnd),endPoint(line,j.aEnd));}if(j.b===id){const l=d.artwork.lines.find(l=>l.id===j.a);Object.assign(endPoint(l,j.aEnd),endPoint(line,j.bEnd));}}}
+  validate(d);
+ }
+ function translate(d,ids,dx,dy){
+  const targets=transformIds(d,ids),objects=[...d.artwork.lines,...d.artwork.stops].filter(o=>targets.includes(o.id));if(!Number.isFinite(dx)||!Number.isFinite(dy)||objects.length!==targets.length||objects.some(o=>o.locked))throw Error('Lås opp hele gruppen før flytting');
+  for(const o of objects){if(o.points)o.points=o.points.map(p=>({x:p.x+dx,y:p.y+dy}));else{o.x+=dx;o.y+=dy;}}
+  for(const g of d.artwork.groups||[])if(g.spine&&g.memberIds.some(id=>targets.includes(id)))g.spine=g.spine.map(p=>({x:p.x+dx,y:p.y+dy}));validate(d);
+ }
  function labelPreset(s,preset){const angles={'horizontal':0,'up':315,'down':45,'vertical':90,'right':0,'left':0};if(!(preset in angles))throw Error('Ukjent navneretning');s.labelAngle=angles[preset];if(preset==='right'||preset==='left'){s.labelSide=preset;s.labelDx=(preset==='left'?-1:1)*Math.abs(s.labelDx||12);}}
  const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
  function svg(d){validate(d);return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${d.width} ${d.height}"><rect width="100%" height="100%" fill="white"/>`+d.artwork.lines.filter(l=>l.visible).map(l=>`<polyline points="${l.points.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${l.color}" stroke-width="${l.width}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')+d.artwork.stops.filter(s=>s.visible).map(s=>`<rect x="${s.x-symbol(s).width/2}" y="${s.y-5}" width="${symbol(s).width}" height="10" rx="5" fill="${symbol(s).ring?'#16312d':'white'}" stroke="#16312d" stroke-width="2" transform="rotate(${symbol(s).angle} ${s.x} ${s.y})"/><text x="${label(s).x}" y="${label(s).y}" text-anchor="${label(s).anchor}" transform="rotate(${label(s).angle} ${label(s).x} ${label(s).y})" font-family="sans-serif" font-size="12">${escape(s.name)}</text>`).join('')+'</svg>';}
- const api={blank,validate,fromTrondheim,history,svg,resize,label,symbol,parallel,arrangeLabels,extend,styleLines,removeObjects,spaceLines,labelPreset};root.InTransitStudioDocument=api;if(typeof module!=='undefined')module.exports=api;
+ const api={blank,validate,fromTrondheim,history,svg,resize,label,symbol,parallel,arrangeLabels,extend,styleLines,removeObjects,spaceLines,labelPreset,groupFor,groupLines,shareRoute,linkedParallel,updateParallel,joinPlan,joinLines,detachGroup,transformIds,setLinePoints,translate};root.InTransitStudioDocument=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

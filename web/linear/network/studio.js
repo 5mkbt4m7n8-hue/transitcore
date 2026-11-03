@@ -54,13 +54,45 @@
   for(const color of [...new Set(doc.artwork.lines.map(l=>l.color.toLowerCase()))]){const b=document.createElement('button');b.style.backgroundColor=color;b.title=color;b.setAttribute('aria-label','Bruk farge '+color);b.setAttribute('aria-pressed',String(objects.every(o=>o.color.toLowerCase()===color)));b.disabled=locked;b.onclick=()=>commit(d=>D.styleLines(d,ids,{color}));swatches.append(b);}box.append(swatches);
   const l=document.createElement('label'),input=document.createElement('input');l.textContent='Velg ny farge';input.type='color';input.setAttribute('aria-label','Linjefarge');input.value=objects[0].color;input.disabled=locked;input.onchange=()=>commit(d=>D.styleLines(d,ids,{color:input.value}));l.append(input);box.append(l);
  }
+ function attempt(fn){try{commit(fn);}catch(e){status(e.message);}}
+ function numberField(box,text,value,min,max){const label=document.createElement('label'),input=document.createElement('input');label.textContent=text;input.type='number';input.value=value;input.min=min;input.max=max;label.append(input);box.append(label);return input;}
+ function sideField(box,text,value='right'){const label=document.createElement('label'),input=document.createElement('select');label.textContent=text;input.setAttribute('aria-label',text);for(const [v,t]of [['right','Høyre'],['left','Venstre'],['center','Sentrert']])input.add(new Option(t,v));input.value=value;label.append(input);box.append(label);return input;}
+ function groupProperties(box,g){
+  const details=document.createElement('details');details.open=true;const summary=document.createElement('summary');summary.textContent=g.kind==='visual'?'Visuell gruppe':g.kind==='joined'?'Koblede endepunkter':'Koblet felles trasé';details.append(summary);
+  const note=document.createElement('p');note.textContent=g.memberIds.length+' selvstendige linjer. Dra en linje for å flytte hele gruppen. '+(g.spine?'Dra et punkt for å forme felles trasé. Farge og tykkelse gjelder linjen du velger.':'Kildekoblinger, farger og linje-ID-er beholdes.');details.append(note);
+  const locked=g.memberIds.some(id=>all().find(o=>o.id===id).locked);
+  const select=document.createElement('button');select.textContent='Velg hele gruppen';select.onclick=()=>{selection=[...g.memberIds];selected=selection.at(-1);endpoint=null;render();};details.append(select);
+  if(g.spine){
+   const count=numberField(details,'Antall linjer',g.memberIds.length,Math.max(2,g.memberIds.length-g.generatedIds.length),9),spacing=numberField(details,'Traséavstand',g.spacing,2,200),side=sideField(details,'Plassering',g.side);
+   const b=document.createElement('button');b.textContent='Oppdater parallelle linjer';b.disabled=locked;b.onclick=()=>attempt(d=>D.updateParallel(d,g.id,Number(count.value),Number(spacing.value),side.value,Array.from({length:Math.max(0,Math.min(9,Number(count.value))-g.memberIds.length)},()=>id('line'))));details.append(b);
+   const help=document.createElement('p');help.textContent='Antallet inkluderer originalene. Reduksjon fjerner bare nye kopier uten stopp eller kildekoblinger. Høyre/venstre følger retningen fra første til siste punkt.';details.append(help);
+  }
+  const detach=document.createElement('button');detach.textContent='Løsne linjene';detach.disabled=locked;detach.onclick=()=>attempt(d=>D.detachGroup(d,g.id));details.append(detach);const help=document.createElement('p');help.textContent='Løsne beholder dagens geometri. Angre gjenoppretter handlingen og eventuell tidligere geometri.';details.append(help);box.append(details);
+ }
+ function connectionActions(box,lines){
+  const groups=[...new Set(lines.map(l=>D.groupFor(doc,l.id)).filter(Boolean))];
+  if(groups.length===1&&lines.every(l=>groups[0].memberIds.includes(l.id))){groupProperties(box,groups[0]);return;}
+  const note=document.createElement('p');note.textContent='Flervalg endrer bare utvalget. Velg en egen handling nedenfor. Alle linje-ID-er, farger og kildekoblinger beholdes.';box.append(note);
+  const blocked=lines.some(l=>l.locked)||groups.length>0;let joinReason='';try{D.joinPlan(doc,lines.map(l=>l.id));}catch(e){joinReason=e.message;}
+  const join=document.createElement('button');join.textContent='Slå sammen';join.disabled=blocked||!!joinReason;join.title=joinReason||'Koble møtende endepunkter til én sammenhengende trasé, med separate linjeobjekter';join.onclick=()=>attempt(d=>D.joinLines(d,selection,id('group')));box.append(join);
+  const explanation=document.createElement('p');explanation.textContent='Slå sammen kobler endepunkter i en åpen kjede. '+joinReason;box.append(explanation);
+  const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Felles visuell trasé';details.append(summary);
+  const spacing=numberField(details,'Avstand for felles trasé',14,2,200),side=sideField(details,'Plassering for felles trasé');
+  const text=document.createElement('p');text.textContent='Bruker den først valgte linjens form. De andre flyttes til parallelle spor langs hele denne traséen. Form, avstand og plassering kan justeres senere.';details.append(text);
+  const share=document.createElement('button');share.textContent='Bruk felles trasé';share.disabled=blocked||lines.length>9;share.onclick=()=>attempt(d=>D.shareRoute(d,selection,Number(spacing.value),side.value,id('group')));details.append(share);box.append(details);
+  const group=document.createElement('button');group.textContent='Grupper';group.disabled=blocked;group.onclick=()=>attempt(d=>D.groupLines(d,selection,id('group')));box.append(group);const groupNote=document.createElement('p');groupNote.textContent=groups.length?'Løsne eksisterende grupper før du kobler dem på nytt.':'Grupper beholder geometrien og lar deg flytte linjene samlet.';box.append(groupNote);
+ }
+ function parallelCreator(box,o){
+  const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Koblede parallelle linjer';details.append(summary);
+  const count=numberField(details,'Totalt antall linjer',3,2,9),spacing=numberField(details,'Ny traséavstand',14,2,200),side=sideField(details,'Ny plassering');
+  const b=document.createElement('button');b.textContent='Opprett parallelle linjer';b.disabled=o.locked;b.onclick=()=>attempt(d=>D.linkedParallel(d,o.id,Number(count.value),Number(spacing.value),side.value,id('group'),Array.from({length:Math.max(0,Math.min(9,Number(count.value))-1)},()=>id('line'))));details.append(b);const note=document.createElement('p');note.textContent='Beholder originalen og lager egne linjer med hver sin farge. Antall, avstand, side og felles form kan endres etterpå.';details.append(note);box.append(details);
+ }
  function multiProperties(box){
   const objects=marked(),lines=objects.filter(isLine),locked=objects.some(o=>o.locked),p=document.createElement('p');p.textContent=objects.length+' objekter valgt. Ctrl-klikk legger til eller fjerner fra utvalget.';box.append(p);
   if(lines.length===objects.length){
-   const selectionNote=document.createElement('p');selectionNote.textContent='Linjene er valgt hver for seg. Flervalg endrer ikke linjene. Slå sammen lager én linje; Bruk felles trasé samordner geometrien; Grupper kobler redigering. Disse tre handlingene er ikke implementert ennå.';box.append(selectionNote);
-   for(const label of ['Slå sammen','Bruk felles trasé','Grupper']){const b=document.createElement('button');b.textContent=label;b.disabled=true;b.title='Ikke implementert ennå';box.append(b);}
+   connectionActions(box,lines);
    lineColors(box,lines);const l=document.createElement('label'),input=document.createElement('input');l.textContent='Felles linjetykkelse';input.type='number';input.min=1;input.max=40;input.value=lines.every(o=>o.width===lines[0].width)?lines[0].width:'';input.placeholder='Ulik tykkelse';input.disabled=locked;input.onchange=()=>{try{commit(d=>D.styleLines(d,selection,{width:Number(input.value)}));}catch(e){status(e.message);render();}};l.append(input);box.append(l);
-   const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Felles avstand';details.append(summary);const label=document.createElement('label'),spacing=document.createElement('input');label.textContent='Avstand i kartet';spacing.type='number';spacing.value=14;spacing.min=2;spacing.max=200;label.append(spacing);details.append(label);const note=document.createElement('p');note.textContent='Legger de valgte linjene langs den første valgte linjens trasé, i valgrekkefølge. Farger og identiteter beholdes. Kan angres.';details.append(note);const b=document.createElement('button');b.textContent='Bruk felles avstand';b.disabled=locked;b.onclick=()=>{try{commit(d=>D.spaceLines(d,selection,Number(spacing.value)));}catch(e){status(e.message);}};details.append(b);box.append(details);
+   if(!lines.some(l=>D.groupFor(doc,l.id))){const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Felles avstand';details.append(summary);const label=document.createElement('label'),spacing=document.createElement('input');label.textContent='Avstand i kartet';spacing.type='number';spacing.value=14;spacing.min=2;spacing.max=200;label.append(spacing);details.append(label);const note=document.createElement('p');note.textContent='Engangsjustering langs første valgte linje. Linjene kobles ikke. For redigerbar kobling, velg Bruk felles trasé.';details.append(note);const b=document.createElement('button');b.textContent='Bruk felles avstand';b.disabled=locked;b.onclick=()=>{try{commit(d=>D.spaceLines(d,selection,Number(spacing.value)));}catch(e){status(e.message);}};details.append(b);box.append(details);}
   }
   const del=document.createElement('button');del.textContent='Slett markerte';del.disabled=locked;del.onclick=remove;box.append(del);if(locked){const note=document.createElement('p');note.textContent='Utvalget inneholder låste lag. Lås opp eller fjern dem fra utvalget for å redigere samlet.';box.append(note);}
  }
@@ -81,6 +113,7 @@
   }
   function choice(text,value,options,fn){const l=document.createElement('label'),i=document.createElement('select');l.textContent=text;i.setAttribute('aria-label',text);for(const [v,t]of options)i.add(new Option(t,v));i.value=value;i.disabled=o.locked;i.onchange=()=>commit(d=>fn(d.artwork.stops.find(n=>n.id===o.id),i.value));l.append(i);target.append(l);}
   if(isLine(o)){
+   const g=D.groupFor(doc,o.id);if(g)groupProperties(box,g);else parallelCreator(box,o);
    if(tool==='select'&&endpoint?.id===o.id){const b=document.createElement('button');b.textContent='Fortsett linjen';b.disabled=o.locked;b.onclick=startExtension;box.append(b);}else{const p=document.createElement('p');p.textContent='Velg et av de store endepunktene for å fortsette linjen.';box.append(p);}
    const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Parallelle linjekopier';details.append(summary);
    const count=document.createElement('input'),spacing=document.createElement('input');count.type=spacing.type='number';count.value=1;count.min=1;count.max=8;spacing.value=14;spacing.min=2;spacing.max=200;
@@ -111,7 +144,7 @@
    // Wide transparent hit areas and endpoint handles can overlap another route.
    // Resolve route selection by distance to the actual path, with stable paint-order ties.
    let hitId=hit?.dataset.id||null;
-   if(!hitId||isLine(all().find(o=>o.id===hitId))){
+   if((!e.target.hasAttribute('data-vertex')||e.ctrlKey||e.metaKey)&&(!hitId||isLine(all().find(o=>o.id===hitId)))){
     const candidates=doc.artwork.lines.filter(l=>l.visible).map((l,i)=>({id:l.id,dist:nearest(p,l).dist,i,width:l.width})).filter(l=>l.dist<=Math.max(l.width/2,8/camera.k)).sort((a,b)=>a.dist-b.dist||b.i-a.i);
     if(candidates.length)hitId=candidates[0].id;
    }
@@ -119,7 +152,8 @@
    if(!hitId||!selection.includes(hitId))selectOnly(hitId);
    const o=object(),vertex=e.target.dataset.id===hitId&&e.target.hasAttribute('data-vertex')?Number(e.target.dataset.vertex):null;
    endpoint=isLine(o)&&vertex!==null&&(vertex===0||vertex===o.points.length-1)?{id:o.id,index:vertex}:null;
-   if(o&&!marked().some(o=>o.locked))gesture={kind:selection.length>1?'group':e.target.hasAttribute('data-label')?'label':isLine(o)?vertex!==null?'vertex':'line':'stop',start:p,original:structuredClone(o),objects:structuredClone(marked()),vertex,before:doc};render();
+   const moveIds=D.transformIds(doc,selection),objects=all().filter(o=>moveIds.includes(o.id));
+   if(o&&!objects.some(o=>o.locked))gesture={kind:selection.length===1&&vertex!==null?'vertex':objects.length>1?'group':e.target.hasAttribute('data-label')?'label':isLine(o)?'line':'stop',start:p,original:structuredClone(o),objects:structuredClone(objects),vertex,before:doc};render();
   }
   if(gesture)canvas.setPointerCapture(e.pointerId);
  });
@@ -128,18 +162,20 @@
   if(gesture.kind==='pan'){camera.x=gesture.camera.x-(e.clientX-gesture.start.x)/camera.k;camera.y=gesture.camera.y-(e.clientY-gesture.start.y)/camera.k;view();return;}
   const p=point(e),g=gesture,o=g.original;let dx=p.x-g.start.x,dy=p.y-g.start.y;
   if(g.kind==='stop'||g.kind==='vertex'){const origin=g.kind==='vertex'?o.points[g.vertex]:o,q=snap({x:origin.x+dx,y:origin.y+dy});dx=q.x-origin.x;dy=q.y-origin.y;}
-  doc=structuredClone(g.before);const n=all().find(v=>v.id===o.id);
+  const previous=doc;doc=structuredClone(g.before);const n=all().find(v=>v.id===o.id);
+  try{
   if(g.kind==='group'){
-   const points=g.objects.flatMap(o=>isLine(o)?o.points:[o]);dx=Math.max(-Math.min(...points.map(p=>p.x)),Math.min(doc.width-Math.max(...points.map(p=>p.x)),dx));dy=Math.max(-Math.min(...points.map(p=>p.y)),Math.min(doc.height-Math.max(...points.map(p=>p.y)),dy));for(const o of g.objects){const n=all().find(n=>n.id===o.id);if(isLine(o))n.points=o.points.map(p=>({x:p.x+dx,y:p.y+dy}));else{n.x=o.x+dx;n.y=o.y+dy;}}
+   const points=g.objects.flatMap(o=>isLine(o)?o.points:[o]);dx=Math.max(-Math.min(...points.map(p=>p.x)),Math.min(doc.width-Math.max(...points.map(p=>p.x)),dx));dy=Math.max(-Math.min(...points.map(p=>p.y)),Math.min(doc.height-Math.max(...points.map(p=>p.y)),dy));D.translate(doc,g.objects.map(o=>o.id),dx,dy);
   }
   else if(g.kind==='label'){n.labelDx=o.labelDx+dx;n.labelDy=o.labelDy+dy;}
   else if(g.kind==='line'){dx=Math.max(-Math.min(...o.points.map(p=>p.x)),Math.min(doc.width-Math.max(...o.points.map(p=>p.x)),dx));dy=Math.max(-Math.min(...o.points.map(p=>p.y)),Math.min(doc.height-Math.max(...o.points.map(p=>p.y)),dy));n.points=o.points.map(p=>({x:p.x+dx,y:p.y+dy}));}
-  else if(g.kind==='vertex')n.points[g.vertex]=bounded({x:o.points[g.vertex].x+dx,y:o.points[g.vertex].y+dy});
-  else Object.assign(n,bounded({x:o.x+dx,y:o.y+dy}));draw();
+  else if(g.kind==='vertex'){const points=structuredClone(o.points);points[g.vertex]=bounded({x:o.points[g.vertex].x+dx,y:o.points[g.vertex].y+dy});D.setLinePoints(doc,o.id,points);}
+  else Object.assign(n,bounded({x:o.x+dx,y:o.y+dy}));D.validate(doc);
+  }catch(e){doc=previous;status(e.message);return;}draw();
  });
  function end(e,cancel=false){if(!gesture)return;const g=gesture;gesture=null;if(canvas.hasPointerCapture(e.pointerId))canvas.releasePointerCapture(e.pointerId);if(g.kind==='pan')return;const result=doc;doc=g.before;if(!cancel){try{commit(d=>Object.assign(d,result));}catch(err){status(err.message);doc=history.get();render();}}else render();}
  canvas.addEventListener('pointerup',e=>end(e));canvas.addEventListener('pointercancel',e=>end(e,true));
- canvas.addEventListener('dblclick',e=>{if(e.ctrlKey||e.metaKey||e.shiftKey||space||tool!=='select'||selection.length!==1)return;const o=object();if(!isLine(o)||o.locked||e.target.dataset.id!==o.id||e.target.hasAttribute('data-vertex'))return;const p=nearest(point(e),o);commit(d=>d.artwork.lines.find(l=>l.id===o.id).points.splice(p.index,0,{x:p.x,y:p.y}));});
+ canvas.addEventListener('dblclick',e=>{if(e.ctrlKey||e.metaKey||e.shiftKey||space||tool!=='select'||selection.length!==1)return;const o=object();if(!isLine(o)||o.locked||e.target.dataset.id!==o.id||e.target.hasAttribute('data-vertex'))return;const p=nearest(point(e),o),points=structuredClone(o.points);points.splice(p.index,0,{x:p.x,y:p.y});attempt(d=>D.setLinePoints(d,o.id,points));});
  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
  document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));$('start').onclick=()=>setTool('pen');$('finish').onclick=finish;$('cancel').onclick=()=>{cancelDraft();setTool('select');};
  function travel(redo){cancelDraft();if(tool==='pen')tool='select';history[redo?'redo':'undo']();doc=history.get();pruneSelection();persist();render();}

@@ -25,7 +25,7 @@ export async function selectionRegression(browser,base){
    await click(450,306);assert.deepEqual((await state()).selection,['route-a','route-b']);
    assert.equal(await page.locator('#art [data-selection]').count(),2);
    assert.equal(await page.locator('#layers > div[data-selected=true]').count(),2);
-   for(const name of ['Slå sammen','Bruk felles trasé','Grupper'])assert(await page.getByRole('button',{name,exact:true}).isDisabled());
+   for(const name of ['Slå sammen','Bruk felles trasé','Grupper'])assert.equal(await page.getByRole('button',{name,exact:true,includeHidden:true}).count(),1,'operations require a separate explicit action');
    assert.deepEqual((await state()).doc,before.doc);assert.deepEqual(await paths(),originalPaths);
    assert(await page.locator('#undo').isDisabled(),'selection must not create undo');assert(await page.locator('#redo').isDisabled());
    await click(450,300);assert.deepEqual((await state()).selection,['route-b']);
