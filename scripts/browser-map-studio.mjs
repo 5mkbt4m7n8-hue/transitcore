@@ -1,4 +1,4 @@
-import {smartStations} from './browser-studio-smart-stations.mjs';
+import {smartStations,branchPaint} from './browser-studio-smart-stations.mjs';
 import {v012A,v012B,v012C} from './browser-studio-v012.mjs';
 import {v011,v011B,v011C} from './browser-studio-v011.mjs';
 import {phaseOne} from './browser-studio-phase-one.mjs';
@@ -18,6 +18,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,...(process.env.BROWSER_PATH?{executablePath:process.env.BROWSER_PATH}:{})});
 const base=process.env.STUDIO_PREVIEW||`http://127.0.0.1:${server.address().port}/web/linear/`;
 try{
+ await branchPaint(browser,base,process.env.INTRANSIT_SCREENSHOT_DIR);
  await smartStations(browser,base,process.env.INTRANSIT_SCREENSHOT_DIR);
  await v012A(browser,base);
  await v012B(browser,base);
@@ -67,7 +68,7 @@ try{
  assert.equal((await state()).doc.artwork.stops[0].labelAngle,315);assert.equal(await page.locator('#art text').first().getAttribute('text-anchor'),'end');assert.match(await page.locator('#art text').first().getAttribute('transform'),/rotate\(315 /);
  await page.getByLabel('Stoppsymbol',{exact:true}).selectOption('capsule');await page.getByLabel('Bredde over linjene',{exact:true}).fill('45');await page.getByLabel('Bredde over linjene',{exact:true}).press('Tab');assert.equal((await state()).doc.artwork.stops[0].span,45);
  await page.locator('#layers .pick').last().click();await page.getByText('Parallelle linjekopier',{exact:true}).click();await page.getByLabel('Antall ekstra linjer',{exact:true}).fill('2');await page.getByLabel('Avstand i kartet',{exact:true}).fill('18');const priorLanes=await state();await page.getByRole('button',{name:'Lag parallelle kopier',exact:true}).click();assert.equal((await state()).doc.artwork.lines.length,3);assert.deepEqual((await state()).doc.bindings,priorLanes.doc.bindings);assert.equal((await state()).doc.artwork.stops.length,1);const laneDoc=(await state()).doc;await page.locator('#undo').click();assert.equal((await state()).doc.artwork.lines.length,1);await page.locator('#redo').click();assert.deepEqual((await state()).doc,laneDoc);
- await page.locator('#layers .pick').nth(1).click();assert.equal((await state()).selected,(await state()).doc.artwork.lines[2].id,'parallel copy is separately selectable');
+ await page.getByRole('button',{name:'━ '+laneDoc.artwork.lines[2].name,exact:true}).click();assert.equal((await state()).selected,(await state()).doc.artwork.lines[2].id,'parallel copy is separately selectable');
  await page.locator('#canvas').focus();await page.keyboard.press('Escape');await page.getByText('Tegneområde',{exact:true}).click();await page.getByRole('button',{name:'Foreslå navneplassering',exact:true}).click();
  const exportPromise=page.waitForEvent('download');await page.locator('#export').click();const exported=await exportPromise,svg=await readFile(await exported.path(),'utf8');assert.match(svg,/viewBox="0 0 1600 1500"/);assert.match(svg,/rotate\(315 /);assert.match(svg,/width="45"/);
  const downloadPromise=page.waitForEvent('download');await page.locator('#save').click();const download=await downloadPromise;const saved=JSON.parse(await readFile(await download.path(),'utf8'));assert.equal(saved.artwork.lines[0].name,'Linje A');

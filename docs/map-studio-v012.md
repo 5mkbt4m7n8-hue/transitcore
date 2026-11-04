@@ -48,3 +48,10 @@ New graphic route branches reserve an outer lane beyond the existing routes shar
 The five requested scenarios run in **test-studio-smart-stations.mjs** and **browser-studio-smart-stations.mjs**: three local directions, live spacing, smart unselected movement, full selected movement (rectangle and ordinary line dragging), and a new branch outside the existing bundle. Tests also cover repeated deformation, manual override/restoration, preview commit, legacy lanes, identity/source preservation, one-step undo/redo, stable camera, JSON/reopen and SVG. Earlier tests expecting frozen off-line unselected stations now assert reattachment; exact invariance remains required for unaffected segments and endpoint extensions.
 
 Manual bundle reordering is still outside this prototype. At sharp or topologically crossing branches, the schematic uses safe miters/bevels and does not optimize all network crossings automatically.
+
+
+## Follow-up: branches behind existing lines
+
+New drawn lines, graphical routes and parallel copies receive a persisted paintOrder below the existing line layers. This controls which color covers another at a crossing; route offsets and geometry are unchanged. New-line and route previews use the same back layer. Continuing an existing line or adding new trace parts to an existing route sends that line behind the other lines as part of the same undo transaction; its identity and geometry remain editable. The layer list and SVG export share the editor's order. Existing projects without paintOrder retain their original relative order, and editing existing route parts retains their layer unless a new trace part is added.
+
+Model and Chromium tests reproduce a new branch crossing existing green lines with the source trace drawn in either direction. They assert preview/committed DOM order, the topmost browser hit path, and green pixels at the crossing in a rasterized SVG (orange away from the crossing). Pen drawing, route creation, one-step undo/redo, JSON/reopen, SVG and camera stability are covered.
