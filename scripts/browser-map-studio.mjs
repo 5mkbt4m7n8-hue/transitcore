@@ -1,3 +1,4 @@
+import {smartStations} from './browser-studio-smart-stations.mjs';
 import {v012A,v012B,v012C} from './browser-studio-v012.mjs';
 import {v011,v011B,v011C} from './browser-studio-v011.mjs';
 import {phaseOne} from './browser-studio-phase-one.mjs';
@@ -17,6 +18,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,...(process.env.BROWSER_PATH?{executablePath:process.env.BROWSER_PATH}:{})});
 const base=process.env.STUDIO_PREVIEW||`http://127.0.0.1:${server.address().port}/web/linear/`;
 try{
+ await smartStations(browser,base,process.env.INTRANSIT_SCREENSHOT_DIR);
  await v012A(browser,base);
  await v012B(browser,base);
  await v012C(browser,base,process.env.INTRANSIT_SCREENSHOT_DIR);

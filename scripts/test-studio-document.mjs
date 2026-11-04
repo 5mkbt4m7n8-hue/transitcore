@@ -1,3 +1,4 @@
+import './test-studio-smart-stations.mjs';
 import './test-studio-v012.mjs';
 import './test-studio-v011.mjs';
 import assert from 'node:assert/strict';
