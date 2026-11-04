@@ -55,103 +55,25 @@ assert.ok(!svg(evil).includes("<script>"));
 console.log(
   "Board Studio fase A: mm, SVG layers, independent holes/rings, precision, source isolation, locks, history and invalid files PASS",
 );
-const { holeCenters, edgeGeometry, roundedPolyline, stationTangent } =
-  await import("../web/board-studio/geometry.mjs");
-const b = createProject(),
-  s = b.layout.stations[1];
-assert.equal(s.points, 2);
-let centers = holeCenters(b, s);
-assert.ok(
-  Math.abs(
-    Math.hypot(centers[1].x - centers[0].x, centers[1].y - centers[0].y) - 10,
-  ) < 1e-10,
-);
-const oldCenters = structuredClone(centers);
-s.ringOuter = 20;
-s.holeDiameter = 3;
-assert.deepEqual(holeCenters(b, s), oldCenters);
-s.pointSpacing = 12.7;
-centers = holeCenters(b, s);
-assert.ok(
-  Math.abs(
-    Math.hypot(centers[1].x - centers[0].x, centers[1].y - centers[0].y) - 12.7,
-  ) < 1e-10,
-);
-const r = b.layout.routes[0],
-  edge = edgeGeometry(b, r, 0);
-assert.equal(edge.paths.filter((x) => x.part === "core").length, 1);
-assert.equal(edge.paths.filter((x) => x.part === "end").length, 2);
-for (const path of edge.paths.filter((x) => !x.d))
-  assert.ok(
-    Object.values(path)
-      .filter((x) => typeof x === "object")
-      .every((v) => Number.isFinite(v.x) && Number.isFinite(v.y)),
-  );
-// Cubic derivative at the join is collinear with the central segment.
-for (const path of edge.paths.filter((x) => x.part === "start")) {
-  const dx = path.end.x - path.c2.x,
-    dy = path.end.y - path.c2.y,
-    core = edge.paths.find((x) => x.part === "end");
-  const vx = core.start.x - path.end.x,
-    vy = core.start.y - path.end.y;
-  assert.ok(Math.abs(dx * vy - dy * vx) < 1e-9);
+const {holeCenters,symbolCenters,edgeGeometry,geometryReport,evaluateCubic,segmentsIntersect}=await import('../web/board-studio/geometry.mjs');
+const {geometryFixture}=await import('../web/board-studio/fixtures.mjs');
+const fixture=geometryFixture();
+for(const g of geometryReport(fixture)){
+ assert.ok(g.valid,`${g.routeId}: ${g.warnings}`);
+ assert.ok(g.rails.every(r=>r.samples.length>20));
+ for(let i=0;i<g.center.length;i++){
+  const c=g.center[i],a=g.rails[0].samples[i],b=g.rails[1].samples[i];
+  assert.ok(Math.abs(Math.hypot(a.x-b.x,a.y-b.y)-2*c.w)<1e-10,'normal separation');
+  assert.ok(Math.abs((a.x-c.x)*c.n.y-(a.y-c.y)*c.n.x)<1e-10,'true centre normal');
+ }
+ if(g.routeId==='turn'||g.routeId==='rotated')for(const c of g.curves)for(let t=0;t<=1;t+=1/2000){const e=evaluateCubic(c,t);assert.ok(e.radius>=g.requiredRadius-.02,'dense curvature check');}
+ for(const rail of g.rails)for(let i=0;i<rail.samples.length-1;i++)for(let j=i+2;j<rail.samples.length-1;j++)assert.ok(!segmentsIntersect(rail.samples[i],rail.samples[i+1],rail.samples[j],rail.samples[j+1]),'no loop');
+ for(const path of g.paths){assert.ok(path.d.startsWith('M '));assert.ok(path.trackId);}
 }
-r.tracks = 2;
-r.trackSpacing = 10;
-r.bends = { 0: { x: 175, y: 65 } };
-r.cornerRadius = 15;
-const dbl = edgeGeometry(b, r, 0);
-assert.equal(dbl.paths.filter((x) => x.part === "core").length, 2);
-assert.ok(
-  dbl.paths.filter((x) => x.part === "core").every((x) => x.d.includes(" A ")),
-);
-assert.match(
-  roundedPolyline(
-    [
-      { x: 0, y: 0 },
-      { x: 20, y: 0 },
-      { x: 20, y: 20 },
-    ],
-    5,
-  ),
-  /L 15 0 A 5 5 0 0 1 20 5/,
-);
-const dBefore = svg(b);
-b.layout.stations[1].x += 4.125;
-assert.notEqual(svg(b), dBefore);
-assert.deepEqual(parseProject(serialize(b)), b);
-const fallback = structuredClone(b);
-delete fallback.layout.stations[0].points;
-assert.equal(parseProject(fallback).layout.stations[0].points, 1);
-const moved = moveStations(b, ["station-2"], 5, 0);
-for (const id of ["station-1", "station-2"]) {
-  const st = moved.layout.stations.find((s) => s.id === id);
-  for (const c of holeCenters(moved, st)) {
-    assert.ok(
-      svg(moved, { layers: ["holes"] }).includes(`cx="${c.x}" cy="${c.y}"`),
-    );
-    assert.ok(
-      svg(moved, { layers: ["rings"] }).includes(`cx="${c.x}" cy="${c.y}"`),
-    );
-  }
-}
-const horizontal = createProject(false);
-horizontal.layout.stations = [
-  { ...structuredClone(s), id: "a", x: 30, y: 20 },
-  { ...structuredClone(s), id: "b", x: 90, y: 20 },
-];
-horizontal.layout.routes = [
-  { ...structuredClone(r), id: "r", stationIds: ["a", "b"], bends: {} },
-];
-assert.deepEqual(stationTangent(horizontal, horizontal.layout.stations[0]), {
-  x: 1,
-  y: 0,
-});
-assert.ok(
-  edgeGeometry(horizontal, horizontal.layout.routes[0], 0).paths.every(
-    (c) => !JSON.stringify(c).includes("null"),
-  ),
-);
-console.log(
-  "Board Studio fase B: double/multiple symbols, measured symbol spacing, independent centres, cubic tangents, single/double rails, circular corners, edited geometry, additive v1 migration PASS",
-);
+const st=fixture.layout.stations[0],holes=structuredClone(holeCenters(fixture,st));st.symbolAngle=45;st.ringOuter=8;assert.deepEqual(holeCenters(fixture,st),holes,'graphic rotation never moves physical holes');assert.notDeepEqual(symbolCenters(fixture,st).map(({x,y})=>({x,y})),holes.map(({x,y})=>({x,y})));
+const changed=structuredClone(fixture),route=changed.layout.routes[0],ids=structuredClone(route.trackIds),ports=structuredClone(route.portSigns);route.controls[0]={startReach:38,endReach:35};const round= parseProject(serialize(changed));assert.deepEqual(round.layout.routes[0].trackIds,ids);assert.deepEqual(round.layout.routes[0].portSigns,ports);assert.deepEqual(round.layout.routes[0].controls,route.controls);assert.deepEqual(round.layout.stations[0].holes,st.holes);
+const old=JSON.parse(serialize(createProject()));old.version=1;for(const s of old.layout.stations)delete s.holes;for(const r of old.layout.routes){delete r.trackIds;delete r.portSigns;delete r.controls;delete r.autoGrow;}const migrated=parseProject(old);assert.equal(migrated.version,2);assert.deepEqual(parseProject(serialize(migrated)),migrated);
+const short=geometryFixture();const sr=short.layout.routes[0];sr.trackSpacing=90;sr.autoGrow=0;sr.cornerRadius=100;assert.ok(!edgeGeometry(short,sr,0).valid);assert.throws(()=>svg(short),/ugyldig sporgeometri/);assert.ok(svg(short,{layers:['holes']}).includes('data-hole'));
+const f=geometryFixture(),r=f.layout.routes[1],before=structuredClone(r.trackIds);for(const angle of [0,45,90,135,180,-45,-90]){f.layout.stations[3].symbolAngle=angle;const g=edgeGeometry(f,r,0);assert.deepEqual(r.trackIds,before);if(!g.valid)assert.ok(g.warnings.length,'invalid remains explicit');}
+const report=geometryReport(createProject());assert.ok(report.every(g=>g.valid),'reference drawing stays valid');
+console.log('Board Studio v0.2 step 1 PASS: rotated screenshot regression, 90-degree turn, dense normal spacing/curvature checks, no rail loops, clipping, explicit holes, stable tracks/ports, v1 migration, invalid export block');

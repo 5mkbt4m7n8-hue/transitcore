@@ -1,4 +1,4 @@
-import { holeCenters, edgeGeometry } from "./geometry.mjs";
+import { holeCenters, symbolCenters, edgeGeometry, geometryReport } from "./geometry.mjs";
 import {
   createProject,
   parseProject,
@@ -189,7 +189,10 @@ function properties() {
       '<h2>Egenskaper <span>02</span></h2><p class="note">Velg en stasjon på tavlen for presis plassering. S legger til en stasjon, L kobler stasjoner.</p>';
     return;
   }
-  panel.innerHTML = `<h2>${selected.length > 1 ? selected.length + " stasjoner" : "Stasjon"} <span>02</span></h2>${field("station-name", "Navn", s.name, "text")}<div class="pair">${field("station-x", "X, mm", s.x, "number", 'step="0.1"')}${field("station-y", "Y, mm", s.y, "number", 'step="0.1"')}</div><div class="pair">${field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"')}${field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("hole-diameter", "Hull Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}</div><h2>Symbol og kapsel</h2><div class="pair">${field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"')}${field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"')}${field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"')}</div><div class="pair">${field("symbol-angle", "Vinkel, ° (tom = auto)", s.symbolAngle ?? "", "number", 'min="-360" max="360"')}${field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias, "number", 'min="-0.5" max="0.5" step="0.1"')}</div><div class="pair"><label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>${field("symbol-color", "Ringfarge", s.ringColor, "color")}</div><h2>Stasjonsnavn</h2><div class="pair">${field("label-dx", "Forskyvning X, mm", s.label.dx)}${field("label-dy", "Forskyvning Y, mm", s.label.dy)}</div><div class="pair">${field("label-angle", "Rotasjon, °", s.label.angle)}${field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'step="0.1" min="0.1"')}</div><div class="pair">${field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"')}<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label></div><label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label><p class="note">${selected.length > 1 ? "X/Y flytter hele utvalget. Andre felt endrer første stasjon." : "Navn og ring er uavhengige av hulldiameteren."}</p>`;
+  panel.innerHTML = `<h2>${selected.length > 1 ? selected.length + " stasjoner" : "Stasjon"} <span>02</span></h2>${field("station-name", "Navn", s.name, "text")}<div class="pair">${field("station-x", "X, mm", s.x, "number", 'step="0.1"')}${field("station-y", "Y, mm", s.y, "number", 'step="0.1"')}</div><div class="pair">${field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"')}${field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("hole-diameter", "Hull Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}</div><h2>Symbol og kapsel</h2><div class="pair">${field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"')}${field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"')}${field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"')}</div><div class="pair">${field("symbol-angle", "Vinkel, ° (tom = auto)", s.symbolAngle ?? "", "number", 'min="-360" max="360"')}${field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias, "number", 'min="-0.5" max="0.5" step="0.1"')}</div><div class="pair"><label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>${field("symbol-color", "Ringfarge", s.ringColor, "color")}</div><button id="align-holes">Tilpass hull til symbolet</button><p class="note">Grafisk rotasjon flytter ikke fysiske hull. Tilpass hull eksplisitt ved behov.</p><h2>Stasjonsnavn</h2><div class="pair">${field("label-dx", "Forskyvning X, mm", s.label.dx)}${field("label-dy", "Forskyvning Y, mm", s.label.dy)}</div><div class="pair">${field("label-angle", "Rotasjon, °", s.label.angle)}${field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'step="0.1" min="0.1"')}</div><div class="pair">${field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"')}<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label></div><label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label><p class="note">${selected.length > 1 ? "X/Y flytter hele utvalget. Andre felt endrer første stasjon." : "Navn og ring er uavhengige av hulldiameteren."}</p>`;
+  const physical=holeCenters(p,s),graphic=symbolCenters(p,s),mismatch=physical.length!==graphic.length||physical.some((h,i)=>!graphic[i]||Math.hypot(h.x-graphic[i].x,h.y-graphic[i].y)>.01);
+  if(mismatch)panel.insertAdjacentHTML('afterbegin','<p class="warning">Grafikk og hull er forskjøvet. Hullsentrene er beholdt.</p>');
+  $('align-holes').disabled=p.layers.holes.locked;$('align-holes').onclick=()=>mutate(q=>{const target=q.layout.stations.find(t=>t.id===s.id);target.holes=symbolCenters(q,target).map((c,i)=>({id:target.holes[i]?.id??`${target.id}:hole:${i}`,x:c.x,y:c.y}));});
   const symbolFields = {
     "symbol-points": "points",
     "symbol-spacing": "pointSpacing",
@@ -365,6 +368,7 @@ function routeProperties() {
           id: crypto.randomUUID(),
           stationIds: r.stationIds.slice(i, i + 2),
           bends: r.bends[i] ? { 0: copy(r.bends[i]) } : {},
+          controls:r.controls[i]?{0:copy(r.controls[i])}:{},
         };
         parts.push(part);
         if (i === edge) selectedRoute = part.id;
@@ -499,6 +503,7 @@ canvas.onpointerdown = (e) => {
     s.name = "Ny stasjon";
     s.x = pt.x;
     s.y = pt.y;
+    s.holes=[{id:`${s.id}:hole:0`,x:s.x,y:s.y}];
     s.label.dx = 9;
     s.label.dy = 0;
     s.label.anchor = "start";
@@ -692,7 +697,8 @@ $("delete").onclick = () => {
           if (r.stationIds[old + 1] === ids[i + 1] && r.bends[old])
             bends[i] = copy(r.bends[old]);
         }
-        return { ...r, stationIds: ids, bends };
+        const controls={};for(let i=0;i<ids.length-1;i++){const old=r.stationIds.indexOf(ids[i]);if(r.stationIds[old+1]===ids[i+1]&&r.controls[old])controls[i]=copy(r.controls[old]);}
+        return { ...r, stationIds: ids, bends,controls };
       })
       .filter((r) => r.stationIds.length > 1);
   });

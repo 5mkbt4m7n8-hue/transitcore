@@ -33,7 +33,7 @@ export function symbolNormal(p, s) {
   }
   return normal(stationTangent(p, s));
 }
-export function holeCenters(p, s) {
+export function symbolCenters(p, s) {
   const n = symbolNormal(p, s),
     count = s.points ?? 1,
     spacing = s.pointSpacing ?? 10,
@@ -88,138 +88,81 @@ export function roundedPolyline(points, radius) {
   if (points.length > 1) d += ` L ${point(points.at(-1))}`;
   return d;
 }
-export function edgeGeometry(p, r, i) {
-  const stations = r.stationIds.map((id) =>
-      p.layout.stations.find((s) => s.id === id),
-    ),
-    a = stations[i],
-    b = stations[i + 1],
-    delta = sub(b, a),
-    dist = length(delta);
-  if (dist < 1e-7) return { paths: [], warnings: ["Sammenfallende stasjoner"] };
-  const bend = r.bends?.[i],
-    firstDir = unit(sub(bend || b, a)),
-    lastDir = unit(sub(b, bend || a));
-  const dir = unit(delta),
-    ta = stationTangent(p, a),
-    tb = stationTangent(p, b),
-    na = symbolNormal(p, a),
-    nb = symbolNormal(p, b),
-    tracks = r.tracks ?? 1,
-    spacing = r.trackSpacing ?? 10,
-    tension = r.tension ?? 0.5,
-    reach = Math.min(
-      r.transitionLength ?? 12,
-      dist * 0.35,
-      ...(bend
-        ? [length(sub(bend, a)) * 0.35, length(sub(b, bend)) * 0.35]
-        : [dist]),
-    );
-  const joinA = add(a, mul(firstDir, reach)),
-    joinB = sub(b, mul(lastDir, reach));
-  const offsetA = holeCenters(p, a).map((c) => sub(c, a)),
-    offsetB = holeCenters(p, b).map((c) => sub(c, b));
-  const warnings = [];
-  if (dist < Math.max(a.pointSpacing ?? 10, b.pointSpacing ?? 10, spacing) * 2)
-    warnings.push("Kort strekning: kontroller ringer og overgang");
-  const paths = [];
-  if (tracks === 1) {
-    // Each symbol endpoint fans into one common line; symbol count never forces
-    // the entire edge to become a double track.
-    for (const off of offsetA) {
-      const start = add(a, off),
-        end = joinA,
-        ctrl = Math.min(reach * tension, dist / 3);
-      paths.push({
-        part: "start",
-        start,
-        c1: add(start, mul(ta, ctrl)),
-        c2: sub(end, mul(firstDir, ctrl)),
-        end,
-      });
-    }
-    paths.push({
-      part: "core",
-      d: roundedPolyline(
-        bend ? [joinA, bend, joinB] : [joinA, joinB],
-        r.cornerRadius ?? 0,
-      ),
-    });
-    for (const off of offsetB) {
-      const start = joinB,
-        end = add(b, off),
-        ctrl = Math.min(reach * tension, dist / 3);
-      paths.push({
-        part: "end",
-        start,
-        c1: add(start, mul(lastDir, ctrl)),
-        c2: sub(end, mul(tb, ctrl)),
-        end,
-      });
-    }
-  } else {
-    // Parallel middle rails at the exact requested perpendicular separation.
-    const n = normal(dir);
-    for (const side of [-1, 1]) {
-      const off = (side * spacing) / 2,
-        ja = add(joinA, mul(normal(firstDir), off)),
-        jb = add(joinB, mul(normal(lastDir), off)),
-        sa = add(
-          a,
-          offsetA.length === 1
-            ? { x: 0, y: 0 }
-            : offsetA[side < 0 ? 0 : offsetA.length - 1],
-        ),
-        sb = add(
-          b,
-          offsetB.length === 1
-            ? { x: 0, y: 0 }
-            : offsetB[side < 0 ? 0 : offsetB.length - 1],
-        ),
-        ctrl = reach * tension;
-      paths.push(
-        {
-          part: "start",
-          start: sa,
-          c1: add(sa, mul(ta, ctrl)),
-          c2: sub(ja, mul(firstDir, ctrl)),
-          end: ja,
-        },
-        {
-          part: "core",
-          d: parallelCore(joinA, joinB, bend, off, r.cornerRadius ?? 0),
-        },
-        {
-          part: "end",
-          start: jb,
-          c1: add(jb, mul(lastDir, ctrl)),
-          c2: sub(sb, mul(tb, ctrl)),
-          end: sb,
-        },
-      );
-    }
-  }
-  return { paths, warnings };
-}
 
-function parallelCore(a, b, bend, offset, radius) {
-  if (!bend) {
-    const n = normal(unit(sub(b, a)));
-    return roundedPolyline([add(a, mul(n, offset)), add(b, mul(n, offset))], 0);
-  }
-  const u = unit(sub(bend, a)),
-    v = unit(sub(b, bend)),
-    cross = u.x * v.y - u.y * v.x,
-    na = normal(u),
-    nb = normal(v),
-    start = add(a, mul(na, offset)),
-    end = add(b, mul(nb, offset));
-  if (Math.abs(cross) < 1e-6) return roundedPolyline([start, end], 0);
-  const p = add(bend, mul(na, offset)),
-    q = add(bend, mul(nb, offset)),
-    d = sub(q, p),
-    t = (d.x * v.y - d.y * v.x) / cross,
-    corner = add(p, mul(u, t));
-  const effective = Math.max(0, radius - Math.sign(cross) * offset);
-  return roundedPolyline([start, corner, end], effective);
+export function holeCenters(p,s){return s.holes? s.holes.map((h,index)=>({...h,index})):symbolCenters(p,s);}
+// v0.2: both rails are normal offsets of the SAME differentiable centre curve.
+// Cubic offsets are not cubics. We export adaptive vector polylines, not two
+// independently guessed Beziers. Maximum midpoint deviation is 0.008 mm.
+export const OFFSET_TOLERANCE=.008;
+const dot=(a,b)=>a.x*b.x+a.y*b.y;
+const cross=(a,b)=>a.x*b.y-a.y*b.x;
+const mix=(a,b,t)=>add(mul(a,1-t),mul(b,t));
+const smooth=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
+export function evaluateCubic(c,t){
+ const u=1-t,p=add(add(mul(c.start,u*u*u),mul(c.c1,3*u*u*t)),add(mul(c.c2,3*u*t*t),mul(c.end,t*t*t))),
+ d=add(add(mul(sub(c.c1,c.start),3*u*u),mul(sub(c.c2,c.c1),6*u*t)),mul(sub(c.end,c.c2),3*t*t)),
+ dd=add(mul(add(sub(c.c2,mul(c.c1,2)),c.start),6*u),mul(add(sub(c.end,mul(c.c2,2)),c.c1),6*t));
+ return {p,d,n:normal(unit(d)),radius:Math.abs(cross(d,dd))<1e-12?Infinity:length(d)**3/Math.abs(cross(d,dd))};
 }
+export function segmentsIntersect(a,b,c,d){
+ const ab=sub(b,a),cd=sub(d,c),den=cross(ab,cd);if(Math.abs(den)<1e-10)return false;
+ const ac=sub(c,a),t=cross(ac,cd)/den,u=cross(ac,ab)/den;return t>1e-7&&t<1-1e-7&&u>1e-7&&u<1-1e-7;
+}
+function selfCrosses(points){for(let i=0;i<points.length-1;i++)for(let j=i+2;j<points.length-1;j++)if(segmentsIntersect(points[i],points[i+1],points[j],points[j+1]))return true;return false;}
+function railsCross(a,b){for(let i=0;i<a.length-1;i++)for(let j=0;j<b.length-1;j++)if(segmentsIntersect(a[i],a[i+1],b[j],b[j+1]))return true;return false;}
+export function initializeGeometry(p){
+ for(const r of p.layout.routes){r.trackIds??=[`${r.id}:negative`,`${r.id}:positive`];r.portSigns??={};r.controls??={};r.autoGrow??=20;
+ for(const id of r.stationIds){if(r.portSigns[id]!==undefined)continue;const s=p.layout.stations.find(s=>s.id===id);r.portSigns[id]=dot(symbolNormal(p,s),normal(stationTangent(p,s)))<0?-1:1;}}
+ for(const s of p.layout.stations)s.holes??=symbolCenters(p,s).map(({x,y},i)=>({id:`${s.id}:hole:${i}`,x,y}));
+ return p;
+}
+function makeCurve(a,b,ta,tb,reachA,reachB){return {start:{x:a.x,y:a.y},c1:add(a,mul(ta,reachA)),c2:sub(b,mul(tb,reachB)),end:{x:b.x,y:b.y}};}
+function circleTrim(points,centre,r,fromStart){
+ const list=fromStart?points:[...points].reverse();let k=list.findIndex(p=>length(sub(p,centre))>=r);
+ if(k<0)return [];if(k===0)return fromStart?list:[...list].reverse();
+ let a=list[k-1],b=list[k];for(let j=0;j<25;j++){const m=mix(a,b,.5);if(length(sub(m,centre))<r)a=m;else b=m;}
+ const first={...list[k],...b},out=[first,...list.slice(k)];return fromStart?out:out.reverse();
+}
+export function edgeGeometry(p,r,i){
+ const a=p.layout.stations.find(s=>s.id===r.stationIds[i]),b=p.layout.stations.find(s=>s.id===r.stationIds[i+1]);
+ if(!a||!b||length(sub(b,a))<1e-6)return {paths:[],center:[],rails:[],valid:false,warnings:['Sammenfallende stasjoner: flytt ett endepunkt.']};
+ const na=mul(symbolNormal(p,a),r.portSigns?.[a.id]??1),nb=mul(symbolNormal(p,b),r.portSigns?.[b.id]??1),ta={x:na.y,y:-na.x},tb={x:nb.y,y:-nb.x},bend=r.bends?.[i],control=r.controls?.[i]??{},dist=length(sub(b,a)),spacing=r.trackSpacing??10;
+ const baseA=control.startReach??Math.min(dist*.4,(r.transitionLength??12)*(r.tension??.5)*2),baseB=control.endReach??Math.min(dist*.4,(r.transitionLength??12)*(r.tension??.5)*2),middle=r.tracks===2?spacing/2:0;
+ const widthA=a.points>1?(a.points-1)*a.pointSpacing/2:0,widthB=b.points>1?(b.points-1)*b.pointSpacing/2:0;
+ // A biased station shifts the common centre, never the rail ordering.
+ const start=add(a,mul(symbolNormal(p,a),(a.splitBias??0)*a.pointSpacing)),end=add(b,mul(symbolNormal(p,b),(b.splitBias??0)*b.pointSpacing));
+ let result;
+ const allowance=r.autoGrow??20;
+ for(const extra of [0,...[4,8,12,20,32,48].filter(x=>x<=allowance)]){
+  const ra=baseA+extra,rb=baseB+extra;
+  let curves;
+  if(bend){const tangent=unit(add(unit(sub(bend,start)),unit(sub(end,bend)))),reach=Math.min(length(sub(bend,start)),length(sub(end,bend)))*.45;curves=[makeCurve(start,bend,ta,tangent,ra,reach),makeCurve(bend,end,tangent,tb,reach,rb)];}
+  else curves=[makeCurve(start,end,ta,tb,ra,rb)];
+  const at=t=>{const index=t<.5||curves.length===1?0:1,local=curves.length===1?t:index===0?t*2:(t-.5)*2,e=evaluateCubic(curves[index],local),w=t<.25?widthA+(middle-widthA)*smooth(t/.25):t>.75?middle+(widthB-middle)*smooth((t-.75)/.25):middle;return {...e,t,w,left:add(e.p,mul(e.n,-w)),right:add(e.p,mul(e.n,w))};};
+  const samples=[at(0)];
+  function subdivide(lo,hi,depth=0){const mid=at((lo.t+hi.t)/2),error=Math.max(length(sub(mid.p,mix(lo.p,hi.p,.5))),length(sub(mid.left,mix(lo.left,hi.left,.5))),length(sub(mid.right,mix(lo.right,hi.right,.5))));if(depth<13&&(error>OFFSET_TOLERANCE||length(sub(lo.p,hi.p))>4||dot(unit(lo.d),unit(hi.d))<.998)){subdivide(lo,mid,depth+1);subdivide(mid,hi,depth+1);}else samples.push(hi);}
+  for(const t of [.25,.5,.75,1])subdivide(samples.at(-1),at(t));
+  const center=samples.map(s=>({...s.p,t:s.t,n:s.n,radius:s.radius,w:s.w})),rails=[-1,1].map((side,j)=>({id:r.trackIds?.[j]??`${r.id}:${side}`,side,samples:samples.map(s=>({...add(s.p,mul(s.n,side*s.w)),t:s.t}))}));
+  const minRadius=Math.min(...samples.map(s=>s.radius)),required=Math.max(r.cornerRadius??0,...samples.map(s=>s.w>0?s.w+.4:0));
+  const cusp=samples.some(s=>length(s.d)<1e-5||s.radius<=s.w+.05),loops=selfCrosses(center)||rails.some(rail=>selfCrosses(rail.samples)),crossing=railsCross(rails[0].samples,rails[1].samples);
+  const valid=!cusp&&!loops&&!crossing&&minRadius+1e-6>=required;
+  result={center,rails,curves,valid,minRadius,requiredRadius:required,adjusted:extra>0,effectiveReach:{start:ra,end:rb},warnings:[],paths:[]};
+  if(valid)break;
+ }
+ if(!result.valid)result.warnings.push(`Ugyldig geometri: minste radius ${Number.isFinite(result.minRadius)?result.minRadius.toFixed(1):'∞'} mm, krever ${result.requiredRadius.toFixed(1)} mm. Flytt kontrollpunkt, øk tillatt utvidelse eller reduser sporavstand. Ingen porter er byttet.`);
+ else if(result.adjusted)result.warnings.push(`Forhåndsvist automatisk utvidelse: ${result.effectiveReach.start.toFixed(1)} / ${result.effectiveReach.end.toFixed(1)} mm (innen +${allowance} mm).`);
+ const nA=symbolNormal(p,a),nB=symbolNormal(p,b),signA=r.portSigns?.[a.id]??1,signB=r.portSigns?.[b.id]??1;
+ for(const rail of result.rails){
+  let points=circleTrim(rail.samples,add(start,mul(nA,rail.side*widthA*signA)),a.ringOuter/2+a.stroke/2,true);
+  points=circleTrim(points,add(end,mul(nB,rail.side*widthB*signB)),b.ringOuter/2+b.stroke/2,false);
+  for(const [part,lo,hi] of [['start',0,.25],['core',.25,.75],['end',.75,1]]){
+   if(part==='core'&&r.tracks===1&&rail.side===1)continue;
+   if(part==='start'&&a.points===1&&r.tracks===1&&rail.side===1)continue;
+   if(part==='end'&&b.points===1&&r.tracks===1&&rail.side===1)continue;
+   const section=points.filter(s=>s.t>=lo-1e-9&&s.t<=hi+1e-9);
+   if(section.length>1)result.paths.push({part,trackId:rail.id,side:rail.side,samples:section,d:section.map((s,k)=>`${k?'L':'M'} ${point(s)}`).join(' ')});
+  }
+ }
+ return result;
+}
+export function geometryReport(p){return p.layout.routes.flatMap(r=>r.stationIds.slice(0,-1).map((_,i)=>({routeId:r.id,edge:i,...edgeGeometry(p,r,i)})));}

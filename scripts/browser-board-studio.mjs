@@ -225,7 +225,7 @@ try {
       .locator('[data-layer="routes"] [data-part="core"]')
       .first()
       .getAttribute("d")
-      .then((x) => x.includes("A")),
+      .then((x) => x.includes("L")),
   );
   await page.locator("#edge-track").click();
   assert.equal((await saved()).layout.routes.length, 15);
