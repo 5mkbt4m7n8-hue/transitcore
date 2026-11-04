@@ -10,5 +10,5 @@ await writeFile(
   svg(p, { layers: ["holes", "outline"] }),
 );
 console.log(
-  "300 × 400 mm SVG, separate opening centres, and editable v1 JSON generated. No LED binding or production validation.",
+  "300 × 400 mm SVG, separate opening centres, and editable v2 JSON generated. No LED binding or production validation.",
 );

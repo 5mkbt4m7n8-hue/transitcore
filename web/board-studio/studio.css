@@ -443,5 +443,52 @@ a {
   padding: 9px;
   border-radius: 4px;
 }
-#geometry-status{position:absolute;top:28px;left:35px;right:12px;background:#fff0dfeb;border:1px solid #d1a26e;border-radius:4px;padding:8px 11px;font-size:11px;line-height:1.5;max-height:100px;overflow:auto;color:#784326;pointer-events:none}.curve-controls [data-handle]{cursor:grab}.curve-controls text,.curve-controls path{pointer-events:none}
-.canvasbar #grid-contrast{width:78px}.canvasbar #grid-major{width:65px}.canvasbar{height:auto;min-height:48px;gap:8px;padding-top:5px;padding-bottom:5px}.canvasbar>div{flex-wrap:wrap;justify-content:flex-end}.canvasbar>span{white-space:nowrap}.projectbar{flex-shrink:0}.smart-guides{pointer-events:none}
+#geometry-status {
+  position: absolute;
+  top: 28px;
+  left: 35px;
+  right: 12px;
+  background: #fff0dfeb;
+  border: 1px solid #d1a26e;
+  border-radius: 4px;
+  padding: 8px 11px;
+  font-size: 11px;
+  line-height: 1.5;
+  max-height: 100px;
+  overflow: auto;
+  color: #784326;
+  pointer-events: none;
+}
+.curve-controls [data-handle] {
+  cursor: grab;
+}
+.curve-controls text,
+.curve-controls path {
+  pointer-events: none;
+}
+.canvasbar #grid-contrast {
+  width: 78px;
+}
+.canvasbar #grid-major {
+  width: 65px;
+}
+.canvasbar {
+  height: auto;
+  min-height: 48px;
+  gap: 8px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.canvasbar > div {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.canvasbar > span {
+  white-space: nowrap;
+}
+.projectbar {
+  flex-shrink: 0;
+}
+.smart-guides {
+  pointer-events: none;
+}

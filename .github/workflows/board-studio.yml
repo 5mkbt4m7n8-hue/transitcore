@@ -27,4 +27,4 @@ jobs:
         if: always()
         with:
           name: board-studio-chromium
-          path: ${{ runner.temp }}/board-studio.png
+          path: ${{ runner.temp }}/board-studio*.png

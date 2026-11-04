@@ -25,7 +25,8 @@
       <div class="project-meta">
         <span id="size-summary"></span><span>Millimeter · vektorgrafikk</span>
       </div>
-      <button id="new">Ny tavle</button><button id="demo">Gråkallbanen</button><button id="fixture">Geometriprøver</button>
+      <button id="new">Ny tavle</button><button id="demo">Gråkallbanen</button
+      ><button id="fixture">Geometriprøver</button>
     </div>
     <main>
       <nav class="tools" aria-label="Verktøy">
@@ -80,7 +81,14 @@
               <option selected>5</option>
               <option>10</option>
               <option>20</option></select
-            ><span>mm</span><select id="grid-major" aria-label="Hovedrutenett"><option value="10" selected>10 mm</option><option value="20">20 mm</option></select><select id="grid-contrast" aria-label="Rutenettkontrast"><option value="faint">Svakt</option><option value="normal" selected>Normalt</option><option value="strong">Tydelig</option></select
+            ><span>mm</span
+            ><select id="grid-major" aria-label="Hovedrutenett">
+              <option value="10" selected>10 mm</option>
+              <option value="20">20 mm</option></select
+            ><select id="grid-contrast" aria-label="Rutenettkontrast">
+              <option value="faint">Svakt</option>
+              <option value="normal" selected>Normalt</option>
+              <option value="strong">Tydelig</option></select
             ><label><input id="snap" type="checkbox" checked />Fest</label
             ><button id="zoom-out" aria-label="Zoom ut">−</button
             ><span id="zoom"></span
@@ -95,7 +103,8 @@
             tabindex="0"
             aria-label="Tavle i millimeter"
           ></svg>
-          <div id="geometry-status" role="status" hidden></div><div id="hint">
+          <div id="geometry-status" role="status" hidden></div>
+          <div id="hint">
             Velg en stasjon for å redigere · Ctrl+klikk for flervalg · Space for
             panorering
           </div>

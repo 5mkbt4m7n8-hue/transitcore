@@ -1,4 +1,12 @@
-import { holeCenters, symbolCenters, initializeGeometry, geometryReport, symbolNormal, edgeGeometry, cubic } from "./geometry.mjs";
+import {
+  holeCenters,
+  symbolCenters,
+  initializeGeometry,
+  geometryReport,
+  symbolNormal,
+  edgeGeometry,
+  cubic,
+} from "./geometry.mjs";
 // Canonical physical coordinates: millimetres. No screen/DPI conversions here.
 export const FORMAT = "intransit-board";
 export const LAYERS = [
@@ -138,7 +146,7 @@ const num = (n, min, max) =>
   typeof n === "number" && Number.isFinite(n) && n >= min && n <= max;
 export function parseProject(input) {
   const p = typeof input === "string" ? JSON.parse(input) : copy(input);
-  if (p?.format !== FORMAT || ![1,2].includes(p.version))
+  if (p?.format !== FORMAT || ![1, 2].includes(p.version))
     throw Error(
       "Ukjent prosjektformat eller versjon. Originalfilen er ikke endret.",
     );
@@ -266,9 +274,44 @@ export function parseProject(input) {
     throw Error("Ugyldige hjelpelinjer.");
   if (!p.network || !p.ledLayout || !p.production)
     throw Error("Prosjektet mangler dataområder.");
-  p.version=2;initializeGeometry(p);
-  for(const st of p.layout.stations){if(!Array.isArray(st.holes)||st.holes.length>8||st.holes.some(h=>typeof h.id!=="string"||!num(h.x,-5000,10000)||!num(h.y,-5000,10000)))throw Error("Ugyldige fysiske hullsentre.");}
-  for(const r of p.layout.routes){if(!Array.isArray(r.trackIds)||r.trackIds.length!==2||r.trackIds.some(id=>typeof id!=="string")||new Set(r.trackIds).size!==2||!num(r.autoGrow,0,48)||!r.portSigns||!r.controls)throw Error("Ugyldige sporidentiteter eller kontroller.");for(const id of r.stationIds)if(![-1,1].includes(r.portSigns[id]))throw Error("Ugyldig portreferanse.");for(const [i,c] of Object.entries(r.controls))if(!/^\d+$/.test(i)||+i>=r.stationIds.length-1||!num(c.startReach,.1,5000)||!num(c.endReach,.1,5000))throw Error("Ugyldig kurvekontroll.");}
+  p.version = 2;
+  initializeGeometry(p);
+  for (const st of p.layout.stations) {
+    if (
+      !Array.isArray(st.holes) ||
+      st.holes.length > 8 ||
+      st.holes.some(
+        (h) =>
+          typeof h.id !== "string" ||
+          !num(h.x, -5000, 10000) ||
+          !num(h.y, -5000, 10000),
+      )
+    )
+      throw Error("Ugyldige fysiske hullsentre.");
+  }
+  for (const r of p.layout.routes) {
+    if (
+      !Array.isArray(r.trackIds) ||
+      r.trackIds.length !== 2 ||
+      r.trackIds.some((id) => typeof id !== "string") ||
+      new Set(r.trackIds).size !== 2 ||
+      !num(r.autoGrow, 0, 48) ||
+      !r.portSigns ||
+      !r.controls
+    )
+      throw Error("Ugyldige sporidentiteter eller kontroller.");
+    for (const id of r.stationIds)
+      if (![-1, 1].includes(r.portSigns[id]))
+        throw Error("Ugyldig portreferanse.");
+    for (const [i, c] of Object.entries(r.controls))
+      if (
+        !/^\d+$/.test(i) ||
+        +i >= r.stationIds.length - 1 ||
+        !num(c.startReach, 0.1, 5000) ||
+        !num(c.endReach, 0.1, 5000)
+      )
+        throw Error("Ugyldig kurvekontroll.");
+  }
   return p;
 }
 export function serialize(p) {
@@ -288,7 +331,10 @@ export function moveStations(p, ids, dx, dy) {
     if (ids.includes(s.id)) {
       s.x += dx;
       s.y += dy;
-      for(const h of s.holes??[]){h.x+=dx;h.y+=dy;}
+      for (const h of s.holes ?? []) {
+        h.x += dx;
+        h.y += dy;
+      }
     }
   return q;
 }
@@ -337,7 +383,7 @@ export function routeMarkup(p, transitions = false) {
           })
           .map(
             (c) =>
-              `<path data-route="${esc(r.id)}" data-part="${c.part}" data-edge="${i}" data-track="${esc(c.trackId??r.trackIds[0])}" data-valid="${g.valid}" d="${c.d || cubic(c)}" fill="none" stroke="${g.valid?"#555":"#bd3f36"}" ${g.valid?"":'stroke-dasharray="1.5 1"'} stroke-width="${r.stroke}"/>`,
+              `<path data-route="${esc(r.id)}" data-part="${c.part}" data-edge="${i}" data-track="${esc(c.trackId ?? r.trackIds[0])}" data-valid="${g.valid}" d="${c.d || cubic(c)}" fill="none" stroke="${g.valid ? "#555" : "#bd3f36"}" ${g.valid ? "" : 'stroke-dasharray="1.5 1"'} stroke-width="${r.stroke}"/>`,
           )
           .join("");
       }).join(""),
@@ -345,7 +391,7 @@ export function routeMarkup(p, transitions = false) {
     .join("");
 }
 export function stationMarkup(s, layer, p) {
-  const centers = layer==="holes"?holeCenters(p,s):symbolCenters(p, s),
+  const centers = layer === "holes" ? holeCenters(p, s) : symbolCenters(p, s),
     color = s.ringColor ?? "#555555";
   if (layer === "rings")
     return `<g data-station="${esc(s.id)}">${centers.map((c) => `<circle cx="${c.x}" cy="${c.y}" r="${s.ringOuter / 2}" fill="white" stroke="${color}" stroke-width="${s.stroke}"/>${s.doubleRing !== false ? `<circle cx="${c.x}" cy="${c.y}" r="${s.ringInner / 2}" fill="none" stroke="${color}" stroke-width="${s.stroke}"/>` : ""}`).join("")}</g>`;
@@ -407,7 +453,14 @@ export function svg(
   } = {},
 ) {
   p = parseProject(p);
-  const invalid=geometryReport(p).filter(g=>!g.valid);if(invalid.length&&layers.some(id=>["routes","capsules"].includes(id)))throw Error("SVG stoppet: ugyldig sporgeometri. Rett røde forbindelser først.");
+  const invalid = geometryReport(p).filter((g) => !g.valid);
+  if (
+    invalid.length &&
+    layers.some((id) => ["routes", "capsules"].includes(id))
+  )
+    throw Error(
+      "SVG stoppet: ugyldig sporgeometri. Rett røde forbindelser først.",
+    );
   return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="${p.board.width}mm" height="${p.board.height}mm" viewBox="0 0 ${p.board.width} ${p.board.height}"><title>${esc(p.title)}</title>${PAINT_ORDER.filter(
     (id) => layers.includes(id),
   )
