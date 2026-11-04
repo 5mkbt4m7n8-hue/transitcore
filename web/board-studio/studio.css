@@ -538,5 +538,146 @@ a {
   border-radius: 5px;
   box-shadow: 0 5px 20px #263b2c33;
 }
-.drawer{position:absolute;z-index:5;left:27px;top:22px;bottom:45px;width:255px;padding:15px;background:#fffffff5;border:1px solid #d5dfcf;border-radius:6px;overflow:auto;box-shadow:0 5px 20px #25402b18}.drawer-heading{display:flex;justify-content:space-between;align-items:center}.drawer h2{margin:0}.drawer label{display:grid;gap:5px;font-size:11px;margin:12px 0}.drawer select,.drawer input{width:100%}.drawer>button{margin:8px 0}.drawer article{display:flex;align-items:center;border-bottom:1px solid #edf0e8;padding:5px 0;gap:5px}.symbol-pick{flex:1;display:grid;grid-template-columns:75px 1fr;align-items:center;border:0;padding:0;text-align:left;font-size:11px}.symbol-pick svg{height:48px;width:75px}.symbol-default{font-size:9px;padding:5px}#library-toggle{white-space:nowrap}
-.physical-drawer{width:330px}.physical-drawer details{margin-top:15px}.physical-drawer summary{font-size:11px;cursor:pointer}.led-coordinates{border-collapse:collapse;width:100%;font-size:10px;margin-top:15px}.led-coordinates td,.led-coordinates th{padding:4px;text-align:right;border-bottom:1px solid #e1e7dd}.physical-drawer input{font-size:11px}.projectbar{flex-wrap:wrap;height:auto;min-height:80px}.projectbar>button{font-size:11px;padding:7px}
+.drawer {
+  position: absolute;
+  z-index: 5;
+  left: 27px;
+  top: 22px;
+  bottom: 45px;
+  width: 255px;
+  padding: 15px;
+  background: #fffffff5;
+  border: 1px solid #d5dfcf;
+  border-radius: 6px;
+  overflow: auto;
+  box-shadow: 0 5px 20px #25402b18;
+}
+.drawer-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.drawer h2 {
+  margin: 0;
+}
+.drawer label {
+  display: grid;
+  gap: 5px;
+  font-size: 11px;
+  margin: 12px 0;
+}
+.drawer select,
+.drawer input {
+  width: 100%;
+}
+.drawer > button {
+  margin: 8px 0;
+}
+.drawer article {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #edf0e8;
+  padding: 5px 0;
+  gap: 5px;
+}
+.symbol-pick {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 75px 1fr;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  font-size: 11px;
+}
+.symbol-pick svg {
+  height: 48px;
+  width: 75px;
+}
+.symbol-default {
+  font-size: 9px;
+  padding: 5px;
+}
+#library-toggle {
+  white-space: nowrap;
+}
+.physical-drawer {
+  width: 330px;
+}
+.physical-drawer details {
+  margin-top: 15px;
+}
+.physical-drawer summary {
+  font-size: 11px;
+  cursor: pointer;
+}
+.led-coordinates {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 10px;
+  margin-top: 15px;
+}
+.led-coordinates td,
+.led-coordinates th {
+  padding: 4px;
+  text-align: right;
+  border-bottom: 1px solid #e1e7dd;
+}
+.physical-drawer input {
+  font-size: 11px;
+}
+.projectbar {
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 80px;
+}
+.projectbar > button {
+  font-size: 11px;
+  padding: 7px;
+}
+#station-bindings {
+  border-top: 1px solid #e0e7db;
+  margin-top: 18px;
+  padding-top: 16px;
+}
+#station-bindings details {
+  margin-top: 12px;
+}
+#station-bindings summary {
+  font-size: 11px;
+  cursor: pointer;
+}
+#mechanical-report {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #8c6536;
+}
+#mechanical-report ul {
+  padding-left: 15px;
+}
+#physical-dialog {
+  max-width: 900px;
+  width: 90vw;
+}
+.change-table {
+  display: block;
+  max-height: 45vh;
+  overflow: auto;
+}
+.change-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.change-table td,
+.change-table th {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+.drawer {
+  max-width: calc(100% - 35px);
+}
+.drawer article {
+  flex-wrap: wrap;
+}

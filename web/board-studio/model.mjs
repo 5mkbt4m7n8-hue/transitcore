@@ -1,4 +1,5 @@
-import {validateLedLayout,physicalMarkup} from "./led-layout.mjs";
+import { validateBindings, bindingMarkup } from "./bindings.mjs";
+import { validateLedLayout, physicalMarkup } from "./led-layout.mjs";
 import { validateParallels, enforceParallels } from "./parallel.mjs";
 import { fromTemplate, STATION_DEFAULTS } from "./stations.mjs";
 import {
@@ -19,6 +20,7 @@ export const LAYERS = [
   ["names", "Stasjonsnavn"],
   ["leds", "Fysiske LED-posisjoner"],
   ["holes", "Hull og boremarkeringer"],
+  ["bindings", "LED-bindinger"],
   ["strips", "Stripesegmenter"],
   ["outline", "Tavlekontur og montering"],
   ["guides", "Rutenett og hjelpelinjer"],
@@ -101,7 +103,8 @@ export function createProject(demo = true) {
         capsulePadding: 1,
         capsuleStroke: 0.18,
         ringColor: "#555555",
-        doubleRing: true,...STATION_DEFAULTS,
+        doubleRing: true,
+        ...STATION_DEFAULTS,
       }))
     : [];
   return initializeGeometry({
@@ -143,7 +146,7 @@ export function createProject(demo = true) {
       parallelConstraints: [],
     },
     ledLayout: { profiles: [], segments: [], bindings: [] },
-    library:{templates:[]},
+    library: { templates: [] },
     production: { profiles: [], mountingHoles: [] },
   });
 }
@@ -172,7 +175,9 @@ export function parseProject(input) {
     throw Error("Ugyldig layout.");
   for (const s of p.layout.stations) {
     Object.assign(s, {
-      ...Object.fromEntries(Object.entries(STATION_DEFAULTS).map(([k,v])=>[k,s[k]??v])),
+      ...Object.fromEntries(
+        Object.entries(STATION_DEFAULTS).map(([k, v]) => [k, s[k] ?? v]),
+      ),
       points: s.points ?? 1,
       pointSpacing: s.pointSpacing ?? 10,
       symbolAngle: s.symbolAngle ?? null,
@@ -263,6 +268,7 @@ export function parseProject(input) {
       )
         throw Error("Ugyldig knekkpunkt.");
   }
+  p.layers.bindings ??= { visible: false, locked: false, export: false };
   for (const [id] of LAYERS)
     if (
       !p.layers?.[id] ||
@@ -280,10 +286,33 @@ export function parseProject(input) {
     throw Error("Ugyldige hjelpelinjer.");
   if (!p.network || !p.ledLayout || !p.production)
     throw Error("Prosjektet mangler dataområder.");
-  p.version = 3;validateLedLayout(p);
+  p.version = 3;
+  validateLedLayout(p);
+  validateBindings(p);
   initializeGeometry(p);
-  p.library??={templates:[]};if(!Array.isArray(p.library.templates)||p.library.templates.length>200)throw Error("Ugyldig symbolbibliotek.");
-  for(const s of p.layout.stations){if(!["none","stadium","rounded-box"].includes(s.capsuleType)||!num(s.capsuleExtraWidth,0,100)||!num(s.capsuleExtraHeight,0,100)||typeof s.allowShared!=="boolean"||typeof s.symbolKind!=="string"||!(s.transitionLength===null||num(s.transitionLength,.1,100)))throw Error("Ugyldig symbolstil.");if(s.ringCenters&&(!Array.isArray(s.ringCenters)||s.ringCenters.length!==s.points||s.ringCenters.some(c=>!num(c.x,-5000,10000)||!num(c.y,-5000,10000))))throw Error("Ugyldige grafiske ringsentre.");}
+  p.library ??= { templates: [] };
+  if (!Array.isArray(p.library.templates) || p.library.templates.length > 200)
+    throw Error("Ugyldig symbolbibliotek.");
+  for (const s of p.layout.stations) {
+    if (
+      !["none", "stadium", "rounded-box"].includes(s.capsuleType) ||
+      !num(s.capsuleExtraWidth, 0, 100) ||
+      !num(s.capsuleExtraHeight, 0, 100) ||
+      typeof s.allowShared !== "boolean" ||
+      typeof s.symbolKind !== "string" ||
+      !(s.transitionLength === null || num(s.transitionLength, 0.1, 100))
+    )
+      throw Error("Ugyldig symbolstil.");
+    if (
+      s.ringCenters &&
+      (!Array.isArray(s.ringCenters) ||
+        s.ringCenters.length !== s.points ||
+        s.ringCenters.some(
+          (c) => !num(c.x, -5000, 10000) || !num(c.y, -5000, 10000),
+        ))
+    )
+      throw Error("Ugyldige grafiske ringsentre.");
+  }
   for (const st of p.layout.stations) {
     if (
       !Array.isArray(st.holes) ||
@@ -292,7 +321,8 @@ export function parseProject(input) {
         (h) =>
           typeof h.id !== "string" ||
           !num(h.x, -5000, 10000) ||
-          !num(h.y, -5000, 10000),
+          !num(h.y, -5000, 10000) ||
+          (h.diameter !== undefined && !num(h.diameter, 0.1, 100)),
       )
     )
       throw Error("Ugyldige fysiske hullsentre.");
@@ -326,18 +356,24 @@ export function parseProject(input) {
   }
   p.layout.parallelConstraints ??= [];
   validateParallels(p, true);
-  for(const record of p.library.templates){if(typeof record.id!=="string"||typeof record.name!=="string"||typeof record.category!=="string")throw Error("Ugyldig symbolmal.");validateTemplate(record.template);}
-  if (p.stationTemplate)validateTemplate(p.stationTemplate);
+  for (const record of p.library.templates) {
+    if (
+      typeof record.id !== "string" ||
+      typeof record.name !== "string" ||
+      typeof record.category !== "string"
+    )
+      throw Error("Ugyldig symbolmal.");
+    validateTemplate(record.template);
+  }
+  if (p.stationTemplate) validateTemplate(p.stationTemplate);
   function validateTemplate(template) {
     if (template?.version !== 1) throw Error("Ugyldig stasjonsmal.");
-    const temp = fromTemplate(
-      template,
-      { x: 0, y: 0 },
-      "template-validation",
-    );
+    const temp = fromTemplate(template, { x: 0, y: 0 }, "template-validation");
     parseProject({
       ...p,
-      stationTemplate: null,library:{templates:[]},ledLayout:{profiles:[],segments:[],bindings:[]},
+      stationTemplate: null,
+      library: { templates: [] },
+      ledLayout: { profiles: [], segments: [], bindings: [] },
       layout: {
         stations: [temp],
         routes: [],
@@ -365,7 +401,10 @@ export function moveStations(p, ids, dx, dy) {
     if (ids.includes(s.id)) {
       s.x += dx;
       s.y += dy;
-      for(const c of s.ringCenters??[]){c.x+=dx;c.y+=dy;}
+      for (const c of s.ringCenters ?? []) {
+        c.x += dx;
+        c.y += dy;
+      }
       for (const h of s.holes ?? []) {
         h.x += dx;
         h.y += dy;
@@ -434,17 +473,25 @@ export function stationMarkup(s, layer, p) {
     return centers
       .map(
         (c) =>
-          `<circle data-hole="${esc(s.id)}" data-point="${c.index}" cx="${c.x}" cy="${c.y}" r="${s.holeDiameter / 2}" fill="none" stroke="#b33" stroke-width="0.15"/>`,
+          `<circle data-hole="${esc(s.id)}" data-point="${c.index}" cx="${c.x}" cy="${c.y}" r="${(c.diameter ?? s.holeDiameter) / 2}" fill="none" stroke="#b33" stroke-width="0.15"/>`,
       )
       .join("");
-  if (layer === "capsules" && s.capsuleType!=="none" && centers.length > 1) {
+  if (layer === "capsules" && s.capsuleType !== "none" && centers.length > 1) {
     const a = centers[0],
-      b = centers.at(-1),
       n = symbolNormal(p, s),
       angle = (Math.atan2(n.y, n.x) * 180) / Math.PI,
       r = s.ringOuter / 2 + s.capsulePadding,
-      d = Math.hypot(b.x - a.x, b.y - a.y);
-    return `<g data-station="${esc(s.id)}" transform="translate(${a.x} ${a.y}) rotate(${angle})"><rect x="${-r}" y="${-r}" width="${d + 2 * r+(s.capsuleExtraWidth??0)}" height="${2 * r+(s.capsuleExtraHeight??0)}" rx="${s.capsuleType==='rounded-box'?Math.min(r,2):r}" fill="white" stroke="${color}" stroke-width="${s.capsuleStroke}"/></g>`;
+      projected = centers.map((c) => ({
+        x: (c.x - a.x) * n.x + (c.y - a.y) * n.y,
+        y: -(c.x - a.x) * n.y + (c.y - a.y) * n.x,
+      })),
+      extraX = s.capsuleExtraWidth ?? 0,
+      extraY = s.capsuleExtraHeight ?? 0,
+      x = Math.min(...projected.map((c) => c.x)) - r - extraX / 2,
+      y = Math.min(...projected.map((c) => c.y)) - r - extraY / 2,
+      w = Math.max(...projected.map((c) => c.x)) - x + r + extraX / 2,
+      h = Math.max(...projected.map((c) => c.y)) - y + r + extraY / 2;
+    return `<g data-station="${esc(s.id)}" transform="translate(${a.x} ${a.y}) rotate(${angle})"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${s.capsuleType === "rounded-box" ? Math.min(r, 2) : Math.min(w, h) / 2}" fill="white" stroke="${color}" stroke-width="${s.capsuleStroke}"/></g>`;
   }
   if (layer === "names") {
     const l = s.label;
@@ -457,14 +504,16 @@ export const PAINT_ORDER = [
   "capsules",
   "rings",
   "names",
+  "strips",
   "leds",
   "holes",
-  "strips",
+  "bindings",
   "outline",
   "guides",
 ];
 export function layerMarkup(p, id) {
-  if(["strips","leds"].includes(id))return physicalMarkup(p,id,esc);
+  if (id === "bindings") return bindingMarkup(p, esc);
+  if (["strips", "leds"].includes(id)) return physicalMarkup(p, id, esc);
   if (id === "routes") return routeMarkup(p);
   if (["rings", "names", "holes", "capsules"].includes(id))
     return (

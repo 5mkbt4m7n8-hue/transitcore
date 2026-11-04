@@ -27,7 +27,11 @@ export function stationTangent(p, s) {
   return { x: 0, y: 1 };
 }
 export function symbolNormal(p, s) {
-  if(s.ringCenters?.length>1&&length(sub(s.ringCenters.at(-1),s.ringCenters[0]))>1e-8)return unit(sub(s.ringCenters.at(-1),s.ringCenters[0]));
+  if (
+    s.ringCenters?.length > 1 &&
+    length(sub(s.ringCenters.at(-1), s.ringCenters[0])) > 1e-8
+  )
+    return unit(sub(s.ringCenters.at(-1), s.ringCenters[0]));
   if (s.symbolAngle !== null && s.symbolAngle !== undefined) {
     const r = (s.symbolAngle * Math.PI) / 180;
     return { x: Math.cos(r), y: Math.sin(r) };
@@ -35,7 +39,7 @@ export function symbolNormal(p, s) {
   return normal(stationTangent(p, s));
 }
 export function symbolCenters(p, s) {
-  if(s.ringCenters)return s.ringCenters.map((c,index)=>({...c,index}));
+  if (s.ringCenters) return s.ringCenters.map((c, index) => ({ ...c, index }));
   const n = symbolNormal(p, s),
     count = s.points ?? 1,
     spacing = s.pointSpacing ?? 10,
@@ -239,10 +243,20 @@ export function edgeGeometry(p, r, i) {
     spacing = r.trackSpacing ?? 10;
   const baseA =
       control.startReach ??
-      Math.min(dist * 0.4, (r.transitionLength ?? 12) * (r.tension ?? 0.5) * 2),
+      Math.min(
+        dist * 0.4,
+        (a.transitionLength ?? r.transitionLength ?? 12) *
+          (r.tension ?? 0.5) *
+          2,
+      ),
     baseB =
       control.endReach ??
-      Math.min(dist * 0.4, (r.transitionLength ?? 12) * (r.tension ?? 0.5) * 2),
+      Math.min(
+        dist * 0.4,
+        (b.transitionLength ?? r.transitionLength ?? 12) *
+          (r.tension ?? 0.5) *
+          2,
+      ),
     middle = r.tracks === 2 ? spacing / 2 : 0;
   const widthA = a.points > 1 ? ((a.points - 1) * a.pointSpacing) / 2 : 0,
     widthB = b.points > 1 ? ((b.points - 1) * b.pointSpacing) / 2 : 0;
@@ -353,8 +367,12 @@ export function edgeGeometry(p, r, i) {
       previous = pt;
     }
     const total = lengths.at(-1),
-      zone = Math.min(
-        (r.transitionLength ?? 12) + Math.max(a.ringOuter, b.ringOuter) / 2,
+      zoneA = Math.min(
+        (a.transitionLength ?? r.transitionLength ?? 12) + a.ringOuter / 2,
+        total * 0.45,
+      ),
+      zoneB = Math.min(
+        (b.transitionLength ?? r.transitionLength ?? 12) + b.ringOuter / 2,
         total * 0.45,
       ),
       arcAt = (t) => {
@@ -372,17 +390,17 @@ export function edgeGeometry(p, r, i) {
         256
       );
     };
-    const breakA = tAtArc(zone),
-      breakB = tAtArc(total - zone);
+    const breakA = tAtArc(zoneA),
+      breakB = tAtArc(total - zoneB);
     const at = (t) => {
       const e = centreAt(t),
         arc = arcAt(t),
         w =
-          arc < zone
-            ? widthA + (middle - widthA) * smooth(arc / zone)
-            : arc > total - zone
+          arc < zoneA
+            ? widthA + (middle - widthA) * smooth(arc / zoneA)
+            : arc > total - zoneB
               ? middle +
-                (widthB - middle) * smooth((arc - (total - zone)) / zone)
+                (widthB - middle) * smooth((arc - (total - zoneB)) / zoneB)
               : middle;
       return {
         ...e,

@@ -13,9 +13,22 @@ export const APPEARANCE = [
   "capsulePadding",
   "capsuleStroke",
   "ringColor",
-  "doubleRing","capsuleType","capsuleExtraWidth","capsuleExtraHeight","symbolKind","allowShared","transitionLength",
+  "doubleRing",
+  "capsuleType",
+  "capsuleExtraWidth",
+  "capsuleExtraHeight",
+  "symbolKind",
+  "allowShared",
+  "transitionLength",
 ];
-export const STATION_DEFAULTS={capsuleType:"stadium",capsuleExtraWidth:0,capsuleExtraHeight:0,symbolKind:"single",allowShared:false,transitionLength:null};
+export const STATION_DEFAULTS = {
+  capsuleType: "stadium",
+  capsuleExtraWidth: 0,
+  capsuleExtraHeight: 0,
+  symbolKind: "single",
+  allowShared: false,
+  transitionLength: null,
+};
 const clone = (x) => structuredClone(x);
 const labelStyle = (l) =>
   Object.fromEntries(
@@ -32,12 +45,23 @@ export function stationTemplate(p, s) {
         key,
         key === "symbolAngle"
           ? (Math.atan2(n.y, n.x) * 180) / Math.PI
-          : clone(s[key]??STATION_DEFAULTS[key]),
+          : clone(s[key] ?? STATION_DEFAULTS[key]),
       ]),
     ),
     label: labelStyle(s.label),
-    ...(s.ringCenters?{ringOffsets:symbolCenters(p,s).map(c=>({x:c.x-s.x,y:c.y-s.y}))}:{}),
-    holeOffsets: holeCenters(p, s).map((h) => ({ x: h.x - s.x, y: h.y - s.y })),
+    ...(s.ringCenters
+      ? {
+          ringOffsets: symbolCenters(p, s).map((c) => ({
+            x: c.x - s.x,
+            y: c.y - s.y,
+          })),
+        }
+      : {}),
+    holeOffsets: holeCenters(p, s).map((h) => ({
+      x: h.x - s.x,
+      y: h.y - s.y,
+      ...(h.diameter !== undefined ? { diameter: h.diameter } : {}),
+    })),
   };
 }
 export function fromTemplate(template, point, id = crypto.randomUUID()) {
@@ -48,14 +72,25 @@ export function fromTemplate(template, point, id = crypto.randomUUID()) {
     y: point.y,
     source: null,
     ...Object.fromEntries(
-      APPEARANCE.map((k) => [k, clone(template.appearance[k]??STATION_DEFAULTS[k])]),
+      APPEARANCE.map((k) => [
+        k,
+        clone(template.appearance[k] ?? STATION_DEFAULTS[k]),
+      ]),
     ),
     label: labelStyle(template.label),
-    ...(template.ringOffsets?{ringCenters:template.ringOffsets.map(c=>({x:point.x+c.x,y:point.y+c.y}))}:{}),
+    ...(template.ringOffsets
+      ? {
+          ringCenters: template.ringOffsets.map((c) => ({
+            x: point.x + c.x,
+            y: point.y + c.y,
+          })),
+        }
+      : {}),
     holes: template.holeOffsets.map((h, i) => ({
       id: `${id}:hole:${i}`,
       x: point.x + h.x,
       y: point.y + h.y,
+      ...(h.diameter !== undefined ? { diameter: h.diameter } : {}),
     })),
   };
 }

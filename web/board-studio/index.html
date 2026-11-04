@@ -25,7 +25,11 @@
       <div class="project-meta">
         <span id="size-summary"></span><span>Millimeter · vektorgrafikk</span>
       </div>
-      <button id="led-toggle">LED-layout</button><button id="library-toggle">Symbolbibliotek</button><button id="new">Ny tavle</button><button id="demo">Gråkallbanen</button
+      <button id="led-toggle">LED-layout</button
+      ><button id="library-toggle">Symbolbibliotek</button
+      ><button id="new">Ny tavle</button
+      ><button id="trondheim-demo">Trondheim buss</button
+      ><button id="demo">Gråkallbanen</button
       ><button id="fixture">Geometriprøver</button>
     </div>
     <main>
@@ -113,7 +117,58 @@
             parallellavstand</label
           ><span id="template-status">Standard enkeltstasjon</span>
         </div>
-        <div id="viewport"><section id="led-panel" class="drawer physical-drawer" hidden><div class="drawer-heading"><h2>Fysisk LED-layout</h2><button id="led-close" aria-label="Lukk LED-layout">×</button></div><p class="note">Rette stripesegmenter i mm. Grafiske kurver bøyer ikke stripen.</p><label>Stripeprofil<select id="led-profile"></select></label><div class="pair"><button id="led-add-profile">Ny WS2812B-profil</button><button id="led-new-segment">Nytt segment</button></div><div id="led-editor"></div></section><section id="symbol-library" class="drawer" hidden><div class="drawer-heading"><h2>Symbolbibliotek</h2><button id="library-close" aria-label="Lukk symbolbibliotek">×</button></div><label>Kategori<select id="library-category"><option value="">Alle profiler</option><option>Trondheim buss</option><option>Gråkallbanen</option><option>Oslo T-bane</option></select></label><div id="library-items"></div><hr><label>Ny mal fra valgt stasjon<input id="library-name" value="Mitt symbol" maxlength="100"></label><select id="library-save-category" aria-label="Kategori for egen mal"><option>Trondheim buss</option><option>Gråkallbanen</option><option>Oslo T-bane</option></select><button id="library-save">Lagre valgt som symbolmal</button><div class="pair"><button id="library-import">Importer</button><button id="library-export">Eksporter egne</button></div><input id="library-file" type="file" accept=".json" hidden></section>
+        <div id="viewport">
+          <section id="led-panel" class="drawer physical-drawer" hidden>
+            <div class="drawer-heading">
+              <h2>Fysisk LED-layout</h2>
+              <button id="led-close" aria-label="Lukk LED-layout">×</button>
+            </div>
+            <p class="note">
+              Rette stripesegmenter i mm. Grafiske kurver bøyer ikke stripen.
+            </p>
+            <label>Stripeprofil<select id="led-profile"></select></label>
+            <div class="pair">
+              <button id="led-add-profile">Ny WS2812B-profil</button
+              ><button id="led-new-segment">Nytt segment</button>
+            </div>
+            <div id="led-editor"></div>
+          </section>
+          <section id="symbol-library" class="drawer" hidden>
+            <div class="drawer-heading">
+              <h2>Symbolbibliotek</h2>
+              <button id="library-close" aria-label="Lukk symbolbibliotek">
+                ×
+              </button>
+            </div>
+            <label
+              >Kategori<select id="library-category">
+                <option value="">Alle profiler</option>
+                <option>Trondheim buss</option>
+                <option>Gråkallbanen</option>
+                <option>Oslo T-bane</option>
+              </select></label
+            >
+            <div id="library-items"></div>
+            <hr />
+            <label
+              >Ny mal fra valgt stasjon<input
+                id="library-name"
+                value="Mitt symbol"
+                maxlength="100" /></label
+            ><select
+              id="library-save-category"
+              aria-label="Kategori for egen mal"
+            >
+              <option>Trondheim buss</option>
+              <option>Gråkallbanen</option>
+              <option>Oslo T-bane</option></select
+            ><button id="library-save">Lagre valgt som symbolmal</button>
+            <div class="pair">
+              <button id="library-import">Importer</button
+              ><button id="library-export">Eksporter egne</button>
+            </div>
+            <input id="library-file" type="file" accept=".json" hidden />
+          </section>
           <svg
             id="canvas"
             xmlns="http://www.w3.org/2000/svg"
@@ -192,6 +247,10 @@
           <button id="guide-add">Legg til hjelpelinje</button
           ><button id="guide-clear">Fjern alle</button>
         </section>
+        <section>
+          <h2>Mekanisk grunnkontroll</h2>
+          <div id="mechanical-report" role="status"></div>
+        </section>
         <section class="about">
           <span class="eyebrow">FRA SKJERM TIL TAVLE</span>
           <p>
@@ -221,6 +280,31 @@
       <div>
         <button id="export-close">Avbryt</button
         ><button id="export-download" class="primary">Last ned SVG</button>
+      </div>
+    </dialog>
+    <dialog id="physical-dialog">
+      <h2>Bekreft fysisk endring</h2>
+      <p>
+        Forhåndsvisningen viser ny plassering. Hull eller bundne LED-er flyttes
+        først når du bekrefter. Avbryt beholder alle mål og bindinger.
+      </p>
+      <div class="change-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Stasjonspunkt</th>
+              <th>Hull før → etter</th>
+              <th>LED før → etter</th>
+            </tr>
+          </thead>
+          <tbody id="physical-changes"></tbody>
+        </table>
+      </div>
+      <div>
+        <button id="physical-cancel">Avbryt</button
+        ><button id="physical-confirm" class="primary">
+          Bekreft fysisk endring
+        </button>
       </div>
     </dialog>
     <script type="module" src="app.mjs"></script>
