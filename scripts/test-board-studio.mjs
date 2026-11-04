@@ -77,3 +77,9 @@ const short=geometryFixture();const sr=short.layout.routes[0];sr.trackSpacing=90
 const f=geometryFixture(),r=f.layout.routes[1],before=structuredClone(r.trackIds);for(const angle of [0,45,90,135,180,-45,-90]){f.layout.stations[3].symbolAngle=angle;const g=edgeGeometry(f,r,0);assert.deepEqual(r.trackIds,before);if(!g.valid)assert.ok(g.warnings.length,'invalid remains explicit');}
 const report=geometryReport(createProject());assert.ok(report.every(g=>g.valid),'reference drawing stays valid');
 console.log('Board Studio v0.2 step 1 PASS: rotated screenshot regression, 90-degree turn, dense normal spacing/curvature checks, no rail loops, clipping, explicit holes, stable tracks/ports, v1 migration, invalid export block');
+const {gridSpec,snapPoint}=await import('../web/board-studio/editing.mjs');
+for(const zoom of [.05,.2,1,5,20]){const specs=['faint','normal','strong'].map(c=>gridSpec(1,10,c,zoom));assert.ok(specs[0].majorOpacity<specs[1].majorOpacity&&specs[1].majorOpacity<specs[2].majorOpacity);assert.ok(specs[0].minor*zoom>=7);assert.ok(specs[0].major>specs[0].minor);}
+const smart=createProject(false),tpl=structuredClone(createProject().layout.stations[0]);smart.layout.stations=[{...tpl,id:'target',x:80,y:90,holes:[{id:'offset-light',x:73,y:87}]}];
+const raw={x:73.7,y:120.333333},off=snapPoint(smart,raw,{enabled:false,zoom:2});assert.deepEqual(off.point,raw);assert.ok(off.guides.some(g=>g.kind==='hole'&&g.value===73));const on=snapPoint(smart,raw,{enabled:true,zoom:2});assert.equal(on.point.x,73);assert.equal(on.point.y,120);
+assert.ok(snapPoint(smart,{x:30,y:30.3},{anchor:{x:0,y:0},enabled:false}).guides.some(g=>g.kind==='45'));
+assert.ok(!svg(createProject()).includes('smart-guide'));console.log('Board Studio v0.2 step 3 PASS: contrast levels, adaptive dual grid, physical-hole guides, exact unsnapped coordinates, explicit snap and 45-degree hints');

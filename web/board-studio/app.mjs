@@ -1,3 +1,4 @@
+import {gridSpec,snapPoint} from "./editing.mjs";
 import {geometryFixture} from "./fixtures.mjs";
 import { holeCenters, symbolCenters, edgeGeometry, geometryReport } from "./geometry.mjs";
 import {
@@ -29,7 +30,7 @@ let selected = [],
   space = false,
   measure = null,
   routeStart = null,
-  selectedRoute = null,selectedEdge=0;
+  selectedRoute = null,selectedEdge=0,smartGuides=[];
 const project = () => history.value;
 const message = (t) => ($("status").textContent = t);
 function persist() {
@@ -57,28 +58,7 @@ function xy(e) {
     y: (e.clientY - r.top - origin.y) / zoom,
   };
 }
-function snapped(pt, p = project()) {
-  if (!$("snap").checked) return pt;
-  const step = +$("grid-step").value;
-  const out = {
-    x: Math.round(pt.x / step) * step,
-    y: Math.round(pt.y / step) * step,
-  };
-  for (const axis of ["x", "y"]) {
-    const candidates = [
-      ...p.layout.guides.filter((g) => g.axis === axis).map((g) => g.value),
-      ...p.layout.stations
-        .filter((s) => !selected.includes(s.id))
-        .map((s) => s[axis]),
-    ];
-    const closest = candidates.sort(
-      (a, b) => Math.abs(a - pt[axis]) - Math.abs(b - pt[axis]),
-    )[0];
-    if (closest !== undefined && Math.abs(closest - pt[axis]) < 4 / zoom)
-      out[axis] = closest;
-  }
-  return out;
-}
+function snapped(pt,p=project(),anchor=null){const result=snapPoint(p,pt,{enabled:$('snap').checked,gridStep:+$('grid-step').value,zoom,excludeIds:selected,anchor});smartGuides=result.guides;return result.point;}
 function fit() {
   const r = canvas.getBoundingClientRect(),
     b = project().board;
@@ -108,14 +88,8 @@ function draw(p = project()) {
     w = canvas.clientWidth,
     h = canvas.clientHeight;
   canvas.setAttribute("viewBox", `0 0 ${w} ${h}`);
-  const grid = +$("grid-step").value;
-  let gs = grid;
-  while (gs * zoom < 8) gs *= 2;
-  const guides = p.layers.guides.visible;
-  const gridMarkup =
-    $("grid").checked && guides
-      ? `<defs><pattern id="grid-pattern" width="${gs}" height="${gs}" patternUnits="userSpaceOnUse"><path d="M ${gs} 0 H 0 V ${gs}" fill="none" stroke="#9eafa0" stroke-width="${0.4 / zoom}" opacity=".26"/></pattern></defs><rect width="${b.width}" height="${b.height}" fill="url(#grid-pattern)" pointer-events="none"/>`
-      : "";
+  const guides=p.layers.guides.visible,spec=gridSpec(+$('grid-step').value,+$('grid-major').value,$('grid-contrast').value,zoom);
+  const gridMarkup=$('grid').checked&&guides?`<defs>${[['minor',spec.minor,spec.minorOpacity],['major',spec.major,spec.majorOpacity]].map(([kind,step,opacity])=>`<pattern id="background-grid-${kind}" data-grid="${kind}" data-spacing="${step}" width="${step}" height="${step}" patternUnits="userSpaceOnUse"><path d="M ${step} 0 H 0 V ${step}" fill="none" stroke="#667e6b" stroke-width="${(kind==='major'?.9:.6)/zoom}" opacity="${opacity}"/></pattern>`).join('')}</defs><rect width="${b.width}" height="${b.height}" fill="url(#background-grid-minor)" pointer-events="none"/><rect width="${b.width}" height="${b.height}" fill="url(#background-grid-major)" pointer-events="none"/>`:'';
   const route=p.layout.routes.find(r=>r.id===selectedRoute);
   let controls='';if(route&&p.layers.routes.visible){selectedEdge=Math.min(selectedEdge,route.stationIds.length-2);const g=edgeGeometry(p,route,selectedEdge);if(g.curves?.length){const c=g.curves[0],last=g.curves.at(-1),bend=route.bends[selectedEdge]??g.center[Math.floor(g.center.length/2)];controls=`<g class="curve-controls"><path d="${g.center.map((pt,i)=>`${i?'L':'M'} ${pt.x} ${pt.y}`).join(' ')}" fill="none" stroke="${g.adjusted?'#c28427':'#537f91'}" stroke-width="${1/zoom}" stroke-dasharray="${4/zoom} ${3/zoom}"/><path d="M ${c.start.x} ${c.start.y} L ${c.c1.x} ${c.c1.y} M ${last.end.x} ${last.end.y} L ${last.c2.x} ${last.c2.y}" stroke="#6896a1" stroke-width="${1/zoom}"/>${[['start',c.c1],['end',last.c2],['bend',bend]].map(([kind,pt])=>`<circle data-handle="${kind}" data-control-route="${esc(route.id)}" cx="${pt.x}" cy="${pt.y}" r="${5/zoom}" fill="${kind==='bend'?'#f9e2a3':'white'}" stroke="#386b7a" stroke-width="${1.5/zoom}"/>`).join('')}<text x="${bend.x+6/zoom}" y="${bend.y-9/zoom}" font-size="${10/zoom}" fill="#446f7a">R min ${Number.isFinite(g.minRadius)?g.minRadius.toFixed(1):'∞'} mm · ${route.transitionLength} mm overgang</text></g>`;}}
   const issues=geometryReport(p).filter(g=>!g.valid||g.adjusted);$('geometry-status').textContent=issues.length?issues.map(g=>g.warnings.join(' ')).join(' '):'';$('geometry-status').hidden=!issues.length;
@@ -137,14 +111,7 @@ function draw(p = project()) {
     const { a, b: c } = measure;
     overlay += `<path d="M ${a.x} ${a.y} L ${c.x} ${c.y}" stroke="#b8893b" fill="none" stroke-width="${1.5 / zoom}"/><text x="${(a.x + c.x) / 2}" y="${(a.y + c.y) / 2 - 3 / zoom}" font-size="${12 / zoom}" fill="#946419">${Math.hypot(a.x - c.x, a.y - c.y).toFixed(2)} mm</text>`;
   }
-  const gl = guides
-    ? p.layout.guides
-        .map(
-          (g) =>
-            `<path d="${g.axis === "x" ? `M ${g.value} 0 V ${b.height}` : `M 0 ${g.value} H ${b.width}`}" stroke="#6cabb2" stroke-width="${0.8 / zoom}" stroke-dasharray="${4 / zoom} ${3 / zoom}"/>`,
-        )
-        .join("")
-    : "";
+  if(gesture&&p.layers.guides.visible)overlay+=`<g class="smart-guides" pointer-events="none">${smartGuides.map(g=>g.axis?`<path data-smart-kind="${g.kind}" d="${g.axis==='x'?`M ${g.value} 0 V ${b.height}`:`M 0 ${g.value} H ${b.width}`}" stroke="#168eac" stroke-width="${1.2/zoom}" stroke-dasharray="${5/zoom} ${3/zoom}"/>`:`<g data-smart-kind="${g.kind}"><path d="M ${g.a.x} ${g.a.y} L ${g.b.x} ${g.b.y}" stroke="${g.kind==='distance'?'#ab813a':'#168eac'}" stroke-width="${1/zoom}" stroke-dasharray="${4/zoom} ${2/zoom}"/><text x="${(g.a.x+g.b.x)/2}" y="${(g.a.y+g.b.y)/2-3/zoom}" font-size="${10/zoom}" fill="#16809b">${g.label}</text></g>`).join('')}</g>`;
   // Rulers are screen UI; their values are derived from canonical millimetres.
   let rulers =
     '<rect width="100%" height="19" fill="#f6f8f3"/><rect width="23" height="100%" fill="#f6f8f3"/>';
@@ -608,14 +575,14 @@ canvas.onpointermove = (e) => {
     const s = g.base.layout.stations.find((s) => s.id === g.id),
       end = snapped(
         { x: s.x + pt.x - g.start.x, y: s.y + pt.y - g.start.y },
-        g.base,
+        g.base,{x:s.x,y:s.y},
       );
     g.preview = moveStations(g.base, selected, end.x - s.x, end.y - s.y);
     g.moved = true;
     draw(g.preview);
   } else if(g.kind==='curve'){
     const q=copy(g.base),r=q.layout.routes.find(r=>r.id===g.routeId);
-    if(g.handle==='bend')r.bends[g.edge]=snapped(pt,g.base);
+    if(g.handle==='bend')r.bends[g.edge]=snapped(pt,g.base,g.base.layout.routes.find(t=>t.id===g.routeId).bends[g.edge]??g.geometry.center[Math.floor(g.geometry.center.length/2)]);
     else {const geom=g.geometry,c=geom.curves[0],last=geom.curves.at(-1),start=c.start,end=last.end,ref=g.handle==='start'?start:end,dir=g.handle==='start'?{x:c.c1.x-start.x,y:c.c1.y-start.y}:{x:last.c2.x-end.x,y:last.c2.y-end.y},len=Math.hypot(dir.x,dir.y),reach=Math.max(.1,Math.min(5000,((pt.x-ref.x)*dir.x+(pt.y-ref.y)*dir.y)/len));r.controls[g.edge]={startReach:geom.effectiveReach.start,endReach:geom.effectiveReach.end,...r.controls[g.edge],[g.handle==='start'?'startReach':'endReach']:reach};}
     g.preview=q;draw(q);
   } else if (g.kind === "label") {
@@ -631,7 +598,7 @@ canvas.onpointermove = (e) => {
 function finishGesture(cancel = false) {
   if (!gesture) return;
   const g = gesture;
-  gesture = null;
+  gesture = null;smartGuides=[];
   if (!cancel && g.preview) {
     safe(() => commit(g.preview));
   } else if (!cancel && g.kind === "box") {
@@ -673,7 +640,7 @@ for (const b of document.querySelectorAll("[data-tool]"))
 $("zoom-in").onclick = () => zoomAt(1.2);
 $("zoom-out").onclick = () => zoomAt(1 / 1.2);
 $("fit").onclick = fit;
-for (const id of ["grid", "grid-step", "snap"]) $(id).onchange = () => draw();
+for (const id of ["grid", "grid-step", "grid-major", "grid-contrast", "snap"]) $(id).onchange = () => draw();
 $("undo").onclick = () => {
   finishGesture(true);
   history.undo();

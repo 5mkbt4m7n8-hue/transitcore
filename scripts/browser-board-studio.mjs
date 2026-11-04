@@ -316,6 +316,15 @@ try {
     (await page.locator("#canvas").textContent()).includes("100.00 mm"),
   );
   assert.deepEqual(await saved(), stateBeforeMeasure);
+  // Grid contrast and adaptive major/minor patterns at different zooms.
+  await page.locator('#grid').check();const opacity=[];for(const contrast of ['faint','normal','strong']){await page.locator('#grid-contrast').selectOption(contrast);opacity.push(+(await page.locator('[data-grid="major"] path').getAttribute('opacity')));}assert.ok(opacity[0]<opacity[1]&&opacity[1]<opacity[2]);
+  for(let i=0;i<6;i++)await page.locator('#zoom-out').click();assert.equal(await page.locator('[data-grid]').count(),2);const minor=+(await page.locator('[data-grid="minor"]').getAttribute('data-spacing'));assert.ok(minor>=5);await page.locator('#fit').click();
+  // Align a moving station against a separate physical LED hole; guides do
+  // not change raw coordinates unless the user enabled snapping.
+  const guided=await saved();guided.layout.stations[1].holes=[{id:'target-hole',x:83,y:97}];
+  await page.locator('#file').setInputFiles({name:'guided.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(guided))});await page.getByRole('button',{name:'Velg og flytt',exact:true}).click();await page.locator('#snap').uncheck();
+  const mmScreen=async(x,y)=>page.locator('#canvas > g').first().evaluate((el,p)=>{const m=el.getScreenCTM();return {x:p.x*m.a+p.y*m.c+m.e,y:p.x*m.b+p.y*m.d+m.f};},{x,y});
+  for(const snapping of [false,true]){if(snapping)await page.locator('#snap').check();const state=await saved(),station=state.layout.stations[0],start=await mmScreen(station.x,station.y),end=await mmScreen(83.6,120.4);await page.mouse.move(start.x,start.y);await page.mouse.down();await page.mouse.move(end.x,end.y,{steps:6});assert.ok(await page.locator('[data-smart-kind="hole"]').count()>0,'physical-hole guide is visible during drag');await page.mouse.up();const moved=(await saved()).layout.stations[0];if(snapping)assert.equal(moved.x,83);else assert.ok(Math.abs(moved.x-83.6)<.1,'snapping off preserves raw millimetres');assert.equal(await page.locator('.smart-guides').count(),0);}
   // Return to an untouched reference study for the screenshot.
   await page.locator("#demo").click();
   await page
@@ -331,6 +340,10 @@ try {
       path: process.env.BOARD_SCREENSHOT,
       fullPage: true,
     });
+  }
+  if(process.env.BOARD_SCREENSHOT){
+    await page.locator('#fixture').click();const target=page.locator('[data-layer="routes"] [data-route="rotated"][data-part="core"]').first();const screenPt=await target.evaluate(el=>{const p=el.getPointAtLength(el.getTotalLength()/2),m=el.getScreenCTM();return {x:p.x*m.a+p.y*m.c+m.e,y:p.x*m.b+p.y*m.d+m.f};});await page.mouse.click(screenPt.x,screenPt.y);await page.locator('#grid').check();await page.locator('#grid-contrast').selectOption('normal');await page.locator('aside').evaluate(el=>el.scrollTop=0);await page.screenshot({path:process.env.BOARD_SCREENSHOT.replace('.png','-curves.png'),fullPage:true});
+    const comparison=await browser.newPage({viewport:{width:1440,height:650}});await comparison.goto(`http://127.0.0.1:${server.address().port}/docs/board-studio/geometry-comparison.html`);await comparison.screenshot({path:process.env.BOARD_SCREENSHOT.replace('.png','-comparison.png'),fullPage:true});await comparison.close();
   }
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(
