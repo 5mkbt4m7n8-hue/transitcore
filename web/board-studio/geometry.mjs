@@ -138,15 +138,20 @@ export function edgeGeometry(p,r,i){
   let curves;
   if(bend){const tangent=unit(add(unit(sub(bend,start)),unit(sub(end,bend)))),reach=Math.min(length(sub(bend,start)),length(sub(end,bend)))*.45;curves=[makeCurve(start,bend,ta,tangent,ra,reach),makeCurve(bend,end,tangent,tb,reach,rb)];}
   else curves=[makeCurve(start,end,ta,tb,ra,rb)];
-  const at=t=>{const index=t<.5||curves.length===1?0:1,local=curves.length===1?t:index===0?t*2:(t-.5)*2,e=evaluateCubic(curves[index],local),w=t<.25?widthA+(middle-widthA)*smooth(t/.25):t>.75?middle+(widthB-middle)*smooth((t-.75)/.25):middle;return {...e,t,w,left:add(e.p,mul(e.n,-w)),right:add(e.p,mul(e.n,w))};};
+  const centreAt=t=>{const index=t<.5||curves.length===1?0:1,local=curves.length===1?t:index===0?t*2:(t-.5)*2;return evaluateCubic(curves[index],local);};
+  const lengths=[0];let previous=centreAt(0).p;for(let k=1;k<=256;k++){const pt=centreAt(k/256).p;lengths.push(lengths.at(-1)+length(sub(pt,previous)));previous=pt;}
+  const total=lengths.at(-1),zone=Math.min((r.transitionLength??12)+Math.max(a.ringOuter,b.ringOuter)/2,total*.45),arcAt=t=>{const k=Math.min(255,Math.floor(t*256)),f=t*256-k;return lengths[k]+(lengths[k+1]-lengths[k])*f;};
+  const tAtArc=s=>{let k=1;while(k<256&&lengths[k]<s)k++;return (k-1+(s-lengths[k-1])/Math.max(1e-9,lengths[k]-lengths[k-1]))/256;};
+  const breakA=tAtArc(zone),breakB=tAtArc(total-zone);
+  const at=t=>{const e=centreAt(t),arc=arcAt(t),w=arc<zone?widthA+(middle-widthA)*smooth(arc/zone):arc>total-zone?middle+(widthB-middle)*smooth((arc-(total-zone))/zone):middle;return {...e,t,w,left:add(e.p,mul(e.n,-w)),right:add(e.p,mul(e.n,w))};};
   const samples=[at(0)];
   function subdivide(lo,hi,depth=0){const mid=at((lo.t+hi.t)/2),error=Math.max(length(sub(mid.p,mix(lo.p,hi.p,.5))),length(sub(mid.left,mix(lo.left,hi.left,.5))),length(sub(mid.right,mix(lo.right,hi.right,.5))));if(depth<13&&(error>OFFSET_TOLERANCE||length(sub(lo.p,hi.p))>4||dot(unit(lo.d),unit(hi.d))<.998)){subdivide(lo,mid,depth+1);subdivide(mid,hi,depth+1);}else samples.push(hi);}
-  for(const t of [.25,.5,.75,1])subdivide(samples.at(-1),at(t));
+  for(const t of [...new Set([breakA,.25,.5,.75,breakB,1])].sort((a,b)=>a-b))subdivide(samples.at(-1),at(t));
   const center=samples.map(s=>({...s.p,t:s.t,n:s.n,radius:s.radius,w:s.w})),rails=[-1,1].map((side,j)=>({id:r.trackIds?.[j]??`${r.id}:${side}`,side,samples:samples.map(s=>({...add(s.p,mul(s.n,side*s.w)),t:s.t}))}));
   const minRadius=Math.min(...samples.map(s=>s.radius)),required=Math.max(r.cornerRadius??0,...samples.map(s=>s.w>0?s.w+.4:0));
   const cusp=samples.some(s=>length(s.d)<1e-5||s.radius<=s.w+.05),loops=selfCrosses(center)||rails.some(rail=>selfCrosses(rail.samples)),crossing=railsCross(rails[0].samples,rails[1].samples);
   const valid=!cusp&&!loops&&!crossing&&minRadius+1e-6>=required;
-  result={center,rails,curves,valid,minRadius,requiredRadius:required,adjusted:extra>0,effectiveReach:{start:ra,end:rb},warnings:[],paths:[]};
+  result={center,rails,curves,breakA,breakB,valid,minRadius,requiredRadius:required,adjusted:extra>0,effectiveReach:{start:ra,end:rb},warnings:[],paths:[]};
   if(valid)break;
  }
  if(!result.valid)result.warnings.push(`Ugyldig geometri: minste radius ${Number.isFinite(result.minRadius)?result.minRadius.toFixed(1):'∞'} mm, krever ${result.requiredRadius.toFixed(1)} mm. Flytt kontrollpunkt, øk tillatt utvidelse eller reduser sporavstand. Ingen porter er byttet.`);
@@ -155,7 +160,7 @@ export function edgeGeometry(p,r,i){
  for(const rail of result.rails){
   let points=circleTrim(rail.samples,add(start,mul(nA,rail.side*widthA*signA)),a.ringOuter/2+a.stroke/2,true);
   points=circleTrim(points,add(end,mul(nB,rail.side*widthB*signB)),b.ringOuter/2+b.stroke/2,false);
-  for(const [part,lo,hi] of [['start',0,.25],['core',.25,.75],['end',.75,1]]){
+  for(const [part,lo,hi] of [['start',0,result.breakA],['core',result.breakA,result.breakB],['end',result.breakB,1]]){
    if(part==='core'&&r.tracks===1&&rail.side===1)continue;
    if(part==='start'&&a.points===1&&r.tracks===1&&rail.side===1)continue;
    if(part==='end'&&b.points===1&&r.tracks===1&&rail.side===1)continue;

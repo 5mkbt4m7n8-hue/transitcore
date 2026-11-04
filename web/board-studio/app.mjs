@@ -1,3 +1,4 @@
+import {geometryFixture} from "./fixtures.mjs";
 import { holeCenters, symbolCenters, edgeGeometry, geometryReport } from "./geometry.mjs";
 import {
   createProject,
@@ -28,7 +29,7 @@ let selected = [],
   space = false,
   measure = null,
   routeStart = null,
-  selectedRoute = null;
+  selectedRoute = null,selectedEdge=0;
 const project = () => history.value;
 const message = (t) => ($("status").textContent = t);
 function persist() {
@@ -115,6 +116,9 @@ function draw(p = project()) {
     $("grid").checked && guides
       ? `<defs><pattern id="grid-pattern" width="${gs}" height="${gs}" patternUnits="userSpaceOnUse"><path d="M ${gs} 0 H 0 V ${gs}" fill="none" stroke="#9eafa0" stroke-width="${0.4 / zoom}" opacity=".26"/></pattern></defs><rect width="${b.width}" height="${b.height}" fill="url(#grid-pattern)" pointer-events="none"/>`
       : "";
+  const route=p.layout.routes.find(r=>r.id===selectedRoute);
+  let controls='';if(route&&p.layers.routes.visible){selectedEdge=Math.min(selectedEdge,route.stationIds.length-2);const g=edgeGeometry(p,route,selectedEdge);if(g.curves?.length){const c=g.curves[0],last=g.curves.at(-1),bend=route.bends[selectedEdge]??g.center[Math.floor(g.center.length/2)];controls=`<g class="curve-controls"><path d="${g.center.map((pt,i)=>`${i?'L':'M'} ${pt.x} ${pt.y}`).join(' ')}" fill="none" stroke="${g.adjusted?'#c28427':'#537f91'}" stroke-width="${1/zoom}" stroke-dasharray="${4/zoom} ${3/zoom}"/><path d="M ${c.start.x} ${c.start.y} L ${c.c1.x} ${c.c1.y} M ${last.end.x} ${last.end.y} L ${last.c2.x} ${last.c2.y}" stroke="#6896a1" stroke-width="${1/zoom}"/>${[['start',c.c1],['end',last.c2],['bend',bend]].map(([kind,pt])=>`<circle data-handle="${kind}" data-control-route="${esc(route.id)}" cx="${pt.x}" cy="${pt.y}" r="${5/zoom}" fill="${kind==='bend'?'#f9e2a3':'white'}" stroke="#386b7a" stroke-width="${1.5/zoom}"/>`).join('')}<text x="${bend.x+6/zoom}" y="${bend.y-9/zoom}" font-size="${10/zoom}" fill="#446f7a">R min ${Number.isFinite(g.minRadius)?g.minRadius.toFixed(1):'∞'} mm · ${route.transitionLength} mm overgang</text></g>`;}}
+  const issues=geometryReport(p).filter(g=>!g.valid||g.adjusted);$('geometry-status').textContent=issues.length?issues.map(g=>g.warnings.join(' ')).join(' '):'';$('geometry-status').hidden=!issues.length;
   const marks = selected
     .map((id) => p.layout.stations.find((s) => s.id === id))
     .filter(Boolean)
@@ -161,7 +165,7 @@ function draw(p = project()) {
     (id) => p.layers[id].visible,
   )
     .map((id) => `<g data-layer="${id}">${layerMarkup(p, id)}</g>`)
-    .join("")}${marks}${overlay}</g><g pointer-events="none">${rulers}</g>`;
+    .join("")}${marks}${overlay}${controls}</g><g pointer-events="none">${rulers}</g>`;
   for (const routeLayer of canvas.querySelectorAll(
     "[data-layer=routes],[data-layer=capsules]",
   ))
@@ -308,7 +312,7 @@ function routeProperties() {
     )
     .join(
       "",
-    )}</select></label><div class="pair">${field("bend-x", "Knekkpunkt X, mm", "")}${field("bend-y", "Knekkpunkt Y, mm", "")}</div><div class="pair">${field("route-radius", "Hjørneradius, mm", r.cornerRadius)}<button id="bend-save">Sett knekkpunkt</button></div><button id="bend-clear">Rett delstrekning</button><button id="edge-track">Skill ut delstrekning</button><p class="note">Velg en trasélinje på tavlen. Stasjonssymboler har eget punktantall. Radius gjelder knekkpunktet, med geometrisk parallelle spor. For kort strekning begrenser radiusen.</p>`;
+    )}</select></label><div class="pair">${field("bend-x", "Knekkpunkt X, mm", "")}${field("bend-y", "Knekkpunkt Y, mm", "")}</div><div class="pair">${field("route-radius", "Min. kurveradius, mm", r.cornerRadius)}<button id="bend-save">Sett knekkpunkt</button></div><div class="pair">${field("control-start","Starthåndtak, mm",r.controls[selectedEdge]?.startReach??edgeGeometry(p,r,selectedEdge).effectiveReach?.start??12)}${field("control-end","Slutthåndtak, mm",r.controls[selectedEdge]?.endReach??edgeGeometry(p,r,selectedEdge).effectiveReach?.end??12)}</div>${field("route-grow","Tillatt automatisk utvidelse, mm",r.autoGrow,"number",'min="0" max="48"')}<button id="bend-clear">Rett delstrekning</button><button id="edge-track">Skill ut delstrekning</button><p class="note">Velg en trasélinje på tavlen. Stasjonssymboler har eget punktantall. Radius gjelder knekkpunktet, med geometrisk parallelle spor. For kort strekning begrenser radiusen.</p>`;
   $("route-tracks").value = r.tracks;
   const map = {
     "route-tracks": "tracks",
@@ -317,6 +321,7 @@ function routeProperties() {
     "route-length": "transitionLength",
     "route-tension": "tension",
     "route-radius": "cornerRadius",
+    "route-grow":"autoGrow",
   };
   for (const [id, key] of Object.entries(map)) {
     $(id).disabled = p.layers.routes.locked || p.layers.capsules.locked;
@@ -328,13 +333,16 @@ function routeProperties() {
         ),
       );
   }
+  $("route-edge").value=String(Math.min(selectedEdge,r.stationIds.length-2));
+  for(const side of ['start','end']){$('control-'+side).disabled=p.layers.routes.locked||p.layers.capsules.locked;$('control-'+side).onchange=e=>safe(()=>{const value=+e.target.value,g=edgeGeometry(p,r,selectedEdge);mutate(q=>q.layout.routes.find(t=>t.id===r.id).controls[selectedEdge]={startReach:g.effectiveReach.start,endReach:g.effectiveReach.end,...r.controls[selectedEdge],[side+'Reach']:value});});}
   const setBend = () => {
+    selectedEdge=+$("route-edge").value;
     const edge = +$("route-edge").value,
       b = r.bends[edge];
     $("bend-x").value = b?.x ?? "";
     $("bend-y").value = b?.y ?? "";
   };
-  $("route-edge").onchange = setBend;
+  $("route-edge").onchange = ()=>{setBend();draw();};
   setBend();
   $("bend-save").onclick = () =>
     safe(() => {
@@ -469,6 +477,7 @@ canvas.onpointerdown = (e) => {
     target = e.target.closest("[data-station],[data-label]"),
     id = target?.dataset.station || target?.dataset.label,
     p = project();
+  const handle=e.target.closest('[data-handle]');if(handle){const r=p.layout.routes.find(r=>r.id===handle.dataset.controlRoute);if(p.layers.routes.locked||p.layers.capsules.locked)return;const g=edgeGeometry(p,r,selectedEdge);gesture={kind:'curve',handle:handle.dataset.handle,routeId:r.id,edge:selectedEdge,base:copy(p),geometry:g};return;}
   if (space || tool === "hand" || e.button === 1) {
     gesture = {
       kind: "pan",
@@ -538,7 +547,7 @@ canvas.onpointerdown = (e) => {
   const routeTarget = e.target.closest("[data-route]");
   if (routeTarget && !id) {
     selected = [];
-    selectedRoute = routeTarget.dataset.route;
+    selectedRoute = routeTarget.dataset.route;selectedEdge=+(routeTarget.dataset.edge??0);
     render();
     return;
   }
@@ -604,6 +613,11 @@ canvas.onpointermove = (e) => {
     g.preview = moveStations(g.base, selected, end.x - s.x, end.y - s.y);
     g.moved = true;
     draw(g.preview);
+  } else if(g.kind==='curve'){
+    const q=copy(g.base),r=q.layout.routes.find(r=>r.id===g.routeId);
+    if(g.handle==='bend')r.bends[g.edge]=snapped(pt,g.base);
+    else {const geom=g.geometry,c=geom.curves[0],last=geom.curves.at(-1),start=c.start,end=last.end,ref=g.handle==='start'?start:end,dir=g.handle==='start'?{x:c.c1.x-start.x,y:c.c1.y-start.y}:{x:last.c2.x-end.x,y:last.c2.y-end.y},len=Math.hypot(dir.x,dir.y),reach=Math.max(.1,Math.min(5000,((pt.x-ref.x)*dir.x+(pt.y-ref.y)*dir.y)/len));r.controls[g.edge]={startReach:geom.effectiveReach.start,endReach:geom.effectiveReach.end,...r.controls[g.edge],[g.handle==='start'?'startReach':'endReach']:reach};}
+    g.preview=q;draw(q);
   } else if (g.kind === "label") {
     const q = copy(g.base),
       s = q.layout.stations.find((s) => s.id === g.id);
@@ -800,6 +814,7 @@ document.onkeydown = (e) => {
     routeStart = null;
     setTool("select");
   }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y"){e.preventDefault();$("redo").click();return;}
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
     e.preventDefault();
     $(e.shiftKey ? "redo" : "undo").click();
@@ -845,3 +860,5 @@ for (const [name, path] of Object.entries(iconPaths)) {
   const button = document.querySelector(`[data-tool="${name}"]`) || $(name);
   button.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="${path}"/></svg>`;
 }
+
+$('fixture').onclick=()=>{selected=[];selectedRoute=null;selectedEdge=0;measure=null;commit(geometryFixture());fit();};

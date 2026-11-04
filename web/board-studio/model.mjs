@@ -337,7 +337,7 @@ export function routeMarkup(p, transitions = false) {
           })
           .map(
             (c) =>
-              `<path data-route="${esc(r.id)}" data-part="${c.part}" data-track="${esc(c.trackId??r.trackIds[0])}" data-valid="${g.valid}" d="${c.d || cubic(c)}" fill="none" stroke="${g.valid?"#555":"#bd3f36"}" ${g.valid?"":'stroke-dasharray="1.5 1"'} stroke-width="${r.stroke}"/>`,
+              `<path data-route="${esc(r.id)}" data-part="${c.part}" data-edge="${i}" data-track="${esc(c.trackId??r.trackIds[0])}" data-valid="${g.valid}" d="${c.d || cubic(c)}" fill="none" stroke="${g.valid?"#555":"#bd3f36"}" ${g.valid?"":'stroke-dasharray="1.5 1"'} stroke-width="${r.stroke}"/>`,
           )
           .join("");
       }).join(""),

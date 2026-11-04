@@ -10,7 +10,7 @@
     <header>
       <a class="brand" href="../../index.html"
         >in<span>transit</span><i> / </i><b>Board Studio</b></a
-      ><span class="badge">v0.1 · fysisk design</span>
+      ><span class="badge">v0.2 · fysisk design</span>
       <div class="header-actions">
         <button id="open">Åpne prosjekt</button
         ><button id="save">Lagre JSON</button
@@ -25,7 +25,7 @@
       <div class="project-meta">
         <span id="size-summary"></span><span>Millimeter · vektorgrafikk</span>
       </div>
-      <button id="new">Ny tavle</button><button id="demo">Gråkallbanen</button>
+      <button id="new">Ny tavle</button><button id="demo">Gråkallbanen</button><button id="fixture">Geometriprøver</button>
     </div>
     <main>
       <nav class="tools" aria-label="Verktøy">
@@ -95,7 +95,7 @@
             tabindex="0"
             aria-label="Tavle i millimeter"
           ></svg>
-          <div id="hint">
+          <div id="geometry-status" role="status" hidden></div><div id="hint">
             Velg en stasjon for å redigere · Ctrl+klikk for flervalg · Space for
             panorering
           </div>

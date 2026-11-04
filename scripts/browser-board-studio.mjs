@@ -233,6 +233,19 @@ try {
   await page.locator("#undo").click();
   await page.locator("#undo").click();
   assert.equal((await saved()).layout.routes.length, 1);
+  // v0.2 acceptance: real curve drag on shared logical geometry.
+  await page.locator('#fixture').click();
+  const rail=page.locator('[data-layer="routes"] [data-route="turn"][data-part="core"]').first();
+  const centre=await rail.evaluate(el=>{const p=el.getPointAtLength(el.getTotalLength()/2),m=el.getScreenCTM();return {x:p.x*m.a+p.y*m.c+m.e,y:p.x*m.b+p.y*m.d+m.f};});await page.mouse.click(centre.x,centre.y);
+  await page.locator('[data-handle="bend"]').waitFor();const initialCurve=await saved();
+  const drag=await page.locator('[data-handle="bend"]').boundingBox();await page.mouse.move(drag.x+drag.width/2,drag.y+drag.height/2);await page.mouse.down();await page.mouse.move(drag.x+drag.width/2-12,drag.y+drag.height/2+12,{steps:8});
+  assert.equal((await saved()).layout.routes[0].bends[0].x,initialCurve.layout.routes[0].bends[0].x,'drag preview does not create history entries');await page.mouse.up();const movedCurve=await saved();assert.notDeepEqual(movedCurve.layout.routes[0].bends,initialCurve.layout.routes[0].bends);assert.deepEqual(movedCurve.layout.routes[0].trackIds,initialCurve.layout.routes[0].trackIds);assert.deepEqual(movedCurve.layout.stations.map(s=>s.holes),initialCurve.layout.stations.map(s=>s.holes));
+  await page.locator('#canvas').focus();await page.keyboard.press('Control+z');assert.deepEqual((await saved()).layout.routes[0].bends,initialCurve.layout.routes[0].bends);await page.keyboard.press('Control+y');assert.deepEqual((await saved()).layout.routes[0].bends,movedCurve.layout.routes[0].bends);
+  const numericHandle=await page.locator('#control-start').inputValue();const h=await page.locator('[data-handle="start"]').boundingBox();await page.mouse.move(h.x+h.width/2,h.y+h.height/2);await page.mouse.down();await page.mouse.move(h.x+h.width/2+10,h.y+h.height/2,{steps:5});await page.mouse.up();assert.notEqual(await page.locator('#control-start').inputValue(),numericHandle);
+  const exactControls=await saved();await page.reload();await page.locator('[data-route="turn"]').first().waitFor();assert.deepEqual(await saved(),exactControls);
+  const curveDownload=page.waitForEvent('download');await page.locator('#save').click();const curveJson=await curveDownload;await page.locator('#new').click();await page.locator('#file').setInputFiles(await curveJson.path());await page.locator('[data-route="turn"]').first().waitFor();assert.deepEqual(await saved(),exactControls);
+  // SVG keeps track identities and contains no editor handles.
+  const curvesSvg=page.waitForEvent('download');await page.locator('#export').click();await page.locator('#export-download').click();const exportedCurves=await curvesSvg;const curvesText=await readFile(await exportedCurves.path(),'utf8');assert.ok(curvesText.includes('data-track="turn:negative"'));assert.ok(!curvesText.includes('data-handle'));
   // Exercise the tools with actual screen gestures on a blank board.
   await page.locator("#new").click();
   await page.locator("#fit").click();
