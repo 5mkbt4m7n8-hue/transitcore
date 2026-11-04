@@ -10,7 +10,7 @@
     <header>
       <a class="brand" href="../../index.html"
         >in<span>transit</span><i> / </i><b>Board Studio</b></a
-      ><span class="badge">v0.2 · fysisk design</span>
+      ><span class="badge">v0.3 · fysisk design</span>
       <div class="header-actions">
         <button id="open">Åpne prosjekt</button
         ><button id="save">Lagre JSON</button
@@ -25,7 +25,7 @@
       <div class="project-meta">
         <span id="size-summary"></span><span>Millimeter · vektorgrafikk</span>
       </div>
-      <button id="new">Ny tavle</button><button id="demo">Gråkallbanen</button
+      <button id="library-toggle">Symbolbibliotek</button><button id="new">Ny tavle</button><button id="demo">Gråkallbanen</button
       ><button id="fixture">Geometriprøver</button>
     </div>
     <main>
@@ -113,7 +113,7 @@
             parallellavstand</label
           ><span id="template-status">Standard enkeltstasjon</span>
         </div>
-        <div id="viewport">
+        <div id="viewport"><section id="symbol-library" class="drawer" hidden><div class="drawer-heading"><h2>Symbolbibliotek</h2><button id="library-close" aria-label="Lukk symbolbibliotek">×</button></div><label>Kategori<select id="library-category"><option value="">Alle profiler</option><option>Trondheim buss</option><option>Gråkallbanen</option><option>Oslo T-bane</option></select></label><div id="library-items"></div><hr><label>Ny mal fra valgt stasjon<input id="library-name" value="Mitt symbol" maxlength="100"></label><select id="library-save-category" aria-label="Kategori for egen mal"><option>Trondheim buss</option><option>Gråkallbanen</option><option>Oslo T-bane</option></select><button id="library-save">Lagre valgt som symbolmal</button><div class="pair"><button id="library-import">Importer</button><button id="library-export">Eksporter egne</button></div><input id="library-file" type="file" accept=".json" hidden></section>
           <svg
             id="canvas"
             xmlns="http://www.w3.org/2000/svg"

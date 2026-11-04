@@ -1,3 +1,4 @@
+import {CATEGORIES,builtInSymbols,symbolBundle,importSymbolBundle,applyVisualStyle} from "./symbols.mjs";
 import { stationTemplate, fromTemplate } from "./stations.mjs";
 import {
   parallelCandidate,
@@ -252,14 +253,14 @@ function startDuplicate() {
   clipboard = stationTemplate(project(), s);
   beginPaste();
 }
-function beginPaste() {
-  if (!clipboard) return;
+function beginPaste(template=clipboard) {
+  if (!template) return;
   if (stationLocks()) {
     message("Lås opp berørte lag før plassering");
     return;
   }
   pendingStation = {
-    template: copy(clipboard),
+    template: copy(template),
     point: null,
     id: crypto.randomUUID(),
   };
@@ -317,7 +318,7 @@ function properties() {
       mutate((q) => (q.stationTemplate = null));
     return;
   }
-  panel.innerHTML = `<h2>${selected.length > 1 ? selected.length + " stasjoner" : "Stasjon"} <span>02</span></h2><div class="station-actions"><button id="duplicate-station">Dupliser stasjon</button><button id="set-template">Bruk som standardstasjon</button><button id="reset-template">Standard enkeltstasjon</button></div>${field("station-name", "Navn", s.name, "text")}<div class="pair">${field("station-x", "X, mm", s.x, "number", 'step="0.1"')}${field("station-y", "Y, mm", s.y, "number", 'step="0.1"')}</div><div class="pair">${field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"')}${field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("hole-diameter", "Hull Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}</div><h2>Symbol og kapsel</h2><div class="pair">${field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"')}${field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"')}${field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"')}</div><div class="pair">${field("symbol-angle", "Vinkel, ° (tom = auto)", s.symbolAngle ?? "", "number", 'min="-360" max="360"')}${field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias, "number", 'min="-0.5" max="0.5" step="0.1"')}</div><div class="pair"><label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>${field("symbol-color", "Ringfarge", s.ringColor, "color")}</div><button id="align-holes">Tilpass hull til symbolet</button><p class="note">Grafisk rotasjon flytter ikke fysiske hull. Tilpass hull eksplisitt ved behov.</p><h2>Stasjonsnavn</h2><div class="pair">${field("label-dx", "Forskyvning X, mm", s.label.dx)}${field("label-dy", "Forskyvning Y, mm", s.label.dy)}</div><div class="pair">${field("label-angle", "Rotasjon, °", s.label.angle)}${field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'step="0.1" min="0.1"')}</div><div class="pair">${field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"')}<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label></div><label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label><p class="note">${selected.length > 1 ? "X/Y flytter hele utvalget. Andre felt endrer første stasjon." : "Navn og ring er uavhengige av hulldiameteren."}</p>`;
+  panel.innerHTML = `<h2>${selected.length > 1 ? selected.length + " stasjoner" : "Stasjon"} <span>02</span></h2><div class="station-actions"><button id="duplicate-station">Dupliser stasjon</button><button id="set-template">Bruk som standardstasjon</button><button id="reset-template">Standard enkeltstasjon</button></div>${field("station-name", "Navn", s.name, "text")}<div class="pair">${field("station-x", "X, mm", s.x, "number", 'step="0.1"')}${field("station-y", "Y, mm", s.y, "number", 'step="0.1"')}</div><div class="pair">${field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"')}${field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("hole-diameter", "Hull Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}</div><h2>Symbol og kapsel</h2><label>Kapseltype<select id="capsule-type"><option value="none">Ingen kapsel</option><option value="stadium">Avrundet kapsel</option><option value="rounded-box">Avrundet ramme</option></select></label><div class="pair">${field("capsule-width","Ekstra bredde, mm",s.capsuleExtraWidth??0)}${field("capsule-height","Ekstra høyde, mm",s.capsuleExtraHeight??0)}</div><div class="pair">${field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"')}${field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"')}${field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"')}</div><div class="pair">${field("symbol-angle", "Vinkel, ° (tom = auto)", s.symbolAngle ?? "", "number", 'min="-360" max="360"')}${field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias, "number", 'min="-0.5" max="0.5" step="0.1"')}</div><div class="pair"><label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>${field("symbol-color", "Ringfarge", s.ringColor, "color")}</div><button id="align-holes">Tilpass hull til symbolet</button><p class="note">Grafisk rotasjon flytter ikke fysiske hull. Tilpass hull eksplisitt ved behov.</p><h2>Stasjonsnavn</h2><div class="pair">${field("label-dx", "Forskyvning X, mm", s.label.dx)}${field("label-dy", "Forskyvning Y, mm", s.label.dy)}</div><div class="pair">${field("label-angle", "Rotasjon, °", s.label.angle)}${field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'step="0.1" min="0.1"')}</div><div class="pair">${field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"')}<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label></div><label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label><p class="note">${selected.length > 1 ? "X/Y flytter utvalget. Ring-/kapselstil gjelder alle; navn og punktantall gjelder første." : "Navn og ring er uavhengige av hulldiameteren."}</p>`;
   $("duplicate-station").onclick = startDuplicate;
   $("set-template").onclick = () =>
     mutate((q) => (q.stationTemplate = stationTemplate(q, s)));
@@ -346,6 +347,7 @@ function properties() {
         y: c.y,
       }));
     });
+  for(const [id,key] of [['capsule-type','capsuleType'],['capsule-width','capsuleExtraWidth'],['capsule-height','capsuleExtraHeight']]){$(id).value=s[key]??0;$(id).disabled=p.layers.capsules.locked;$(id).onchange=e=>safe(()=>commit(applyVisualStyle(p,selected,{[key]:key==='capsuleType'?e.target.value:+e.target.value})));}
   const symbolFields = {
     "symbol-points": "points",
     "symbol-spacing": "pointSpacing",
@@ -376,6 +378,7 @@ function properties() {
         ),
       );
   }
+  for(const [id,key] of [['symbol-color','ringColor'],['symbol-double','doubleRing'],['symbol-padding','capsulePadding'],['symbol-stroke','capsuleStroke']])$(id).onchange=e=>safe(()=>commit(applyVisualStyle(p,selected,{[key]:key==='ringColor'?e.target.value:key==='doubleRing'?e.target.value==='true':+e.target.value})));
   const mappings = {
     "station-name": ["name", "names", true],
     "ring-outer": ["ringOuter", "rings"],
@@ -385,15 +388,7 @@ function properties() {
   };
   for (const [id, [key, layer, text]] of Object.entries(mappings)) {
     $(id).disabled = p.layers[layer].locked;
-    $(id).onchange = (e) =>
-      safe(() =>
-        mutate(
-          (q) =>
-            (q.layout.stations.find((t) => t.id === s.id)[key] = text
-              ? e.target.value
-              : +e.target.value),
-        ),
-      );
+    $(id).onchange=e=>safe(()=>{const value=text?e.target.value:+e.target.value;if(['ringOuter','ringInner','stroke'].includes(key))commit(applyVisualStyle(p,selected,{[key]:value}));else mutate(q=>q.layout.stations.find(t=>t.id===s.id)[key]=value);});
   }
   for (const axis of ["x", "y"]) {
     $("station-" + axis).disabled =
@@ -673,7 +668,7 @@ function render() {
     ? "Egen stasjonsmal"
     : "Standard enkeltstasjon";
   properties();
-  draw();
+  renderLibrary();draw();
 }
 function safe(fn) {
   try {
@@ -1305,3 +1300,9 @@ $("context-duplicate").onclick = () => {
 document.addEventListener("pointerdown", (e) => {
   if (!e.target.closest("#station-menu")) $("station-menu").hidden = true;
 });
+
+function libraryRecords(){return [...builtInSymbols(defaultTemplate()),...project().library.templates];}
+function renderLibrary(){if($('symbol-library').hidden)return;const category=$('library-category').value,records=libraryRecords().filter(r=>!category||r.category===category);$('library-items').innerHTML=records.map(r=>{const s=fromTemplate(r.template,{x:30,y:20},'preview-'+r.id),p={...project(),layout:{...project().layout,stations:[s],routes:[]}};return `<article><button class="symbol-pick" data-symbol="${esc(r.id)}"><svg viewBox="0 0 60 40" aria-hidden="true">${['capsules','rings'].map(id=>stationMarkup(s,id,p)).join('')}</svg><span>${esc(r.name)}</span></button><button data-symbol-default="${esc(r.id)}" class="symbol-default">Som standard</button></article>`;}).join('');document.querySelectorAll('[data-symbol]').forEach(b=>b.onclick=()=>beginPaste(libraryRecords().find(r=>r.id===b.dataset.symbol).template));document.querySelectorAll('[data-symbol-default]').forEach(b=>b.onclick=()=>mutate(q=>q.stationTemplate=copy(libraryRecords().find(r=>r.id===b.dataset.symbolDefault).template)));}
+$('library-toggle').onclick=()=>{$('symbol-library').hidden=!$('symbol-library').hidden;renderLibrary();};$('library-close').onclick=()=>$('symbol-library').hidden=true;$('library-category').onchange=renderLibrary;
+$('library-save').onclick=()=>safe(()=>{const s=project().layout.stations.find(s=>s.id===selected[0]);if(!s)throw Error('Velg stasjonen som skal lagres som symbolmal.');const name=$('library-name').value.trim();if(!name)throw Error('Gi symbolmalen et navn.');mutate(q=>q.library.templates.push({id:crypto.randomUUID(),name,category:$('library-save-category').value,template:stationTemplate(q,s)}));});
+$('library-export').onclick=()=>download(JSON.stringify(symbolBundle(project().library.templates),null,2),'intransit-symboler.json','application/json');$('library-import').onclick=()=>$('library-file').click();$('library-file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{if(f.size>2_000_000)throw Error('Symbolfilen er for stor.');const records=importSymbolBundle(await f.text()),q=copy(project());q.library.templates.push(...records);const valid=parseProject(q);for(const r of valid.library.templates){const s=fromTemplate(r.template,{x:0,y:0},'import-preview');r.template=stationTemplate({...valid,layout:{...valid.layout,stations:[s],routes:[]}},s);}commit(valid);}catch(err){message(err.message);}};

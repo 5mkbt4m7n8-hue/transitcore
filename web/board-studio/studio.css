@@ -538,3 +538,4 @@ a {
   border-radius: 5px;
   box-shadow: 0 5px 20px #263b2c33;
 }
+.drawer{position:absolute;z-index:5;left:27px;top:22px;bottom:45px;width:255px;padding:15px;background:#fffffff5;border:1px solid #d5dfcf;border-radius:6px;overflow:auto;box-shadow:0 5px 20px #25402b18}.drawer-heading{display:flex;justify-content:space-between;align-items:center}.drawer h2{margin:0}.drawer label{display:grid;gap:5px;font-size:11px;margin:12px 0}.drawer select,.drawer input{width:100%}.drawer>button{margin:8px 0}.drawer article{display:flex;align-items:center;border-bottom:1px solid #edf0e8;padding:5px 0;gap:5px}.symbol-pick{flex:1;display:grid;grid-template-columns:75px 1fr;align-items:center;border:0;padding:0;text-align:left;font-size:11px}.symbol-pick svg{height:48px;width:75px}.symbol-default{font-size:9px;padding:5px}#library-toggle{white-space:nowrap}

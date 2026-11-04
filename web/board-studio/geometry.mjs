@@ -27,6 +27,7 @@ export function stationTangent(p, s) {
   return { x: 0, y: 1 };
 }
 export function symbolNormal(p, s) {
+  if(s.ringCenters?.length>1&&length(sub(s.ringCenters.at(-1),s.ringCenters[0]))>1e-8)return unit(sub(s.ringCenters.at(-1),s.ringCenters[0]));
   if (s.symbolAngle !== null && s.symbolAngle !== undefined) {
     const r = (s.symbolAngle * Math.PI) / 180;
     return { x: Math.cos(r), y: Math.sin(r) };
@@ -34,6 +35,7 @@ export function symbolNormal(p, s) {
   return normal(stationTangent(p, s));
 }
 export function symbolCenters(p, s) {
+  if(s.ringCenters)return s.ringCenters.map((c,index)=>({...c,index}));
   const n = symbolNormal(p, s),
     count = s.points ?? 1,
     spacing = s.pointSpacing ?? 10,

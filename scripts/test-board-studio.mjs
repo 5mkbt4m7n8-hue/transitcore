@@ -137,7 +137,7 @@ for (const r of old.layout.routes) {
   delete r.autoGrow;
 }
 const migrated = parseProject(old);
-assert.equal(migrated.version, 2);
+assert.equal(migrated.version, 3);
 assert.deepEqual(parseProject(serialize(migrated)), migrated);
 const short = geometryFixture();
 const sr = short.layout.routes[0];

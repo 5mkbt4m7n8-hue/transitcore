@@ -1,5 +1,5 @@
 import { validateParallels, enforceParallels } from "./parallel.mjs";
-import { fromTemplate } from "./stations.mjs";
+import { fromTemplate, STATION_DEFAULTS } from "./stations.mjs";
 import {
   holeCenters,
   symbolCenters,
@@ -100,12 +100,12 @@ export function createProject(demo = true) {
         capsulePadding: 1,
         capsuleStroke: 0.18,
         ringColor: "#555555",
-        doubleRing: true,
+        doubleRing: true,...STATION_DEFAULTS,
       }))
     : [];
   return initializeGeometry({
     format: FORMAT,
-    version: 2,
+    version: 3,
     id: demo ? "grakallbanen-board" : crypto.randomUUID(),
     title: demo ? "Gråkallbanen · studie 01" : "Ny tavle",
     network: { stations: [], routes: [] },
@@ -142,6 +142,7 @@ export function createProject(demo = true) {
       parallelConstraints: [],
     },
     ledLayout: { profiles: [], segments: [], bindings: [] },
+    library:{templates:[]},
     production: { profiles: [], mountingHoles: [] },
   });
 }
@@ -149,7 +150,7 @@ const num = (n, min, max) =>
   typeof n === "number" && Number.isFinite(n) && n >= min && n <= max;
 export function parseProject(input) {
   const p = typeof input === "string" ? JSON.parse(input) : copy(input);
-  if (p?.format !== FORMAT || ![1, 2].includes(p.version))
+  if (p?.format !== FORMAT || ![1, 2, 3].includes(p.version))
     throw Error(
       "Ukjent prosjektformat eller versjon. Originalfilen er ikke endret.",
     );
@@ -170,6 +171,7 @@ export function parseProject(input) {
     throw Error("Ugyldig layout.");
   for (const s of p.layout.stations) {
     Object.assign(s, {
+      ...Object.fromEntries(Object.entries(STATION_DEFAULTS).map(([k,v])=>[k,s[k]??v])),
       points: s.points ?? 1,
       pointSpacing: s.pointSpacing ?? 10,
       symbolAngle: s.symbolAngle ?? null,
@@ -277,8 +279,10 @@ export function parseProject(input) {
     throw Error("Ugyldige hjelpelinjer.");
   if (!p.network || !p.ledLayout || !p.production)
     throw Error("Prosjektet mangler dataområder.");
-  p.version = 2;
+  p.version = 3;
   initializeGeometry(p);
+  p.library??={templates:[]};if(!Array.isArray(p.library.templates)||p.library.templates.length>200)throw Error("Ugyldig symbolbibliotek.");
+  for(const s of p.layout.stations){if(!["none","stadium","rounded-box"].includes(s.capsuleType)||!num(s.capsuleExtraWidth,0,100)||!num(s.capsuleExtraHeight,0,100)||typeof s.allowShared!=="boolean"||typeof s.symbolKind!=="string"||!(s.transitionLength===null||num(s.transitionLength,.1,100)))throw Error("Ugyldig symbolstil.");if(s.ringCenters&&(!Array.isArray(s.ringCenters)||s.ringCenters.length!==s.points||s.ringCenters.some(c=>!num(c.x,-5000,10000)||!num(c.y,-5000,10000))))throw Error("Ugyldige grafiske ringsentre.");}
   for (const st of p.layout.stations) {
     if (
       !Array.isArray(st.holes) ||
@@ -321,16 +325,18 @@ export function parseProject(input) {
   }
   p.layout.parallelConstraints ??= [];
   validateParallels(p, true);
-  if (p.stationTemplate) {
-    if (p.stationTemplate.version !== 1) throw Error("Ugyldig stasjonsmal.");
+  for(const record of p.library.templates){if(typeof record.id!=="string"||typeof record.name!=="string"||typeof record.category!=="string")throw Error("Ugyldig symbolmal.");validateTemplate(record.template);}
+  if (p.stationTemplate)validateTemplate(p.stationTemplate);
+  function validateTemplate(template) {
+    if (template?.version !== 1) throw Error("Ugyldig stasjonsmal.");
     const temp = fromTemplate(
-      p.stationTemplate,
+      template,
       { x: 0, y: 0 },
       "template-validation",
     );
     parseProject({
       ...p,
-      stationTemplate: null,
+      stationTemplate: null,library:{templates:[]},ledLayout:{profiles:[],segments:[],bindings:[]},
       layout: {
         stations: [temp],
         routes: [],
@@ -358,6 +364,7 @@ export function moveStations(p, ids, dx, dy) {
     if (ids.includes(s.id)) {
       s.x += dx;
       s.y += dy;
+      for(const c of s.ringCenters??[]){c.x+=dx;c.y+=dy;}
       for (const h of s.holes ?? []) {
         h.x += dx;
         h.y += dy;
@@ -429,14 +436,14 @@ export function stationMarkup(s, layer, p) {
           `<circle data-hole="${esc(s.id)}" data-point="${c.index}" cx="${c.x}" cy="${c.y}" r="${s.holeDiameter / 2}" fill="none" stroke="#b33" stroke-width="0.15"/>`,
       )
       .join("");
-  if (layer === "capsules" && centers.length > 1) {
+  if (layer === "capsules" && s.capsuleType!=="none" && centers.length > 1) {
     const a = centers[0],
       b = centers.at(-1),
       n = symbolNormal(p, s),
       angle = (Math.atan2(n.y, n.x) * 180) / Math.PI,
       r = s.ringOuter / 2 + s.capsulePadding,
       d = Math.hypot(b.x - a.x, b.y - a.y);
-    return `<g data-station="${esc(s.id)}" transform="translate(${a.x} ${a.y}) rotate(${angle})"><rect x="${-r}" y="${-r}" width="${d + 2 * r}" height="${2 * r}" rx="${r}" fill="white" stroke="${color}" stroke-width="${s.capsuleStroke}"/></g>`;
+    return `<g data-station="${esc(s.id)}" transform="translate(${a.x} ${a.y}) rotate(${angle})"><rect x="${-r}" y="${-r}" width="${d + 2 * r+(s.capsuleExtraWidth??0)}" height="${2 * r+(s.capsuleExtraHeight??0)}" rx="${s.capsuleType==='rounded-box'?Math.min(r,2):r}" fill="white" stroke="${color}" stroke-width="${s.capsuleStroke}"/></g>`;
   }
   if (layer === "names") {
     const l = s.label;
