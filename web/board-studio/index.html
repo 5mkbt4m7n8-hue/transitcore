@@ -1,11 +1,199 @@
-<!doctype html><html lang="nb"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>InTransit · Board Studio</title><link rel="stylesheet" href="studio.css"></head><body>
-<header><a class="brand" href="../../index.html">in<span>transit</span><i> / </i><b>Board Studio</b></a><span class="badge">v0.1 · fysisk design</span><div class="header-actions"><button id="open">Åpne prosjekt</button><button id="save">Lagre JSON</button><button id="export" class="primary">Eksporter SVG ↗</button></div></header>
-<div class="projectbar"><div><span class="eyebrow">TAVLEPROSJEKT</span><input id="title" aria-label="Prosjektnavn"></div><div class="project-meta"><span id="size-summary"></span><span>Millimeter · vektorgrafikk</span></div><button id="new">Ny tavle</button><button id="demo">Gråkallbanen</button></div>
-<main><nav class="tools" aria-label="Verktøy"><button data-tool="select" class="active" title="Velg og flytt (V)" aria-label="Velg og flytt">↖</button><button data-tool="station" title="Legg til stasjon (S)" aria-label="Legg til stasjon">⊙</button><button data-tool="route" title="Koble stasjoner (L)" aria-label="Koble stasjoner">⌁</button><button data-tool="measure" title="Mål i mm (M)" aria-label="Mål i mm">↔</button><button data-tool="hand" title="Panorer (H / Space)" aria-label="Panorer">✥</button><hr><button id="undo" title="Angre (Ctrl+Z)" aria-label="Angre">↶</button><button id="redo" title="Gjør om (Ctrl+Shift+Z)" aria-label="Gjør om">↷</button><button id="delete" title="Slett valgte stasjoner" aria-label="Slett valgte stasjoner">×</button></nav>
-<section class="workspace"><div class="canvasbar"><span>DESIGN <small> / fysisk tavle</small></span><div><label><input id="grid" type="checkbox" checked>Rutenett</label><select id="grid-step" aria-label="Rutenettavstand"><option>1</option><option>2</option><option selected>5</option><option>10</option><option>20</option></select><span>mm</span><label><input id="snap" type="checkbox" checked>Fest</label><button id="zoom-out" aria-label="Zoom ut">−</button><span id="zoom"></span><button id="zoom-in" aria-label="Zoom inn">+</button><button id="fit">Tilpass</button></div></div><div id="viewport"><svg id="canvas" xmlns="http://www.w3.org/2000/svg" tabindex="0" aria-label="Tavle i millimeter"></svg><div id="hint">Velg en stasjon for å redigere · Ctrl+klikk for flervalg · Space for panorering</div></div><footer><span id="coords">X — · Y — mm</span><span id="status" role="status">Klar</span><span id="selection-count"></span></footer></section>
-<aside><section><h2>Tavle <span>01</span></h2><label>Format<select id="preset"><option value="300,400">300 × 400 mm</option><option value="400,400">400 × 400 mm</option><option value="500,700">500 × 700 mm</option><option value="custom">Egendefinert</option></select></label><div class="pair"><label>Bredde, mm<input id="width" type="number" min="20" max="5000"></label><label>Høyde, mm<input id="height" type="number" min="20" max="5000"></label></div><button id="rotate">Bytt stående / liggende</button><p class="note">Endrer tavlekonturen. Objektmål og plasseringer beholdes.</p></section>
-<section id="properties"><h2>Egenskaper <span>02</span></h2><p class="note">Velg en stasjon på tavlen. Du kan flytte den direkte eller angi eksakte mål.</p></section>
-<section><h2>Lag <span>03</span></h2><div class="layer-legend"><span>Vis / lås</span><span>SVG</span></div><div id="layers"></div><p class="note">Eksportvalg er uavhengige av visning. Navn har sitt eget lag.</p></section>
-<section><h2>Hjelpelinjer <span>04</span></h2><div class="pair"><select id="guide-axis" aria-label="Hjelpelinjeretning"><option value="x">Loddrett X</option><option value="y">Vannrett Y</option></select><input id="guide-value" type="number" value="50" min="0" max="5000" aria-label="Hjelpelinje i mm"></div><button id="guide-add">Legg til hjelpelinje</button><button id="guide-clear">Fjern alle</button></section>
-<section class="about"><span class="eyebrow">FRA SKJERM TIL TAVLE</span><p>Alle mål er i millimeter.<br>Referansestudie, ikke geografisk kart.</p><a href="../../docs/board-studio/README.md">Brukerveiledning og begrensninger ↗</a></section></aside></main>
-<input id="file" type="file" accept=".json,application/json" hidden><dialog id="export-dialog"><h2>Eksporter vektorgrafikk</h2><p>SVG i faktisk tavlestørrelse. Valgte eksportlag beholdes som separate grupper.</p><p class="note">Tekst beholdes som redigerbar tekst. Kontroller font og mål i produksjonsverktøyet.</p><div><button id="export-close">Avbryt</button><button id="export-download" class="primary">Last ned SVG</button></div></dialog><script type="module" src="app.mjs"></script></body></html>
+<!doctype html>
+<html lang="nb">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>InTransit · Board Studio</title>
+    <link rel="stylesheet" href="studio.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="../../index.html"
+        >in<span>transit</span><i> / </i><b>Board Studio</b></a
+      ><span class="badge">v0.1 · fysisk design</span>
+      <div class="header-actions">
+        <button id="open">Åpne prosjekt</button
+        ><button id="save">Lagre JSON</button
+        ><button id="export" class="primary">Eksporter SVG ↗</button>
+      </div>
+    </header>
+    <div class="projectbar">
+      <div>
+        <span class="eyebrow">TAVLEPROSJEKT</span
+        ><input id="title" aria-label="Prosjektnavn" />
+      </div>
+      <div class="project-meta">
+        <span id="size-summary"></span><span>Millimeter · vektorgrafikk</span>
+      </div>
+      <button id="new">Ny tavle</button><button id="demo">Gråkallbanen</button>
+    </div>
+    <main>
+      <nav class="tools" aria-label="Verktøy">
+        <button
+          data-tool="select"
+          class="active"
+          title="Velg og flytt (V)"
+          aria-label="Velg og flytt"
+        >
+          ↖</button
+        ><button
+          data-tool="station"
+          title="Legg til stasjon (S)"
+          aria-label="Legg til stasjon"
+        >
+          ⊙</button
+        ><button
+          data-tool="route"
+          title="Koble stasjoner (L)"
+          aria-label="Koble stasjoner"
+        >
+          ⌁</button
+        ><button data-tool="measure" title="Mål i mm (M)" aria-label="Mål i mm">
+          ↔</button
+        ><button
+          data-tool="hand"
+          title="Panorer (H / Space)"
+          aria-label="Panorer"
+        >
+          ✥
+        </button>
+        <hr />
+        <button id="undo" title="Angre (Ctrl+Z)" aria-label="Angre">↶</button
+        ><button id="redo" title="Gjør om (Ctrl+Shift+Z)" aria-label="Gjør om">
+          ↷</button
+        ><button
+          id="delete"
+          title="Slett valgte stasjoner"
+          aria-label="Slett valgte stasjoner"
+        >
+          ×
+        </button>
+      </nav>
+      <section class="workspace">
+        <div class="canvasbar">
+          <span>DESIGN <small> / fysisk tavle</small></span>
+          <div>
+            <label><input id="grid" type="checkbox" checked />Rutenett</label
+            ><select id="grid-step" aria-label="Rutenettavstand">
+              <option>1</option>
+              <option>2</option>
+              <option selected>5</option>
+              <option>10</option>
+              <option>20</option></select
+            ><span>mm</span
+            ><label><input id="snap" type="checkbox" checked />Fest</label
+            ><button id="zoom-out" aria-label="Zoom ut">−</button
+            ><span id="zoom"></span
+            ><button id="zoom-in" aria-label="Zoom inn">+</button
+            ><button id="fit">Tilpass</button>
+          </div>
+        </div>
+        <div id="viewport">
+          <svg
+            id="canvas"
+            xmlns="http://www.w3.org/2000/svg"
+            tabindex="0"
+            aria-label="Tavle i millimeter"
+          ></svg>
+          <div id="hint">
+            Velg en stasjon for å redigere · Ctrl+klikk for flervalg · Space for
+            panorering
+          </div>
+        </div>
+        <footer>
+          <span id="coords">X — · Y — mm</span
+          ><span id="status" role="status">Klar</span
+          ><span id="selection-count"></span>
+        </footer>
+      </section>
+      <aside>
+        <section>
+          <h2>Tavle <span>01</span></h2>
+          <label
+            >Format<select id="preset">
+              <option value="300,400">300 × 400 mm</option>
+              <option value="400,400">400 × 400 mm</option>
+              <option value="500,700">500 × 700 mm</option>
+              <option value="custom">Egendefinert</option>
+            </select></label
+          >
+          <div class="pair">
+            <label
+              >Bredde, mm<input
+                id="width"
+                type="number"
+                min="20"
+                max="5000" /></label
+            ><label
+              >Høyde, mm<input id="height" type="number" min="20" max="5000"
+            /></label>
+          </div>
+          <button id="rotate">Bytt stående / liggende</button>
+          <p class="note">
+            Endrer tavlekonturen. Objektmål og plasseringer beholdes.
+          </p>
+        </section>
+        <section id="properties">
+          <h2>Egenskaper <span>02</span></h2>
+          <p class="note">
+            Velg en stasjon på tavlen. Du kan flytte den direkte eller angi
+            eksakte mål.
+          </p>
+        </section>
+        <section>
+          <h2>Lag <span>03</span></h2>
+          <div class="layer-legend"><span>Vis / lås</span><span>SVG</span></div>
+          <div id="layers"></div>
+          <p class="note">
+            Eksportvalg er uavhengige av visning. Navn har sitt eget lag.
+          </p>
+        </section>
+        <section>
+          <h2>Hjelpelinjer <span>04</span></h2>
+          <div class="pair">
+            <select id="guide-axis" aria-label="Hjelpelinjeretning">
+              <option value="x">Loddrett X</option>
+              <option value="y">Vannrett Y</option></select
+            ><input
+              id="guide-value"
+              type="number"
+              value="50"
+              min="0"
+              max="5000"
+              aria-label="Hjelpelinje i mm"
+            />
+          </div>
+          <button id="guide-add">Legg til hjelpelinje</button
+          ><button id="guide-clear">Fjern alle</button>
+        </section>
+        <section class="about">
+          <span class="eyebrow">FRA SKJERM TIL TAVLE</span>
+          <p>
+            Alle mål er i millimeter.<br />Referansestudie, ikke geografisk
+            kart.
+          </p>
+          <a href="../../docs/board-studio/README.md"
+            >Brukerveiledning og begrensninger ↗</a
+          >
+        </section>
+      </aside>
+    </main>
+    <input id="file" type="file" accept=".json,application/json" hidden />
+    <dialog id="export-dialog">
+      <h2>Eksporter vektorgrafikk</h2>
+      <p>
+        SVG i faktisk tavlestørrelse. Valgte eksportlag beholdes som separate
+        grupper.
+      </p>
+      <p class="note">
+        Tekst beholdes som redigerbar tekst. Kontroller font og mål i
+        produksjonsverktøyet.
+      </p>
+      <div>
+        <button id="export-close">Avbryt</button
+        ><button id="export-download" class="primary">Last ned SVG</button>
+      </div>
+    </dialog>
+    <script type="module" src="app.mjs"></script>
+  </body>
+</html>
