@@ -1,3 +1,4 @@
+import {validateLedLayout,physicalMarkup} from "./led-layout.mjs";
 import { validateParallels, enforceParallels } from "./parallel.mjs";
 import { fromTemplate, STATION_DEFAULTS } from "./stations.mjs";
 import {
@@ -279,7 +280,7 @@ export function parseProject(input) {
     throw Error("Ugyldige hjelpelinjer.");
   if (!p.network || !p.ledLayout || !p.production)
     throw Error("Prosjektet mangler dataområder.");
-  p.version = 3;
+  p.version = 3;validateLedLayout(p);
   initializeGeometry(p);
   p.library??={templates:[]};if(!Array.isArray(p.library.templates)||p.library.templates.length>200)throw Error("Ugyldig symbolbibliotek.");
   for(const s of p.layout.stations){if(!["none","stadium","rounded-box"].includes(s.capsuleType)||!num(s.capsuleExtraWidth,0,100)||!num(s.capsuleExtraHeight,0,100)||typeof s.allowShared!=="boolean"||typeof s.symbolKind!=="string"||!(s.transitionLength===null||num(s.transitionLength,.1,100)))throw Error("Ugyldig symbolstil.");if(s.ringCenters&&(!Array.isArray(s.ringCenters)||s.ringCenters.length!==s.points||s.ringCenters.some(c=>!num(c.x,-5000,10000)||!num(c.y,-5000,10000))))throw Error("Ugyldige grafiske ringsentre.");}
@@ -463,6 +464,7 @@ export const PAINT_ORDER = [
   "guides",
 ];
 export function layerMarkup(p, id) {
+  if(["strips","leds"].includes(id))return physicalMarkup(p,id,esc);
   if (id === "routes") return routeMarkup(p);
   if (["rings", "names", "holes", "capsules"].includes(id))
     return (

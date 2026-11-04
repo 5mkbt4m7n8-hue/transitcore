@@ -1,3 +1,4 @@
+import {newProfile,newSegment,ledPositions,validateLedLayout} from "./led-layout.mjs";
 import {CATEGORIES,builtInSymbols,symbolBundle,importSymbolBundle,applyVisualStyle} from "./symbols.mjs";
 import { stationTemplate, fromTemplate } from "./stations.mjs";
 import {
@@ -45,7 +46,7 @@ let selected = [],
   space = false,
   measure = null,
   routeStart = null,
-  selectedRoute = null,
+  selectedRoute = null,selectedProfile=null,selectedSegment=null,pendingStrip=null,
   clipboard = null,
   pendingStation = null,
   routeMoveEnabled = false,
@@ -668,7 +669,7 @@ function render() {
     ? "Egen stasjonsmal"
     : "Standard enkeltstasjon";
   properties();
-  renderLibrary();draw();
+  renderPhysical();renderLibrary();draw();
 }
 function safe(fn) {
   try {
@@ -730,6 +731,8 @@ canvas.onpointerdown = (e) => {
     });
     return;
   }
+  if(pendingStrip&&e.button===0){const pt=snapped(a),s={...pendingStrip,x:pt.x,y:pt.y};pendingStrip=null;selectedSegment=s.id;mutate(q=>{q.ledLayout.segments.push(s);q.layers.strips.visible=true;q.layers.leds.visible=true;});setTool('select');return;}
+  const segmentTarget=e.target.closest('[data-segment]');if(segmentTarget&&tool==='select'){selected=[];selectedRoute=null;selectedSegment=segmentTarget.dataset.segment;const seg=p.ledLayout.segments.find(s=>s.id===selectedSegment);if(!seg)return;selectedProfile=seg.profileId;$('led-panel').hidden=false;renderPhysical();if(p.layers.strips.locked||p.layers.leds.locked){message('LED-layouten er låst');return;}gesture={kind:'segment',id:seg.id,start:a,base:copy(p)};return;}
   const handle = e.target.closest("[data-handle]");
   if (handle) {
     const r = p.layout.routes.find((r) => r.id === handle.dataset.controlRoute);
@@ -913,6 +916,8 @@ canvas.onpointermove = (e) => {
       g.preview = previewParallel(q, g);
       draw(g.preview);
     });
+  } else if(g.kind==='segment'){
+    const q=copy(g.base),s=q.ledLayout.segments.find(s=>s.id===g.id),old=g.base.ledLayout.segments.find(s=>s.id===g.id),pt2=snapped({x:old.x+pt.x-g.start.x,y:old.y+pt.y-g.start.y},g.base);s.x=pt2.x;s.y=pt2.y;g.preview=q;draw(q);
   } else if (g.kind === "curve") {
     const q = copy(g.base),
       r = q.layout.routes.find((r) => r.id === g.routeId);
@@ -1176,6 +1181,7 @@ for (const [id, demo] of [
     fit();
   };
 document.onkeydown = (e) => {
+  if(e.key==="Escape"&&pendingStrip){pendingStrip=null;draw();message("Segmentplassering avbrutt");return;}
   if (e.key === "Escape" && pendingStation) {
     e.preventDefault();
     pendingStation = null;
@@ -1306,3 +1312,16 @@ function renderLibrary(){if($('symbol-library').hidden)return;const category=$('
 $('library-toggle').onclick=()=>{$('symbol-library').hidden=!$('symbol-library').hidden;renderLibrary();};$('library-close').onclick=()=>$('symbol-library').hidden=true;$('library-category').onchange=renderLibrary;
 $('library-save').onclick=()=>safe(()=>{const s=project().layout.stations.find(s=>s.id===selected[0]);if(!s)throw Error('Velg stasjonen som skal lagres som symbolmal.');const name=$('library-name').value.trim();if(!name)throw Error('Gi symbolmalen et navn.');mutate(q=>q.library.templates.push({id:crypto.randomUUID(),name,category:$('library-save-category').value,template:stationTemplate(q,s)}));});
 $('library-export').onclick=()=>download(JSON.stringify(symbolBundle(project().library.templates),null,2),'intransit-symboler.json','application/json');$('library-import').onclick=()=>$('library-file').click();$('library-file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{if(f.size>2_000_000)throw Error('Symbolfilen er for stor.');const records=importSymbolBundle(await f.text()),q=copy(project());q.library.templates.push(...records);const valid=parseProject(q);for(const r of valid.library.templates){const s=fromTemplate(r.template,{x:0,y:0},'import-preview');r.template=stationTemplate({...valid,layout:{...valid.layout,stations:[s],routes:[]}},s);}commit(valid);}catch(err){message(err.message);}};
+
+const numeric=(id)=>+$(id).value;
+function physicalLocked(){return project().layers.strips.locked||project().layers.leds.locked;}
+function readSegment(){const p=project(),profile=p.ledLayout.profiles.find(r=>r.id===selectedProfile);if(!profile)throw Error('Opprett en stripeprofil først.');const old=p.ledLayout.segments.find(s=>s.id===selectedSegment),s=old?copy(old):newSegment(p,profile.id);Object.assign(s,{profileId:profile.id,name:$('seg-name').value,x:numeric('seg-x'),y:numeric('seg-y'),angle:numeric('seg-angle'),count:numeric('seg-count'),length:numeric('seg-length'),startIndex:numeric('seg-index'),controllerId:$('seg-controller').value,chainId:$('seg-chain').value,direction:numeric('seg-direction'),mounting:$('seg-mount').value,cutPoints:$('seg-cuts').value.trim()?$('seg-cuts').value.split(',').map(Number):[],splices:JSON.parse($('seg-splices').value||'[]')});return s;}
+function renderPhysical(){if($('led-panel').hidden)return;const p=project();if(!p.ledLayout.profiles.some(r=>r.id===selectedProfile))selectedProfile=p.ledLayout.profiles[0]?.id??null;const r=p.ledLayout.profiles.find(r=>r.id===selectedProfile),s=p.ledLayout.segments.find(s=>s.id===selectedSegment);$('led-profile').innerHTML=p.ledLayout.profiles.map(r=>`<option value="${esc(r.id)}">${esc(r.name)}</option>`).join('');$('led-profile').value=selectedProfile??'';const editor=$('led-editor');if(!r){editor.innerHTML='<p class="note">Opprett WS2812B-profilen for å starte.</p>';return;}
+ const draft=s??newSegment(p,r.id);editor.innerHTML=`<details><summary>Stripeprofil · mål i mm</summary>${field('profile-name','Profilnavn',r.name,'text')}${field('profile-type','LED-type',r.ledType,'text')}<div class="pair">${field('profile-width','Stripebredde',r.width)}${field('profile-pitch','Faktisk LED-pitch',r.pitch,'number','step="0.01"')}</div><div class="pair">${field('profile-nominal','Nominell pitch',r.nominalPitch)}${field('profile-offset','Første LED fra ende',r.firstOffset)}</div><div class="pair">${field('profile-count','Antall LED på stripe',r.count)}${field('profile-length','Hele stripens lengde',r.length)}</div><button id="profile-save">Oppdater profil</button></details><hr><label>Segment<select id="led-segment"><option value="">Ny kladd</option>${p.ledLayout.segments.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('')}</select></label>${field('seg-name','Segmentnavn',draft.name,'text')}<div class="pair">${field('seg-x','Start X, mm',draft.x)}${field('seg-y','Start Y, mm',draft.y)}</div><div class="pair">${field('seg-angle','Rotasjon, °',draft.angle)}${field('seg-count','Antall LED',draft.count)}</div><div class="pair">${field('seg-length','Segmentlengde, mm',draft.length)}${field('seg-index','Startindeks',draft.startIndex)}</div><div class="pair">${field('seg-controller','Kontrolleridentitet',draft.controllerId,'text')}${field('seg-chain','Kjedeidentitet',draft.chainId,'text')}</div><div class="pair"><label>Indeksering<select id="seg-direction"><option value="1">Fremover →</option><option value="-1">Bakover ←</option></select></label><label>Montering<select id="seg-mount"><option value="back">Bakside</option><option value="front">Forside</option></select></label></div>${field('seg-cuts','Kutt etter lokale LED-posisjoner (komma)',draft.cutPoints.join(','),'text')}${field('seg-splices','Skjøter: JSON [{atMm,note}]',JSON.stringify(draft.splices),'text')}<div class="pair"><button id="segment-save">${s?'Oppdater segment':'Opprett segment'}</button><button id="segment-place">Plasser med mus</button></div><button id="segment-delete">Slett valgt segment</button>${s?`<table class="led-coordinates"><thead><tr><th>Indeks</th><th>X mm</th><th>Y mm</th></tr></thead><tbody>${ledPositions(p,s).map(l=>`<tr data-coordinate-led="${esc(l.id)}"><td>${l.index}</td><td title="${l.x}">${l.x.toFixed(4)}</td><td title="${l.y}">${l.y.toFixed(4)}</td></tr>`).join('')}</tbody></table>`:''}`;
+ $('led-segment').value=s?.id??'';$('led-segment').onchange=e=>{selectedSegment=e.target.value||null;const selected=p.ledLayout.segments.find(s=>s.id===selectedSegment);if(selected)selectedProfile=selected.profileId;renderPhysical();};$('seg-direction').value=draft.direction;$('seg-mount').value=draft.mounting;
+ $('profile-save').onclick=()=>safe(()=>{if(physicalLocked())throw Error('LED-layouten er låst.');mutate(q=>Object.assign(q.ledLayout.profiles.find(t=>t.id===r.id),{name:$('profile-name').value,ledType:$('profile-type').value,width:numeric('profile-width'),pitch:numeric('profile-pitch'),nominalPitch:numeric('profile-nominal'),firstOffset:numeric('profile-offset'),count:numeric('profile-count'),length:numeric('profile-length')}));});
+ $('segment-save').onclick=()=>safe(()=>{if(physicalLocked())throw Error('LED-layouten er låst.');const proposed=readSegment();selectedSegment=proposed.id;mutate(q=>{const i=q.ledLayout.segments.findIndex(s=>s.id===proposed.id);if(i<0)q.ledLayout.segments.push(proposed);else q.ledLayout.segments[i]=proposed;q.layers.strips.visible=true;q.layers.leds.visible=true;});});
+ $('segment-place').onclick=()=>safe(()=>{if(physicalLocked())throw Error('LED-layouten er låst.');const draft=readSegment();draft.id=crypto.randomUUID();pendingStrip=draft;$('led-panel').hidden=true;canvas.focus();message('Klikk på tavlen for segmentets startpunkt · Escape avbryter');});
+ $('segment-delete').disabled=!s;$('segment-delete').onclick=()=>safe(()=>{if(physicalLocked())throw Error('LED-layouten er låst.');mutate(q=>q.ledLayout.segments=q.ledLayout.segments.filter(t=>t.id!==s.id));selectedSegment=null;});
+}
+$('led-toggle').onclick=()=>{$('led-panel').hidden=!$('led-panel').hidden;$('symbol-library').hidden=true;renderPhysical();};$('led-close').onclick=()=>$('led-panel').hidden=true;$('led-profile').onchange=e=>{selectedProfile=e.target.value;selectedSegment=null;renderPhysical();};$('led-add-profile').onclick=()=>safe(()=>{const r=newProfile();selectedProfile=r.id;mutate(q=>q.ledLayout.profiles.push(r));});$('led-new-segment').onclick=()=>{selectedSegment=null;renderPhysical();};
