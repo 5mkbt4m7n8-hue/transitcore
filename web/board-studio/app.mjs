@@ -1,3 +1,11 @@
+import { stationTemplate, fromTemplate } from "./stations.mjs";
+import {
+  parallelCandidate,
+  applyParallel,
+  enforceParallels,
+  translateRoute,
+  segmentPoints,
+} from "./parallel.mjs";
 import { gridSpec, snapPoint } from "./editing.mjs";
 import { geometryFixture } from "./fixtures.mjs";
 import {
@@ -15,6 +23,7 @@ import {
   LAYERS,
   esc,
   layerMarkup,
+  stationMarkup,
   svg,
   moveStations,
   PAINT_ORDER,
@@ -36,6 +45,9 @@ let selected = [],
   measure = null,
   routeStart = null,
   selectedRoute = null,
+  clipboard = null,
+  pendingStation = null,
+  routeMoveEnabled = false,
   selectedEdge = 0,
   smartGuides = [];
 const project = () => history.value;
@@ -128,7 +140,7 @@ function draw(p = project()) {
       : "";
   const route = p.layout.routes.find((r) => r.id === selectedRoute);
   let controls = "";
-  if (route && p.layers.routes.visible) {
+  if (route && p.layers.routes.visible && !routeMoveEnabled) {
     selectedEdge = Math.min(selectedEdge, route.stationIds.length - 2);
     const g = edgeGeometry(p, route, selectedEdge);
     if (g.curves?.length) {
@@ -137,14 +149,20 @@ function draw(p = project()) {
         bend =
           route.bends[selectedEdge] ??
           g.center[Math.floor(g.center.length / 2)];
-      controls = `<g class="curve-controls"><path d="${g.center.map((pt, i) => `${i ? "L" : "M"} ${pt.x} ${pt.y}`).join(" ")}" fill="none" stroke="${g.adjusted ? "#c28427" : "#537f91"}" stroke-width="${1 / zoom}" stroke-dasharray="${4 / zoom} ${3 / zoom}"/><path d="M ${c.start.x} ${c.start.y} L ${c.c1.x} ${c.c1.y} M ${last.end.x} ${last.end.y} L ${last.c2.x} ${last.c2.y}" stroke="#6896a1" stroke-width="${1 / zoom}"/>${[
+      const shape = route.controls[selectedEdge]?.shape;
+      controls = `<g class="curve-controls"><path d="${g.center.map((pt, i) => `${i ? "L" : "M"} ${pt.x} ${pt.y}`).join(" ")}" fill="none" stroke="${g.adjusted ? "#c28427" : "#537f91"}" stroke-width="${1 / zoom}" stroke-dasharray="${4 / zoom} ${3 / zoom}"/><path d="M ${c.start.x} ${c.start.y} L ${c.c1.x} ${c.c1.y} M ${last.end.x} ${last.end.y} L ${last.c2.x} ${last.c2.y}" stroke="#6896a1" stroke-width="${1 / zoom}"/>${shape ? `<path d="M ${c.c2.x} ${c.c2.y} L ${g.curves[1].c1.x} ${g.curves[1].c1.y}" stroke="#9664a5" stroke-width="${1 / zoom}"/>` : ""}${[
         ["start", c.c1],
         ["end", last.c2],
-        ["bend", bend],
+        ...(shape
+          ? [
+              ["form", shape],
+              ["shape-tangent", g.curves[1].c1],
+            ]
+          : [["bend", bend]]),
       ]
         .map(
           ([kind, pt]) =>
-            `<circle data-handle="${kind}" data-control-route="${esc(route.id)}" cx="${pt.x}" cy="${pt.y}" r="${5 / zoom}" fill="${kind === "bend" ? "#f9e2a3" : "white"}" stroke="#386b7a" stroke-width="${1.5 / zoom}"/>`,
+            `<circle data-handle="${kind}" data-control-route="${esc(route.id)}" cx="${pt.x}" cy="${pt.y}" r="${5 / zoom}" fill="${kind === "bend" ? "#f9e2a3" : kind === "form" ? "#d8c2e7" : "white"}" stroke="#386b7a" stroke-width="${1.5 / zoom}"/>`,
         )
         .join(
           "",
@@ -198,7 +216,7 @@ function draw(p = project()) {
     .map((id) => `<g data-layer="${id}">${layerMarkup(p, id)}</g>`)
     .join(
       "",
-    )}${marks}${overlay}${controls}</g><g pointer-events="none">${rulers}</g>`;
+    )}${marks}${overlay}${controls}${pendingStation?.point ? `<g class="placement-preview" pointer-events="none" opacity=".6">${["capsules", "rings", "names", ...(p.layers.holes.visible ? ["holes"] : [])].map((layer) => stationMarkup(fromTemplate(pendingStation.template, pendingStation.point, pendingStation.id), layer, p)).join("")}</g>` : ""}</g><g pointer-events="none">${rulers}</g>`;
   for (const routeLayer of canvas.querySelectorAll(
     "[data-layer=routes],[data-layer=capsules]",
   ))
@@ -213,6 +231,77 @@ function draw(p = project()) {
 }
 const field = (id, label, value, type = "number", attrs = "") =>
   `<label>${label}<input id="${id}" type="${type}" value="${esc(value)}" ${attrs}></label>`;
+function defaultTemplate() {
+  const p = createProject(),
+    t = stationTemplate(p, p.layout.stations[0]);
+  t.appearance.symbolAngle = null;
+  t.label.dx = 9;
+  t.label.dy = 0;
+  t.label.anchor = "start";
+  t.holeOffsets = [{ x: 0, y: 0 }];
+  return t;
+}
+function stationLocks() {
+  return ["rings", "holes", "capsules", "names", "routes"].some(
+    (id) => project().layers[id].locked,
+  );
+}
+function startDuplicate() {
+  const s = project().layout.stations.find((s) => s.id === selected[0]);
+  if (!s) return;
+  clipboard = stationTemplate(project(), s);
+  beginPaste();
+}
+function beginPaste() {
+  if (!clipboard) return;
+  if (stationLocks()) {
+    message("Lås opp berørte lag før plassering");
+    return;
+  }
+  pendingStation = {
+    template: copy(clipboard),
+    point: null,
+    id: crypto.randomUUID(),
+  };
+  selectedRoute = null;
+  setTool("select");
+  canvas.focus();
+  message("Plasser kopien med et klikk · Escape avbryter");
+  draw();
+}
+function previewParallel(q, g) {
+  const candidate = parallelCandidate(
+    q,
+    g.routeId,
+    g.edge,
+    +$("parallel-distance").value,
+    zoom,
+  );
+  if (candidate) {
+    smartGuides.push(candidate.guide, {
+      kind: "parallel-offset-line",
+      a: candidate.line.a,
+      b: candidate.line.b,
+      label: "Beregnet parallellplassering",
+    });
+    if ($("snap").checked) {
+      applyParallel(q, candidate);
+      if ($("parallel-lock").checked) {
+        q.layout.parallelConstraints = (
+          q.layout.parallelConstraints ?? []
+        ).filter((c) => c.follower.routeId !== g.routeId);
+        q.layout.parallelConstraints.push({
+          id: candidate.id,
+          reference: candidate.reference,
+          follower: candidate.follower,
+          distance: candidate.distance,
+        });
+      }
+    }
+  }
+  enforceParallels(q);
+  return q;
+}
 function properties() {
   const p = project(),
     s = p.layout.stations.find((s) => s.id === selected[0]),
@@ -223,10 +312,16 @@ function properties() {
   }
   if (!s) {
     panel.innerHTML =
-      '<h2>Egenskaper <span>02</span></h2><p class="note">Velg en stasjon på tavlen for presis plassering. S legger til en stasjon, L kobler stasjoner.</p>';
+      '<h2>Egenskaper <span>02</span></h2><p class="note">Velg en stasjon på tavlen for presis plassering. S legger til en stasjon, L kobler stasjoner.</p><button id="reset-template">Standard enkeltstasjon</button>';
+    $("reset-template").onclick = () =>
+      mutate((q) => (q.stationTemplate = null));
     return;
   }
-  panel.innerHTML = `<h2>${selected.length > 1 ? selected.length + " stasjoner" : "Stasjon"} <span>02</span></h2>${field("station-name", "Navn", s.name, "text")}<div class="pair">${field("station-x", "X, mm", s.x, "number", 'step="0.1"')}${field("station-y", "Y, mm", s.y, "number", 'step="0.1"')}</div><div class="pair">${field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"')}${field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("hole-diameter", "Hull Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}</div><h2>Symbol og kapsel</h2><div class="pair">${field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"')}${field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"')}${field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"')}</div><div class="pair">${field("symbol-angle", "Vinkel, ° (tom = auto)", s.symbolAngle ?? "", "number", 'min="-360" max="360"')}${field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias, "number", 'min="-0.5" max="0.5" step="0.1"')}</div><div class="pair"><label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>${field("symbol-color", "Ringfarge", s.ringColor, "color")}</div><button id="align-holes">Tilpass hull til symbolet</button><p class="note">Grafisk rotasjon flytter ikke fysiske hull. Tilpass hull eksplisitt ved behov.</p><h2>Stasjonsnavn</h2><div class="pair">${field("label-dx", "Forskyvning X, mm", s.label.dx)}${field("label-dy", "Forskyvning Y, mm", s.label.dy)}</div><div class="pair">${field("label-angle", "Rotasjon, °", s.label.angle)}${field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'step="0.1" min="0.1"')}</div><div class="pair">${field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"')}<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label></div><label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label><p class="note">${selected.length > 1 ? "X/Y flytter hele utvalget. Andre felt endrer første stasjon." : "Navn og ring er uavhengige av hulldiameteren."}</p>`;
+  panel.innerHTML = `<h2>${selected.length > 1 ? selected.length + " stasjoner" : "Stasjon"} <span>02</span></h2><div class="station-actions"><button id="duplicate-station">Dupliser stasjon</button><button id="set-template">Bruk som standardstasjon</button><button id="reset-template">Standard enkeltstasjon</button></div>${field("station-name", "Navn", s.name, "text")}<div class="pair">${field("station-x", "X, mm", s.x, "number", 'step="0.1"')}${field("station-y", "Y, mm", s.y, "number", 'step="0.1"')}</div><div class="pair">${field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"')}${field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("hole-diameter", "Hull Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}</div><h2>Symbol og kapsel</h2><div class="pair">${field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"')}${field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"')}${field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"')}</div><div class="pair">${field("symbol-angle", "Vinkel, ° (tom = auto)", s.symbolAngle ?? "", "number", 'min="-360" max="360"')}${field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias, "number", 'min="-0.5" max="0.5" step="0.1"')}</div><div class="pair"><label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>${field("symbol-color", "Ringfarge", s.ringColor, "color")}</div><button id="align-holes">Tilpass hull til symbolet</button><p class="note">Grafisk rotasjon flytter ikke fysiske hull. Tilpass hull eksplisitt ved behov.</p><h2>Stasjonsnavn</h2><div class="pair">${field("label-dx", "Forskyvning X, mm", s.label.dx)}${field("label-dy", "Forskyvning Y, mm", s.label.dy)}</div><div class="pair">${field("label-angle", "Rotasjon, °", s.label.angle)}${field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'step="0.1" min="0.1"')}</div><div class="pair">${field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"')}<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label></div><label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label><p class="note">${selected.length > 1 ? "X/Y flytter hele utvalget. Andre felt endrer første stasjon." : "Navn og ring er uavhengige av hulldiameteren."}</p>`;
+  $("duplicate-station").onclick = startDuplicate;
+  $("set-template").onclick = () =>
+    mutate((q) => (q.stationTemplate = stationTemplate(q, s)));
+  $("reset-template").onclick = () => mutate((q) => (q.stationTemplate = null));
   const physical = holeCenters(p, s),
     graphic = symbolCenters(p, s),
     mismatch =
@@ -353,12 +448,15 @@ function routeProperties() {
     selectedRoute = null;
     return properties();
   }
+  const parallelBinding = p.layout.parallelConstraints.find(
+    (c) => c.follower.routeId === r.id,
+  );
   const warnings = Array.from(
     { length: r.stationIds.length - 1 },
     (_, i) => edgeGeometry(p, r, i).warnings,
   ).flat();
   const panel = $("properties");
-  panel.innerHTML = `<h2>Trasé <span>02</span></h2>${warnings.length ? `<p class="warning">${esc([...new Set(warnings)].join(". "))}</p>` : ""}<label>Grafisk sporantall<select id="route-tracks"><option value="1">Enkeltspor</option><option value="2">Dobbeltspor</option></select></label><div class="pair">${field("route-spacing", "Sporavstand, mm", r.trackSpacing)}${field("route-stroke", "Linjebredde, mm", r.stroke, "number", 'step="0.01"')}</div><div class="pair">${field("route-length", "Overgangslengde, mm", r.transitionLength)}${field("route-tension", "Kurveform (0,05–0,95)", r.tension, "number", 'step="0.05"')}</div><label>Delstrekning<select id="route-edge">${r.stationIds
+  panel.innerHTML = `<h2>Trasé <span>02</span></h2>${warnings.length ? `<p class="warning">${esc([...new Set(warnings)].join(". "))}</p>` : ""}${parallelBinding ? `<p class="note">Låst parallellavstand: ${Math.abs(parallelBinding.distance).toFixed(2)} mm. Bruk «Frigi parallellavstand» for fri flytting.</p>` : ""}<div class="station-actions"><button id="move-route" aria-pressed="${routeMoveEnabled}">Flytt trasé</button><button id="free-shape">Fri kurveform</button><button id="reset-shape">Automatisk kurveform</button><button id="parallel-release">Frigi parallellavstand</button></div><label>Grafisk sporantall<select id="route-tracks"><option value="1">Enkeltspor</option><option value="2">Dobbeltspor</option></select></label><div class="pair">${field("route-spacing", "Sporavstand, mm", r.trackSpacing)}${field("route-stroke", "Linjebredde, mm", r.stroke, "number", 'step="0.01"')}</div><div class="pair">${field("route-length", "Overgangslengde, mm", r.transitionLength)}${field("route-tension", "Kurveform (0,05–0,95)", r.tension, "number", 'step="0.05"')}</div><label>Delstrekning<select id="route-edge">${r.stationIds
     .slice(0, -1)
     .map(
       (id, i) =>
@@ -367,6 +465,52 @@ function routeProperties() {
     .join(
       "",
     )}</select></label><div class="pair">${field("bend-x", "Knekkpunkt X, mm", "")}${field("bend-y", "Knekkpunkt Y, mm", "")}</div><div class="pair">${field("route-radius", "Min. kurveradius, mm", r.cornerRadius)}<button id="bend-save">Sett knekkpunkt</button></div><div class="pair">${field("control-start", "Starthåndtak, mm", r.controls[selectedEdge]?.startReach ?? edgeGeometry(p, r, selectedEdge).effectiveReach?.start ?? 12)}${field("control-end", "Slutthåndtak, mm", r.controls[selectedEdge]?.endReach ?? edgeGeometry(p, r, selectedEdge).effectiveReach?.end ?? 12)}</div>${field("route-grow", "Tillatt automatisk utvidelse, mm", r.autoGrow, "number", 'min="0" max="48"')}<button id="bend-clear">Rett delstrekning</button><button id="edge-track">Skill ut delstrekning</button><p class="note">Velg en trasélinje på tavlen. Stasjonssymboler har eget punktantall. Radius gjelder knekkpunktet, med geometrisk parallelle spor. For kort strekning begrenser radiusen.</p>`;
+  $("move-route").onclick = () => {
+    routeMoveEnabled = !routeMoveEnabled;
+    $("move-route").setAttribute("aria-pressed", routeMoveEnabled);
+    canvas.focus();
+    message(
+      "Dra den markerte traséen. Parallellsnapping følger avstanden i verktøylinjen.",
+    );
+    draw();
+  };
+  $("free-shape").onclick = () => {
+    if (p.layers.routes.locked || p.layers.capsules.locked) return;
+    const g = edgeGeometry(p, r, selectedEdge),
+      mid = g.center[Math.floor(g.center.length / 2)];
+    mutate(
+      (q) =>
+        (q.layout.routes.find((t) => t.id === r.id).controls[selectedEdge] = {
+          ...r.controls[selectedEdge],
+          startReach: g.effectiveReach.start,
+          endReach: g.effectiveReach.end,
+          shape: { x: mid.x, y: mid.y },
+        }),
+    );
+  };
+  $("reset-shape").onclick = () => {
+    if (p.layers.routes.locked || p.layers.capsules.locked) return;
+    mutate((q) => {
+      const c = q.layout.routes.find((t) => t.id === r.id).controls[
+        selectedEdge
+      ];
+      if (c) {
+        delete c.shape;
+        delete c.shapeAngle;
+        delete c.shapeReach;
+      }
+    });
+  };
+  $("parallel-release").disabled = !(p.layout.parallelConstraints ?? []).some(
+    (c) => c.follower.routeId === r.id,
+  );
+  $("parallel-release").onclick = () =>
+    mutate(
+      (q) =>
+        (q.layout.parallelConstraints = q.layout.parallelConstraints.filter(
+          (c) => c.follower.routeId !== r.id,
+        )),
+    );
   $("route-tracks").value = r.tracks;
   const map = {
     "route-tracks": "tracks",
@@ -463,6 +607,10 @@ function routeProperties() {
         parts.push(part);
         if (i === edge) selectedRoute = part.id;
       }
+      for (const c of q.layout.parallelConstraints)
+        for (const key of ["reference", "follower"])
+          if (c[key].routeId === r.id)
+            c[key] = { ...c[key], routeId: parts[c[key].edge].id, edge: 0 };
       q.layout.routes.splice(index, 1, ...parts);
     });
     message("Delstrekning valgt · endre sporantall");
@@ -521,6 +669,9 @@ function render() {
         message(`Lag: ${LAYERS.find(([x]) => x === id)[1]}`);
       }),
   );
+  $("template-status").textContent = p.stationTemplate
+    ? "Egen stasjonsmal"
+    : "Standard enkeltstasjon";
   properties();
   draw();
 }
@@ -533,6 +684,7 @@ function safe(fn) {
   }
 }
 function setTool(next) {
+  if (next !== "select") pendingStation = null;
   tool = next;
   routeStart = null;
   document
@@ -559,6 +711,30 @@ canvas.onpointerdown = (e) => {
     target = e.target.closest("[data-station],[data-label]"),
     id = target?.dataset.station || target?.dataset.label,
     p = project();
+  if (pendingStation && e.button === 0) {
+    if (stationLocks()) {
+      message("Lås opp berørte lag før plassering");
+      return;
+    }
+    const pt = snapped(a);
+    if (pt.x < 0 || pt.y < 0 || pt.x > p.board.width || pt.y > p.board.height)
+      return;
+    const station = fromTemplate(
+      pendingStation.template,
+      pt,
+      pendingStation.id,
+    );
+    pendingStation = null;
+    selected = [station.id];
+    commit({
+      ...copy(p),
+      layout: {
+        ...copy(p.layout),
+        stations: [...copy(p.layout.stations), station],
+      },
+    });
+    return;
+  }
   const handle = e.target.closest("[data-handle]");
   if (handle) {
     const r = p.layout.routes.find((r) => r.id === handle.dataset.controlRoute);
@@ -603,15 +779,7 @@ canvas.onpointerdown = (e) => {
     const pt = snapped(a);
     if (pt.x < 0 || pt.y < 0 || pt.x > p.board.width || pt.y > p.board.height)
       return;
-    const s = copy(createProject().layout.stations[0]);
-    s.id = crypto.randomUUID();
-    s.name = "Ny stasjon";
-    s.x = pt.x;
-    s.y = pt.y;
-    s.holes = [{ id: `${s.id}:hole:0`, x: s.x, y: s.y }];
-    s.label.dx = 9;
-    s.label.dy = 0;
-    s.label.anchor = "start";
+    const s = fromTemplate(p.stationTemplate ?? defaultTemplate(), pt);
     selected = [s.id];
     mutate((q) => q.layout.stations.push(s));
     return;
@@ -641,7 +809,27 @@ canvas.onpointerdown = (e) => {
   }
   if (tool !== "select") return;
   const routeTarget = e.target.closest("[data-route]");
+  if (
+    routeTarget &&
+    !id &&
+    (routeMoveEnabled || e.altKey) &&
+    selectedRoute === routeTarget.dataset.route
+  ) {
+    if (stationLocks()) {
+      message("Lås opp berørte lag før traséflytting");
+      return;
+    }
+    gesture = {
+      kind: "route-move",
+      routeId: selectedRoute,
+      edge: +(routeTarget.dataset.edge ?? 0),
+      start: a,
+      base: copy(p),
+    };
+    return;
+  }
   if (routeTarget && !id) {
+    routeMoveEnabled = false;
     selected = [];
     selectedRoute = routeTarget.dataset.route;
     selectedEdge = +(routeTarget.dataset.edge ?? 0);
@@ -687,6 +875,11 @@ canvas.onpointerdown = (e) => {
 canvas.onpointermove = (e) => {
   const pt = xy(e);
   $("coords").textContent = `X ${pt.x.toFixed(2)} · Y ${pt.y.toFixed(2)} mm`;
+  if (pendingStation) {
+    pendingStation.point = snapped(pt);
+    draw();
+    return;
+  }
   if (!gesture) return;
   const g = gesture;
   if (g.kind === "pan") {
@@ -708,13 +901,41 @@ canvas.onpointermove = (e) => {
         g.base,
         { x: s.x, y: s.y },
       );
-    g.preview = moveStations(g.base, selected, end.x - s.x, end.y - s.y);
+    g.preview = enforceParallels(
+      moveStations(g.base, selected, end.x - s.x, end.y - s.y),
+    );
     g.moved = true;
     draw(g.preview);
+  } else if (g.kind === "route-move") {
+    smartGuides = [];
+    const q = translateRoute(
+      copy(g.base),
+      g.routeId,
+      pt.x - g.start.x,
+      pt.y - g.start.y,
+    );
+    safe(() => {
+      g.preview = previewParallel(q, g);
+      draw(g.preview);
+    });
   } else if (g.kind === "curve") {
     const q = copy(g.base),
       r = q.layout.routes.find((r) => r.id === g.routeId);
-    if (g.handle === "bend")
+    if (g.handle === "form" || g.handle === "shape-tangent") {
+      const c = {
+        startReach: g.geometry.effectiveReach.start,
+        endReach: g.geometry.effectiveReach.end,
+        ...r.controls[g.edge],
+      };
+      if (g.handle === "form") c.shape = snapped(pt, g.base);
+      else {
+        const dx = pt.x - c.shape.x,
+          dy = pt.y - c.shape.y;
+        c.shapeAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
+        c.shapeReach = Math.max(0.1, Math.min(5000, Math.hypot(dx, dy)));
+      }
+      r.controls[g.edge] = c;
+    } else if (g.handle === "bend")
       r.bends[g.edge] = snapped(
         pt,
         g.base,
@@ -747,8 +968,15 @@ canvas.onpointermove = (e) => {
         [g.handle === "start" ? "startReach" : "endReach"]: reach,
       };
     }
-    g.preview = q;
-    draw(q);
+    try {
+      g.preview =
+        g.handle === "bend" ? previewParallel(q, g) : enforceParallels(q);
+      draw(g.preview);
+    } catch (err) {
+      g.preview = null;
+      message(err.message);
+      draw(g.base);
+    }
   } else if (g.kind === "label") {
     const q = copy(g.base),
       s = q.layout.stations.find((s) => s.id === g.id);
@@ -832,6 +1060,14 @@ $("delete").onclick = () => {
     return;
   }
   mutate((p) => {
+    const changedRoutes = p.layout.routes
+      .filter((r) => r.stationIds.some((id) => selected.includes(id)))
+      .map((r) => r.id);
+    p.layout.parallelConstraints = p.layout.parallelConstraints.filter(
+      (c) =>
+        !changedRoutes.includes(c.reference.routeId) &&
+        !changedRoutes.includes(c.follower.routeId),
+    );
     p.layout.stations = p.layout.stations.filter(
       (s) => !selected.includes(s.id),
     );
@@ -915,6 +1151,8 @@ $("file").onchange = async (e) => {
     const p = parseProject(await file.text());
     selected = [];
     selectedRoute = null;
+    pendingStation = null;
+    setTool("select");
     commit(p);
     fit();
   } catch (err) {
@@ -937,20 +1175,37 @@ for (const [id, demo] of [
     selected = [];
     selectedRoute = null;
     measure = null;
+    pendingStation = null;
+    setTool("select");
     commit(createProject(demo));
     fit();
   };
 document.onkeydown = (e) => {
-  if (e.target.closest("input,select,textarea,dialog")) return;
+  if (e.key === "Escape" && pendingStation) {
+    e.preventDefault();
+    pendingStation = null;
+    draw();
+    message("Plassering avbrutt");
+    return;
+  }
+  if (
+    e.target.closest(
+      "input,select,textarea,dialog,[contenteditable]:not([contenteditable=false])",
+    )
+  )
+    return;
   if (e.code === "Space") {
     e.preventDefault();
     space = true;
     return;
   }
   if (e.key === "Escape") {
+    pendingStation = null;
+    $("station-menu").hidden = true;
     finishGesture(true);
     routeStart = null;
     setTool("select");
+    draw();
   }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
     e.preventDefault();
@@ -960,6 +1215,22 @@ document.onkeydown = (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
     e.preventDefault();
     $(e.shiftKey ? "redo" : "undo").click();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+    const s = project().layout.stations.find((s) => s.id === selected[0]);
+    if (s) {
+      e.preventDefault();
+      clipboard = stationTemplate(project(), s);
+      message("Stasjonens utseende kopiert");
+    }
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+    if (clipboard) {
+      e.preventDefault();
+      beginPaste();
+    }
     return;
   }
   if (e.ctrlKey || e.metaKey) return;
@@ -1008,6 +1279,29 @@ $("fixture").onclick = () => {
   selectedRoute = null;
   selectedEdge = 0;
   measure = null;
+  pendingStation = null;
+  setTool("select");
   commit(geometryFixture());
   fit();
 };
+
+canvas.oncontextmenu = (e) => {
+  const el = e.target.closest("[data-station],[data-label]");
+  if (!el) return;
+  e.preventDefault();
+  selected = [el.dataset.station ?? el.dataset.label];
+  selectedRoute = null;
+  render();
+  const menu = $("station-menu");
+  menu.hidden = false;
+  menu.style.left = Math.min(e.clientX, innerWidth - 200) + "px";
+  menu.style.top = Math.min(e.clientY, innerHeight - 55) + "px";
+  $("context-duplicate").focus();
+};
+$("context-duplicate").onclick = () => {
+  $("station-menu").hidden = true;
+  startDuplicate();
+};
+document.addEventListener("pointerdown", (e) => {
+  if (!e.target.closest("#station-menu")) $("station-menu").hidden = true;
+});

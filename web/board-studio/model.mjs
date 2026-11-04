@@ -1,3 +1,5 @@
+import { validateParallels, enforceParallels } from "./parallel.mjs";
+import { fromTemplate } from "./stations.mjs";
 import {
   holeCenters,
   symbolCenters,
@@ -137,6 +139,7 @@ export function createProject(demo = true) {
           ]
         : [],
       guides: [],
+      parallelConstraints: [],
     },
     ledLayout: { profiles: [], segments: [], bindings: [] },
     production: { profiles: [], mountingHoles: [] },
@@ -308,9 +311,33 @@ export function parseProject(input) {
         !/^\d+$/.test(i) ||
         +i >= r.stationIds.length - 1 ||
         !num(c.startReach, 0.1, 5000) ||
-        !num(c.endReach, 0.1, 5000)
+        !num(c.endReach, 0.1, 5000) ||
+        (c.shape &&
+          (!num(c.shape.x, -5000, 10000) || !num(c.shape.y, -5000, 10000))) ||
+        (c.shapeAngle !== undefined && !num(c.shapeAngle, -360, 360)) ||
+        (c.shapeReach !== undefined && !num(c.shapeReach, 0.1, 5000))
       )
         throw Error("Ugyldig kurvekontroll.");
+  }
+  p.layout.parallelConstraints ??= [];
+  validateParallels(p, true);
+  if (p.stationTemplate) {
+    if (p.stationTemplate.version !== 1) throw Error("Ugyldig stasjonsmal.");
+    const temp = fromTemplate(
+      p.stationTemplate,
+      { x: 0, y: 0 },
+      "template-validation",
+    );
+    parseProject({
+      ...p,
+      stationTemplate: null,
+      layout: {
+        stations: [temp],
+        routes: [],
+        guides: [],
+        parallelConstraints: [],
+      },
+    });
   }
   return p;
 }
@@ -345,7 +372,7 @@ export class History {
     this.future = [];
   }
   commit(p) {
-    p = parseProject(p);
+    p = parseProject(enforceParallels(p));
     if (JSON.stringify(this.value) === JSON.stringify(p)) return;
     this.past.push(copy(this.value));
     if (this.past.length > 100) this.past.shift();

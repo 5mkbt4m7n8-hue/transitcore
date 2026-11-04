@@ -259,7 +259,23 @@ export function edgeGeometry(p, r, i) {
     const ra = baseA + extra,
       rb = baseB + extra;
     let curves;
-    if (bend) {
+    if (control.shape) {
+      const shape = control.shape,
+        tangent =
+          control.shapeAngle === undefined
+            ? unit(add(unit(sub(shape, start)), unit(sub(end, shape))))
+            : {
+                x: Math.cos((control.shapeAngle * Math.PI) / 180),
+                y: Math.sin((control.shapeAngle * Math.PI) / 180),
+              },
+        reach =
+          control.shapeReach ??
+          Math.min(length(sub(shape, start)), length(sub(end, shape))) * 0.3;
+      curves = [
+        makeCurve(start, shape, ta, tangent, ra, reach),
+        makeCurve(shape, end, tangent, tb, reach, rb),
+      ];
+    } else if (bend) {
       const u = unit(sub(bend, start)),
         v = unit(sub(end, bend)),
         turn = Math.atan2(cross(u, v), dot(u, v)),

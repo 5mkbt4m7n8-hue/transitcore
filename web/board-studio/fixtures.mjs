@@ -1,3 +1,4 @@
+import { stationTemplate, fromTemplate } from "./stations.mjs";
 import { createProject, copy, parseProject } from "./model.mjs";
 export function geometryFixture() {
   const p = createProject(false);
@@ -50,5 +51,47 @@ export function geometryFixture() {
     transitionLength: 32,
     tension: 0.5,
   }));
+  return parseProject(p);
+}
+
+export function parallelFixture(diagonal = false, bend = false) {
+  const p = createProject(false),
+    base = createProject(),
+    template = stationTemplate(base, base.layout.stations[0]);
+  template.appearance.symbolAngle = diagonal ? 135 : 90;
+  const coords = diagonal
+    ? [
+        [40, 60],
+        [180, 200],
+        [26, 88],
+        [166, 228],
+      ]
+    : [
+        [40, 80],
+        [180, 80],
+        [40, 99],
+        [180, 99],
+      ];
+  p.layout.stations = coords.map(([x, y], i) =>
+    fromTemplate(template, { x, y }, `p${i}`),
+  );
+  p.layout.routes = [
+    {
+      ...structuredClone(base.layout.routes[0]),
+      id: "reference",
+      trackIds: undefined,
+      portSigns: {},
+      stationIds: ["p0", "p1"],
+      bends: {},
+    },
+    {
+      ...structuredClone(base.layout.routes[0]),
+      id: "follower",
+      trackIds: undefined,
+      portSigns: {},
+      stationIds: ["p2", "p3"],
+      bends: bend ? { 0: { x: 110, y: 99 } } : {},
+    },
+  ];
   return parseProject(p);
 }

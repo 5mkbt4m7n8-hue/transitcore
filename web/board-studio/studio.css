@@ -492,3 +492,49 @@ a {
 .smart-guides {
   pointer-events: none;
 }
+.precisionbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 15px;
+  border-bottom: 1px solid #dfe4dd;
+  background: #f7f9f4;
+  font-size: 10px;
+  flex-wrap: wrap;
+}
+.precisionbar label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.precisionbar input[type="number"] {
+  width: 65px;
+  padding: 4px;
+}
+.precisionbar #template-status {
+  margin-left: auto;
+  color: #7c8b74;
+}
+.station-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.station-actions button {
+  font-size: 10px;
+  padding: 6px;
+}
+.station-actions button[aria-pressed="true"] {
+  background: #315b47;
+  color: #fff;
+}
+#station-menu {
+  position: fixed;
+  z-index: 30;
+  padding: 5px;
+  border: 1px solid #bac8b7;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 5px 20px #263b2c33;
+}

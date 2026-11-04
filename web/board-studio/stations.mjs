@@ -1,0 +1,58 @@
+import { symbolNormal, holeCenters } from "./geometry.mjs";
+// Deliberately allowlist appearance. Never copy source IDs, external identities,
+// station IDs, hole IDs, or arbitrary LED/route bindings from the source object.
+export const APPEARANCE = [
+  "points",
+  "pointSpacing",
+  "symbolAngle",
+  "splitBias",
+  "ringOuter",
+  "ringInner",
+  "stroke",
+  "holeDiameter",
+  "capsulePadding",
+  "capsuleStroke",
+  "ringColor",
+  "doubleRing",
+];
+const clone = (x) => structuredClone(x);
+const labelStyle = (l) =>
+  Object.fromEntries(
+    ["dx", "dy", "angle", "size", "spacing", "weight", "font", "anchor"].map(
+      (k) => [k, clone(l[k])],
+    ),
+  );
+export function stationTemplate(p, s) {
+  const n = symbolNormal(p, s);
+  return {
+    version: 1,
+    appearance: Object.fromEntries(
+      APPEARANCE.map((key) => [
+        key,
+        key === "symbolAngle"
+          ? (Math.atan2(n.y, n.x) * 180) / Math.PI
+          : clone(s[key]),
+      ]),
+    ),
+    label: labelStyle(s.label),
+    holeOffsets: holeCenters(p, s).map((h) => ({ x: h.x - s.x, y: h.y - s.y })),
+  };
+}
+export function fromTemplate(template, point, id = crypto.randomUUID()) {
+  return {
+    id,
+    name: "Ny stasjon",
+    x: point.x,
+    y: point.y,
+    source: null,
+    ...Object.fromEntries(
+      APPEARANCE.map((k) => [k, clone(template.appearance[k])]),
+    ),
+    label: labelStyle(template.label),
+    holes: template.holeOffsets.map((h, i) => ({
+      id: `${id}:hole:${i}`,
+      x: point.x + h.x,
+      y: point.y + h.y,
+    })),
+  };
+}
