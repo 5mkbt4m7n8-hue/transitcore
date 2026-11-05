@@ -5,7 +5,14 @@ export function gridSpec(step, major, contrast, zoom) {
   major = Math.max(major, minor * 2);
   while (major * zoom < 35) major *= 2;
   const opacity = { faint: 0.16, normal: 0.3, strong: 0.52 }[contrast] ?? 0.3;
-  return { minor, major, minorOpacity: opacity * 0.5, majorOpacity: opacity };
+  return {
+    fine: minor / 2,
+    fineOpacity: opacity * 0.2,
+    minor,
+    major,
+    minorOpacity: opacity * 0.5,
+    majorOpacity: opacity,
+  };
 }
 // Guides are transient UI. Disabled snapping returns the exact input point.
 export function snapPoint(

@@ -2,6 +2,16 @@
 
 Vektoreditor og fysisk LED-layout i millimeter: `web/board-studio/index.html`. Arbeidet er beholdt i draft-PR #324. Ingen merge, produksjonsdeploy eller endringer i Map Studio/PR #323, GPS, Entur eller firmware.
 
+## Presis plassering av LED-striper
+
+- **Fest LED-striper** gjelder både **Plasser med mus** og flytting av en eksisterende stripe. Stripens faktiske LED-sentre fester seg til stasjonens hullsentre; to passende punkter i en dobbeltstasjon prioriteres. Første LED-offset og faktisk pitch brukes, også ved 90° og skrå orientering. En stripe roteres ikke automatisk.
+- Har du rotert bare symbolet, kan ringene og hullene være forskjellige. For en ubundet stasjon kan stripen feste til de synlige ringene og foreslå tilsvarende hulltilpasning. Du ser hullene før/etter og må bekrefte før endringen lagres. Avbryt beholder både stasjon og stripe uendret. Bundne stasjoner får ikke slik automatisk hulltilpasning.
+- Parallelle striper fester **kant mot kant**, med nærmeste LED-posisjon justert langs stripen når den er innenfor treffavstanden. De kan også festes **ende mot ende**. Stripebredde og faktisk segmentlengde brukes; kjeder og bindinger slås ikke sammen. Treffet markeres med mål og navn. En stripe festes ikke automatisk oppå en annen stripes LED-sentre.
+- Hold **Ctrl under flytting** for å slippe rutenett-, hjelpelinje-, LED- og stripesnapping midlertidig. Slipp Ctrl for å aktivere valgene igjen. For striper kan Ctrl holdes inne fra draget begynner. Eksisterende fysiske bindinger og låste parallellavstander oppheves ikke av Ctrl.
+- Bakgrunnen har nå hovedrutenett, vanlig rutenett og et ekstra svakt finrutenett. **½ rutenett** halverer den valgte millimeteravstanden og rutenettsnappingen, for eksempel 5 → 2,5 → 1,25 mm. Visningen tilpasses zoom for å unngå tett flimmer; millimeteravstanden for feste beholdes.
+
+Snapping justerer plasseringen ved dette draget, og lager ingen permanent mekanisk kobling mellom stripene. Flytting av allerede bundne LED-/hullsentre bruker fortsatt fysisk bekreftelse. [Tester og avgrensning](strip-snapping-validation.md).
+
 ## Ny linjearbeidsflyt i v0.3.2
 
 1. Velg **Koble stasjoner (L)**. Midlertidige porter vises på stasjonene. Et rundt punkt velger én LED-ring; en firkant velger ringparet samlet. Enkeltstopp har fire porter; flerpunktsymboler har fire per ring og to samlede sideporter.

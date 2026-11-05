@@ -444,7 +444,7 @@ try {
   }
   assert.ok(opacity[0] < opacity[1] && opacity[1] < opacity[2]);
   for (let i = 0; i < 6; i++) await page.locator("#zoom-out").click();
-  assert.equal(await page.locator("[data-grid]").count(), 2);
+  assert.equal(await page.locator("[data-grid]").count(), 3);
   const minor = +(await page
     .locator('[data-grid="minor"]')
     .getAttribute("data-spacing"));

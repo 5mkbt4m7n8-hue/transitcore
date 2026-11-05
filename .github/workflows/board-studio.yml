@@ -34,6 +34,7 @@ jobs:
           node scripts/test-v03-board-studio.mjs
           node scripts/test-v031-board-studio.mjs
           node scripts/test-v032-board-studio.mjs
+          node scripts/test-strip-snap-board-studio.mjs
       - name: Install isolated browser tooling
         run: |
           npm install --prefix "$RUNNER_TEMP/board-browser" playwright
@@ -45,6 +46,7 @@ jobs:
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_V03_SCREENSHOT="$RUNNER_TEMP/board-studio-v03.png" node scripts/browser-v03-board-studio.mjs
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_V031_SCREENSHOT="$RUNNER_TEMP/board-studio-v031.png" node scripts/browser-v031-board-studio.mjs
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_V032_SCREENSHOT="$RUNNER_TEMP/board-studio-v032.png" node scripts/browser-v032-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" node scripts/browser-strip-snap-board-studio.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

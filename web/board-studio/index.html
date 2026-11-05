@@ -80,12 +80,19 @@
           <div>
             <label><input id="grid" type="checkbox" checked />Rutenett</label
             ><select id="grid-step" aria-label="Rutenettavstand">
+              <option>0.5</option>
               <option>1</option>
               <option>2</option>
+              <option>2.5</option>
               <option selected>5</option>
               <option>10</option>
               <option>20</option></select
             ><span>mm</span
+            ><button
+              id="grid-half"
+              title="Halver rutenettavstand og rutenettsnapping"
+            >
+              ½ rutenett</button
             ><select id="grid-major" aria-label="Hovedrutenett">
               <option value="10" selected>10 mm</option>
               <option value="20">20 mm</option></select
@@ -134,6 +141,11 @@
               <option value="6">G</option>
               <option value="7">H</option>
             </select></label
+          ><label
+            ><input id="snap-strip" type="checkbox" checked />Fest
+            LED-striper</label
+          ><span title="Hold Ctrl under flytting for fri plassering"
+            >Ctrl: fri flytting</span
           ><span id="template-status">Standard enkeltstasjon</span>
         </div>
         <div id="viewport">

@@ -1,3 +1,4 @@
+import { snapStrip, alignStripHoles } from "./strip-snap.mjs";
 import { stationPorts, stationPort } from "./ports.mjs";
 import {
   nearestPhysicalLed,
@@ -93,6 +94,9 @@ let selected = [],
   selectedProfile = null,
   selectedSegment = null,
   pendingStrip = null,
+  stripSnap = null,
+  snapSuspended = false,
+  lastPointer = null,
   clipboard = null,
   pendingStation = null,
   routeMoveEnabled = false,
@@ -114,7 +118,9 @@ function commit(p, options = {}) {
     q = options.load
       ? candidate
       : parseProject(prepareBindings(project(), candidate));
-  const changes = options.load ? [] : physicalChanges(project(), q);
+  const changes = options.load
+    ? []
+    : [...physicalChanges(project(), q), ...(options.additionalPhysical ?? [])];
   if (changes.length && !options.approved) {
     pendingPhysical = { project: q, changes };
     const coord = (c) => (c ? `${c.x.toFixed(4)}, ${c.y.toFixed(4)} mm` : "—");
@@ -147,8 +153,8 @@ function xy(e) {
 function snapped(pt, p = project(), anchor = null) {
   const result = snapPoint(p, pt, {
     enabled: $("snap").checked,
-    gridEnabled: $("snap").checked,
-    guidesEnabled: $("snap-guides").checked,
+    gridEnabled: $("snap").checked && !snapSuspended,
+    guidesEnabled: $("snap-guides").checked && !snapSuspended,
     gridStep: +$("grid-step").value,
     zoom,
     excludeIds: selected,
@@ -157,6 +163,15 @@ function snapped(pt, p = project(), anchor = null) {
   smartGuides = result.guides;
   return result.point;
 }
+function stripPlacement(base, segment, raw) {
+  const result = snapStrip(base, { ...segment, x: raw.x, y: raw.y }, zoom, {
+    enabled: $("snap-strip").checked && !snapSuspended,
+  });
+  stripSnap = result.guide;
+  if (result.guide) return result.segment;
+  const point = snapped(raw, base);
+  return { ...segment, x: point.x, y: point.y };
+}
 function stationDrag(g, pt) {
   const s = g.base.layout.stations.find((s) => s.id === g.id),
     index = g.pointIndex ?? 0,
@@ -164,7 +179,7 @@ function stationDrag(g, pt) {
     origin = symbolCenters(g.base, s)[index],
     rawPoint = { x: origin.x + delta.x, y: origin.y + delta.y },
     target = nearestPhysicalLed(g.base, rawPoint, zoom, {
-      enabled: $("snap-led").checked,
+      enabled: $("snap-led").checked && !snapSuspended,
     });
   ledSnap = target;
   const constrained = g.base.ledLayout.bindings.some(
@@ -202,7 +217,7 @@ function newStationIndicator(pt) {
       s,
     )[index],
     zoom,
-    { enabled: $("snap-led").checked },
+    { enabled: $("snap-led").checked && !snapSuspended },
   );
 }
 function fit() {
@@ -244,6 +259,7 @@ function draw(p = project()) {
   const gridMarkup =
     $("grid").checked && guides
       ? `<defs>${[
+          ["fine", spec.fine, spec.fineOpacity],
           ["minor", spec.minor, spec.minorOpacity],
           ["major", spec.major, spec.majorOpacity],
         ]
@@ -253,7 +269,7 @@ function draw(p = project()) {
           )
           .join(
             "",
-          )}</defs><rect width="${b.width}" height="${b.height}" fill="url(#background-grid-minor)" pointer-events="none"/><rect width="${b.width}" height="${b.height}" fill="url(#background-grid-major)" pointer-events="none"/>`
+          )}</defs><rect width="${b.width}" height="${b.height}" fill="url(#background-grid-fine)" pointer-events="none"/><rect width="${b.width}" height="${b.height}" fill="url(#background-grid-minor)" pointer-events="none"/><rect width="${b.width}" height="${b.height}" fill="url(#background-grid-major)" pointer-events="none"/>`
       : "";
   const route = p.layout.routes.find((r) => r.id === selectedRoute);
   let controls = "";
@@ -305,6 +321,9 @@ function draw(p = project()) {
     const a = gesture.start,
       c = gesture.last;
     overlay = `<rect x="${Math.min(a.x, c.x)}" y="${Math.min(a.y, c.y)}" width="${Math.abs(a.x - c.x)}" height="${Math.abs(a.y - c.y)}" fill="#629b7a22" stroke="#4b9471" stroke-width="${1 / zoom}"/>`;
+  }
+  if (stripSnap) {
+    overlay += `<g id="strip-snap-indicator" data-snap-kind="${stripSnap.kind}" pointer-events="none"><circle cx="${stripSnap.x}" cy="${stripSnap.y}" r="${8 / zoom}" fill="#d4eede99" stroke="#287b67" stroke-width="${1.5 / zoom}"/><text x="${stripSnap.x + 10 / zoom}" y="${stripSnap.y - 9 / zoom}" font-size="${11 / zoom}" fill="#21623e">${esc(stripSnap.label)}</text></g>`;
   }
   if (ledSnap) {
     overlay += `<g id="led-snap-indicator" pointer-events="none" data-led-id="${esc(ledSnap.id)}" data-snap-index="${ledSnap.index}"><circle cx="${ledSnap.x}" cy="${ledSnap.y}" r="${8 / zoom}" fill="${ledSnap.occupied.length ? "#e8bd6733" : "#4baf9033"}" stroke="#287b67" stroke-width="${2 / zoom}"/><text x="${ledSnap.x + 11 / zoom}" y="${ledSnap.y - 9 / zoom}" font-size="${11 / zoom}" fill="#236e5d">${esc(ledSnap.segmentName)} · LED ${ledSnap.index} · ${$("snap-led-bind").checked ? "fest og bind" : "kun sentrering"}${ledSnap.occupied.length ? " · i bruk" : ""}</text></g>`;
@@ -411,7 +430,7 @@ function previewParallel(q, g) {
       b: candidate.line.b,
       label: "Beregnet parallellplassering",
     });
-    if ($("snap-guides").checked) {
+    if ($("snap-guides").checked && !snapSuspended) {
       applyParallel(q, candidate);
       if ($("parallel-lock").checked) {
         q.layout.parallelConstraints = (
@@ -1123,6 +1142,7 @@ function safe(fn) {
 }
 function setTool(next) {
   ledSnap = null;
+  stripSnap = null;
   if (next !== "select") pendingStation = null;
   tool = next;
   if (next !== "select") selectedRoute = null;
@@ -1151,6 +1171,7 @@ function setTool(next) {
   draw();
 }
 canvas.onpointerdown = (e) => {
+  snapSuspended = e.ctrlKey;
   if (e.button !== 0 && e.button !== 1) return;
   e.preventDefault();
   canvas.focus();
@@ -1188,7 +1209,7 @@ canvas.onpointerdown = (e) => {
           raw,
         )[index],
         zoom,
-        { enabled: $("snap-led").checked },
+        { enabled: $("snap-led").checked && !snapSuspended },
       ),
       pt = snapped(a);
     if (pt.x < 0 || pt.y < 0 || pt.x > p.board.width || pt.y > p.board.height)
@@ -1213,18 +1234,23 @@ canvas.onpointerdown = (e) => {
     return;
   }
   if (pendingStrip && e.button === 0 && !space && tool !== "hand") {
-    const pt = snapped(a),
-      s = { ...pendingStrip, x: pt.x, y: pt.y };
+    const s = stripPlacement(p, pendingStrip, a),
+      guide = stripSnap;
+    stripSnap = null;
     pendingStrip = null;
     selectedSegment = s.id;
-    mutate((q) => {
+    safe(() => {
+      let q = copy(p);
       const index = q.ledLayout.segments.findIndex((t) => t.id === s.id);
       if (index < 0) q.ledLayout.segments.push(s);
       else q.ledLayout.segments[index] = s;
       q.layers.strips.visible = true;
       q.layers.leds.visible = true;
+      const aligned = alignStripHoles(q, guide);
+      commit(aligned.project, { additionalPhysical: aligned.changes });
     });
     setTool("select");
+    if (pendingPhysical) draw(pendingPhysical.project);
     return;
   }
   const ledTarget = e.target.closest("[data-led]");
@@ -1332,7 +1358,7 @@ canvas.onpointerdown = (e) => {
           raw,
         )[index],
         zoom,
-        { enabled: $("snap-led").checked },
+        { enabled: $("snap-led").checked && !snapSuspended },
       ),
       pt = snapped(a);
     if (pt.x < 0 || pt.y < 0 || pt.x > p.board.width || pt.y > p.board.height)
@@ -1430,6 +1456,13 @@ canvas.onpointerdown = (e) => {
   }
 };
 canvas.onpointermove = (e) => {
+  lastPointer = {
+    clientX: e.clientX,
+    clientY: e.clientY,
+    target: e.target,
+    ctrlKey: e.ctrlKey,
+  };
+  snapSuspended = e.ctrlKey;
   const pt = xy(e);
   $("coords").textContent = `X ${pt.x.toFixed(2)} · Y ${pt.y.toFixed(2)} mm`;
   if (!gesture) {
@@ -1443,9 +1476,8 @@ canvas.onpointermove = (e) => {
     }
   }
   if (pendingStrip && !gesture) {
-    const pt2 = snapped(pt),
-      preview = copy(project()),
-      segment = { ...pendingStrip, x: pt2.x, y: pt2.y },
+    const preview = copy(project()),
+      segment = stripPlacement(project(), pendingStrip, pt),
       index = preview.ledLayout.segments.findIndex((t) => t.id === segment.id);
     if (index < 0) preview.ledLayout.segments.push(segment);
     else preview.ledLayout.segments[index] = segment;
@@ -1464,7 +1496,7 @@ canvas.onpointermove = (e) => {
           pendingStation.id,
         ),
         index = Math.min(+$("snap-led-point").value, ghost.points - 1),
-        center = symbolCenters(p, ghost)[index];
+        center = symbolCenters(project(), ghost)[index];
       pendingStation.point = {
         x: pendingStation.point.x + ledSnap.x - center.x,
         y: pendingStation.point.y + ledSnap.y - center.y,
@@ -1519,14 +1551,16 @@ canvas.onpointermove = (e) => {
     const q = copy(g.base),
       s = q.ledLayout.segments.find((s) => s.id === g.id),
       old = g.base.ledLayout.segments.find((s) => s.id === g.id),
-      pt2 = snapped(
-        { x: old.x + pt.x - g.start.x, y: old.y + pt.y - g.start.y },
-        g.base,
-      );
-    s.x = pt2.x;
-    s.y = pt2.y;
-    g.preview = q;
-    draw(q);
+      placed = stripPlacement(g.base, old, {
+        x: old.x + pt.x - g.start.x,
+        y: old.y + pt.y - g.start.y,
+      });
+    s.x = placed.x;
+    s.y = placed.y;
+    const aligned = alignStripHoles(q, stripSnap);
+    g.preview = aligned.project;
+    g.physicalRows = aligned.changes;
+    draw(g.preview);
   } else if (g.kind === "curve") {
     const q = copy(g.base),
       r = q.layout.routes.find((r) => r.id === g.routeId);
@@ -1602,13 +1636,14 @@ function finishGesture(cancel = false) {
   gesture = null;
   smartGuides = [];
   ledSnap = null;
+  stripSnap = null;
   if (!cancel && g.snapError) {
     draw();
     message(g.snapError);
     return;
   }
   if (!cancel && g.preview) {
-    safe(() => commit(g.preview));
+    safe(() => commit(g.preview, { additionalPhysical: g.physicalRows ?? [] }));
   } else if (!cancel && g.kind === "box") {
     const a = g.start,
       b = g.last;
@@ -1631,7 +1666,10 @@ function finishGesture(cancel = false) {
     render();
   } else draw();
 }
-canvas.onpointerup = () => finishGesture();
+canvas.onpointerup = (e) => {
+  if (gesture && e.ctrlKey !== snapSuspended) canvas.onpointermove(e);
+  finishGesture();
+};
 canvas.onpointercancel = () => finishGesture(true);
 canvas.onlostpointercapture = () => finishGesture(true);
 canvas.addEventListener(
@@ -1658,8 +1696,10 @@ for (const id of [
   "snap-led",
   "snap-led-bind",
   "snap-led-point",
+  "snap-strip",
 ])
   $(id).onchange = () => {
+    if (id === "snap-strip") stripSnap = null;
     if (id === "snap-led") {
       ledSnap = null;
       if ($("station-snap-led"))
@@ -1667,6 +1707,13 @@ for (const id of [
     }
     draw();
   };
+$("grid-half").onclick = () => {
+  const step = Math.max(0.125, +$("grid-step").value / 2);
+  if (![...$("grid-step").options].some((o) => +o.value === step))
+    $("grid-step").add(new Option(step, step));
+  $("grid-step").value = step;
+  draw();
+};
 $("undo").onclick = () => {
   finishGesture(true);
   history.undo();
@@ -1837,7 +1884,13 @@ for (const [id, demo] of [
     commit(createProject(demo), { load: true });
     fit();
   };
+function refreshSnapModifier(active) {
+  snapSuspended = active;
+  if (lastPointer && (gesture || pendingStrip || pendingStation))
+    canvas.onpointermove({ ...lastPointer, ctrlKey: active });
+}
 document.onkeydown = (e) => {
+  if (e.key === "Control") refreshSnapModifier(true);
   if ((e.key === "Enter" || e.key === " ") && e.target.closest("[data-port]")) {
     e.preventDefault();
     const el = e.target.closest("[data-port]");
@@ -1852,6 +1905,7 @@ document.onkeydown = (e) => {
   }
   if (e.key === "Escape" && pendingStrip) {
     pendingStrip = null;
+    stripSnap = null;
     draw();
     message("Segmentplassering avbrutt");
     return;
@@ -1924,9 +1978,12 @@ document.onkeydown = (e) => {
   }
 };
 document.onkeyup = (e) => {
+  if (e.key === "Control") refreshSnapModifier(false);
   if (e.code === "Space") space = false;
 };
 window.onblur = () => {
+  snapSuspended = false;
+  stripSnap = null;
   space = false;
   finishGesture(true);
 };
@@ -2209,7 +2266,9 @@ function renderPhysical() {
       pendingStrip = draft;
       $("led-panel").hidden = true;
       canvas.focus();
-      message("Klikk på tavlen for segmentets startpunkt · Escape avbryter");
+      message(
+        "Plasser stripe · fest til hull eller annen stripe · Ctrl gir fri flytting · Escape avbryter",
+      );
     });
   $("segment-delete").disabled = !s;
   $("segment-delete").onclick = () =>
