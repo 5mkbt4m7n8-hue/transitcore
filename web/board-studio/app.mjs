@@ -1,3 +1,4 @@
+import { stationPorts, stationPort } from "./ports.mjs";
 import {
   nearestPhysicalLed,
   snapStationPoint,
@@ -6,7 +7,7 @@ import {
 import {
   deleteConnection,
   splitConnection,
-  newConnection,
+  connectPorts,
   routeStyle,
 } from "./connections.mjs";
 import { trondheimPrototype } from "./prototype.mjs";
@@ -79,6 +80,9 @@ let selected = [],
   space = false,
   measure = null,
   routeStart = null,
+  reconnectTarget = null,
+  lineAdvanced = false,
+  portHover = null,
   selectedRoute = null,
   pendingPhysical = null,
   bindTarget = null,
@@ -282,6 +286,7 @@ function draw(p = project()) {
         )}<text x="${bend.x + 6 / zoom}" y="${bend.y - 9 / zoom}" font-size="${10 / zoom}" fill="#446f7a">R min ${Number.isFinite(g.minRadius) ? g.minRadius.toFixed(1) : "∞"} mm · ${route.transitionLength} mm overgang</text></g>`;
     }
   }
+  if (!lineAdvanced) controls = controls.split('<g class="curve-controls">')[0];
   const issues = geometryReport(p).filter((g) => !g.valid || g.adjusted);
   $("geometry-status").textContent = issues.length
     ? issues.map((g) => g.warnings.join(" ")).join(" ")
@@ -332,7 +337,7 @@ function draw(p = project()) {
     .map((id) => `<g data-layer="${id}">${layerMarkup(p, id)}</g>`)
     .join(
       "",
-    )}${marks}${overlay}${controls}${pendingStation?.point ? `<g class="placement-preview" pointer-events="none" opacity=".6">${["capsules", "rings", "names", ...(p.layers.holes.visible ? ["holes"] : [])].map((layer) => stationMarkup(fromTemplate(pendingStation.template, pendingStation.point, pendingStation.id), layer, p)).join("")}</g>` : ""}</g><g pointer-events="none">${rulers}</g>`;
+    )}${marks}${overlay}${controls}${pendingStation?.point ? `<g class="placement-preview" pointer-events="none" opacity=".6">${["capsules", "rings", "names", ...(p.layers.holes.visible ? ["holes"] : [])].map((layer) => stationMarkup(fromTemplate(pendingStation.template, pendingStation.point, pendingStation.id), layer, p)).join("")}</g>` : ""}${portMarkup(p)}</g><g pointer-events="none">${rulers}</g>`;
   for (const routeLayer of canvas.querySelectorAll(
     "[data-layer=routes],[data-layer=capsules]",
   ))
@@ -430,6 +435,10 @@ function properties() {
     panel = $("properties");
   if (selectedRoute) {
     routeProperties();
+    return;
+  }
+  if (tool === "route") {
+    creationProperties();
     return;
   }
   if (s && bindingStation !== s.id) {
@@ -674,6 +683,108 @@ function deleteSelectedConnection() {
     );
   });
 }
+function creationProperties() {
+  const d = routeStyle(project().routeDefaults ?? {}),
+    panel = $("properties");
+  panel.innerHTML = `<h2>Tegn forbindelse</h2><p class="note">Velg et konkret startpunkt og sluttpunkt. Runde punkter gjelder én ring; firkantede punkter gjelder ringparet. Pekeren viser hvilken ring og side du velger.</p><label>Grafisk sporantall<select id="new-route-tracks"><option value="1">Enkeltspor</option><option value="2">Dobbeltspor</option></select></label>${field("new-route-spacing", "Sporavstand, mm", d.trackSpacing)}<label>Kurvestil<select id="new-route-curve"><option value="rounded">Avrundet</option><option value="straight">Rett</option></select></label><p id="port-selection" class="note">${routeStart ? `Start: ${esc(project().layout.stations.find((s) => s.id === routeStart.stationId)?.name)} · ${esc(stationPort(project(), routeStart.stationId, routeStart.portId)?.label)}. Velg sluttport.` : "Velg startport."}</p><button id="cancel-connection">Avbryt portvalg</button>`;
+  $("new-route-tracks").value = d.tracks;
+  $("new-route-curve").value = d.curveStyle;
+  for (const [id, key] of [
+    ["new-route-tracks", "tracks"],
+    ["new-route-spacing", "trackSpacing"],
+    ["new-route-curve", "curveStyle"],
+  ])
+    $(id).onchange = (e) =>
+      safe(() =>
+        mutate(
+          (q) =>
+            (q.routeDefaults = {
+              ...routeStyle(q.routeDefaults ?? {}),
+              [key]: key === "curveStyle" ? e.target.value : +e.target.value,
+            }),
+        ),
+      );
+  $("cancel-connection").onclick = () => {
+    routeStart = null;
+    reconnectTarget = null;
+    render();
+  };
+}
+function choosePort(stationId, portId) {
+  safe(() => {
+    if (project().layers.routes.locked || project().layers.capsules.locked)
+      throw Error("Trasélaget er låst.");
+    if (!stationPort(project(), stationId, portId))
+      throw Error("Porten finnes ikke.");
+    if (tool !== "route") {
+      selected = [];
+      selectedRoute = null;
+      setTool("route");
+    }
+    const ref = { stationId, portId };
+    if (!routeStart) {
+      if (reconnectTarget) {
+        const r = project().layout.routes.find(
+          (r) => r.id === reconnectTarget.routeId,
+        );
+        if (stationId !== r.stationIds[reconnectTarget.edge])
+          throw Error("Velg først startstasjonens port.");
+      }
+      selectedRoute = null;
+      routeStart = ref;
+      properties();
+      draw();
+      message("Startport valgt. Velg sluttport på en annen stasjon.");
+      return;
+    }
+    const result = connectPorts(project(), routeStart, ref, reconnectTarget),
+      r = result.project.layout.routes.find((r) => r.id === result.routeId),
+      edge = reconnectTarget?.edge ?? 0,
+      g = edgeGeometry(result.project, r, edge);
+    if (!g.valid) throw Error(g.warnings.join(" "));
+    selectedRoute = result.routeId;
+    selectedEdge = edge;
+    routeStart = null;
+    reconnectTarget = null;
+    portHover = null;
+    selected = [];
+    commit(result.project);
+    message(
+      "Forbindelsen bruker valgte porter. Velg ny startport for neste forbindelse.",
+    );
+  });
+}
+function portMarkup(p) {
+  if (!(tool === "route" || selectedRoute) || !p.layers.rings.visible)
+    return "";
+  const selectedConnection = p.layout.routes.find(
+      (r) => r.id === selectedRoute,
+    ),
+    endpoints = selectedConnection?.stationIds.slice(
+      selectedEdge,
+      selectedEdge + 2,
+    ),
+    anchors = selectedConnection?.anchors?.[selectedEdge];
+  return `<g class="station-ports">${p.layout.stations
+    .filter((s) => tool === "route" || endpoints?.includes(s.id))
+    .flatMap((s) =>
+      stationPorts(p, s).map((port) => {
+        const start =
+            (routeStart?.stationId === s.id && routeStart.portId === port.id) ||
+            (endpoints?.[0] === s.id && anchors?.start === port.id),
+          end = endpoints?.[1] === s.id && anchors?.end === port.id,
+          hover = portHover === s.id + "|" + port.id,
+          active = start || end || hover,
+          radius = (port.width ? 5.5 : 4) / zoom,
+          tag = port.width ? "rect" : "circle",
+          coords = port.width
+            ? `x="${port.marker.x - radius}" y="${port.marker.y - radius}" width="${radius * 2}" height="${radius * 2}" rx="${2 / zoom}"`
+            : `cx="${port.marker.x}" cy="${port.marker.y}" r="${radius}"`;
+        return `<g><path pointer-events="none" d="M ${port.point.x} ${port.point.y} L ${port.marker.x} ${port.marker.y}" stroke="#3b856b" stroke-width="${1 / zoom}"/><${tag} class="station-port" role="button" tabindex="0" aria-label="${esc(s.name + " · " + port.label)}" data-port-station="${esc(s.id)}" data-port="${port.id}" data-port-state="${start ? "start" : end ? "end" : hover ? "hover" : "idle"}" ${coords} fill="${start ? "#277852" : end ? "#d49a36" : hover ? "#a1ddbd" : "#fff"}" stroke="#28734f" stroke-width="${(active ? 2.5 : 1.2) / zoom}"><title>${esc(s.name + " · " + port.label)}</title></${tag}>${active ? `<text pointer-events="none" x="${port.marker.x + 8 / zoom}" y="${port.marker.y - 9 / zoom}" font-size="${11 / zoom}" fill="#1c623f">${start ? "Start: " : end ? "Slutt: " : ""}${esc(s.name + " · " + port.label)}</text>` : ""}</g>`;
+      }),
+    )
+    .join("")}</g>`;
+}
 function routeProperties() {
   const p = project(),
     r = p.layout.routes.find((r) => r.id === selectedRoute);
@@ -698,6 +809,80 @@ function routeProperties() {
     .join(
       "",
     )}</select></label><div class="pair">${field("bend-x", "Knekkpunkt X, mm", "")}${field("bend-y", "Knekkpunkt Y, mm", "")}</div><div class="pair">${field("route-radius", "Min. kurveradius, mm", r.cornerRadius)}<button id="bend-save">Sett knekkpunkt</button></div><div class="pair">${field("control-start", "Starthåndtak, mm", r.controls[selectedEdge]?.startReach ?? edgeGeometry(p, r, selectedEdge).effectiveReach?.start ?? 12)}${field("control-end", "Slutthåndtak, mm", r.controls[selectedEdge]?.endReach ?? edgeGeometry(p, r, selectedEdge).effectiveReach?.end ?? 12)}</div>${field("route-grow", "Tillatt automatisk utvidelse, mm", r.autoGrow, "number", 'min="0" max="48"')}<button id="bend-clear">Rett delstrekning</button><button id="edge-track">Skill ut delstrekning</button><button id="edge-delete">Slett valgt strekning</button><p class="note">Nye forbindelser arver siste valgte sporoppsett. Andre eksisterende forbindelser endres ikke.</p><p class="note">Velg en trasélinje på tavlen. Stasjonssymboler har eget punktantall. Radius gjelder knekkpunktet, med geometrisk parallelle spor. For kort strekning begrenser radiusen.</p>`;
+  const title = panel.querySelector("h2"),
+    warningsUI = [...panel.querySelectorAll(".warning")],
+    routeChoice = $("route-object").closest("label"),
+    tracks = $("route-tracks").closest("label"),
+    spacing = $("route-spacing").closest("label"),
+    edge = $("route-edge").closest("label"),
+    split = $("edge-track"),
+    remove = $("edge-delete");
+  for (const el of [
+    title,
+    ...warningsUI,
+    routeChoice,
+    tracks,
+    spacing,
+    edge,
+    split,
+    remove,
+  ])
+    el.remove();
+  const advanced = document.createElement("details");
+  advanced.id = "line-advanced";
+  advanced.innerHTML = "<summary>Avanserte linjeinnstillinger</summary>";
+  advanced.append(...panel.childNodes);
+  advanced.open = lineAdvanced;
+  advanced.ontoggle = () => {
+    if (!advanced.isConnected) return;
+    lineAdvanced = advanced.open;
+    draw();
+  };
+  const curve = document.createElement("label");
+  curve.innerHTML =
+    'Kurvestil<select id="route-curve"><option value="rounded">Avrundet</option><option value="straight">Rett</option></select>';
+  const ports = document.createElement("p");
+  ports.className = "note";
+  ports.id = "connection-ports";
+  const anchors = r.anchors?.[selectedEdge];
+  ports.textContent = anchors
+    ? `Start: ${stationPort(p, r.stationIds[selectedEdge], anchors.start)?.label} → slutt: ${stationPort(p, r.stationIds[selectedEdge + 1], anchors.end)?.label}`
+    : "Eksisterende forbindelse med opprinnelig automatisk tilkobling. Velg porter for å endre den.";
+  const reconnect = document.createElement("button");
+  reconnect.id = "reconnect-ports";
+  reconnect.textContent = "Velg nye koblingspunkter";
+  reconnect.onclick = () => {
+    const target = { routeId: r.id, edge: selectedEdge };
+    selectedRoute = null;
+    selected = [];
+    setTool("route");
+    reconnectTarget = target;
+    render();
+    message("Velg startport og sluttport på forbindelsens to stasjoner.");
+  };
+  panel.replaceChildren(
+    title,
+    ...warningsUI,
+    routeChoice,
+    tracks,
+    spacing,
+    curve,
+    edge,
+    ports,
+    reconnect,
+    split,
+    remove,
+    advanced,
+  );
+  $("route-curve").value = r.curveStyle ?? "rounded";
+  $("route-curve").disabled =
+    p.layers.routes.locked || p.layers.capsules.locked;
+  $("route-curve").onchange = (e) =>
+    mutate((q) => {
+      const target = q.layout.routes.find((t) => t.id === r.id);
+      target.curveStyle = e.target.value;
+      q.routeDefaults = routeStyle(target);
+    });
   $("move-route").onclick = () => {
     routeMoveEnabled = !routeMoveEnabled;
     $("move-route").setAttribute("aria-pressed", routeMoveEnabled);
@@ -831,7 +1016,7 @@ function routeProperties() {
   };
   $("route-edge").onchange = () => {
     setBend();
-    draw();
+    render();
   };
   setBend();
   $("bend-save").onclick = () =>
@@ -940,7 +1125,14 @@ function setTool(next) {
   ledSnap = null;
   if (next !== "select") pendingStation = null;
   tool = next;
+  if (next !== "select") selectedRoute = null;
+  if (next === "route") {
+    selected = [];
+    selectedRoute = null;
+  }
   routeStart = null;
+  reconnectTarget = null;
+  portHover = null;
   document
     .querySelectorAll("[data-tool]")
     .forEach((b) => b.classList.toggle("active", b.dataset.tool === tool));
@@ -950,17 +1142,24 @@ function setTool(next) {
     {
       select: "Velg eller dra en stasjon",
       station: "Klikk på tavlen for å legge til en stasjon",
-      route: "Klikk på to stasjoner for å koble dem",
+      route: "Velg startport og sluttport på stasjonene",
       measure: "Dra en målelinje",
       hand: "Dra for å panorere",
     }[tool],
   );
+  properties();
+  draw();
 }
 canvas.onpointerdown = (e) => {
   if (e.button !== 0 && e.button !== 1) return;
   e.preventDefault();
   canvas.focus();
   canvas.setPointerCapture(e.pointerId);
+  const portTarget = e.target.closest("[data-port]");
+  if (portTarget) {
+    choosePort(portTarget.dataset.portStation, portTarget.dataset.port);
+    return;
+  }
   const a = xy(e),
     target = e.target.closest("[data-station],[data-label]"),
     id =
@@ -1152,21 +1351,8 @@ canvas.onpointerdown = (e) => {
     });
     return;
   }
-  if (tool === "route" && id) {
-    if (
-      ["routes", "rings", "holes", "capsules"].some((id) => p.layers[id].locked)
-    ) {
-      message("Lås opp berørte lag før tilkobling");
-      return;
-    }
-    if (!routeStart) {
-      routeStart = id;
-      message("Velg neste stasjon");
-    } else if (routeStart !== id) {
-      mutate((q) => q.layout.routes.push(newConnection(q, [routeStart, id])));
-      routeStart = id;
-      message("Koblet · velg neste stasjon eller trykk V");
-    }
+  if (tool === "route") {
+    message("Velg et synlig tilkoblingspunkt, ikke midten av stasjonen.");
     return;
   }
   if (tool !== "select") return;
@@ -1246,6 +1432,16 @@ canvas.onpointerdown = (e) => {
 canvas.onpointermove = (e) => {
   const pt = xy(e);
   $("coords").textContent = `X ${pt.x.toFixed(2)} · Y ${pt.y.toFixed(2)} mm`;
+  if (!gesture) {
+    const target = e.target.closest("[data-port]"),
+      key = target
+        ? target.dataset.portStation + "|" + target.dataset.port
+        : null;
+    if (portHover !== key) {
+      portHover = key;
+      draw();
+    }
+  }
   if (pendingStrip && !gesture) {
     const pt2 = snapped(pt),
       preview = copy(project()),
@@ -1525,13 +1721,25 @@ $("delete").onclick = () => {
           if (r.stationIds[old + 1] === ids[i + 1] && r.bends[old])
             bends[i] = copy(r.bends[old]);
         }
-        const controls = {};
+        const controls = {},
+          anchors = {};
         for (let i = 0; i < ids.length - 1; i++) {
           const old = r.stationIds.indexOf(ids[i]);
           if (r.stationIds[old + 1] === ids[i + 1] && r.controls[old])
             controls[i] = copy(r.controls[old]);
         }
-        return { ...r, stationIds: ids, bends, controls };
+        for (let i = 0; i < ids.length - 1; i++) {
+          const old = r.stationIds.indexOf(ids[i]);
+          if (r.stationIds[old + 1] === ids[i + 1] && r.anchors?.[old])
+            anchors[i] = copy(r.anchors[old]);
+        }
+        return {
+          ...r,
+          stationIds: ids,
+          bends,
+          controls,
+          ...(r.anchors ? { anchors } : {}),
+        };
       })
       .filter((r) => r.stationIds.length > 1);
   });
@@ -1630,6 +1838,13 @@ for (const [id, demo] of [
     fit();
   };
 document.onkeydown = (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.closest("[data-port]")) {
+    e.preventDefault();
+    const el = e.target.closest("[data-port]");
+    choosePort(el.dataset.portStation, el.dataset.port);
+    return;
+  }
+
   if (e.key === "Escape" && bindTarget) {
     bindTarget = null;
     message("LED-valg avbrutt");

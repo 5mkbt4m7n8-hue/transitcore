@@ -1,3 +1,4 @@
+import { validatePorts } from "./ports.mjs";
 import { validateBindings, bindingMarkup } from "./bindings.mjs";
 import { validateLedLayout, physicalMarkup } from "./led-layout.mjs";
 import { validateParallels, enforceParallels } from "./parallel.mjs";
@@ -376,10 +377,13 @@ export function parseProject(input) {
       !num(d.transitionLength, 0.1, 100) ||
       !num(d.tension, 0.05, 0.95) ||
       !num(d.cornerRadius, 0, 100) ||
-      !num(d.autoGrow, 0, 48)
+      !num(d.autoGrow, 0, 48) ||
+      (d.curveStyle !== undefined &&
+        !["straight", "rounded"].includes(d.curveStyle))
     )
       throw Error("Ugyldig standard for nye forbindelser.");
   }
+  validatePorts(p);
   p.layout.parallelConstraints ??= [];
   validateParallels(p, true);
   for (const record of p.library.templates) {
@@ -430,7 +434,9 @@ export function moveStations(p, ids, dx, dy) {
         if (ids.includes(r.stationIds[i]))
           for (const id of r.stationIds.slice(Math.max(0, i - 1), i + 2))
             affected.add(id);
-    for (const id of affected) delete q.layout.tangentHints[id];
+    for (const id of affected)
+      if (!q.layout.routes.some((r) => r.anchors && r.stationIds.includes(id)))
+        delete q.layout.tangentHints[id];
   }
   for (const s of q.layout.stations)
     if (ids.includes(s.id)) {

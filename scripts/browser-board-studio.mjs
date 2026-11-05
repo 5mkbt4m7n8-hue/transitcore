@@ -209,6 +209,7 @@ try {
   await page.mouse.click(middle.x, middle.y);
   await page.locator("#route-tracks").selectOption("2");
   assert.equal((await saved()).layout.routes[0].tracks, 2);
+  await page.locator("#line-advanced summary").click();
   await page.locator("#route-length").fill("15");
   await page.locator("#route-length").press("Tab");
   await page.locator("#bend-x").fill("180");
@@ -324,6 +325,8 @@ try {
     return { x: p.x * m.a + p.y * m.c + m.e, y: p.x * m.b + p.y * m.d + m.f };
   });
   await page.mouse.click(invalidPoint.x, invalidPoint.y);
+  if (!(await page.locator("#line-advanced").evaluate((el) => el.open)))
+    await page.locator("#line-advanced summary").click();
   await page.locator("#route-grow").fill("0");
   await page.locator("#route-grow").press("Tab");
   await page.locator("#route-radius").fill("2");
@@ -385,8 +388,13 @@ try {
   await page
     .getByRole("button", { name: "Koble stasjoner", exact: true })
     .click();
-  await clickMM(50, 50);
-  await clickMM(100, 50);
+  const endpoints = (await saved()).layout.stations.map((s) => s.id);
+  await page
+    .locator(`[data-port-station="${endpoints[0]}"][data-port="point:0:right"]`)
+    .click();
+  await page
+    .locator(`[data-port-station="${endpoints[1]}"][data-port="point:0:left"]`)
+    .click();
   assert.equal((await saved()).layout.routes.length, 1);
   await page
     .getByRole("button", { name: "Velg og flytt", exact: true })
@@ -509,6 +517,8 @@ try {
     return { x: p.x * m.a + p.y * m.c + m.e, y: p.x * m.b + p.y * m.d + m.f };
   });
   await page.mouse.click(edgePoint.x, edgePoint.y);
+  if (!(await page.locator("#line-advanced").evaluate((el) => el.open)))
+    await page.locator("#line-advanced summary").click();
   await page.locator("#control-start").fill("7");
   await page.locator("#control-start").press("Tab");
   await page.locator("#route-edge").selectOption("1");

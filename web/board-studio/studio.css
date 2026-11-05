@@ -688,3 +688,23 @@ aside label.inline-toggle {
 aside label.inline-toggle input {
   width: auto;
 }
+.station-port {
+  cursor: crosshair;
+}
+.station-port:hover,
+.station-port:focus {
+  fill: #a1ddbd;
+  stroke: #155b3a;
+  outline: none;
+}
+#line-advanced {
+  margin-top: 16px;
+  border-top: 1px solid #dfe4dd;
+  padding-top: 12px;
+}
+#line-advanced summary {
+  cursor: pointer;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: #34624a;
+}

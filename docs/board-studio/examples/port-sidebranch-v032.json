@@ -1,0 +1,386 @@
+{
+  "format": "intransit-board",
+  "version": 3,
+  "id": "ports-v032",
+  "title": "Portvalg · hovedlinje og sidegren",
+  "network": {
+    "stations": [],
+    "routes": []
+  },
+  "schematic": null,
+  "board": {
+    "width": 300,
+    "height": 400,
+    "material": "general",
+    "thickness": 3
+  },
+  "layers": {
+    "routes": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "rings": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "capsules": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "names": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "leds": {
+      "visible": false,
+      "locked": false,
+      "export": true
+    },
+    "holes": {
+      "visible": false,
+      "locked": false,
+      "export": true
+    },
+    "bindings": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "strips": {
+      "visible": false,
+      "locked": false,
+      "export": true
+    },
+    "outline": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "guides": {
+      "visible": true,
+      "locked": false,
+      "export": false
+    }
+  },
+  "layout": {
+    "stations": [
+      {
+        "id": "north",
+        "name": "north",
+        "x": 70,
+        "y": 55,
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": 0,
+        "splitBias": 0,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "capsuleType": "stadium",
+        "capsuleExtraWidth": 0,
+        "capsuleExtraHeight": 0,
+        "symbolKind": "single",
+        "allowShared": false,
+        "transitionLength": null,
+        "label": {
+          "dx": -9,
+          "dy": -9,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "holes": [
+          {
+            "id": "north:hole:0",
+            "x": 65,
+            "y": 55
+          },
+          {
+            "id": "north:hole:1",
+            "x": 75,
+            "y": 55
+          }
+        ]
+      },
+      {
+        "id": "junction",
+        "name": "junction",
+        "x": 70,
+        "y": 130,
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": 0,
+        "splitBias": 0,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "capsuleType": "stadium",
+        "capsuleExtraWidth": 0,
+        "capsuleExtraHeight": 0,
+        "symbolKind": "single",
+        "allowShared": false,
+        "transitionLength": null,
+        "label": {
+          "dx": -9,
+          "dy": -9,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "holes": [
+          {
+            "id": "junction:hole:0",
+            "x": 65,
+            "y": 130
+          },
+          {
+            "id": "junction:hole:1",
+            "x": 75,
+            "y": 130
+          }
+        ]
+      },
+      {
+        "id": "south",
+        "name": "south",
+        "x": 70,
+        "y": 205,
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": 0,
+        "splitBias": 0,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "capsuleType": "stadium",
+        "capsuleExtraWidth": 0,
+        "capsuleExtraHeight": 0,
+        "symbolKind": "single",
+        "allowShared": false,
+        "transitionLength": null,
+        "label": {
+          "dx": -9,
+          "dy": -9,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "holes": [
+          {
+            "id": "south:hole:0",
+            "x": 65,
+            "y": 205
+          },
+          {
+            "id": "south:hole:1",
+            "x": 75,
+            "y": 205
+          }
+        ]
+      },
+      {
+        "id": "branch",
+        "name": "branch",
+        "x": 210,
+        "y": 230,
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": 90,
+        "splitBias": 0,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "capsuleType": "stadium",
+        "capsuleExtraWidth": 0,
+        "capsuleExtraHeight": 0,
+        "symbolKind": "single",
+        "allowShared": false,
+        "transitionLength": null,
+        "label": {
+          "dx": -9,
+          "dy": -9,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "holes": [
+          {
+            "id": "branch:hole:0",
+            "x": 210,
+            "y": 225
+          },
+          {
+            "id": "branch:hole:1",
+            "x": 210,
+            "y": 235
+          }
+        ]
+      }
+    ],
+    "routes": [
+      {
+        "id": "853d00ca-4694-4caf-bbc1-3077817cd36a",
+        "stationIds": [
+          "north",
+          "junction"
+        ],
+        "tracks": 2,
+        "trackSpacing": 10,
+        "stroke": 0.18,
+        "transitionLength": 12,
+        "tension": 0.5,
+        "cornerRadius": 8,
+        "autoGrow": 20,
+        "curveStyle": "rounded",
+        "bends": {},
+        "controls": {},
+        "portSigns": {
+          "north": -1,
+          "junction": -1
+        },
+        "anchors": {
+          "0": {
+            "start": "pair:left",
+            "end": "pair:right"
+          }
+        },
+        "trackIds": [
+          "853d00ca-4694-4caf-bbc1-3077817cd36a:negative",
+          "853d00ca-4694-4caf-bbc1-3077817cd36a:positive"
+        ]
+      },
+      {
+        "id": "d48b92d8-1c89-4307-8e22-6b78fded831f",
+        "stationIds": [
+          "junction",
+          "south"
+        ],
+        "tracks": 2,
+        "trackSpacing": 10,
+        "stroke": 0.18,
+        "transitionLength": 12,
+        "tension": 0.5,
+        "cornerRadius": 8,
+        "autoGrow": 20,
+        "curveStyle": "rounded",
+        "bends": {},
+        "controls": {},
+        "portSigns": {
+          "junction": -1,
+          "south": -1
+        },
+        "anchors": {
+          "0": {
+            "start": "pair:left",
+            "end": "pair:right"
+          }
+        },
+        "trackIds": [
+          "d48b92d8-1c89-4307-8e22-6b78fded831f:negative",
+          "d48b92d8-1c89-4307-8e22-6b78fded831f:positive"
+        ]
+      },
+      {
+        "id": "02759e19-4014-44bd-b9bb-c23f6f4cd497",
+        "stationIds": [
+          "junction",
+          "branch"
+        ],
+        "tracks": 2,
+        "trackSpacing": 10,
+        "stroke": 0.18,
+        "transitionLength": 12,
+        "tension": 0.5,
+        "cornerRadius": 8,
+        "autoGrow": 20,
+        "curveStyle": "rounded",
+        "bends": {},
+        "controls": {},
+        "portSigns": {
+          "junction": -1,
+          "branch": 1
+        },
+        "anchors": {
+          "0": {
+            "start": "pair:left",
+            "end": "pair:left"
+          }
+        },
+        "trackIds": [
+          "02759e19-4014-44bd-b9bb-c23f6f4cd497:negative",
+          "02759e19-4014-44bd-b9bb-c23f6f4cd497:positive"
+        ]
+      }
+    ],
+    "guides": [],
+    "parallelConstraints": [],
+    "tangentHints": {}
+  },
+  "ledLayout": {
+    "profiles": [],
+    "segments": [],
+    "bindings": []
+  },
+  "library": {
+    "templates": []
+  },
+  "production": {
+    "profiles": [],
+    "mountingHoles": []
+  },
+  "routeDefaults": {
+    "id": "753544b8-5e5c-4ea3-a7e2-4e86a2f1cc29",
+    "stationIds": [],
+    "tracks": 2,
+    "trackSpacing": 10,
+    "stroke": 0.18,
+    "transitionLength": 12,
+    "tension": 0.5,
+    "cornerRadius": 8,
+    "autoGrow": 20,
+    "curveStyle": "rounded",
+    "bends": {},
+    "controls": {},
+    "portSigns": {}
+  }
+}

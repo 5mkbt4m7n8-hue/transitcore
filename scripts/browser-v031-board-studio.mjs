@@ -180,16 +180,19 @@ try {
   await page.locator("#route-spacing").fill("12");
   await page.locator("#route-spacing").press("Tab");
   await page.locator('[data-tool="route"]').click();
-  await click(40, 80);
-  await click(235, 110);
+  await page
+    .locator('[data-port-station="s0"][data-port="pair:right"]')
+    .click();
+  await page.locator('[data-port-station="s3"][data-port="pair:left"]').click();
   assert.equal((await state()).layout.routes.at(-1).tracks, 2);
   assert.equal((await state()).layout.routes.at(-1).trackSpacing, 12);
   await page.locator('[data-tool="select"]').click();
-  await selectRoute("main");
-  await page.locator("#route-tracks").selectOption("1");
   await page.locator('[data-tool="route"]').click();
-  await click(40, 80);
-  await click(170, 110);
+  await page.locator("#new-route-tracks").selectOption("1");
+  await page
+    .locator('[data-port-station="s0"][data-port="pair:right"]')
+    .click();
+  await page.locator('[data-port-station="s2"][data-port="pair:left"]').click();
   assert.equal((await state()).layout.routes.at(-1).tracks, 1);
   assert.equal((await state()).layout.routes.at(-2).tracks, 2);
   await page.locator('[data-tool="select"]').click();

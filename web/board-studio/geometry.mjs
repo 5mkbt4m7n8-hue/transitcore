@@ -1,3 +1,4 @@
+import { stationPort } from "./ports.mjs";
 // Geometry is evaluated in millimetres and shared by canvas and SVG export.
 export const add = (a, b) => ({ x: a.x + b.x, y: a.y + b.y });
 export const sub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y });
@@ -234,10 +235,21 @@ export function edgeGeometry(p, r, i) {
       valid: false,
       warnings: ["Sammenfallende stasjoner: flytt ett endepunkt."],
     };
-  const na = mul(symbolNormal(p, a), r.portSigns?.[a.id] ?? 1),
-    nb = mul(symbolNormal(p, b), r.portSigns?.[b.id] ?? 1),
-    ta = { x: na.y, y: -na.x },
-    tb = { x: nb.y, y: -nb.x },
+  const anchors = r.anchors?.[i],
+    portA = anchors && stationPort(p, a.id, anchors.start),
+    portB = anchors && stationPort(p, b.id, anchors.end),
+    ta = portA?.direction ?? {
+      x: symbolNormal(p, a).y * (r.portSigns?.[a.id] ?? 1),
+      y: -symbolNormal(p, a).x * (r.portSigns?.[a.id] ?? 1),
+    },
+    tb = portB
+      ? mul(portB.direction, -1)
+      : {
+          x: symbolNormal(p, b).y * (r.portSigns?.[b.id] ?? 1),
+          y: -symbolNormal(p, b).x * (r.portSigns?.[b.id] ?? 1),
+        },
+    na = normal(ta),
+    nb = normal(tb),
     bend = r.bends?.[i],
     control = r.controls?.[i] ?? {},
     dist = length(sub(b, a)),
@@ -259,24 +271,42 @@ export function edgeGeometry(p, r, i) {
           2,
       ),
     middle = r.tracks === 2 ? spacing / 2 : 0;
-  const widthA = a.points > 1 ? ((a.points - 1) * a.pointSpacing) / 2 : 0,
-    widthB = b.points > 1 ? ((b.points - 1) * b.pointSpacing) / 2 : 0;
+  const widthA = portA
+      ? portA.width
+      : a.points > 1
+        ? ((a.points - 1) * a.pointSpacing) / 2
+        : 0,
+    widthB = portB
+      ? portB.width
+      : b.points > 1
+        ? ((b.points - 1) * b.pointSpacing) / 2
+        : 0;
   // A biased station shifts the common centre, never the rail ordering.
-  const start = add(
-      a,
-      mul(symbolNormal(p, a), (a.splitBias ?? 0) * a.pointSpacing),
-    ),
-    end = add(b, mul(symbolNormal(p, b), (b.splitBias ?? 0) * b.pointSpacing));
+  const start =
+      portA?.point ??
+      add(a, mul(symbolNormal(p, a), (a.splitBias ?? 0) * a.pointSpacing)),
+    end =
+      portB?.point ??
+      add(b, mul(symbolNormal(p, b), (b.splitBias ?? 0) * b.pointSpacing));
   let result;
   const allowance = r.autoGrow ?? 20;
+  // Equal endpoint reaches give a reflection-symmetric pair for corresponding
+  // ports. Both rails remain offsets of the very same centre curve.
+  const automaticReach = length(sub(end, start)) * 0.35;
+  const reachA = portA && !control.startReach ? automaticReach : baseA,
+    reachB = portB && !control.endReach ? automaticReach : baseB;
   for (const extra of [
     0,
     ...[4, 8, 12, 20, 32, 48].filter((x) => x <= allowance),
   ]) {
-    const ra = baseA + extra,
-      rb = baseB + extra;
+    const ra = reachA + extra,
+      rb = reachB + extra;
     let curves;
-    if (control.shape) {
+    if (r.curveStyle === "straight") {
+      const direct = unit(sub(end, start)),
+        d = length(sub(end, start)) / 3;
+      curves = [makeCurve(start, end, direct, direct, d, d)];
+    } else if (control.shape) {
       const shape = control.shape,
         tangent =
           control.shapeAngle === undefined
@@ -493,6 +523,22 @@ export function edgeGeometry(p, r, i) {
     };
     if (valid) break;
   }
+  if (anchors && (!portA || !portB)) {
+    result.valid = false;
+    result.warnings.push("Valgt port finnes ikke. Velg nye koblingspunkter.");
+  }
+  if (
+    portA &&
+    portB &&
+    r.curveStyle === "straight" &&
+    (dot(ta, unit(sub(end, start))) < 0.999 ||
+      dot(tb, unit(sub(end, start))) < 0.999)
+  ) {
+    result.valid = false;
+    result.warnings.push(
+      "Rett linje krever porter som vender langs forbindelsen. Velg avrundet eller andre porter.",
+    );
+  }
   const overlaps =
     [a, b].some(
       (s) => s.points > 1 && s.pointSpacing < s.ringOuter + s.stroke,
@@ -516,23 +562,26 @@ export function edgeGeometry(p, r, i) {
     result.warnings.push(
       `Forhåndsvist automatisk utvidelse: ${result.effectiveReach.start.toFixed(1)} / ${result.effectiveReach.end.toFixed(1)} mm (innen +${allowance} mm).`,
     );
-  const nA = symbolNormal(p, a),
-    nB = symbolNormal(p, b),
-    signA = r.portSigns?.[a.id] ?? 1,
-    signB = r.portSigns?.[b.id] ?? 1;
+  const nA = portA ? na : symbolNormal(p, a),
+    nB = portB ? nb : symbolNormal(p, b),
+    signA = portA ? 1 : (r.portSigns?.[a.id] ?? 1),
+    signB = portB ? 1 : (r.portSigns?.[b.id] ?? 1);
   for (const rail of result.rails) {
-    let points = circleTrim(
-      rail.samples,
-      add(start, mul(nA, rail.side * widthA * signA)),
-      a.ringOuter / 2 + a.stroke / 2,
-      true,
-    );
-    points = circleTrim(
-      points,
-      add(end, mul(nB, rail.side * widthB * signB)),
-      b.ringOuter / 2 + b.stroke / 2,
-      false,
-    );
+    let points = portA
+      ? rail.samples
+      : circleTrim(
+          rail.samples,
+          add(start, mul(nA, rail.side * widthA * signA)),
+          a.ringOuter / 2 + a.stroke / 2,
+          true,
+        );
+    if (!portB)
+      points = circleTrim(
+        points,
+        add(end, mul(nB, rail.side * widthB * signB)),
+        b.ringOuter / 2 + b.stroke / 2,
+        false,
+      );
     for (const [part, lo, hi] of [
       ["start", 0, result.breakA],
       ["core", result.breakA, result.breakB],
@@ -541,12 +590,17 @@ export function edgeGeometry(p, r, i) {
       if (part === "core" && r.tracks === 1 && rail.side === 1) continue;
       if (
         part === "start" &&
-        a.points === 1 &&
+        (portA ? portA.width === 0 : a.points === 1) &&
         r.tracks === 1 &&
         rail.side === 1
       )
         continue;
-      if (part === "end" && b.points === 1 && r.tracks === 1 && rail.side === 1)
+      if (
+        part === "end" &&
+        (portB ? portB.width === 0 : b.points === 1) &&
+        r.tracks === 1 &&
+        rail.side === 1
+      )
         continue;
       const section = points.filter(
         (s) => s.t >= lo - 1e-9 && s.t <= hi + 1e-9,

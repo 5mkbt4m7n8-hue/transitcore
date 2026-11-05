@@ -112,6 +112,13 @@ try {
         };
       });
     await page.mouse.click(p.x, p.y);
+    if (!(await page.locator("#line-advanced").evaluate((el) => el.open)))
+      await page.locator("#line-advanced summary").click();
+    if (
+      (await page.locator("#move-route").getAttribute("aria-pressed")) !==
+      "true"
+    )
+      await page.locator("[data-handle]").first().waitFor();
     return p;
   }
   const shot = async (suffix) => {

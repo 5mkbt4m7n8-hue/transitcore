@@ -1,6 +1,20 @@
-# InTransit Board Studio v0.3.1
+# InTransit Board Studio v0.3.2
 
 Vektoreditor og fysisk LED-layout i millimeter: `web/board-studio/index.html`. Arbeidet er beholdt i draft-PR #324. Ingen merge, produksjonsdeploy eller endringer i Map Studio/PR #323, GPS, Entur eller firmware.
+
+## Ny linjearbeidsflyt i v0.3.2
+
+1. Velg **Koble stasjoner (L)**. Midlertidige porter vises på stasjonene. Et rundt punkt velger én LED-ring; en firkant velger ringparet samlet. Enkeltstopp har fire porter; flerpunktsymboler har fire per ring og to samlede sideporter.
+2. Velg **Enkeltspor/Dobbeltspor**, sporavstand og **Avrundet/Rett** i panelet. Valget brukes også på neste forbindelse.
+3. Hold pekeren over en port for navn og fremheving. Klikk startporten og deretter sluttporten på en annen stasjon. Den valgte starten blir grønn, slutten gyllen. Bruk Tab og Enter/Space for tastaturvalg. Escape eller **Avbryt portvalg** avbryter.
+4. For to parallelle spor: velg **Dobbeltspor** og de firkantede samlede portene. Begge spor beregnes fra samme senterkurve. For en gren fra én ring brukes ringens runde port. En samlet port til en ringport gir en overgang mellom et ringpar og ett punkt.
+5. Velg samme port som hovedlinjen bruker når en sidegren skal dele utgangen. Portene følger symbolvinkelen. Navnet ved pekeren beskriver markørens synlige retning på tavlen, også ved skrå orientering. Den samme logiske porten følger stasjonen ved senere rotasjon.
+6. Velg en forbindelse med V for å se start/slutt, endre sporantall/avstand/kurvestil, **Slett valgt strekning** eller **Skill ut delstrekning**. **Velg nye koblingspunkter** lar deg velge nye porter på de samme to stasjonene, start først; den lokale manuelle kurveformen nullstilles når portene endres. Andre forbindelser og hull beholdes.
+7. **Avanserte linjeinnstillinger** åpner kontrollhåndtak, knekkpunkt, linjebredde, kurveparametere, fri form og parallellbinding. Håndtakene skjules når seksjonen lukkes. En rett forbindelse krever porter som vender langs forbindelsen. Et portvalg som ville gi kryssing eller ugyldig radius avvises med melding; editoren bytter ikke side automatisk.
+
+Portmarkørene er bare editorhjelp og følger ikke SVG-eksporten. Eksisterende prosjekter beholder sin tidligere geometri; gamle forbindelser kan få eksplisitte porter via **Velg nye koblingspunkter**. JSON lagrer de logiske portnavnene og kurvestilen. Fysiske LED-bindinger, ringer og hull flyttes ikke ved linjetegning.
+
+[Før/etter-eksempel](v032-before-after.svg) · [Åpnbart eksempelprosjekt](examples/port-sidebranch-v032.json) · [v0.3.2-testresultater](v032-validation.md). Last ned JSON-eksempelet og velg **Åpne prosjekt** i editoren.
 
 ## Nytt i v0.3.1
 
