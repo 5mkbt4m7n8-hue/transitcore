@@ -455,6 +455,7 @@ try {
     .getByRole("button", { name: "Velg og flytt", exact: true })
     .click();
   await page.locator("#snap").uncheck();
+  await page.locator("#snap-guides").uncheck();
   const mmScreen = async (x, y) =>
     page
       .locator("#canvas > g")
@@ -470,7 +471,10 @@ try {
         { x, y },
       );
   for (const snapping of [false, true]) {
-    if (snapping) await page.locator("#snap").check();
+    if (snapping) {
+      await page.locator("#snap").check();
+      await page.locator("#snap-guides").check();
+    }
     const state = await saved(),
       station = state.layout.stations[0],
       start = await mmScreen(station.x, station.y),

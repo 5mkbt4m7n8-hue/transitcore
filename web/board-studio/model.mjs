@@ -354,6 +354,32 @@ export function parseProject(input) {
       )
         throw Error("Ugyldig kurvekontroll.");
   }
+  if (p.layout.tangentHints) {
+    for (const [id, t] of Object.entries(p.layout.tangentHints))
+      if (
+        !p.layout.stations.some((s) => s.id === id) ||
+        !num(t.x, -1, 1) ||
+        !num(t.y, -1, 1) ||
+        Math.abs(Math.hypot(t.x, t.y) - 1) > 1e-6
+      )
+        throw Error("Ugyldig geometriretning.");
+  }
+  for (const r of p.layout.routes)
+    if (r.parentRouteId !== undefined && typeof r.parentRouteId !== "string")
+      throw Error("Ugyldig overordnet rute-ID.");
+  if (p.routeDefaults) {
+    const d = p.routeDefaults;
+    if (
+      ![1, 2].includes(d.tracks) ||
+      !num(d.trackSpacing, 0.1, 100) ||
+      !num(d.stroke, 0.01, 10) ||
+      !num(d.transitionLength, 0.1, 100) ||
+      !num(d.tension, 0.05, 0.95) ||
+      !num(d.cornerRadius, 0, 100) ||
+      !num(d.autoGrow, 0, 48)
+    )
+      throw Error("Ugyldig standard for nye forbindelser.");
+  }
   p.layout.parallelConstraints ??= [];
   validateParallels(p, true);
   for (const record of p.library.templates) {
@@ -397,6 +423,15 @@ export function moveStations(p, ids, dx, dy) {
     q.layers.names.locked
   )
     return q;
+  if (q.layout.tangentHints) {
+    const affected = new Set(ids);
+    for (const r of q.layout.routes)
+      for (let i = 0; i < r.stationIds.length; i++)
+        if (ids.includes(r.stationIds[i]))
+          for (const id of r.stationIds.slice(Math.max(0, i - 1), i + 2))
+            affected.add(id);
+    for (const id of affected) delete q.layout.tangentHints[id];
+  }
   for (const s of q.layout.stations)
     if (ids.includes(s.id)) {
       s.x += dx;

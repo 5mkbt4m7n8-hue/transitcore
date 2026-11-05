@@ -10,7 +10,7 @@
     <header>
       <a class="brand" href="../../index.html"
         >in<span>transit</span><i> / </i><b>Board Studio</b></a
-      ><span class="badge">v0.3 · fysisk design</span>
+      ><span class="badge">v0.3.1 · fysisk design</span>
       <div class="header-actions">
         <button id="open">Åpne prosjekt</button
         ><button id="save">Lagre JSON</button
@@ -93,7 +93,8 @@
               <option value="faint">Svakt</option>
               <option value="normal" selected>Normalt</option>
               <option value="strong">Tydelig</option></select
-            ><label><input id="snap" type="checkbox" checked />Fest</label
+            ><label
+              ><input id="snap" type="checkbox" checked />Fest rutenett</label
             ><button id="zoom-out" aria-label="Zoom ut">−</button
             ><span id="zoom"></span
             ><button id="zoom-in" aria-label="Zoom inn">+</button
@@ -115,6 +116,24 @@
           ><label
             ><input id="parallel-lock" type="checkbox" checked />Behold
             parallellavstand</label
+          ><label
+            ><input id="snap-guides" type="checkbox" checked />Fest
+            hjelpelinjer</label
+          ><label><input id="snap-led" type="checkbox" />Fest til LED</label
+          ><label
+            ><input id="snap-led-bind" type="checkbox" checked />Fest og bind
+            til LED</label
+          ><label
+            >Punkt<select id="snap-led-point">
+              <option value="0">A</option>
+              <option value="1">B</option>
+              <option value="2">C</option>
+              <option value="3">D</option>
+              <option value="4">E</option>
+              <option value="5">F</option>
+              <option value="6">G</option>
+              <option value="7">H</option>
+            </select></label
           ><span id="template-status">Standard enkeltstasjon</span>
         </div>
         <div id="viewport">

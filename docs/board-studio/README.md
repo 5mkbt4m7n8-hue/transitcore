@@ -1,6 +1,17 @@
-# InTransit Board Studio v0.3
+# InTransit Board Studio v0.3.1
 
 Vektoreditor og fysisk LED-layout i millimeter: `web/board-studio/index.html`. Arbeidet er beholdt i draft-PR #324. Ingen merge, produksjonsdeploy eller endringer i Map Studio/PR #323, GPS, Entur eller firmware.
+
+## Nytt i v0.3.1
+
+- Velg forbindelsen mellom to stasjoner med V-verktøyet. Den valgte forbindelsen markeres grønt. Ved overlapp velger du riktig **Grafisk rute for valgt forbindelse** i panelet. Velg **Slett valgt strekning** eller trykk Delete utenfor tekstfeltene. A–B–C–D blir A–B og C–D ved sletting av B–C. Stasjoner og fysiske LED-bindinger beholdes. Ctrl+Z/Y angrer/gjør om hele slettingen.
+- Endrer du sporantall, sporavstand, linjebredde eller kurveinnstillinger i trasépanelet, brukes samme stil på de neste forbindelsene du tegner. Endre tilbake til enkeltspor for neste unntak. Eksisterende andre forbindelser beholder sin stil. Valget følger prosjektets JSON og Angre/Gjør om.
+- **Fest rutenett**, **Fest hjelpelinjer** og **Fest til LED** er separate valg. LED-treff prioriteres innen 12 skjermpiksler ved alle zoomnivåer. Treffringen viser segment og LED-indeks. Ingen panorering eller zoom skjer ved treff.
+- Åpner du **LED-layout**, aktiveres **Fest til LED** og **Fest og bind til LED**. Velg punkt A/B i stasjonspanelet før du drar en eksisterende stasjon. For nye symboler velges punktet i verktøylinjen. Ved første binding flyttes et ubundet symbol samlet; når et punkt allerede er bundet, justeres det valgte punktet selvstendig, og kapselen følger ringene. Bindingen bruker den fysiske LED-ens fulle millimeterkoordinater for både hull og ring.
+- Fjern **Fest og bind til LED** for bare sentrering uten ny binding. Et direkte bundet punkt må bindes om eller løses fra sin LED før det kan sentreres på en annen LED. Lyslederbinding og eksplisitte frontforskyvninger finnes fortsatt i bindingspanelet.
+- Eksisterende hull flyttes først når du bekrefter det fysiske endringsforslaget. Avbryt beholder prosjektet uendret. En LED som allerede brukes, avvises med konkret melding. Bevisst deling velges eksplisitt i bindingspanelet.
+
+[Dokumenterte tester for v0.3.1](v031-validation.md). Formatet er fortsatt versjon 3 med valgfrie tilleggsfelt; eldre v1/v2/v3-prosjekter åpnes med eksisterende migreringer. Sletting lagres som separate trasékomponenter, slik at både JSON og SVG beholder gapet.
 
 ## Kort norsk brukerveiledning
 

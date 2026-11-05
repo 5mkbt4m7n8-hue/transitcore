@@ -681,3 +681,10 @@ a {
 .drawer article {
   flex-wrap: wrap;
 }
+aside label.inline-toggle {
+  display: flex;
+  align-items: center;
+}
+aside label.inline-toggle input {
+  width: auto;
+}

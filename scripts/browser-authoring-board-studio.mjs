@@ -286,6 +286,7 @@ try {
     await load(parallelFixture(diagonal));
     await page.locator("#parallel-distance").fill(diagonal ? "30" : "20");
     await page.locator("#snap").uncheck();
+    await page.locator("#snap-guides").uncheck();
     await selectRoute("follower");
     await page.locator("#move-route").click();
     async function dragRoute(dy) {
@@ -315,6 +316,7 @@ try {
     await dragRoute(0.2);
     assert.equal((await state()).layout.parallelConstraints.length, 0);
     await page.locator("#snap").check();
+    await page.locator("#snap-guides").check();
     await dragRoute(0.2);
     let constrained = await state();
     assert.equal(constrained.layout.parallelConstraints.length, 1);
@@ -381,6 +383,7 @@ try {
   await load(parallelFixture(false, true));
   await page.locator("#parallel-distance").fill("20");
   await page.locator("#snap").check();
+  await page.locator("#snap-guides").check();
   await selectRoute("follower");
   const bendHandle = await page.locator('[data-handle="bend"]').boundingBox();
   await page.mouse.move(
@@ -405,6 +408,7 @@ try {
   // tangent remains continuous and hole positions never follow graphic edits.
   await load(geometryFixture());
   await page.locator("#snap").uncheck();
+  await page.locator("#snap-guides").uncheck();
   await selectRoute("rotated");
   await page.locator("#free-shape").click();
   const beforeShape = await state(),

@@ -1,3 +1,14 @@
+import {
+  nearestPhysicalLed,
+  snapStationPoint,
+  movePoint,
+} from "./station-snap.mjs";
+import {
+  deleteConnection,
+  splitConnection,
+  newConnection,
+  routeStyle,
+} from "./connections.mjs";
 import { trondheimPrototype } from "./prototype.mjs";
 import {
   bindPoint,
@@ -82,7 +93,8 @@ let selected = [],
   pendingStation = null,
   routeMoveEnabled = false,
   selectedEdge = 0,
-  smartGuides = [];
+  smartGuides = [],
+  ledSnap = null;
 const project = () => history.value;
 const message = (t) => ($("status").textContent = t);
 function persist() {
@@ -131,6 +143,8 @@ function xy(e) {
 function snapped(pt, p = project(), anchor = null) {
   const result = snapPoint(p, pt, {
     enabled: $("snap").checked,
+    gridEnabled: $("snap").checked,
+    guidesEnabled: $("snap-guides").checked,
     gridStep: +$("grid-step").value,
     zoom,
     excludeIds: selected,
@@ -138,6 +152,54 @@ function snapped(pt, p = project(), anchor = null) {
   });
   smartGuides = result.guides;
   return result.point;
+}
+function stationDrag(g, pt) {
+  const s = g.base.layout.stations.find((s) => s.id === g.id),
+    index = g.pointIndex ?? 0,
+    delta = { x: pt.x - g.start.x, y: pt.y - g.start.y },
+    origin = symbolCenters(g.base, s)[index],
+    rawPoint = { x: origin.x + delta.x, y: origin.y + delta.y },
+    target = nearestPhysicalLed(g.base, rawPoint, zoom, {
+      enabled: $("snap-led").checked,
+    });
+  ledSnap = target;
+  const constrained = g.base.ledLayout.bindings.some(
+      (b) => b.stationId === s.id,
+    ),
+    anchor = snapped({ x: s.x + delta.x, y: s.y + delta.y }, g.base, {
+      x: s.x,
+      y: s.y,
+    });
+  let q;
+  if (constrained && $("snap-led").checked) q = copy(g.base);
+  else q = moveStations(g.base, selected, anchor.x - s.x, anchor.y - s.y);
+  if (target)
+    q = snapStationPoint(q, g.id, index, target, {
+      bind: $("snap-led-bind").checked,
+      share: g.share,
+    });
+  else if (constrained && $("snap-led").checked)
+    q = movePoint(q, g.id, index, {
+      x: origin.x + anchor.x - s.x,
+      y: origin.y + anchor.y - s.y,
+    });
+  return enforceParallels(q);
+}
+function newStationIndicator(pt) {
+  const p = project(),
+    template =
+      pendingStation?.template ?? p.stationTemplate ?? defaultTemplate(),
+    s = fromTemplate(template, pt, "snap-preview"),
+    index = Math.min(+$("snap-led-point").value, s.points - 1);
+  ledSnap = nearestPhysicalLed(
+    p,
+    symbolCenters(
+      { ...p, layout: { ...p.layout, stations: [s], routes: [] } },
+      s,
+    )[index],
+    zoom,
+    { enabled: $("snap-led").checked },
+  );
 }
 function fit() {
   const r = canvas.getBoundingClientRect(),
@@ -201,7 +263,7 @@ function draw(p = project()) {
           route.bends[selectedEdge] ??
           g.center[Math.floor(g.center.length / 2)];
       const shape = route.controls[selectedEdge]?.shape;
-      controls = `<g class="curve-controls"><path d="${g.center.map((pt, i) => `${i ? "L" : "M"} ${pt.x} ${pt.y}`).join(" ")}" fill="none" stroke="${g.adjusted ? "#c28427" : "#537f91"}" stroke-width="${1 / zoom}" stroke-dasharray="${4 / zoom} ${3 / zoom}"/><path d="M ${c.start.x} ${c.start.y} L ${c.c1.x} ${c.c1.y} M ${last.end.x} ${last.end.y} L ${last.c2.x} ${last.c2.y}" stroke="#6896a1" stroke-width="${1 / zoom}"/>${shape ? `<path d="M ${c.c2.x} ${c.c2.y} L ${g.curves[1].c1.x} ${g.curves[1].c1.y}" stroke="#9664a5" stroke-width="${1 / zoom}"/>` : ""}${[
+      controls = `<g class="selected-connection" pointer-events="none">${g.paths.map((path) => `<path d="${path.d}" fill="none" stroke="#3c9c74" stroke-opacity=".28" stroke-width="${5 / zoom}"/>`).join("")}</g><g class="curve-controls"><path d="${g.center.map((pt, i) => `${i ? "L" : "M"} ${pt.x} ${pt.y}`).join(" ")}" fill="none" stroke="${g.adjusted ? "#c28427" : "#537f91"}" stroke-width="${1 / zoom}" stroke-dasharray="${4 / zoom} ${3 / zoom}"/><path d="M ${c.start.x} ${c.start.y} L ${c.c1.x} ${c.c1.y} M ${last.end.x} ${last.end.y} L ${last.c2.x} ${last.c2.y}" stroke="#6896a1" stroke-width="${1 / zoom}"/>${shape ? `<path d="M ${c.c2.x} ${c.c2.y} L ${g.curves[1].c1.x} ${g.curves[1].c1.y}" stroke="#9664a5" stroke-width="${1 / zoom}"/>` : ""}${[
         ["start", c.c1],
         ["end", last.c2],
         ...(shape
@@ -238,6 +300,9 @@ function draw(p = project()) {
     const a = gesture.start,
       c = gesture.last;
     overlay = `<rect x="${Math.min(a.x, c.x)}" y="${Math.min(a.y, c.y)}" width="${Math.abs(a.x - c.x)}" height="${Math.abs(a.y - c.y)}" fill="#629b7a22" stroke="#4b9471" stroke-width="${1 / zoom}"/>`;
+  }
+  if (ledSnap) {
+    overlay += `<g id="led-snap-indicator" pointer-events="none" data-led-id="${esc(ledSnap.id)}" data-snap-index="${ledSnap.index}"><circle cx="${ledSnap.x}" cy="${ledSnap.y}" r="${8 / zoom}" fill="${ledSnap.occupied.length ? "#e8bd6733" : "#4baf9033"}" stroke="#287b67" stroke-width="${2 / zoom}"/><text x="${ledSnap.x + 11 / zoom}" y="${ledSnap.y - 9 / zoom}" font-size="${11 / zoom}" fill="#236e5d">${esc(ledSnap.segmentName)} · LED ${ledSnap.index} · ${$("snap-led-bind").checked ? "fest og bind" : "kun sentrering"}${ledSnap.occupied.length ? " · i bruk" : ""}</text></g>`;
   }
   if (measure) {
     const { a, b: c } = measure;
@@ -341,7 +406,7 @@ function previewParallel(q, g) {
       b: candidate.line.b,
       label: "Beregnet parallellplassering",
     });
-    if ($("snap").checked) {
+    if ($("snap-guides").checked) {
       applyParallel(q, candidate);
       if ($("parallel-lock").checked) {
         q.layout.parallelConstraints = (
@@ -367,6 +432,10 @@ function properties() {
     routeProperties();
     return;
   }
+  if (s && bindingStation !== s.id) {
+    bindingStation = s.id;
+    bindingPoint = 0;
+  }
   if (!s) {
     panel.innerHTML =
       '<h2>Egenskaper <span>02</span></h2><p class="note">Velg en stasjon på tavlen for presis plassering. S legger til en stasjon, L kobler stasjoner.</p><button id="reset-template">Standard enkeltstasjon</button>';
@@ -374,7 +443,16 @@ function properties() {
       mutate((q) => (q.stationTemplate = null));
     return;
   }
-  panel.innerHTML = `<h2>${selected.length > 1 ? selected.length + " stasjoner" : "Stasjon"} <span>02</span></h2><div class="station-actions"><button id="duplicate-station">Dupliser stasjon</button><button id="set-template">Bruk som standardstasjon</button><button id="reset-template">Standard enkeltstasjon</button></div>${field("station-name", "Navn", s.name, "text")}<div class="pair">${field("station-x", "X, mm", s.x, "number", 'step="0.1"')}${field("station-y", "Y, mm", s.y, "number", 'step="0.1"')}</div><div class="pair">${field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"')}${field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("hole-diameter", "Hull Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}</div><h2>Symbol og kapsel</h2><label>Kapseltype<select id="capsule-type"><option value="none">Ingen kapsel</option><option value="stadium">Avrundet kapsel</option><option value="rounded-box">Avrundet ramme</option></select></label><div class="pair">${field("capsule-width", "Ekstra bredde, mm", s.capsuleExtraWidth ?? 0)}${field("capsule-height", "Ekstra høyde, mm", s.capsuleExtraHeight ?? 0)}</div>${field("station-transition", "Egen overgang, mm (tom = trasé)", s.transitionLength ?? "", "number", 'min="0.1" max="100"')}<div class="pair">${field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"')}${field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"')}${field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"')}</div><div class="pair">${field("symbol-angle", "Vinkel, ° (tom = auto)", s.symbolAngle ?? "", "number", 'min="-360" max="360"')}${field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias, "number", 'min="-0.5" max="0.5" step="0.1"')}</div><div class="pair"><label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>${field("symbol-color", "Ringfarge", s.ringColor, "color")}</div><button id="align-holes">Tilpass hull til symbolet</button><p class="note">Grafisk rotasjon flytter ikke fysiske hull. Tilpass hull eksplisitt ved behov.</p><h2>Stasjonsnavn</h2><div class="pair">${field("label-dx", "Forskyvning X, mm", s.label.dx)}${field("label-dy", "Forskyvning Y, mm", s.label.dy)}</div><div class="pair">${field("label-angle", "Rotasjon, °", s.label.angle)}${field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'step="0.1" min="0.1"')}</div><div class="pair">${field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"')}<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label></div><label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label><p class="note">${selected.length > 1 ? "X/Y flytter utvalget. Ring-/kapselstil gjelder alle; navn og punktantall gjelder første." : "Navn og ring er uavhengige av hulldiameteren."}</p>`;
+  panel.innerHTML = `<h2>${selected.length > 1 ? selected.length + " stasjoner" : "Stasjon"} <span>02</span></h2><div class="station-actions"><button id="duplicate-station">Dupliser stasjon</button><button id="set-template">Bruk som standardstasjon</button><button id="reset-template">Standard enkeltstasjon</button></div><label class="inline-toggle"><input id="station-snap-led" type="checkbox" ${$("snap-led").checked ? "checked" : ""}>Fest til LED</label><label>Aktivt stasjonspunkt<select id="station-snap-point">${Array.from({ length: s.points }, (_, i) => `<option value="${i}">Punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label>${field("station-name", "Navn", s.name, "text")}<div class="pair">${field("station-x", "X, mm", s.x, "number", 'step="0.1"')}${field("station-y", "Y, mm", s.y, "number", 'step="0.1"')}</div><div class="pair">${field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"')}${field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("hole-diameter", "Hull Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}</div><h2>Symbol og kapsel</h2><label>Kapseltype<select id="capsule-type"><option value="none">Ingen kapsel</option><option value="stadium">Avrundet kapsel</option><option value="rounded-box">Avrundet ramme</option></select></label><div class="pair">${field("capsule-width", "Ekstra bredde, mm", s.capsuleExtraWidth ?? 0)}${field("capsule-height", "Ekstra høyde, mm", s.capsuleExtraHeight ?? 0)}</div>${field("station-transition", "Egen overgang, mm (tom = trasé)", s.transitionLength ?? "", "number", 'min="0.1" max="100"')}<div class="pair">${field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"')}${field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"')}${field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"')}</div><div class="pair">${field("symbol-angle", "Vinkel, ° (tom = auto)", s.symbolAngle ?? "", "number", 'min="-360" max="360"')}${field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias, "number", 'min="-0.5" max="0.5" step="0.1"')}</div><div class="pair"><label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>${field("symbol-color", "Ringfarge", s.ringColor, "color")}</div><button id="align-holes">Tilpass hull til symbolet</button><p class="note">Grafisk rotasjon flytter ikke fysiske hull. Tilpass hull eksplisitt ved behov.</p><h2>Stasjonsnavn</h2><div class="pair">${field("label-dx", "Forskyvning X, mm", s.label.dx)}${field("label-dy", "Forskyvning Y, mm", s.label.dy)}</div><div class="pair">${field("label-angle", "Rotasjon, °", s.label.angle)}${field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'step="0.1" min="0.1"')}</div><div class="pair">${field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"')}<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label></div><label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label><p class="note">${selected.length > 1 ? "X/Y flytter utvalget. Ring-/kapselstil gjelder alle; navn og punktantall gjelder første." : "Navn og ring er uavhengige av hulldiameteren."}</p>`;
+  $("station-snap-led").onchange = (e) => {
+    $("snap-led").checked = e.target.checked;
+    draw();
+  };
+  $("station-snap-point").value = bindingPoint;
+  $("station-snap-point").onchange = (e) => {
+    bindingPoint = +e.target.value;
+    renderBindings(p, s);
+  };
   $("duplicate-station").onclick = startDuplicate;
   $("set-template").onclick = () =>
     mutate((q) => (q.stationTemplate = stationTemplate(q, s)));
@@ -584,6 +662,18 @@ function properties() {
   }
   renderBindings(p, s);
 }
+function deleteSelectedConnection() {
+  if (!selectedRoute) return;
+  safe(() => {
+    const next = deleteConnection(project(), selectedRoute, selectedEdge);
+    selectedRoute = null;
+    selectedEdge = 0;
+    commit(next);
+    message(
+      "Valgt grafisk forbindelse slettet. Stasjoner og LED-bindinger beholdt.",
+    );
+  });
+}
 function routeProperties() {
   const p = project(),
     r = p.layout.routes.find((r) => r.id === selectedRoute);
@@ -599,7 +689,7 @@ function routeProperties() {
     (_, i) => edgeGeometry(p, r, i).warnings,
   ).flat();
   const panel = $("properties");
-  panel.innerHTML = `<h2>Trasé <span>02</span></h2>${warnings.length ? `<p class="warning">${esc([...new Set(warnings)].join(". "))}</p>` : ""}${parallelBinding ? `<p class="note">Låst parallellavstand: ${Math.abs(parallelBinding.distance).toFixed(2)} mm. Bruk «Frigi parallellavstand» for fri flytting.</p>` : ""}<div class="station-actions"><button id="move-route" aria-pressed="${routeMoveEnabled}">Flytt trasé</button><button id="free-shape">Fri kurveform</button><button id="reset-shape">Automatisk kurveform</button><button id="parallel-release">Frigi parallellavstand</button></div><label>Grafisk sporantall<select id="route-tracks"><option value="1">Enkeltspor</option><option value="2">Dobbeltspor</option></select></label><div class="pair">${field("route-spacing", "Sporavstand, mm", r.trackSpacing)}${field("route-stroke", "Linjebredde, mm", r.stroke, "number", 'step="0.01"')}</div><div class="pair">${field("route-length", "Overgangslengde, mm", r.transitionLength)}${field("route-tension", "Kurveform (0,05–0,95)", r.tension, "number", 'step="0.05"')}</div><label>Delstrekning<select id="route-edge">${r.stationIds
+  panel.innerHTML = `<h2>Trasé <span>02</span></h2><label>Grafisk rute for valgt forbindelse<select id="route-object"></select></label>${warnings.length ? `<p class="warning">${esc([...new Set(warnings)].join(". "))}</p>` : ""}${parallelBinding ? `<p class="note">Låst parallellavstand: ${Math.abs(parallelBinding.distance).toFixed(2)} mm. Bruk «Frigi parallellavstand» for fri flytting.</p>` : ""}<div class="station-actions"><button id="move-route" aria-pressed="${routeMoveEnabled}">Flytt trasé</button><button id="free-shape">Fri kurveform</button><button id="reset-shape">Automatisk kurveform</button><button id="parallel-release">Frigi parallellavstand</button></div><label>Grafisk sporantall<select id="route-tracks"><option value="1">Enkeltspor</option><option value="2">Dobbeltspor</option></select></label><div class="pair">${field("route-spacing", "Sporavstand, mm", r.trackSpacing)}${field("route-stroke", "Linjebredde, mm", r.stroke, "number", 'step="0.01"')}</div><div class="pair">${field("route-length", "Overgangslengde, mm", r.transitionLength)}${field("route-tension", "Kurveform (0,05–0,95)", r.tension, "number", 'step="0.05"')}</div><label>Delstrekning<select id="route-edge">${r.stationIds
     .slice(0, -1)
     .map(
       (id, i) =>
@@ -607,7 +697,7 @@ function routeProperties() {
     )
     .join(
       "",
-    )}</select></label><div class="pair">${field("bend-x", "Knekkpunkt X, mm", "")}${field("bend-y", "Knekkpunkt Y, mm", "")}</div><div class="pair">${field("route-radius", "Min. kurveradius, mm", r.cornerRadius)}<button id="bend-save">Sett knekkpunkt</button></div><div class="pair">${field("control-start", "Starthåndtak, mm", r.controls[selectedEdge]?.startReach ?? edgeGeometry(p, r, selectedEdge).effectiveReach?.start ?? 12)}${field("control-end", "Slutthåndtak, mm", r.controls[selectedEdge]?.endReach ?? edgeGeometry(p, r, selectedEdge).effectiveReach?.end ?? 12)}</div>${field("route-grow", "Tillatt automatisk utvidelse, mm", r.autoGrow, "number", 'min="0" max="48"')}<button id="bend-clear">Rett delstrekning</button><button id="edge-track">Skill ut delstrekning</button><p class="note">Velg en trasélinje på tavlen. Stasjonssymboler har eget punktantall. Radius gjelder knekkpunktet, med geometrisk parallelle spor. For kort strekning begrenser radiusen.</p>`;
+    )}</select></label><div class="pair">${field("bend-x", "Knekkpunkt X, mm", "")}${field("bend-y", "Knekkpunkt Y, mm", "")}</div><div class="pair">${field("route-radius", "Min. kurveradius, mm", r.cornerRadius)}<button id="bend-save">Sett knekkpunkt</button></div><div class="pair">${field("control-start", "Starthåndtak, mm", r.controls[selectedEdge]?.startReach ?? edgeGeometry(p, r, selectedEdge).effectiveReach?.start ?? 12)}${field("control-end", "Slutthåndtak, mm", r.controls[selectedEdge]?.endReach ?? edgeGeometry(p, r, selectedEdge).effectiveReach?.end ?? 12)}</div>${field("route-grow", "Tillatt automatisk utvidelse, mm", r.autoGrow, "number", 'min="0" max="48"')}<button id="bend-clear">Rett delstrekning</button><button id="edge-track">Skill ut delstrekning</button><button id="edge-delete">Slett valgt strekning</button><p class="note">Nye forbindelser arver siste valgte sporoppsett. Andre eksisterende forbindelser endres ikke.</p><p class="note">Velg en trasélinje på tavlen. Stasjonssymboler har eget punktantall. Radius gjelder knekkpunktet, med geometrisk parallelle spor. For kort strekning begrenser radiusen.</p>`;
   $("move-route").onclick = () => {
     routeMoveEnabled = !routeMoveEnabled;
     $("move-route").setAttribute("aria-pressed", routeMoveEnabled);
@@ -654,6 +744,34 @@ function routeProperties() {
           (c) => c.follower.routeId !== r.id,
         )),
     );
+  const pair = r.stationIds.slice(selectedEdge, selectedEdge + 2),
+    choices = p.layout.routes.filter((t) =>
+      t.stationIds.some(
+        (id, i) =>
+          i < t.stationIds.length - 1 &&
+          pair.includes(id) &&
+          pair.includes(t.stationIds[i + 1]),
+      ),
+    );
+  $("route-object").innerHTML = choices
+    .map(
+      (t) =>
+        `<option value="${esc(t.id)}">${esc(t.name ?? `Rute ${p.layout.routes.indexOf(t) + 1}`)} · ${esc(p.layout.stations.find((s) => s.id === t.stationIds[0])?.name)} → ${esc(p.layout.stations.find((s) => s.id === t.stationIds.at(-1))?.name)}</option>`,
+    )
+    .join("");
+  $("route-object").value = r.id;
+  $("route-object").onchange = (e) => {
+    const target = p.layout.routes.find((t) => t.id === e.target.value);
+    selectedRoute = target.id;
+    selectedEdge = target.stationIds.findIndex(
+      (id, i) =>
+        i < target.stationIds.length - 1 &&
+        pair.includes(id) &&
+        pair.includes(target.stationIds[i + 1]),
+    );
+    render();
+  };
+  $("edge-delete").onclick = deleteSelectedConnection;
   $("route-tracks").value = r.tracks;
   const map = {
     "route-tracks": "tracks",
@@ -668,9 +786,12 @@ function routeProperties() {
     $(id).disabled = p.layers.routes.locked || p.layers.capsules.locked;
     $(id).onchange = (e) =>
       safe(() =>
-        mutate(
-          (q) =>
-            (q.layout.routes.find((t) => t.id === r.id)[key] = +e.target.value),
+        mutate((q) =>
+          (() => {
+            const target = q.layout.routes.find((t) => t.id === r.id);
+            target[key] = +e.target.value;
+            q.routeDefaults = routeStyle(target);
+          })(),
         ),
       );
   }
@@ -736,25 +857,11 @@ function routeProperties() {
   $("edge-track").onclick = () => {
     if (p.layers.routes.locked || p.layers.capsules.locked) return;
     const edge = +$("route-edge").value;
-    mutate((q) => {
-      const index = q.layout.routes.findIndex((t) => t.id === r.id),
-        parts = [];
-      for (let i = 0; i < r.stationIds.length - 1; i++) {
-        const part = {
-          ...copy(r),
-          id: crypto.randomUUID(),
-          stationIds: r.stationIds.slice(i, i + 2),
-          bends: r.bends[i] ? { 0: copy(r.bends[i]) } : {},
-          controls: r.controls[i] ? { 0: copy(r.controls[i]) } : {},
-        };
-        parts.push(part);
-        if (i === edge) selectedRoute = part.id;
-      }
-      for (const c of q.layout.parallelConstraints)
-        for (const key of ["reference", "follower"])
-          if (c[key].routeId === r.id)
-            c[key] = { ...c[key], routeId: parts[c[key].edge].id, edge: 0 };
-      q.layout.routes.splice(index, 1, ...parts);
+    safe(() => {
+      const result = splitConnection(p, r.id);
+      selectedRoute = result.edgeMap.get(edge).routeId;
+      selectedEdge = 0;
+      commit(result.project);
     });
     message("Delstrekning valgt · endre sporantall");
   };
@@ -830,6 +937,7 @@ function safe(fn) {
   }
 }
 function setTool(next) {
+  ledSnap = null;
   if (next !== "select") pendingStation = null;
   tool = next;
   routeStart = null;
@@ -855,29 +963,53 @@ canvas.onpointerdown = (e) => {
   canvas.setPointerCapture(e.pointerId);
   const a = xy(e),
     target = e.target.closest("[data-station],[data-label]"),
-    id = target?.dataset.station || target?.dataset.label,
+    id =
+      target?.dataset.station ||
+      target?.dataset.label ||
+      (tool === "route"
+        ? project().ledLayout.bindings.find(
+            (b) => b.ledId === e.target.closest("[data-led]")?.dataset.led,
+          )?.stationId
+        : null),
     p = project();
   if (pendingStation && e.button === 0) {
     if (stationLocks()) {
       message("Lås opp berørte lag før plassering");
       return;
     }
-    const pt = snapped(a);
+    const index = Math.min(
+        +$("snap-led-point").value,
+        pendingStation.template.appearance.points - 1,
+      ),
+      raw = fromTemplate(pendingStation.template, a, pendingStation.id),
+      candidate = nearestPhysicalLed(
+        p,
+        symbolCenters(
+          { ...p, layout: { ...p.layout, stations: [raw], routes: [] } },
+          raw,
+        )[index],
+        zoom,
+        { enabled: $("snap-led").checked },
+      ),
+      pt = snapped(a);
     if (pt.x < 0 || pt.y < 0 || pt.x > p.board.width || pt.y > p.board.height)
       return;
-    const station = fromTemplate(
-      pendingStation.template,
-      pt,
-      pendingStation.id,
-    );
-    pendingStation = null;
-    selected = [station.id];
-    commit({
-      ...copy(p),
-      layout: {
-        ...copy(p.layout),
-        stations: [...copy(p.layout.stations), station],
-      },
+    safe(() => {
+      const station = fromTemplate(
+        pendingStation.template,
+        pt,
+        pendingStation.id,
+      );
+      let q = copy(p);
+      q.layout.stations.push(station);
+      if (candidate)
+        q = snapStationPoint(q, station.id, index, candidate, {
+          bind: $("snap-led-bind").checked,
+        });
+      pendingStation = null;
+      ledSnap = null;
+      selected = [station.id];
+      commit(q);
     });
     return;
   }
@@ -907,7 +1039,7 @@ canvas.onpointerdown = (e) => {
     safe(() => commit(bindPoint(project(), request)));
     return;
   }
-  if (ledTarget && !bindTarget) {
+  if (ledTarget && !bindTarget && tool === "select") {
     const linked = p.ledLayout.bindings.find(
       (b) => b.ledId === ledTarget.dataset.led,
     );
@@ -916,6 +1048,16 @@ canvas.onpointerdown = (e) => {
       selectedRoute = null;
       bindingStation = linked.stationId;
       bindingPoint = linked.pointIndex;
+      if (tool === "select" && $("snap-led").checked && !stationLocks())
+        gesture = {
+          kind: "move",
+          id: linked.stationId,
+          start: a,
+          base: copy(p),
+          moved: false,
+          pointIndex: linked.pointIndex,
+          share: $("bind-share")?.checked ?? false,
+        };
       render();
       return;
     }
@@ -978,12 +1120,36 @@ canvas.onpointerdown = (e) => {
       message("Stasjons- eller hullaget er låst");
       return;
     }
-    const pt = snapped(a);
+    const template = p.stationTemplate ?? defaultTemplate(),
+      index = Math.min(
+        +$("snap-led-point").value,
+        template.appearance.points - 1,
+      ),
+      raw = fromTemplate(template, a),
+      candidate = nearestPhysicalLed(
+        p,
+        symbolCenters(
+          { ...p, layout: { ...p.layout, stations: [raw], routes: [] } },
+          raw,
+        )[index],
+        zoom,
+        { enabled: $("snap-led").checked },
+      ),
+      pt = snapped(a);
     if (pt.x < 0 || pt.y < 0 || pt.x > p.board.width || pt.y > p.board.height)
       return;
-    const s = fromTemplate(p.stationTemplate ?? defaultTemplate(), pt);
-    selected = [s.id];
-    mutate((q) => q.layout.stations.push(s));
+    safe(() => {
+      const station = fromTemplate(template, pt, raw.id);
+      let q = copy(p);
+      q.layout.stations.push(station);
+      if (candidate)
+        q = snapStationPoint(q, station.id, index, candidate, {
+          bind: $("snap-led-bind").checked,
+        });
+      selected = [station.id];
+      ledSnap = null;
+      commit(q);
+    });
     return;
   }
   if (tool === "route" && id) {
@@ -997,13 +1163,7 @@ canvas.onpointerdown = (e) => {
       routeStart = id;
       message("Velg neste stasjon");
     } else if (routeStart !== id) {
-      mutate((q) =>
-        q.layout.routes.push({
-          id: crypto.randomUUID(),
-          stationIds: [routeStart, id],
-          stroke: 0.18,
-        }),
-      );
+      mutate((q) => q.layout.routes.push(newConnection(q, [routeStart, id])));
       routeStart = id;
       message("Koblet · velg neste stasjon eller trykk V");
     }
@@ -1060,12 +1220,21 @@ canvas.onpointerdown = (e) => {
       return;
     }
     if (!selected.includes(id)) selected = [id];
+    if (bindingStation !== id) {
+      bindingStation = id;
+      bindingPoint = 0;
+    }
     gesture = {
       kind: label ? "label" : "move",
       id,
       start: a,
       base: copy(p),
       moved: false,
+      pointIndex: Math.min(
+        bindingPoint,
+        p.layout.stations.find((s) => s.id === id).points - 1,
+      ),
+      share: $("bind-share")?.checked ?? false,
     };
     render();
   } else {
@@ -1090,7 +1259,26 @@ canvas.onpointermove = (e) => {
     return;
   }
   if (pendingStation) {
+    newStationIndicator(pt);
     pendingStation.point = snapped(pt);
+    if (ledSnap) {
+      const ghost = fromTemplate(
+          pendingStation.template,
+          pendingStation.point,
+          pendingStation.id,
+        ),
+        index = Math.min(+$("snap-led-point").value, ghost.points - 1),
+        center = symbolCenters(p, ghost)[index];
+      pendingStation.point = {
+        x: pendingStation.point.x + ledSnap.x - center.x,
+        y: pendingStation.point.y + ledSnap.y - center.y,
+      };
+    }
+    draw();
+    return;
+  }
+  if (!gesture && tool === "station") {
+    newStationIndicator(pt);
     draw();
     return;
   }
@@ -1109,17 +1297,16 @@ canvas.onpointermove = (e) => {
     g.last = pt;
     draw();
   } else if (g.kind === "move") {
-    const s = g.base.layout.stations.find((s) => s.id === g.id),
-      end = snapped(
-        { x: s.x + pt.x - g.start.x, y: s.y + pt.y - g.start.y },
-        g.base,
-        { x: s.x, y: s.y },
-      );
-    g.preview = enforceParallels(
-      moveStations(g.base, selected, end.x - s.x, end.y - s.y),
-    );
-    g.moved = true;
-    draw(g.preview);
+    try {
+      g.preview = stationDrag(g, pt);
+      g.snapError = null;
+      draw(g.preview);
+    } catch (err) {
+      g.preview = null;
+      g.snapError = err.message;
+      draw(g.base);
+      message(err.message);
+    }
   } else if (g.kind === "route-move") {
     smartGuides = [];
     const q = translateRoute(
@@ -1218,6 +1405,12 @@ function finishGesture(cancel = false) {
   const g = gesture;
   gesture = null;
   smartGuides = [];
+  ledSnap = null;
+  if (!cancel && g.snapError) {
+    draw();
+    message(g.snapError);
+    return;
+  }
   if (!cancel && g.preview) {
     safe(() => commit(g.preview));
   } else if (!cancel && g.kind === "box") {
@@ -1259,8 +1452,25 @@ for (const b of document.querySelectorAll("[data-tool]"))
 $("zoom-in").onclick = () => zoomAt(1.2);
 $("zoom-out").onclick = () => zoomAt(1 / 1.2);
 $("fit").onclick = fit;
-for (const id of ["grid", "grid-step", "grid-major", "grid-contrast", "snap"])
-  $(id).onchange = () => draw();
+for (const id of [
+  "grid",
+  "grid-step",
+  "grid-major",
+  "grid-contrast",
+  "snap",
+  "snap-guides",
+  "snap-led",
+  "snap-led-bind",
+  "snap-led-point",
+])
+  $(id).onchange = () => {
+    if (id === "snap-led") {
+      ledSnap = null;
+      if ($("station-snap-led"))
+        $("station-snap-led").checked = $("snap-led").checked;
+    }
+    draw();
+  };
 $("undo").onclick = () => {
   finishGesture(true);
   history.undo();
@@ -1276,6 +1486,10 @@ $("redo").onclick = () => {
   render();
 };
 $("delete").onclick = () => {
+  if (selectedRoute) {
+    deleteSelectedConnection();
+    return;
+  }
   if (!selected.length) return;
   if (
     ["rings", "holes", "names", "routes", "capsules"].some(
@@ -1294,6 +1508,8 @@ $("delete").onclick = () => {
         !changedRoutes.includes(c.reference.routeId) &&
         !changedRoutes.includes(c.follower.routeId),
     );
+    if (p.layout.tangentHints)
+      for (const id of selected) delete p.layout.tangentHints[id];
     p.ledLayout.bindings = p.ledLayout.bindings.filter(
       (b) => !selected.includes(b.stationId),
     );
@@ -1428,6 +1644,7 @@ document.onkeydown = (e) => {
   if (e.key === "Escape" && pendingStation) {
     e.preventDefault();
     pendingStation = null;
+    ledSnap = null;
     draw();
     message("Plassering avbrutt");
     return;
@@ -1795,6 +2012,8 @@ function renderPhysical() {
     });
 }
 $("led-toggle").onclick = () => {
+  $("snap-led").checked = true;
+  $("snap-led-bind").checked = true;
   $("led-panel").hidden = !$("led-panel").hidden;
   $("symbol-library").hidden = true;
   renderPhysical();
@@ -1852,6 +2071,7 @@ function renderBindings(p, s) {
   $("bind-point").value = bindingPoint;
   $("bind-point").onchange = (e) => {
     bindingPoint = +e.target.value;
+    if ($("station-snap-point")) $("station-snap-point").value = bindingPoint;
     renderBindings(p, s);
   };
   $("bind-mode").value = b?.mode ?? "direct";
@@ -1997,6 +2217,8 @@ $("physical-confirm").onclick = () =>
   });
 
 $("trondheim-demo").onclick = () => {
+  $("snap-led").checked = true;
+  $("snap-led-bind").checked = true;
   selected = [];
   selectedRoute = null;
   pendingStation = null;

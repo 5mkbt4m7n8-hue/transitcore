@@ -13,6 +13,7 @@ export function tangentAt(stations, i) {
   return unit(sub(b, a));
 }
 export function stationTangent(p, s) {
+  if (p.layout.tangentHints?.[s.id]) return { ...p.layout.tangentHints[s.id] };
   let before = null,
     after = null;
   for (const r of p.layout.routes) {

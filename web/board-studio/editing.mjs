@@ -13,6 +13,8 @@ export function snapPoint(
   pt,
   {
     enabled = false,
+    gridEnabled = enabled,
+    guidesEnabled = enabled,
     gridStep = 5,
     zoom = 1,
     excludeIds = [],
@@ -30,7 +32,7 @@ export function snapPoint(
     for (const b of Object.values(r.bends))
       targets.push({ ...b, kind: "bend" });
   const guides = [],
-    point = enabled
+    point = gridEnabled
       ? {
           x: Math.round(pt.x / gridStep) * gridStep,
           y: Math.round(pt.y / gridStep) * gridStep,
@@ -46,7 +48,7 @@ export function snapPoint(
       )[0];
     if (near) {
       guides.push({ kind: near.kind, axis, value: near[axis] });
-      if (enabled) point[axis] = near[axis];
+      if (guidesEnabled) point[axis] = near[axis];
     }
     const explicit = p.layout.guides
       .filter(
@@ -57,7 +59,7 @@ export function snapPoint(
       )[0];
     if (explicit) {
       guides.push({ kind: "guide", ...explicit });
-      if (enabled) point[axis] = explicit.value;
+      if (guidesEnabled) point[axis] = explicit.value;
     }
   }
   if (anchor && length(sub(pt, anchor)) > threshold * 2) {
@@ -94,7 +96,7 @@ export function snapPoint(
               ? "45°"
               : "0° / 90°",
       });
-      if (enabled && !guides.some((g) => g.axis)) {
+      if (guidesEnabled && !guides.some((g) => g.axis)) {
         const d = sub(point, anchor),
           projection = add(
             anchor,
