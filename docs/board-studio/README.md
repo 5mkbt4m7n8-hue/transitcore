@@ -1,6 +1,31 @@
-# InTransit Board Studio v0.3.2
+# InTransit Board Studio v0.3.3
 
 Vektoreditor og fysisk LED-layout i millimeter: `web/board-studio/index.html`. Arbeidet er beholdt i draft-PR #324. Ingen merge, produksjonsdeploy eller endringer i Map Studio/PR #323, GPS, Entur eller firmware.
+
+## Nye arbeidsflyter i v0.3.3
+
+### Se forbindelsen før siste klikk
+
+Velg L, klikk startporten og hold pekeren over en sluttport. Den stiplede kurven viser den faktiske forbindelsen før du klikker. Grønt betyr gyldig geometri; rødt betyr at portvalget ikke kan opprettes slik det står. Du kan prøve andre sluttporter uten å endre prosjektet. Escape avbryter. Forhåndsvisningen bruker samme geometri som opprettelsen og følger ikke med i lagring/eksport.
+
+### Bygg flere stopp langs en LED-stripe
+
+1. Åpne **LED-layout → Plasser stopp langs stripen**.
+2. Velg et innebygd/egendefinert symbol, eller **Valgt standardstasjon**, og riktig segment.
+3. Velg startens faktiske LED-indeks og stoppintervall 1/2/3/4. **Egne indekser** lar deg skrive varierende intervaller, for eksempel `0, 4, 9`. Indeksene følger segmentets kontroller/kjede og indeksretning.
+4. Gi eventuelt et navneprefiks og velg **Start plassering**. Neste gruppe markeres på tavlen, med et gjennomsiktig symbol og indeksene i panelet.
+5. Velg **Plasser neste stopp**, trykk Enter med tavlen i fokus, eller klikk den første markerte fysiske LED-en. Fortsett til ønsket antall stopp er plassert.
+6. **Avslutt**, Escape eller et annet verktøy avslutter modusen. Navnene kan endres i stasjonspanelet. Angre/Gjør om gjelder ett stopp om gangen, og markøren følger hva som igjen er ledig.
+
+Flerpunktsymboler bruker påfølgende fysiske LED-er. Avstand og symbolretning tilpasses derfor den faktiske stripen; ringdiameter, hulldiameter, kapselstil og navnestil følger malen. Intervallet angir mulige startposisjoner. Opptatte LED-er og grupper som ikke får plass, hoppes over. Nye stopp får egne stasjons-/hull-/bindings-ID-er og ingen Entur-/Quay-identiteter. Eksisterende stopp og hull flyttes ikke. Hullene i det nye stoppet ligger på de fysiske LED-sentrene ved direkte belysning.
+
+### Finn og undersøk feil
+
+Velg **Kontroll** øverst eller gå til **Kontroll av tavlen** i høyrepanelet. Filtrer mellom fysisk layout, linjegeometri og ubundne punkter. Klikk et funn for å velge riktig stasjon, punkt, forbindelse eller stripesegment og sentrere visningen. Markeringen vises også når objektets vanlige lag er skjult. Kontrollnavigasjon endrer ikke prosjektdata eller lagvalg og korrigerer ingenting automatisk.
+
+Ubundne punkter er informasjonsfunn under grafisk arbeid. Ugyldige linjer og fysiske konflikter må undersøkes før produksjon. Listen er en grunnkontroll, ikke en godkjenning av maskin-/materialtoleranser.
+
+[Arbeidsflyttester](workflows-validation.md) · [Linjeforhåndsvisning](v033-preview.png) · [Hurtigplassering](v033-rapid.png) · [Kontrollnavigasjon](v033-checks.png).
 
 ## Presis plassering av LED-striper
 

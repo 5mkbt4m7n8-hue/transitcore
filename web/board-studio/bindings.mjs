@@ -248,15 +248,18 @@ export function bindingMarkup(p, esc) {
     .join("");
 }
 export function mechanicalCheck(p) {
+  let currentTarget = null;
   const issues = [],
     outside = (pt, r = 0) =>
       pt.x - r < 0 ||
       pt.y - r < 0 ||
       pt.x + r > p.board.width ||
       pt.y + r > p.board.height,
-    add = (object, message) => issues.push({ object, message });
+    add = (object, message, target = currentTarget) =>
+      issues.push({ object, message, target: structuredClone(target) });
   const indexKeys = new Set();
   for (const profile of p.ledLayout.profiles) {
+    currentTarget = { kind: "profile", id: profile.id };
     if (profile.firstOffset < profile.housingLength / 2)
       add(profile.name, "Første LED-hus går ut over stripeenden.");
     if (
@@ -273,6 +276,7 @@ export function mechanicalCheck(p) {
       add(profile.name, "Profilens LED-er går ut over oppgitt striplengde.");
   }
   for (const s of p.ledLayout.segments) {
+    currentTarget = { kind: "segment", id: s.id };
     const profile = p.ledLayout.profiles.find((r) => r.id === s.profileId);
     if (!profile) {
       add(s.name, "Stripeprofil mangler.");
@@ -303,9 +307,11 @@ export function mechanicalCheck(p) {
   }
   const holes = [];
   for (const s of p.layout.stations) {
+    currentTarget = { kind: "station", id: s.id };
     if (s.holes.length !== s.points)
       add(s.name, "Antall hull og grafiske punkter er forskjellig.");
     for (let i = 0; i < s.holes.length; i++) {
+      currentTarget = { kind: "station", id: s.id, pointIndex: i };
       const h = s.holes[i],
         diameter = h.diameter ?? s.holeDiameter;
       if (outside(h, diameter / 2))
@@ -345,9 +351,20 @@ export function mechanicalCheck(p) {
           d < (a.diameter + b.diameter) / 2
             ? "Overlappende hull."
             : "Hull ligger nærmere enn 1 mm kantavstand.",
+          {
+            kind: "station",
+            id: a.s.id,
+            pointIndex: a.i,
+            stationIds: [a.s.id, b.s.id],
+          },
         );
     }
   for (const b of p.ledLayout.bindings) {
+    currentTarget = {
+      kind: "station",
+      id: b.stationId,
+      pointIndex: b.pointIndex,
+    };
     const s = p.layout.stations.find((s) => s.id === b.stationId),
       led = ledFor(p, b.segmentId, b.ledId),
       h = s?.holes[b.pointIndex],

@@ -1,3 +1,9 @@
+import {
+  connectionPreview,
+  nextRapidStop,
+  placeRapidStop,
+  boardChecks,
+} from "./workflows.mjs";
 import { snapStrip, alignStripHoles } from "./strip-snap.mjs";
 import { stationPorts, stationPort } from "./ports.mjs";
 import {
@@ -84,6 +90,9 @@ let selected = [],
   reconnectTarget = null,
   lineAdvanced = false,
   portHover = null,
+  rapidPlacement = null,
+  focusMark = null,
+  checkLimit = 100,
   selectedRoute = null,
   pendingPhysical = null,
   bindTarget = null,
@@ -356,7 +365,7 @@ function draw(p = project()) {
     .map((id) => `<g data-layer="${id}">${layerMarkup(p, id)}</g>`)
     .join(
       "",
-    )}${marks}${overlay}${controls}${pendingStation?.point ? `<g class="placement-preview" pointer-events="none" opacity=".6">${["capsules", "rings", "names", ...(p.layers.holes.visible ? ["holes"] : [])].map((layer) => stationMarkup(fromTemplate(pendingStation.template, pendingStation.point, pendingStation.id), layer, p)).join("")}</g>` : ""}${portMarkup(p)}</g><g pointer-events="none">${rulers}</g>`;
+    )}${marks}${overlay}${controls}${pendingStation?.point ? `<g class="placement-preview" pointer-events="none" opacity=".6">${["capsules", "rings", "names", ...(p.layers.holes.visible ? ["holes"] : [])].map((layer) => stationMarkup(fromTemplate(pendingStation.template, pendingStation.point, pendingStation.id), layer, p)).join("")}</g>` : ""}${workflowMarkup(p)}${portMarkup(p)}</g><g pointer-events="none">${rulers}</g>`;
   for (const routeLayer of canvas.querySelectorAll(
     "[data-layer=routes],[data-layer=capsules]",
   ))
@@ -702,10 +711,179 @@ function deleteSelectedConnection() {
     );
   });
 }
+function rapidCandidate() {
+  if (!rapidPlacement) return null;
+  try {
+    return nextRapidStop(project(), rapidPlacement);
+  } catch {
+    return null;
+  }
+}
+function rapidPlace() {
+  safe(() => {
+    const result = placeRapidStop(project(), rapidPlacement);
+    selected = [result.stationId];
+    selectedRoute = null;
+    commit(result.project);
+    message("Stopp plassert og bundet. Neste ledige LED er markert.");
+  });
+}
+function renderRapid() {
+  const segmentSelect = $("rapid-segment"),
+    symbolSelect = $("rapid-symbol"),
+    oldSegment = segmentSelect.value,
+    oldSymbol = symbolSelect.value;
+  segmentSelect.innerHTML = project()
+    .ledLayout.segments.map(
+      (s) =>
+        `<option value="${esc(s.id)}">${esc(s.name)} · ${esc(s.chainId)}</option>`,
+    )
+    .join("");
+  if (project().ledLayout.segments.some((s) => s.id === oldSegment))
+    segmentSelect.value = oldSegment;
+  else if (project().ledLayout.segments.length)
+    $("rapid-start").value = ledPositions(
+      project(),
+      project().ledLayout.segments[0],
+    )[0].index;
+  const records = libraryRecords();
+  symbolSelect.innerHTML =
+    '<option value="current">Valgt standardstasjon</option>' +
+    records
+      .map(
+        (r) =>
+          `<option value="${esc(r.id)}">${esc(r.category + " · " + r.name)}</option>`,
+      )
+      .join("");
+  if (oldSymbol === "current" || records.some((r) => r.id === oldSymbol))
+    symbolSelect.value = oldSymbol;
+  for (const id of [
+    "rapid-symbol",
+    "rapid-segment",
+    "rapid-start",
+    "rapid-step",
+    "rapid-indices",
+    "rapid-name",
+  ])
+    $(id).disabled = !!rapidPlacement;
+  $("rapid-indices").closest("label").hidden =
+    $("rapid-step").value !== "custom";
+  $("rapid-begin").disabled =
+    !!rapidPlacement || !project().ledLayout.segments.length;
+  $("rapid-stop").disabled = !rapidPlacement;
+  const candidate = rapidCandidate();
+  $("rapid-place").disabled = !candidate;
+  $("rapid-status").textContent = rapidPlacement
+    ? candidate
+      ? `Neste: ${candidate.segment.name} · LED ${candidate.leds.map((l) => l.index).join(", ")}. Klikk første markerte LED, trykk Enter eller Plasser neste stopp.`
+      : "Ingen flere ledige posisjoner for dette symbolet. Avslutt for å velge et annet intervall."
+    : "Velg symbol og startindeks. Opptatte LED-er hoppes over.";
+}
+$("rapid-step").onchange = renderRapid;
+$("rapid-segment").onchange = () => {
+  const s = project().ledLayout.segments.find(
+    (s) => s.id === $("rapid-segment").value,
+  );
+  if (s) $("rapid-start").value = ledPositions(project(), s)[0].index;
+};
+$("rapid-begin").onclick = () =>
+  safe(() => {
+    const p = project(),
+      segment = p.ledLayout.segments.find(
+        (s) => s.id === $("rapid-segment").value,
+      ),
+      template =
+        $("rapid-symbol").value === "current"
+          ? (p.stationTemplate ?? defaultTemplate())
+          : libraryRecords().find((r) => r.id === $("rapid-symbol").value)
+              ?.template;
+    if (!segment || !template) throw Error("Velg segment og symbol.");
+    const config = {
+      segmentId: segment.id,
+      template: copy(template),
+      namePrefix: $("rapid-name").value,
+      startSlot: ledPositions(p, segment).findIndex(
+        (l) => l.index === +$("rapid-start").value,
+      ),
+      step: +$("rapid-step").value,
+    };
+    if ($("rapid-step").value === "custom")
+      config.indices = $("rapid-indices")
+        .value.split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map(Number);
+    nextRapidStop(p, config);
+    selected = [];
+    selectedRoute = null;
+    setTool("select");
+    rapidPlacement = config;
+    selectedSegment = segment.id;
+    selectedProfile = segment.profileId;
+    pendingStrip = null;
+    pendingStation = null;
+    bindTarget = null;
+    mutate((q) => {
+      q.layers.leds.visible = true;
+      q.layers.strips.visible = true;
+    });
+    renderRapid();
+    draw();
+    canvas.focus();
+  });
+$("rapid-place").onclick = rapidPlace;
+$("rapid-stop").onclick = () => {
+  rapidPlacement = null;
+  render();
+};
+function workflowMarkup(p) {
+  const previewMessage = $("connection-preview-message");
+  if (previewMessage)
+    previewMessage.textContent = routeStart
+      ? "Velg sluttport for forhåndsvisning."
+      : "";
+  let markup = "";
+  if (focusMark)
+    markup += `<g id="check-focus" pointer-events="none"><circle cx="${focusMark.x}" cy="${focusMark.y}" r="${14 / zoom}" fill="#e5ac5422" stroke="#c48a26" stroke-width="${2 / zoom}"/></g>`;
+  if (tool === "route" && routeStart && portHover) {
+    const separator = portHover.lastIndexOf("|"),
+      end = {
+        stationId: portHover.slice(0, separator),
+        portId: portHover.slice(separator + 1),
+      };
+    if (end.stationId !== routeStart.stationId) {
+      const g = connectionPreview(p, routeStart, end, reconnectTarget);
+      markup += `<g id="connection-preview" pointer-events="none" data-valid="${g.valid}">${g.paths.map((path) => `<path d="${path.d}" fill="none" stroke="${g.valid ? "#21834d" : "#c34f3f"}" stroke-opacity=".7" stroke-width="${2 / zoom}" stroke-dasharray="${4 / zoom} ${2 / zoom}"/>`).join("")}</g>`;
+      message(
+        g.valid
+          ? "Forhåndsvisning klar · klikk sluttporten."
+          : g.warnings.join(" "),
+      );
+      const status = $("connection-preview-message");
+      if (status)
+        status.textContent = g.valid
+          ? "Forhåndsvisning: klikk for å opprette forbindelsen."
+          : g.warnings.join(" ");
+    }
+  }
+  if (rapidPlacement) {
+    try {
+      const candidate = nextRapidStop(p, rapidPlacement);
+      if (candidate) {
+        const preview = placeRapidStop(p, rapidPlacement),
+          station = preview.project.layout.stations.find(
+            (s) => s.id === preview.stationId,
+          );
+        markup += `<g id="rapid-preview" pointer-events="none" opacity=".6">${["capsules", "rings", "names"].map((layer) => stationMarkup(station, layer, preview.project)).join("")}${candidate.leds.map((led, i) => `<circle data-rapid-led="${esc(led.id)}" cx="${led.x}" cy="${led.y}" r="${(i === 0 ? 9 : 6) / zoom}" fill="none" stroke="#c48a26" stroke-width="${2 / zoom}"/>`).join("")}</g>`;
+      }
+    } catch {}
+  }
+  return markup;
+}
 function creationProperties() {
   const d = routeStyle(project().routeDefaults ?? {}),
     panel = $("properties");
-  panel.innerHTML = `<h2>Tegn forbindelse</h2><p class="note">Velg et konkret startpunkt og sluttpunkt. Runde punkter gjelder én ring; firkantede punkter gjelder ringparet. Pekeren viser hvilken ring og side du velger.</p><label>Grafisk sporantall<select id="new-route-tracks"><option value="1">Enkeltspor</option><option value="2">Dobbeltspor</option></select></label>${field("new-route-spacing", "Sporavstand, mm", d.trackSpacing)}<label>Kurvestil<select id="new-route-curve"><option value="rounded">Avrundet</option><option value="straight">Rett</option></select></label><p id="port-selection" class="note">${routeStart ? `Start: ${esc(project().layout.stations.find((s) => s.id === routeStart.stationId)?.name)} · ${esc(stationPort(project(), routeStart.stationId, routeStart.portId)?.label)}. Velg sluttport.` : "Velg startport."}</p><button id="cancel-connection">Avbryt portvalg</button>`;
+  panel.innerHTML = `<h2>Tegn forbindelse</h2><p class="note">Velg et konkret startpunkt og sluttpunkt. Runde punkter gjelder én ring; firkantede punkter gjelder ringparet. Pekeren viser hvilken ring og side du velger.</p><label>Grafisk sporantall<select id="new-route-tracks"><option value="1">Enkeltspor</option><option value="2">Dobbeltspor</option></select></label>${field("new-route-spacing", "Sporavstand, mm", d.trackSpacing)}<label>Kurvestil<select id="new-route-curve"><option value="rounded">Avrundet</option><option value="straight">Rett</option></select></label><p id="connection-preview-message" class="note" aria-live="polite"></p><p id="port-selection" class="note">${routeStart ? `Start: ${esc(project().layout.stations.find((s) => s.id === routeStart.stationId)?.name)} · ${esc(stationPort(project(), routeStart.stationId, routeStart.portId)?.label)}. Velg sluttport.` : "Velg startport."}</p><button id="cancel-connection">Avbryt portvalg</button>`;
   $("new-route-tracks").value = d.tracks;
   $("new-route-curve").value = d.curveStyle;
   for (const [id, key] of [
@@ -1130,6 +1308,7 @@ function render() {
   renderChecks();
   renderPhysical();
   renderLibrary();
+  renderRapid();
   draw();
 }
 function safe(fn) {
@@ -1145,6 +1324,8 @@ function setTool(next) {
   stripSnap = null;
   if (next !== "select") pendingStation = null;
   tool = next;
+  rapidPlacement = null;
+  focusMark = null;
   if (next !== "select") selectedRoute = null;
   if (next === "route") {
     selected = [];
@@ -1168,9 +1349,11 @@ function setTool(next) {
     }[tool],
   );
   properties();
+  renderRapid();
   draw();
 }
 canvas.onpointerdown = (e) => {
+  focusMark = null;
   snapSuspended = e.ctrlKey;
   if (e.button !== 0 && e.button !== 1) return;
   e.preventDefault();
@@ -1254,6 +1437,14 @@ canvas.onpointerdown = (e) => {
     return;
   }
   const ledTarget = e.target.closest("[data-led]");
+  if (rapidPlacement && ledTarget) {
+    const candidate = rapidCandidate();
+    if (candidate && ledTarget.dataset.led === candidate.leds[0].id)
+      rapidPlace();
+    else message("Klikk den markerte LED-en, eller bruk Plasser neste stopp.");
+    return;
+  }
+
   if (bindTarget && ledTarget) {
     const request = {
       ...bindTarget,
@@ -1849,6 +2040,8 @@ $("file").onchange = async (e) => {
   safe(() => {});
   try {
     const p = parseProject(await file.text());
+    rapidPlacement = null;
+    focusMark = null;
     selected = [];
     selectedRoute = null;
     pendingStation = null;
@@ -1890,6 +2083,13 @@ function refreshSnapModifier(active) {
     canvas.onpointermove({ ...lastPointer, ctrlKey: active });
 }
 document.onkeydown = (e) => {
+  if (e.key === "Escape" && rapidPlacement) {
+    rapidPlacement = null;
+    render();
+    message("Hurtigplassering avsluttet.");
+    return;
+  }
+
   if (e.key === "Control") refreshSnapModifier(true);
   if ((e.key === "Enter" || e.key === " ") && e.target.closest("[data-port]")) {
     e.preventDefault();
@@ -1961,6 +2161,11 @@ document.onkeydown = (e) => {
       e.preventDefault();
       beginPaste();
     }
+    return;
+  }
+  if (e.key === "Enter" && rapidPlacement) {
+    e.preventDefault();
+    rapidPlace();
     return;
   }
   if (e.ctrlKey || e.metaKey) return;
@@ -2310,14 +2515,81 @@ $("led-new-segment").onclick = () => {
 };
 
 function renderChecks() {
-  const issues = mechanicalCheck(project());
-  $("mechanical-report").innerHTML = issues.length
-    ? `<p>${issues.length} funn</p><ul>${issues
-        .slice(0, 100)
-        .map((i) => `<li><b>${esc(i.object)}</b>: ${esc(i.message)}</li>`)
-        .join("")}</ul>`
-    : "<p>Grunnkontroll: ingen funn.</p>";
+  const issues = boardChecks(project()),
+    filter = $("check-filter").value,
+    shown = issues.filter((i) => filter === "all" || i.category === filter);
+  $("checks-toggle").textContent = `Kontroll (${issues.length})`;
+  $("mechanical-report").innerHTML = shown.length
+    ? `<p>${shown.length} funn${filter === "all" ? "" : " i filteret"}. Klikk for å finne objektet.</p><ul class="check-list">${shown
+        .slice(0, checkLimit)
+        .map(
+          (i, index) =>
+            `<li><button data-check="${index}" data-target-kind="${esc(i.target?.kind ?? "")}" data-target-id="${esc(i.target?.id ?? "")}" data-target-point="${i.target?.pointIndex ?? ""}" class="check-${i.severity}"><b>${esc(i.object)}</b>: ${esc(i.message)}</button></li>`,
+        )
+        .join(
+          "",
+        )}</ul>${shown.length > checkLimit ? '<button id="check-more">Vis 100 til</button>' : ""}`
+    : "<p>Grunnkontroll: ingen funn i denne visningen.</p>";
+  for (const el of document.querySelectorAll("[data-check]"))
+    el.onclick = () => focusIssue(shown[+el.dataset.check]);
+  if ($("check-more"))
+    $("check-more").onclick = () => {
+      checkLimit += 100;
+      renderChecks();
+    };
 }
+function focusIssue(issue) {
+  const p = project(),
+    t = issue.target;
+  if (!t) return;
+  setTool("select");
+  selected = [];
+  selectedRoute = null;
+  let point = null;
+  if (t.kind === "station") {
+    const station = p.layout.stations.find((s) => s.id === t.id);
+    if (!station) return;
+    selected = [...new Set(t.stationIds ?? [station.id])];
+    bindingStation = station.id;
+    bindingPoint = t.pointIndex ?? 0;
+    point = station.holes[t.pointIndex ?? 0] ?? station;
+  }
+  if (t.kind === "route") {
+    const route = p.layout.routes.find((r) => r.id === t.id);
+    if (!route) return;
+    selectedRoute = route.id;
+    selectedEdge = t.edge ?? 0;
+    const g = edgeGeometry(p, route, selectedEdge);
+    point =
+      g.center?.[Math.floor(g.center.length / 2)] ??
+      p.layout.stations.find((s) => s.id === route.stationIds[selectedEdge]);
+  }
+  if (t.kind === "segment" || t.kind === "profile") {
+    const segment =
+      t.kind === "segment"
+        ? p.ledLayout.segments.find((s) => s.id === t.id)
+        : p.ledLayout.segments.find((s) => s.profileId === t.id);
+    selectedProfile = t.kind === "profile" ? t.id : segment?.profileId;
+    selectedSegment = segment?.id ?? null;
+    $("led-panel").hidden = false;
+    point = segment ?? { x: p.board.width / 2, y: p.board.height / 2 };
+  }
+  if (point) {
+    focusMark = { x: point.x, y: point.y };
+    origin = {
+      x: canvas.clientWidth / 2 - point.x * zoom,
+      y: canvas.clientHeight / 2 - point.y * zoom,
+    };
+  }
+  render();
+  message(issue.object + ": " + issue.message);
+}
+$("check-filter").onchange = () => {
+  checkLimit = 100;
+  renderChecks();
+};
+$("checks-toggle").onclick = () =>
+  $("check-filter").scrollIntoView({ block: "center", behavior: "smooth" });
 function renderBindings(p, s) {
   if (bindingStation !== s.id) {
     bindingStation = s.id;
