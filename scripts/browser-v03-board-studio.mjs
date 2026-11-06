@@ -369,6 +369,7 @@ try {
       (s) => s.name === "Lerkendal",
     );
     await page.locator(`[data-label="${lerkendal.id}"]`).click();
+    await page.locator("#names-to-stations").click();
     await page.locator("#station-bindings").scrollIntoViewIfNeeded();
     await page.screenshot({
       path: process.env.BOARD_V03_SCREENSHOT.replace(".png", "-binding.png"),
