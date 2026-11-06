@@ -44,7 +44,9 @@ jobs:
       - name: Install isolated browser tooling
         run: |
           npm install --prefix "$RUNNER_TEMP/board-browser" playwright
-          "$RUNNER_TEMP/board-browser/node_modules/.bin/playwright" install --with-deps chromium
+          # The Ubuntu runner already supplies Chromium libraries and Liberation fonts.
+          # Avoid re-downloading optional CJK fonts; launch still validates native deps.
+          "$RUNNER_TEMP/board-browser/node_modules/.bin/playwright" install chromium
       - name: Install isolated PDF reader
         run: python3 -m pip install --target "$RUNNER_TEMP/board-pdf" pypdf==6.10.0
       - name: Chromium interaction and download tests
