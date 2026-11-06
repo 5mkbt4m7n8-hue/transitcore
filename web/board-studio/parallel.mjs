@@ -19,15 +19,13 @@ export function segmentPoints(p, ref) {
 }
 export function segments(p) {
   return p.layout.routes.flatMap((r) =>
-    r.stationIds
-      .slice(0, -1)
-      .flatMap((_, edge) =>
-        (r.bends[edge] ? ["in", "out"] : ["whole"]).map((leg) => ({
-          routeId: r.id,
-          edge,
-          leg,
-        })),
-      ),
+    r.stationIds.slice(0, -1).flatMap((_, edge) =>
+      (r.bends[edge] ? ["in", "out"] : ["whole"]).map((leg) => ({
+        routeId: r.id,
+        edge,
+        leg,
+      })),
+    ),
   );
 }
 export function validateParallels(p, positions = false) {
@@ -99,14 +97,12 @@ function setPoint(p, ref, index, point) {
     dy = point.y - s.y;
   if (
     Math.hypot(dx, dy) > 1e-7 &&
-    ["rings", "holes", "capsules", "names", "routes"].some(
-      (id) => p.layers[id].locked,
-    )
+    ["rings", "capsules", "names", "routes"].some((id) => p.layers[id].locked)
   )
     throw Error("Lås opp berørte lag før parallelltilpassing.");
   s.x = point.x;
   s.y = point.y;
-  for (const h of s.holes) {
+  for (const h of s.ringCenters ?? []) {
     h.x += dx;
     h.y += dy;
   }
@@ -227,7 +223,7 @@ export function translateRoute(p, routeId, dx, dy) {
     const s = p.layout.stations.find((s) => s.id === id);
     s.x += dx;
     s.y += dy;
-    for (const h of s.holes) {
+    for (const h of s.ringCenters ?? []) {
       h.x += dx;
       h.y += dy;
     }

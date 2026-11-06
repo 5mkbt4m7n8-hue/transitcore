@@ -1,3 +1,4 @@
+import { ringRadius, maxRingRadius } from "./point-style.mjs";
 import {
   symbolCenters,
   symbolNormal,
@@ -28,7 +29,7 @@ export function stationPorts(p, s) {
         : symbolNormal(p, s),
     t = { x: n.y, y: -n.x },
     directions = { right: t, left: mul(t, -1), top: mul(n, -1), bottom: n },
-    radius = s.ringOuter / 2 + s.stroke / 2;
+    radius = maxRingRadius(s);
   const ports = centers.flatMap((center, index) =>
     Object.entries(directions).map(([side, direction]) => ({
       id: `point:${index}:${side}`,
@@ -37,8 +38,8 @@ export function stationPorts(p, s) {
       direction,
       width: 0,
       pointIndices: [index],
-      point: add(center, mul(direction, radius)),
-      marker: add(center, mul(direction, radius + 2)),
+      point: add(center, mul(direction, ringRadius(s, index))),
+      marker: add(center, mul(direction, ringRadius(s, index) + 2)),
     })),
   );
   if (centers.length > 1) {

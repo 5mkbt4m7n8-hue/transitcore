@@ -1,3 +1,4 @@
+import { pointStyle, activeHole } from "./point-style.mjs";
 import { connectPorts } from "./connections.mjs";
 import { edgeGeometry, geometryReport, symbolCenters } from "./geometry.mjs";
 import { ledPositions } from "./led-layout.mjs";
@@ -92,6 +93,34 @@ export function boardChecks(p) {
     category: "physical",
     severity: "warning",
   }));
+  for (const s of p.layout.stations) {
+    const centers = symbolCenters(p, s);
+    for (let i = 0; i < centers.length; i++)
+      for (let j = i + 1; j < centers.length; j++)
+        if (
+          Math.hypot(centers[i].x - centers[j].x, centers[i].y - centers[j].y) <
+          (pointStyle(s, i).ringOuter + pointStyle(s, j).ringOuter) / 2
+        )
+          issues.push({
+            object: s.name,
+            message: `Grafiske punkter ${String.fromCharCode(65 + i)} og ${String.fromCharCode(65 + j)} overlapper. Tillatt i design; kontroller om det er tilsiktet.`,
+            category: "geometry",
+            severity: "info",
+            target: { kind: "station", id: s.id, pointIndex: i },
+          });
+  }
+  for (const r of p.layout.routes)
+    for (const entry of r.detachedPorts ?? [])
+      issues.push({
+        object: "Forbindelse " + (p.layout.routes.indexOf(r) + 1),
+        message:
+          entry.kind === "remapped"
+            ? `Port ${entry.port} er tilpasset til ${entry.nextPort} etter endret punktantall.`
+            : `Port ${entry.port} til et fjernet punkt er frigitt. Velg nye porter ved behov.`,
+        category: "geometry",
+        severity: "warning",
+        target: { kind: "route", id: r.id, edge: entry.edge },
+      });
   for (const g of geometryReport(p))
     if (!g.valid || g.adjusted)
       issues.push({
@@ -113,7 +142,9 @@ export function boardChecks(p) {
       if (!binding)
         issues.push({
           object: s.name + " · " + String.fromCharCode(65 + pointIndex),
-          message: "Stasjonspunktet mangler fysisk LED-binding.",
+          message: activeHole(s.holes[pointIndex])
+            ? "Stasjonspunktet mangler fysisk LED-binding."
+            : "Kun grafikk: punktet har ikke aktivt fysisk hull. LED-binding er valgfri.",
           category: "unbound",
           severity: "info",
           target,
@@ -122,7 +153,7 @@ export function boardChecks(p) {
         ring = rings[pointIndex];
       if (
         !binding &&
-        h &&
+        activeHole(h) &&
         ring &&
         Math.hypot(h.x - ring.x, h.y - ring.y) > 1e-5
       )

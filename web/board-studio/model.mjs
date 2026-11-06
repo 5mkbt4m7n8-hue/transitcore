@@ -1,3 +1,4 @@
+import { validatePoints, pointStyle } from "./point-style.mjs";
 import { validateMounting, mountingMarkup } from "./mounting.mjs";
 import { productionSettings } from "./production-settings.mjs";
 import { validatePorts } from "./ports.mjs";
@@ -113,7 +114,7 @@ export function createProject(demo = true) {
     : [];
   return initializeGeometry({
     format: FORMAT,
-    version: 3,
+    version: 4,
     id: demo ? "grakallbanen-board" : crypto.randomUUID(),
     title: demo ? "Gråkallbanen · studie 01" : "Ny tavle",
     network: { stations: [], routes: [] },
@@ -158,7 +159,7 @@ const num = (n, min, max) =>
   typeof n === "number" && Number.isFinite(n) && n >= min && n <= max;
 export function parseProject(input) {
   const p = typeof input === "string" ? JSON.parse(input) : copy(input);
-  if (p?.format !== FORMAT || ![1, 2, 3].includes(p.version))
+  if (p?.format !== FORMAT || ![1, 2, 3, 4].includes(p.version))
     throw Error(
       "Ukjent prosjektformat eller versjon. Originalfilen er ikke endret.",
     );
@@ -210,7 +211,7 @@ export function parseProject(input) {
       !num(s.x, -5000, 10000) ||
       !num(s.y, -5000, 10000) ||
       !num(s.ringOuter, 0.1, 100) ||
-      !num(s.ringInner, 0.1, 100) ||
+      !num(s.ringInner, 0, 100) ||
       !num(s.holeDiameter, 0.1, 100) ||
       !num(s.stroke, 0.01, 10) ||
       !s.label ||
@@ -294,7 +295,7 @@ export function parseProject(input) {
   validateMounting(p);
   if (p.production.exportSettings)
     productionSettings(p.production.exportSettings);
-  p.version = 3;
+  p.version = 4;
   validateLedLayout(p);
   validateBindings(p);
   initializeGeometry(p);
@@ -302,6 +303,7 @@ export function parseProject(input) {
   if (!Array.isArray(p.library.templates) || p.library.templates.length > 200)
     throw Error("Ugyldig symbolbibliotek.");
   for (const s of p.layout.stations) {
+    validatePoints(s);
     if (
       !["none", "stadium", "rounded-box"].includes(s.capsuleType) ||
       !num(s.markerAngle, -360, 360) ||
@@ -331,6 +333,7 @@ export function parseProject(input) {
       st.holes.some(
         (h) =>
           typeof h.id !== "string" ||
+          (h.enabled !== undefined && typeof h.enabled !== "boolean") ||
           !num(h.x, -5000, 10000) ||
           !num(h.y, -5000, 10000) ||
           (h.diameter !== undefined && !num(h.diameter, 0.1, 100)),
@@ -519,7 +522,12 @@ export function stationMarkup(s, layer, p) {
   const centers = layer === "holes" ? holeCenters(p, s) : symbolCenters(p, s),
     color = s.ringColor ?? "#555555";
   if (layer === "rings")
-    return `<g data-station="${esc(s.id)}">${centers.map((c) => `<g data-ring-point="${c.index}"><circle cx="${c.x}" cy="${c.y}" r="${s.ringOuter / 2}" fill="white" stroke="${color}" stroke-width="${s.stroke}"/>${s.doubleRing !== false ? `<circle cx="${c.x}" cy="${c.y}" r="${s.ringInner / 2}" fill="none" stroke="${color}" stroke-width="${s.stroke}"/>` : ""}</g>`).join("")}</g>`;
+    return `<g data-station="${esc(s.id)}">${centers
+      .map((c) => {
+        const style = pointStyle(s, c.index);
+        return `<g data-ring-point="${c.index}" data-point-id="${esc(s.pointIds?.[c.index] ?? "")}"><circle cx="${c.x}" cy="${c.y}" r="${style.ringOuter / 2}" fill="white" stroke="${color}" stroke-width="${style.stroke}"/>${s.doubleRing !== false && style.ringInner > 0 ? `<circle cx="${c.x}" cy="${c.y}" r="${style.ringInner / 2}" fill="none" stroke="${color}" stroke-width="${style.stroke}"/>` : ""}</g>`;
+      })
+      .join("")}</g>`;
   if (layer === "holes")
     return centers
       .map(
@@ -534,17 +542,20 @@ export function stationMarkup(s, layer, p) {
         Math.atan2(basis.y, basis.x) + ((s.markerAngle ?? 0) * Math.PI) / 180,
       n = { x: Math.cos(theta), y: Math.sin(theta) },
       angle = (theta * 180) / Math.PI,
-      r = s.ringOuter / 2 + s.capsulePadding,
+      r =
+        Math.max(...centers.map((c) => pointStyle(s, c.index).ringOuter / 2)) +
+        s.capsulePadding,
       projected = centers.map((c) => ({
         x: (c.x - a.x) * n.x + (c.y - a.y) * n.y,
         y: -(c.x - a.x) * n.y + (c.y - a.y) * n.x,
+        radius: pointStyle(s, c.index).ringOuter / 2 + s.capsulePadding,
       })),
       extraX = s.capsuleExtraWidth ?? 0,
       extraY = s.capsuleExtraHeight ?? 0,
-      x = Math.min(...projected.map((c) => c.x)) - r - extraX / 2,
-      y = Math.min(...projected.map((c) => c.y)) - r - extraY / 2,
-      w = Math.max(...projected.map((c) => c.x)) - x + r + extraX / 2,
-      h = Math.max(...projected.map((c) => c.y)) - y + r + extraY / 2;
+      x = Math.min(...projected.map((c) => c.x - c.radius)) - extraX / 2,
+      y = Math.min(...projected.map((c) => c.y - c.radius)) - extraY / 2,
+      w = Math.max(...projected.map((c) => c.x + c.radius)) - x + extraX / 2,
+      h = Math.max(...projected.map((c) => c.y + c.radius)) - y + extraY / 2;
     return `<g data-station="${esc(s.id)}" transform="translate(${a.x + (s.markerDx ?? 0)} ${a.y + (s.markerDy ?? 0)}) rotate(${angle})"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${s.capsuleType === "rounded-box" ? Math.min(r, 2) : Math.min(w, h) / 2}" fill="white" stroke="${color}" stroke-width="${s.capsuleStroke}"/></g>`;
   }
   if (layer === "names") {

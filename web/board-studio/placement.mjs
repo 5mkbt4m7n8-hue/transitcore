@@ -1,3 +1,4 @@
+import { activeHole } from "./point-style.mjs";
 import { fromTemplate } from "./stations.mjs";
 import { symbolCenters, symbolNormal } from "./geometry.mjs";
 import { ledPositions, ledFor } from "./led-layout.mjs";
@@ -185,8 +186,6 @@ export function stationPlacement(
       if (target) push(target);
       if (!target)
         reason ||= "Velg en ledig LED på en annen stripe for punkt B.";
-      else if (span < Math.max(s.holeDiameter, s.ringOuter))
-        reason = "LED-punktene ligger for tett til dette symbolet.";
       else action = "place";
     }
   } else if (target) {
@@ -392,6 +391,7 @@ export function rotationChanges(before, after) {
         continue;
       const a = old.holes[i],
         b = next.holes[i];
+      if (!activeHole(a) && !activeHole(b)) continue;
       if (b && Math.hypot(a.x - b.x, a.y - b.y) > 1e-8)
         rows.push({
           stationId: old.id,

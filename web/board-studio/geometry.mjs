@@ -1,3 +1,10 @@
+import {
+  initializePoints,
+  pointStyle,
+  ringRadius,
+  maxRingRadius,
+  activeHole,
+} from "./point-style.mjs";
 import { stationPort } from "./ports.mjs";
 // Geometry is evaluated in millimetres and shared by canvas and SVG export.
 export const add = (a, b) => ({ x: a.x + b.x, y: a.y + b.y });
@@ -99,7 +106,7 @@ export function roundedPolyline(points, radius) {
 
 export function holeCenters(p, s) {
   return s.holes
-    ? s.holes.map((h, index) => ({ ...h, index }))
+    ? s.holes.map((h, index) => ({ ...h, index })).filter(activeHole)
     : symbolCenters(p, s);
 }
 // v0.2: both rails are normal offsets of the SAME differentiable centre curve.
@@ -192,12 +199,14 @@ export function initializeGeometry(p) {
         dot(symbolNormal(p, s), normal(stationTangent(p, s))) < 0 ? -1 : 1;
     }
   }
-  for (const s of p.layout.stations)
+  for (const s of p.layout.stations) {
+    initializePoints(s);
     s.holes ??= symbolCenters(p, s).map(({ x, y }, i) => ({
       id: `${s.id}:hole:${i}`,
       x,
       y,
     }));
+  }
   return p;
 }
 function makeCurve(a, b, ta, tb, reachA, reachB) {
@@ -399,11 +408,11 @@ export function edgeGeometry(p, r, i) {
     }
     const total = lengths.at(-1),
       zoneA = Math.min(
-        (a.transitionLength ?? r.transitionLength ?? 12) + a.ringOuter / 2,
+        (a.transitionLength ?? r.transitionLength ?? 12) + maxRingRadius(a),
         total * 0.45,
       ),
       zoneB = Math.min(
-        (b.transitionLength ?? r.transitionLength ?? 12) + b.ringOuter / 2,
+        (b.transitionLength ?? r.transitionLength ?? 12) + maxRingRadius(b),
         total * 0.45,
       ),
       arcAt = (t) => {
@@ -539,21 +548,17 @@ export function edgeGeometry(p, r, i) {
       "Rett linje krever porter som vender langs forbindelsen. Velg avrundet eller andre porter.",
     );
   }
-  const overlaps =
-    [a, b].some(
-      (s) => s.points > 1 && s.pointSpacing < s.ringOuter + s.stroke,
-    ) ||
-    symbolCenters(p, a).some((x) =>
-      symbolCenters(p, b).some(
-        (y) => length(sub(x, y)) < (a.ringOuter + b.ringOuter) / 2,
-      ),
-    );
-  if (overlaps) {
-    result.valid = false;
+  const overlaps = symbolCenters(p, a).some((x, i) =>
+    symbolCenters(p, b).some(
+      (y, j) =>
+        length(sub(x, y)) <
+        (pointStyle(a, i).ringOuter + pointStyle(b, j).ringOuter) / 2,
+    ),
+  );
+  if (overlaps)
     result.warnings.push(
-      "Stasjonsringer overlapper. Øk punkt-/stasjonavstanden eller reduser ringdiameteren.",
+      "Grafiske stasjonsringer overlapper. Dette kan være tilsiktet og blokkerer ikke redigering.",
     );
-  }
   if (!result.valid)
     result.warnings.push(
       `Ugyldig geometri: minste radius ${Number.isFinite(result.minRadius) ? result.minRadius.toFixed(1) : "∞"} mm, krever ${result.requiredRadius.toFixed(1)} mm. Flytt kontrollpunkt, øk tillatt utvidelse eller reduser sporavstand. Ingen porter er byttet.`,
@@ -572,14 +577,14 @@ export function edgeGeometry(p, r, i) {
       : circleTrim(
           rail.samples,
           add(start, mul(nA, rail.side * widthA * signA)),
-          a.ringOuter / 2 + a.stroke / 2,
+          maxRingRadius(a),
           true,
         );
     if (!portB)
       points = circleTrim(
         points,
         add(end, mul(nB, rail.side * widthB * signB)),
-        b.ringOuter / 2 + b.stroke / 2,
+        maxRingRadius(b),
         false,
       );
     for (const [part, lo, hi] of [

@@ -1,3 +1,11 @@
+import { pointStyle, activeHole } from "./point-style.mjs";
+import {
+  editStation,
+  editGraphicPoint,
+  fitPointSizes,
+  setHoleEnabled,
+  moveGraphicStation,
+} from "./station-edit.mjs";
 import {
   stationPlacement,
   ledKey,
@@ -106,6 +114,7 @@ try {
   if (saved) initial = parseProject(saved);
 } catch {}
 const history = new History(initial);
+let pointEditMode = false;
 let placementSession = null,
   placementPreview = null,
   placementTouch = false,
@@ -157,6 +166,7 @@ function persist() {
   }
 }
 function commit(p, options = {}) {
+  $("edit-error").hidden = true;
   const candidate = parseProject(enforceParallels(copy(p))),
     q = options.load
       ? candidate
@@ -236,9 +246,13 @@ function stationDrag(g, pt) {
       x: s.x,
       y: s.y,
     });
+  if (pointEditMode)
+    return enforceParallels(
+      moveGraphicStation(g.base, selected, anchor.x - s.x, anchor.y - s.y),
+    );
   let q;
   if (constrained && $("snap-led").checked) q = copy(g.base);
-  else q = moveStations(g.base, selected, anchor.x - s.x, anchor.y - s.y);
+  else q = moveGraphicStation(g.base, selected, anchor.x - s.x, anchor.y - s.y);
   if (
     ["cross-strip", "double-strip"].includes(s.symbolKind) &&
     g.scope === "all" &&
@@ -327,7 +341,7 @@ function placementMarkup(p) {
       : preview.target
         ? `${preview.target.segmentName} · LED ${preview.target.index}`
         : "Fri plassering");
-  return `${placementSession?.mode !== "normal" && placementSession && !p.layers.leds.visible ? `<g class="placement-led-layout" opacity=".5" pointer-events="none">${layerMarkup(p, "leds")}</g>` : ""}<g class="placement-preview" data-placement-valid="${preview.valid}" data-placement-stage="${preview.stage}" pointer-events="none" opacity=".65">${["capsules", "rings", "names", ...(p.layers.holes.visible ? ["holes"] : [])].map((layer) => stationMarkup(preview.station, layer, preview.project)).join("")}${preview.targets.map((l, i) => `<g data-placement-target="${i}" data-led-id="${esc(l.id)}" data-segment-id="${esc(l.segmentId)}" data-led-index="${l.index}"><circle cx="${l.x}" cy="${l.y}" r="${9 / zoom}" fill="none" stroke="${preview.valid ? "#1b8050" : "#bd4c3c"}" stroke-width="${2 / zoom}"/><text x="${l.x + 11 / zoom}" y="${l.y + 13 / zoom}" font-size="${11 / zoom}" fill="#275b45">${String.fromCharCode(65 + i)} · ${esc(l.segmentName)} · LED ${l.index}</text></g>`).join("")}<text x="${preview.station.x}" y="${Math.max(...symbolCenters(preview.project, preview.station).map((c) => c.y)) + preview.station.ringOuter / 2 + 17 / zoom}" text-anchor="middle" font-size="${11 / zoom}" fill="${preview.valid ? "#275b45" : "#a34032"}">${esc(text)}</text></g>`;
+  return `${placementSession?.mode !== "normal" && placementSession && !p.layers.leds.visible ? `<g class="placement-led-layout" opacity=".5" pointer-events="none">${layerMarkup(p, "leds")}</g>` : ""}<g class="placement-preview" data-placement-valid="${preview.valid}" data-placement-stage="${preview.stage}" pointer-events="none" opacity=".65">${["capsules", "rings", "names", ...(p.layers.holes.visible ? ["holes"] : [])].map((layer) => stationMarkup(preview.station, layer, preview.project)).join("")}${preview.targets.map((l, i) => `<g data-placement-target="${i}" data-led-id="${esc(l.id)}" data-segment-id="${esc(l.segmentId)}" data-led-index="${l.index}"><circle cx="${l.x}" cy="${l.y}" r="${9 / zoom}" fill="none" stroke="${preview.valid ? "#1b8050" : "#bd4c3c"}" stroke-width="${2 / zoom}"/><text x="${l.x + 11 / zoom}" y="${l.y + (i === 0 ? -12 : 13) / zoom}" font-size="${11 / zoom}" fill="#275b45">${String.fromCharCode(65 + i)} · ${esc(l.segmentName)} · LED ${l.index}</text></g>`).join("")}<text x="${preview.station.x}" y="${Math.max(...symbolCenters(preview.project, preview.station).map((c) => c.y)) + preview.station.ringOuter / 2 + 17 / zoom}" text-anchor="middle" font-size="${11 / zoom}" fill="${preview.valid ? "#275b45" : "#a34032"}">${esc(text)}</text></g>`;
 }
 function finishStationPlacement(preview = placementPreview) {
   const session = activePlacement();
@@ -638,7 +652,7 @@ function draw(p = project()) {
     .map((id) => `<g data-layer="${id}">${layerMarkup(p, id)}</g>`)
     .join(
       "",
-    )}${marks}${overlay}${controls}${placementMarkup(p)}${workflowMarkup(p)}${portMarkup(p)}`;
+    )}${marks}${overlay}${controls}${placementMarkup(p)}${workflowMarkup(p)}${portMarkup(p)}${pointHandleMarkup(p)}`;
   canvas.querySelector(":scope > [data-rulers]").innerHTML = rulers;
   for (const routeLayer of canvas.querySelectorAll(
     "[data-layer=routes],[data-layer=capsules]",
@@ -659,6 +673,7 @@ function draw(p = project()) {
 const field = (id, label, value, type = "number", attrs = "") =>
   `<label>${label}<input id="${id}" type="${type}" value="${esc(value)}" ${attrs}></label>`;
 function templatePlacementMode(template) {
+  if (template?.appearance.points !== 2) return "normal";
   return template?.appearance.symbolKind === "double-strip"
     ? "double"
     : template?.appearance.symbolKind === "cross-strip"
@@ -756,6 +771,138 @@ function previewParallel(q, g) {
   enforceParallels(q);
   return q;
 }
+function stationPanelMarkup(s, p) {
+  const pair = (...fields) => `<div class="pair">${fields.join("")}</div>`;
+  return `<h2>Stasjon <span>02</span></h2><div class="station-actions"><button id="station-rotate">Roter 90° (R)</button><button id="duplicate-station">Dupliser stasjon</button><button id="set-template">Bruk som standardstasjon</button><button id="reset-template">Standard enkeltstasjon</button></div>
+ ${field("station-name", "Navn", s.name, "text")}${pair(field("station-x", "X, mm", s.x), field("station-y", "Y, mm", s.y))}
+ ${pair(field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"'), field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"'))}
+ ${pair(field("symbol-angle", "Punktrekkens vinkel, ° (tom = auto)", s.symbolAngle ?? ""), field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias))}
+ <div class="station-actions"><button id="points-horizontal">Vannrett</button><button id="points-vertical">Loddrett</button><button id="points-uniform">Jevn fordeling</button><button id="points-fit">Tilpass størrelser til avstand</button></div>
+ <details open id="appearance-panel"><summary>Utseende · felles innstillinger</summary>
+ ${pair(field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"'), field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0" step="0.1"'))}
+ ${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}
+ <label>Kapseltype<select id="capsule-type"><option value="none">Ingen kapsel</option><option value="stadium">Avrundet kapsel</option><option value="rounded-box">Avrundet ramme</option></select></label>
+ ${pair(field("capsule-width", "Ekstra bredde, mm", s.capsuleExtraWidth ?? 0), field("capsule-height", "Ekstra høyde, mm", s.capsuleExtraHeight ?? 0))}
+ ${pair(field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"'), field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"'))}
+ ${pair('<label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>', field("symbol-color", "Ringfarge", s.ringColor, "color"))}
+ ${field("station-transition", "Egen overgang, mm (tom = trasé)", s.transitionLength ?? "", "number", 'min="0.1" max="100"')}</details>
+ <section id="graphic-points-panel"></section>
+ <h2>Stasjonsnavn</h2>${pair(field("label-dx", "Forskyvning X, mm", s.label.dx), field("label-dy", "Forskyvning Y, mm", s.label.dy))}
+ ${pair(field("label-angle", "Rotasjon, °", s.label.angle), field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'min="0.1" step="0.1"'))}
+ ${pair(field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"'), '<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label>')}
+ <label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label>
+ <details id="physical-station-panel" ${p.ledLayout.segments.length || p.ledLayout.bindings.some((b) => b.stationId === s.id) ? "open" : ""}><summary>Fysisk LED og hull</summary>
+ <label class="inline-toggle"><input id="station-snap-led" type="checkbox" ${$("snap-led").checked ? "checked" : ""}>Fest til LED ved fysisk flytting</label>
+ <label>Velg deler<select id="station-parts"><option value="all">Begge / hele stasjonen</option>${Array.from({ length: s.points }, (_, i) => `<option value="${i}">Bare punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label>
+ <label>Aktivt stasjonspunkt<select id="station-snap-point">${Array.from({ length: s.points }, (_, i) => `<option value="${i}">Punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label>
+ ${field("hole-diameter", "Felles hull-/lysåpning Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}
+ <button id="align-holes">Tilpass hull til symbolet</button><p class="note">Grafikken kan redigeres fritt. Hull og LED-er flyttes bare ved eksplisitte fysiske handlinger.</p></details>`;
+}
+function renderPointEditor(p, s) {
+  bindingPoint = Math.min(bindingPoint, s.points - 1);
+  const i = bindingPoint,
+    c = symbolCenters(p, s)[i],
+    style = pointStyle(s, i),
+    own = s.pointStyles?.[s.pointIds[i]] ?? {},
+    panel = $("graphic-points-panel");
+  panel.innerHTML = `<h2>Individuelle punkter</h2><label>Punkt<select id="graphic-point">${s.pointIds.map((id, i) => `<option value="${i}">${String.fromCharCode(65 + i)}</option>`).join("")}</select></label>
+ <div class="pair">${field("point-x", "Grafisk X, mm", c.x, "number", 'step="0.1"')}${field("point-y", "Grafisk Y, mm", c.y, "number", 'step="0.1"')}</div>
+ ${["ringOuter", "ringInner", "stroke"].map((key, j) => field(["point-outer", "point-inner", "point-stroke"][j], ["Egen ytterring Ø, mm", "Egen innerring Ø, mm", "Egen ringstrek, mm"][j], own[key] ?? "", "number", `step="${key === "stroke" ? 0.01 : 0.1}" placeholder="Arver ${style[key]} mm"`)).join("")}
+ <p class="note">Gjeldende: Ø ${style.ringOuter} / ${style.ringInner} mm · strek ${style.stroke} mm${style.ringInner > style.ringOuter ? ". Innerringen er større enn ytterringen; størrelsene kan justeres uavhengig." : ""}</p>
+ <button id="point-inherit">Bruk felles ringinnstillinger</button><div class="station-actions"><button id="point-add">+ Legg til punkt</button><button id="point-remove">− Fjern punkt</button><button id="point-edit-toggle" aria-pressed="${pointEditMode}">Rediger punkter på tavlen</button></div>
+ <p class="note">Tomme størrelsesfelt arver felles innstillinger. Dra størrelseshåndtakene, eller aktiver punktredigering og dra ringene. Nye punkter opprettes som grafikk uten nytt aktivt hull.</p>`;
+  $("graphic-point").value = String(i);
+  $("graphic-point").onchange = (e) => {
+    bindingPoint = +e.target.value;
+    const current = project().layout.stations.find((t) => t.id === s.id);
+    renderPointEditor(project(), current);
+    renderBindings(project(), current);
+    $("station-snap-point").value = bindingPoint;
+    draw();
+  };
+  for (const [id, key] of [
+    ["point-x", "x"],
+    ["point-y", "y"],
+    ["point-outer", "ringOuter"],
+    ["point-inner", "ringInner"],
+    ["point-stroke", "stroke"],
+  ]) {
+    $(id).disabled = p.layers.rings.locked;
+    $(id).onchange = (e) =>
+      safe(() => {
+        if (["x", "y"].includes(key) && e.target.value === "")
+          throw Error(
+            "Punktets X/Y kan ikke være tomme. Oppgi et millimetermål.",
+          );
+        commit(
+          editGraphicPoint(project(), s.id, bindingPoint, {
+            [key]: e.target.value === "" ? null : +e.target.value,
+          }),
+        );
+      });
+  }
+  $("point-inherit").onclick = () =>
+    safe(() =>
+      commit(
+        editGraphicPoint(project(), s.id, bindingPoint, { inherit: true }),
+      ),
+    );
+  $("point-add").disabled = s.points === 8 || p.layers.rings.locked;
+  $("point-remove").disabled = s.points === 1 || p.layers.rings.locked;
+  $("point-add").onclick = () =>
+    safe(() => {
+      const q = editStation(project(), s.id, { count: s.points + 1 });
+      bindingPoint = s.points;
+      pointEditMode = true;
+      commit(q);
+    });
+  $("point-remove").onclick = () =>
+    safe(() => {
+      const q = editStation(project(), s.id, { removeIndex: bindingPoint });
+      bindingPoint = Math.min(bindingPoint, s.points - 2);
+      commit(q);
+    });
+  $("point-edit-toggle").onclick = () => {
+    pointEditMode = !pointEditMode;
+    renderPointEditor(project(), s);
+    draw();
+  };
+  for (const [id, options] of [
+    ["points-horizontal", { angle: 0 }],
+    ["points-vertical", { angle: 90 }],
+    ["points-uniform", { uniform: true }],
+  ])
+    $(id).onclick = () =>
+      safe(() => commit(editStation(project(), s.id, options)));
+  $("points-fit").onclick = () =>
+    safe(() => commit(fitPointSizes(project(), s.id)));
+  const physical = $("physical-station-panel"),
+    h = s.holes[i];
+  let holder = $("point-hole-controls");
+  if (!holder) {
+    holder = document.createElement("div");
+    holder.id = "point-hole-controls";
+    physical.append(holder);
+  }
+  holder.innerHTML = `<label class="inline-toggle"><input id="point-hole-enabled" type="checkbox" ${activeHole(h) ? "checked" : ""}>Aktivt fysisk hull for punkt ${String.fromCharCode(65 + i)}</label>`;
+  $("point-hole-enabled").onchange = (e) =>
+    safe(() =>
+      commit(setHoleEnabled(project(), s.id, bindingPoint, e.target.checked)),
+    );
+}
+function pointHandleMarkup(p) {
+  if (tool !== "select" || selected.length !== 1 || pendingStation) return "";
+  const s = p.layout.stations.find((s) => s.id === selected[0]);
+  if (!s || !p.layers.rings.visible || p.layers.rings.locked) return "";
+  return `<g class="point-handles">${symbolCenters(p, s)
+    .map((c) => {
+      const style = pointStyle(s, c.index),
+        r = style.ringOuter / 2;
+      return `<g data-point-station="${esc(s.id)}" data-point-index="${c.index}">${pointEditMode ? `<circle data-point-handle="move" cx="${c.x}" cy="${c.y}" r="${4 / zoom}" fill="#d5ebe5" fill-opacity=".6" stroke="#28795b" stroke-width="${1 / zoom}"/>` : ""}<rect data-point-handle="size" x="${c.x + r - 3 / zoom}" y="${c.y - 3 / zoom}" width="${6 / zoom}" height="${6 / zoom}" fill="white" stroke="#28795b" stroke-width="${1 / zoom}"/>${c.index === bindingPoint ? `<text pointer-events="none" x="${c.x}" y="${c.y - r - 5 / zoom}" text-anchor="middle" font-size="${10 / zoom}" fill="#28795b">${String.fromCharCode(65 + c.index)} · Ø ${style.ringOuter.toFixed(2)} mm</text>` : ""}<title>Punkt ${String.fromCharCode(65 + c.index)} · Ø ${style.ringOuter.toFixed(3)} mm</title></g>`;
+    })
+    .join("")}</g>`;
+}
+
 function properties() {
   // Native details.toggle is asynchronous. Capture the actual DOM state before
   // replacing the inspector so an immediate field edit cannot close the panel.
@@ -774,6 +921,7 @@ function properties() {
   }
   if (s && stationPart !== "all" && +stationPart >= s.points)
     stationPart = "all";
+  if (s) bindingPoint = Math.min(bindingPoint, s.points - 1);
   if (s && bindingStation !== s.id) {
     bindingStation = s.id;
     bindingPoint = 0;
@@ -784,7 +932,7 @@ function properties() {
     $("reset-template").onclick = () => setStationDefault(null);
     return;
   }
-  panel.innerHTML = `<h2>${selected.length > 1 ? selected.length + " stasjoner" : "Stasjon"} <span>02</span></h2><div class="station-actions"><button id="station-rotate">Roter 90° (R)</button><button id="duplicate-station">Dupliser stasjon</button><button id="set-template">Bruk som standardstasjon</button><button id="reset-template">Standard enkeltstasjon</button></div><label class="inline-toggle"><input id="station-snap-led" type="checkbox" ${$("snap-led").checked ? "checked" : ""}>Fest til LED</label><label>Velg deler<select id="station-parts"><option value="all">Begge / hele stasjonen</option>${Array.from({ length: s.points }, (_, i) => `<option value="${i}">Bare punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label><label>Aktivt stasjonspunkt<select id="station-snap-point">${Array.from({ length: s.points }, (_, i) => `<option value="${i}">Punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label>${field("station-name", "Navn", s.name, "text")}<div class="pair">${field("station-x", "X, mm", s.x, "number", 'step="0.1"')}${field("station-y", "Y, mm", s.y, "number", 'step="0.1"')}</div><div class="pair">${field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"')}${field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("hole-diameter", "Hull Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}</div><h2>Symbol og kapsel</h2><label>Kapseltype<select id="capsule-type"><option value="none">Ingen kapsel</option><option value="stadium">Avrundet kapsel</option><option value="rounded-box">Avrundet ramme</option></select></label><div class="pair">${field("capsule-width", "Ekstra bredde, mm", s.capsuleExtraWidth ?? 0)}${field("capsule-height", "Ekstra høyde, mm", s.capsuleExtraHeight ?? 0)}</div>${field("station-transition", "Egen overgang, mm (tom = trasé)", s.transitionLength ?? "", "number", 'min="0.1" max="100"')}<div class="pair">${field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"')}${field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"')}${field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"')}</div><div class="pair">${field("symbol-angle", "Vinkel, ° (tom = auto)", s.symbolAngle ?? "", "number", 'min="-360" max="360"')}${field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias, "number", 'min="-0.5" max="0.5" step="0.1"')}</div><div class="pair"><label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>${field("symbol-color", "Ringfarge", s.ringColor, "color")}</div><button id="align-holes">Tilpass hull til symbolet</button><p class="note">Grafisk rotasjon flytter ikke fysiske hull. Tilpass hull eksplisitt ved behov.</p><h2>Stasjonsnavn</h2><div class="pair">${field("label-dx", "Forskyvning X, mm", s.label.dx)}${field("label-dy", "Forskyvning Y, mm", s.label.dy)}</div><div class="pair">${field("label-angle", "Rotasjon, °", s.label.angle)}${field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'step="0.1" min="0.1"')}</div><div class="pair">${field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"')}<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label></div><label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label><p class="note">${selected.length > 1 ? "X/Y flytter utvalget. Ring-/kapselstil gjelder alle; navn og punktantall gjelder første." : "Navn og ring er uavhengige av hulldiameteren."}</p>`;
+  panel.innerHTML = stationPanelMarkup(s, p);
   $("station-snap-led").onchange = (e) => {
     $("snap-led").checked = e.target.checked;
     draw();
@@ -817,7 +965,7 @@ function properties() {
   )
     panel.insertAdjacentHTML(
       "beforeend",
-      '<p class="note">Direktebundne ringer står fast på LED-ene. Roter gjelder yttermarkeringen; navn redigeres separat.</p>',
+      '<p class="note">Grafikken kan avvike fra hull og LED-er. Kontrollisten viser avvik før produksjon. Roter-knappen styrer yttermarkeringen ved direktebinding; feltet for punktrekkens vinkel kan redigeres fritt.</p>',
     );
   panel.insertAdjacentHTML(
     "beforeend",
@@ -844,13 +992,11 @@ function properties() {
   $("reset-template").onclick = () => setStationDefault(null);
   const physical = holeCenters(p, s),
     graphic = symbolCenters(p, s),
-    mismatch =
-      physical.length !== graphic.length ||
-      physical.some(
-        (h, i) =>
-          !graphic[i] ||
-          Math.hypot(h.x - graphic[i].x, h.y - graphic[i].y) > 0.01,
-      );
+    mismatch = physical.some(
+      (h) =>
+        !graphic[h.index] ||
+        Math.hypot(h.x - graphic[h.index].x, h.y - graphic[h.index].y) > 0.01,
+    );
   if (mismatch)
     panel.insertAdjacentHTML(
       "afterbegin",
@@ -865,6 +1011,7 @@ function properties() {
         id: target.holes[i]?.id ?? `${target.id}:hole:${i}`,
         x: c.x,
         y: c.y,
+        enabled: true,
       }));
     });
   for (const [id, key] of [
@@ -895,9 +1042,7 @@ function properties() {
   };
   $("symbol-double").value = String(s.doubleRing);
   for (const [id, key] of Object.entries(symbolFields)) {
-    $(id).disabled = ["capsules", "rings", "holes", "routes"].some(
-      (l) => p.layers[l].locked,
-    );
+    $(id).disabled = ["capsules", "rings"].some((l) => p.layers[l].locked);
     $(id).onchange = (e) =>
       safe(() =>
         mutate(
@@ -932,14 +1077,6 @@ function properties() {
           }),
         ),
       );
-  if (p.ledLayout.bindings.some((b) => b.stationId === s.id))
-    for (const id of [
-      "symbol-points",
-      "symbol-spacing",
-      "symbol-angle",
-      "symbol-bias",
-    ])
-      $(id).disabled = true;
   $("station-transition").onchange = (e) =>
     safe(() =>
       mutate(
@@ -948,38 +1085,28 @@ function properties() {
             e.target.value === "" ? null : +e.target.value),
       ),
     );
-  const angleHandler = $("symbol-angle").onchange;
-  $("symbol-angle").onchange = (e) => {
-    if (!s.ringCenters) {
-      angleHandler(e);
-      return;
-    }
-    safe(() =>
-      mutate((q) => {
-        if (e.target.value === "") {
-          const st = q.layout.stations.find((t) => t.id === s.id);
-          st.symbolAngle = null;
-          delete st.ringCenters;
-          return;
-        }
-        const st = q.layout.stations.find((t) => t.id === s.id),
-          old = Math.atan2(symbolNormal(q, st).y, symbolNormal(q, st).x),
-          angle = e.target.value === "" ? 0 : (+e.target.value * Math.PI) / 180,
-          delta = angle - old;
-        st.ringCenters = st.ringCenters.map((c) => ({
-          x:
-            st.x +
-            (c.x - st.x) * Math.cos(delta) -
-            (c.y - st.y) * Math.sin(delta),
-          y:
-            st.y +
-            (c.x - st.x) * Math.sin(delta) +
-            (c.y - st.y) * Math.cos(delta),
-        }));
-        st.symbolAngle = e.target.value === "" ? null : +e.target.value;
-      }),
-    );
-  };
+  for (const [id, key] of [
+    ["symbol-points", "count"],
+    ["symbol-spacing", "spacing"],
+    ["symbol-angle", "angle"],
+  ]) {
+    $(id).disabled = p.layers.rings.locked || p.layers.capsules.locked;
+    $(id).onchange = (e) =>
+      safe(() =>
+        commit(
+          editStation(project(), s.id, {
+            [key]:
+              key === "angle" && e.target.value === "" ? null : +e.target.value,
+          }),
+        ),
+      );
+  }
+  $("symbol-bias").onchange = (e) =>
+    safe(() => {
+      const q = copy(project());
+      q.layout.stations.find((t) => t.id === s.id).splitBias = +e.target.value;
+      commit(editStation(q, s.id, { uniform: true }));
+    });
   const mappings = {
     "station-name": ["name", "names", true],
     "ring-outer": ["ringOuter", "rings"],
@@ -1011,7 +1138,7 @@ function properties() {
       safe(() => {
         const delta = +e.target.value - s[axis];
         commit(
-          moveStations(
+          moveGraphicStation(
             p,
             selected,
             axis === "x" ? delta : 0,
@@ -1046,6 +1173,8 @@ function properties() {
       );
   }
   renderBindings(p, s);
+  $("physical-station-panel").append($("station-bindings"));
+  renderPointEditor(p, s);
 }
 function deleteSelectedConnection() {
   if (!selectedRoute) return;
@@ -1687,8 +1816,10 @@ function safe(fn) {
   try {
     fn();
   } catch (e) {
-    message(e.message);
     render();
+    $("edit-error").textContent = e.message;
+    $("edit-error").hidden = false;
+    message(e.message);
   }
 }
 function setTool(next) {
@@ -1787,6 +1918,38 @@ canvas.onpointerdown = (e) => {
       else finishStationPlacement(preview);
     });
     return;
+  }
+  const pointHandle = e.target.closest("[data-point-handle]"),
+    graphicRing = e.target.closest("[data-ring-point]");
+  if (
+    tool === "select" &&
+    (pointHandle || (pointEditMode && graphicRing && !e.ctrlKey && !e.metaKey))
+  ) {
+    const group = pointHandle?.closest("[data-point-station]"),
+      stationId =
+        group?.dataset.pointStation ??
+        graphicRing?.closest("[data-station]")?.dataset.station;
+    if (
+      stationId &&
+      selected.includes(stationId) &&
+      !project().layers.rings.locked
+    ) {
+      bindingPoint = +(
+        group?.dataset.pointIndex ?? graphicRing.dataset.ringPoint
+      );
+      gesture = {
+        kind: "graphic-point",
+        id: stationId,
+        index: bindingPoint,
+        action: pointHandle?.dataset.pointHandle ?? "move",
+        base: copy(project()),
+      };
+      renderPointEditor(
+        project(),
+        project().layout.stations.find((s) => s.id === stationId),
+      );
+      return;
+    }
   }
   const mountTarget = e.target.closest("[data-mounting]");
   if (mountTarget && tool === "select") {
@@ -2034,6 +2197,36 @@ canvas.onpointermove = (e) => {
   if (pendingMount && !gesture) {
     pendingMount.point = snapped(pt);
     draw();
+    return;
+  }
+  if (gesture?.kind === "graphic-point") {
+    const g = gesture,
+      s = g.base.layout.stations.find((s) => s.id === g.id),
+      c = symbolCenters(g.base, s)[g.index];
+    try {
+      const point = snapped(pt, g.base);
+      const patch =
+        g.action === "size"
+          ? {
+              ringOuter: Math.max(
+                0.1,
+                Math.min(100, Math.hypot(pt.x - c.x, pt.y - c.y) * 2),
+              ),
+            }
+          : { x: point.x, y: point.y };
+      g.preview = editGraphicPoint(g.base, g.id, g.index, patch);
+      g.snapError = null;
+      draw(g.preview);
+      message(
+        g.action === "size"
+          ? `Ø ${patch.ringOuter.toFixed(3)} mm`
+          : `Punkt ${String.fromCharCode(65 + g.index)} · X ${point.x.toFixed(3)}, Y ${point.y.toFixed(3)} mm`,
+      );
+    } catch (e) {
+      g.preview = null;
+      g.snapError = e.message;
+      message(e.message);
+    }
     return;
   }
   if (gesture?.kind === "mount") {
@@ -2481,7 +2674,7 @@ function renderProduction() {
     for (const id of ["prod-pdf", "prod-svg", "prod-csv", "prod-machining"])
       $(id).disabled = !report.allowed;
     $("prod-graphics").disabled =
-      !report.allowed || report.graphicsBlocked || !report.graphicLayers.length;
+      report.graphicsBlocked || !report.graphicLayers.length;
   } catch (e) {
     $("prod-report").textContent = e.message;
     $("prod-preview").replaceChildren();
@@ -3137,6 +3330,8 @@ function renderBindings(p, s) {
     bindingPoint = +e.target.value;
     if ($("station-snap-point")) $("station-snap-point").value = bindingPoint;
     renderBindings(p, s);
+    if ($("graphic-points-panel")) renderPointEditor(p, s);
+    draw();
   };
   $("bind-mode").value = b?.mode ?? "direct";
   $("bind-segment").value = segment?.id ?? "";
@@ -3519,3 +3714,14 @@ $("led-place-station").onclick = () => {
   refreshPlacement();
   canvas.focus();
 };
+
+canvas.addEventListener("dblclick", (e) => {
+  const ring = e.target.closest("[data-ring-point]"),
+    s = ring?.closest("[data-station]");
+  if (!ring || !s || tool !== "select") return;
+  selected = [s.dataset.station];
+  bindingPoint = +ring.dataset.ringPoint;
+  pointEditMode = true;
+  render();
+  $("graphic-point").focus();
+});

@@ -1,3 +1,4 @@
+import { activeHole } from "./point-style.mjs";
 import { parseProject, svg, esc } from "./model.mjs";
 import { mechanicalCheck } from "./bindings.mjs";
 import { symbolCenters, geometryReport } from "./geometry.mjs";
@@ -44,17 +45,23 @@ export function productionHoles(p, side = "front") {
   };
   for (const s of p.layout.stations)
     for (let i = 0; i < s.holes.length; i++)
-      push(s.holes[i].x, s.holes[i].y, s.holes[i].diameter ?? s.holeDiameter, {
-        kind: "station",
-        stationId: s.id,
-        name: s.name,
-        pointIndex: i,
-        holeId: s.holes[i].id,
-        binding:
-          p.ledLayout.bindings.find(
-            (b) => b.stationId === s.id && b.pointIndex === i,
-          ) ?? null,
-      });
+      if (activeHole(s.holes[i]))
+        push(
+          s.holes[i].x,
+          s.holes[i].y,
+          s.holes[i].diameter ?? s.holeDiameter,
+          {
+            kind: "station",
+            stationId: s.id,
+            name: s.name,
+            pointIndex: i,
+            holeId: s.holes[i].id,
+            binding:
+              p.ledLayout.bindings.find(
+                (b) => b.stationId === s.id && b.pointIndex === i,
+              ) ?? null,
+          },
+        );
   const mounts = p.production.mountingHoles ?? [];
   if (!Array.isArray(mounts)) throw Error("Monteringshull må være en liste.");
   const ids = new Set();
@@ -84,6 +91,7 @@ export function productionReport(input, options = {}) {
   for (const s of p.layout.stations) {
     const rings = symbolCenters(p, s);
     s.holes.forEach((h, i) => {
+      if (!activeHole(h)) return;
       const binding = p.ledLayout.bindings.find(
         (b) => b.stationId === s.id && b.pointIndex === i,
       );
@@ -375,7 +383,7 @@ export function drillPdf(p, options = {}) {
   );
 }
 export function graphicsSvg(p, options = {}) {
-  const report = ready(p, options);
+  const report = productionReport(p, options);
   if (!report.graphicLayers.length)
     throw Error("Velg minst ett grafisk eksportlag.");
   const source = svg(p, {

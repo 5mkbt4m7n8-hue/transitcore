@@ -69,7 +69,7 @@ for (const s of legacy.layout.stations)
   ])
     delete s[k];
 const migrated = parseProject(legacy);
-assert.equal(migrated.version, 3);
+assert.equal(migrated.version, 4);
 assert.deepEqual(
   migrated.layout.stations.map((s) => s.holes),
   before,
@@ -294,7 +294,7 @@ const oldFile = JSON.parse(
     ),
   ),
   upgraded = parseProject(oldFile);
-assert.equal(upgraded.version, 3);
+assert.equal(upgraded.version, 4);
 assert.deepEqual(upgraded.network, oldFile.network);
 assert.deepEqual(upgraded.ledLayout, oldFile.ledLayout);
 for (let i = 0; i < oldFile.layout.stations.length; i++) {

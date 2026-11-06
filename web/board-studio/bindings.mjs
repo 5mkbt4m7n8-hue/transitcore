@@ -1,3 +1,4 @@
+import { pointStyle, activeHole } from "./point-style.mjs";
 import {
   mechanicalSettings,
   mountingIssues,
@@ -113,7 +114,7 @@ export function bindPoint(
     ...(share ? { sharedGroup } : {}),
   });
   if (mode === "direct") {
-    Object.assign(s.holes[pointIndex], { x: led.x, y: led.y });
+    Object.assign(s.holes[pointIndex], { x: led.x, y: led.y, enabled: true });
     s.ringCenters[pointIndex] = { x: led.x, y: led.y };
     reanchor(s);
   }
@@ -133,11 +134,15 @@ export function prepareBindings(old, next) {
   for (const b of q.ledLayout.bindings) {
     const s = q.layout.stations.find((s) => s.id === b.stationId),
       led = ledFor(q, b.segmentId, b.ledId),
-      previous = old.ledLayout.bindings.find(
-        (t) => t.stationId === b.stationId && t.pointIndex === b.pointIndex,
-      ),
-      oldLed = previous && ledFor(old, previous.segmentId, previous.ledId),
-      oldStation = old.layout.stations.find((t) => t.id === s.id);
+      oldStation = old.layout.stations.find((t) => t.id === s.id),
+      previous =
+        old.ledLayout.bindings.find((t) => t.id === b.id) ??
+        old.ledLayout.bindings.find(
+          (t) =>
+            t.stationId === b.stationId &&
+            oldStation?.pointIds[t.pointIndex] === s.pointIds[b.pointIndex],
+        ),
+      oldLed = previous && ledFor(old, previous.segmentId, previous.ledId);
     if (previous && oldLed && !led)
       throw Error("En bundet LED ville bli fjernet. Løsne bindingen først.");
     if (!led) continue;
@@ -145,19 +150,6 @@ export function prepareBindings(old, next) {
       !previous || previous.id !== b.id || distance(oldLed, led) > 1e-8;
     if (b.mode === "direct") {
       ensureCentres(q, s);
-      if (
-        !changed &&
-        oldStation &&
-        (distance(oldStation.holes[b.pointIndex], s.holes[b.pointIndex]) >
-          1e-8 ||
-          distance(
-            symbolCenters(old, oldStation)[b.pointIndex],
-            s.ringCenters[b.pointIndex],
-          ) > 1e-8)
-      )
-        throw Error(
-          "Direktebundet punkt følger LED-en. Flytt segmentet eller løsne bindingen.",
-        );
       if (changed) {
         if (
           ["holes", "rings", "capsules", "names"].some(
@@ -167,8 +159,23 @@ export function prepareBindings(old, next) {
           throw Error(
             "Lås opp hull- og grafikklag før bundne punkter flyttes.",
           );
-        Object.assign(s.holes[b.pointIndex], { x: led.x, y: led.y });
-        s.ringCenters[b.pointIndex] = { x: led.x, y: led.y };
+        if (previous?.id === b.id && oldLed) {
+          const oldHole = oldStation.holes[previous.pointIndex],
+            oldRing = symbolCenters(old, oldStation)[previous.pointIndex];
+          s.holes[b.pointIndex].x = led.x + oldHole.x - oldLed.x;
+          s.holes[b.pointIndex].y = led.y + oldHole.y - oldLed.y;
+          s.ringCenters[b.pointIndex] = {
+            x: led.x + oldRing.x - oldLed.x,
+            y: led.y + oldRing.y - oldLed.y,
+          };
+        } else {
+          Object.assign(s.holes[b.pointIndex], {
+            x: led.x,
+            y: led.y,
+            enabled: true,
+          });
+          s.ringCenters[b.pointIndex] = { x: led.x, y: led.y };
+        }
         reanchor(s);
       }
     }
@@ -177,37 +184,50 @@ export function prepareBindings(old, next) {
 }
 export function physicalChanges(old, next) {
   const rows = [];
-  const keys = new Set(
-    [...old.ledLayout.bindings, ...next.ledLayout.bindings].map(
-      (b) => b.stationId + ":" + b.pointIndex,
-    ),
-  );
-  for (const key of keys) {
-    const before = old.ledLayout.bindings.find(
-        (b) => b.stationId + ":" + b.pointIndex === key,
-      ),
-      after = next.ledLayout.bindings.find(
-        (b) => b.stationId + ":" + b.pointIndex === key,
-      ),
-      binding = after ?? before,
-      s0 = old.layout.stations.find((s) => s.id === binding.stationId),
-      s1 = next.layout.stations.find((s) => s.id === binding.stationId),
-      h0 = s0?.holes[binding.pointIndex],
-      h1 = s1?.holes[binding.pointIndex],
-      l0 = before && ledFor(old, before.segmentId, before.ledId),
-      l1 = after && ledFor(next, after.segmentId, after.ledId);
-    const holeMoves = !!h0 && (!h1 || distance(h0, h1) > 1e-8),
-      ledMoves = !!before && !!l0 && !!l1 && distance(l0, l1) > 1e-8;
-    if (holeMoves || ledMoves)
-      rows.push({
-        stationId: binding.stationId,
-        pointIndex: binding.pointIndex,
-        name: s1?.name ?? s0?.name ?? key,
-        holeBefore: h0 && { x: h0.x, y: h0.y },
-        holeAfter: h1 && { x: h1.x, y: h1.y },
-        ledBefore: l0 && { x: l0.x, y: l0.y },
-        ledAfter: l1 && { x: l1.x, y: l1.y },
-      });
+  for (const beforeStation of old.layout.stations) {
+    const afterStation = next.layout.stations.find(
+      (s) => s.id === beforeStation.id,
+    );
+    const ids = new Set(
+      [...beforeStation.holes, ...(afterStation?.holes ?? [])].map((h) => h.id),
+    );
+    for (const id of ids) {
+      const i0 = beforeStation.holes.findIndex((h) => h.id === id),
+        i1 = afterStation?.holes.findIndex((h) => h.id === id) ?? -1;
+      const h0 = beforeStation.holes[i0],
+        h1 = afterStation?.holes[i1],
+        a = activeHole(h0),
+        b = activeHole(h1),
+        before = old.ledLayout.bindings.find(
+          (t) => t.stationId === beforeStation.id && t.pointIndex === i0,
+        ),
+        after = next.ledLayout.bindings.find(
+          (t) => t.stationId === beforeStation.id && t.pointIndex === i1,
+        ),
+        l0 = before && ledFor(old, before.segmentId, before.ledId),
+        l1 = after && ledFor(next, after.segmentId, after.ledId),
+        d0 = h0?.diameter ?? beforeStation.holeDiameter,
+        d1 = h1?.diameter ?? afterStation?.holeDiameter;
+      if (
+        a !== b ||
+        (a &&
+          b &&
+          (((before || after) && distance(h0, h1) > 1e-8) ||
+            Math.abs(d0 - d1) > 1e-8)) ||
+        (before && l0 && l1 && distance(l0, l1) > 1e-8)
+      )
+        rows.push({
+          stationId: beforeStation.id,
+          pointIndex: Math.max(0, i1 < 0 ? i0 : i1),
+          name: afterStation?.name ?? beforeStation.name,
+          holeBefore: a ? { x: h0.x, y: h0.y } : undefined,
+          holeAfter: b ? { x: h1.x, y: h1.y } : undefined,
+          ledBefore: l0 && { x: l0.x, y: l0.y },
+          ledAfter: l1 && { x: l1.x, y: l1.y },
+          diameterBefore: a ? d0 : undefined,
+          diameterAfter: b ? d1 : undefined,
+        });
+    }
   }
   const profiles = next.ledLayout.profiles.filter((r) => {
     const previous = old.ledLayout.profiles.find((t) => t.id === r.id);
@@ -320,9 +340,11 @@ export function mechanicalCheck(p) {
       currentTarget = { kind: "station", id: s.id, pointIndex: i };
       const h = s.holes[i],
         diameter = h.diameter ?? s.holeDiameter;
+      if (!activeHole(h)) continue;
+      const style = pointStyle(s, i);
       if (outside(h, diameter / 2))
         add(`${s.name} punkt ${i + 1}`, "Hullet ligger utenfor platen.");
-      if (diameter >= s.ringOuter - s.stroke * 2)
+      if (diameter >= style.ringOuter - style.stroke * 2)
         add(
           `${s.name} punkt ${i + 1}`,
           "Hull og grafisk ring har inkompatible diametere.",
@@ -380,7 +402,7 @@ export function mechanicalCheck(p) {
         `${s?.name ?? b.stationId} punkt ${b.pointIndex + 1}`,
         "LED-binding peker til slettet/manglende segment eller LED.",
       );
-    else if (!h || !ring)
+    else if (!activeHole(h) || !ring)
       add(s.name, "Binding mangler hull eller grafisk ring.");
     else if (
       b.mode === "direct" &&

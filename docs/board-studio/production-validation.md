@@ -72,3 +72,7 @@ Boremalen gjør ingen korrigering av hull, ingen verktøy-/kerfkompensasjon og i
 ## Oppdatering v0.5
 
 Den visuelle monteringsredigereren og prosjektets justerbare hullklaringer er nå implementert. Se [monteringsvalideringen](mounting-validation.md). Produksjonstestene kjøres både med 18 LED-hull og med fire ekstra monteringshull; uavhengig pypdf/XML/CSV-kontroll dekker begge datasett.
+
+## Oppdatering v0.7
+
+Prosjektformat 4 skiller inaktive hullplasser fra faktiske borehull. Kun aktive fysiske hull inngår i klaringskontroll, SVG, PDF og CSV. Grafikk-SVG kan eksporteres ved mekaniske advarsler; borefilene beholder alle fysiske sperrer. Ny Chromium-test laster ned eksemplets bore-SVG og kontrollerer to aktive hull til tross for fem grafiske punkter. Se [punktredigeringen](point-edit-validation.md).

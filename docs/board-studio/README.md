@@ -1,12 +1,20 @@
-# InTransit Board Studio v0.6
+# InTransit Board Studio v0.7
 
 Vektoreditor og fysisk LED-layout i millimeter: `web/board-studio/index.html`. Arbeidet er beholdt i draft-PR #324. Ingen merge, produksjonsdeploy eller endringer i Map Studio/PR #323, GPS, Entur eller firmware.
+
+## Fri stasjonsredigering i v0.7
+
+Endring fra to til tre punkter oppdaterer nå hele modellen og blir ikke tilbakestilt. Rediger 1–8 punkter, individuell størrelse/strek og asymmetrisk plassering med felt eller håndtak. Grafikken kan redigeres uavhengig av LED-bindinger og fysiske hull; kompakte og overlappende ringer er tillatt. Boreeksport beholder fysisk kontroll.
+
+[Norsk veiledning og tester](point-edit-validation.md) · [Eksempelprosjekt](examples/free-station-design-v07.json) · [Vektor-SVG](examples/free-station-design-v07.svg).
+
+Prosjektformat 4 åpner eldre prosjekter fra versjon 1–3. Nye grafikkpunkter har ingen aktiv fysisk hullplass før du velger det. Eldre editorer kan ikke åpne format 4.
 
 ## Stasjonsplassering i v0.6
 
 - **S** viser det faktiske symbolet ved pekeren før klikk. **R / Shift+R** roterer, og **Esc** avslutter. Velg symbol og LED-modus i den lokale plasseringslinjen; S forblir aktivt for flere stopp.
 - **Felles stasjon – to LED-striper** og **Dobbelstasjon – to LED-striper** velger først A og deretter B. Begge ringene og de faktiske LED-indeksene vises før siste klikk. Resultatet er én stasjon, ett navn og to separate bindinger.
-- Velg **Bare A / Bare B / Hele stasjonen** etter plassering. Samlet eller individuell fysisk flytting krever bekreftelse. Direktebundne sentre står fast ved grafisk redigering; ringstørrelse, yttermarkering og navn kan endres separat.
+- Velg **Bare A / Bare B / Hele stasjonen** etter plassering. Samlet eller individuell fysisk flytting krever bekreftelse. R-rotasjon holder direktebundne sentre fast; fra v0.7 kan grafiske punkter også redigeres separat med punktverktøyene.
 - På mobil/nettbrett vises symbolet over fingeren og bekreftes med en egen stor knapp ved tegneflaten.
 
 [Full norsk veiledning, testresultater og begrensninger](placement-validation.md) · [Tostripe-prosjekt](examples/two-strip-stations-v06.json) · [Vektor-SVG](examples/two-strip-stations-v06.svg).

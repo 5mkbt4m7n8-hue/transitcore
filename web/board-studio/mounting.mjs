@@ -1,3 +1,4 @@
+import { activeHole } from "./point-style.mjs";
 export const MECHANICAL_DEFAULTS = {
   version: 1,
   edgeClearance: 0,
@@ -58,6 +59,7 @@ export function physicalHoleList(p) {
   return [
     ...p.layout.stations.flatMap((s) =>
       s.holes.map((h, i) => ({
+        enabled: h.enabled,
         kind: "station",
         id: h.id,
         name: s.name + " · " + String.fromCharCode(65 + i),
@@ -73,7 +75,7 @@ export function physicalHoleList(p) {
       ...h,
       name: h.name ?? "Monteringshull",
     })),
-  ];
+  ].filter(activeHole);
 }
 export function mountingIssues(p) {
   const settings = mechanicalSettings(p.production.mechanicalSettings),

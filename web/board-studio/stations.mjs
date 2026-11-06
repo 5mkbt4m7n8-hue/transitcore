@@ -1,3 +1,4 @@
+import { initializePoints } from "./point-style.mjs";
 import { symbolNormal, holeCenters, symbolCenters } from "./geometry.mjs";
 // Deliberately allowlist appearance. Never copy source IDs, external identities,
 // station IDs, hole IDs, or arbitrary LED/route bindings from the source object.
@@ -55,6 +56,9 @@ export function stationTemplate(p, s) {
       ]),
     ),
     label: labelStyle(s.label),
+    pointStyles: Array.from({ length: s.points }, (_, i) =>
+      clone(s.pointStyles?.[s.pointIds?.[i]] ?? {}),
+    ),
     ...(s.ringCenters
       ? {
           ringOffsets: symbolCenters(p, s).map((c) => ({
@@ -63,15 +67,27 @@ export function stationTemplate(p, s) {
           })),
         }
       : {}),
-    holeOffsets: holeCenters(p, s).map((h) => ({
+    holeOffsets: (s.holes ?? holeCenters(p, s)).map((h) => ({
       x: h.x - s.x,
       y: h.y - s.y,
       ...(h.diameter !== undefined ? { diameter: h.diameter } : {}),
+      ...(h.enabled === false ? { enabled: false } : {}),
     })),
   };
 }
 export function fromTemplate(template, point, id = crypto.randomUUID()) {
+  const pointIds = Array.from(
+    { length: template.appearance.points },
+    (_, i) => `${id}:point:${i}`,
+  );
   return {
+    pointDataVersion: 1,
+    pointIds,
+    pointStyles: Object.fromEntries(
+      pointIds
+        .map((key, i) => [key, clone(template.pointStyles?.[i] ?? {})])
+        .filter(([, style]) => Object.keys(style).length),
+    ),
     id,
     name: "Ny stasjon",
     x: point.x,
@@ -97,6 +113,7 @@ export function fromTemplate(template, point, id = crypto.randomUUID()) {
       x: point.x + h.x,
       y: point.y + h.y,
       ...(h.diameter !== undefined ? { diameter: h.diameter } : {}),
+      ...(h.enabled === false ? { enabled: false } : {}),
     })),
   };
 }

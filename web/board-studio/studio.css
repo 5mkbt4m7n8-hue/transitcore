@@ -911,3 +911,28 @@ aside label.inline-toggle input {
 #canvas.placing-station * {
   pointer-events: none !important;
 }
+#properties details {
+  margin-top: 14px;
+  border-top: 1px solid #e4e9df;
+  padding-top: 10px;
+}
+#properties details > summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #315b47;
+  margin-bottom: 12px;
+}
+#graphic-points-panel {
+  padding: 16px 0;
+}
+.point-handles [data-point-handle] {
+  cursor: move;
+}
+.point-handles [data-point-handle="size"] {
+  cursor: ew-resize;
+}
+#edit-error {
+  margin: 0;
+  flex-shrink: 0;
+  white-space: normal;
+}
