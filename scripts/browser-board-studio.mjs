@@ -361,6 +361,23 @@ try {
   // Exercise the tools with actual screen gestures on a blank board.
   await page.locator("#new").click();
   await page.locator("#fit").click();
+  await page.evaluate(() => {
+    window.placeEvents = [];
+    document.addEventListener(
+      "pointerdown",
+      (e) => {
+        window.placeEvents.push({
+          x: e.clientX,
+          y: e.clientY,
+          tag: e.target.tagName,
+          id: e.target.id,
+          parent: e.target.parentElement?.id,
+        });
+        window.placeEvents = window.placeEvents.slice(-4);
+      },
+      true,
+    );
+  });
   const screen = async (x, y) =>
     page
       .locator("#canvas > g")
@@ -384,7 +401,19 @@ try {
     .click();
   await clickMM(50, 50);
   await clickMM(100, 50);
-  assert.equal((await saved()).layout.stations.length, 2);
+  assert.equal(
+    (await saved()).layout.stations.length,
+    2,
+    JSON.stringify(
+      await page.evaluate(() => ({
+        events: window.placeEvents,
+        status: document.querySelector("#status").textContent,
+        placement: document.querySelector("#placement-status").textContent,
+        box: document.querySelector("#canvas").getBoundingClientRect().toJSON(),
+        viewBox: document.querySelector("#canvas").getAttribute("viewBox"),
+      })),
+    ),
+  );
   await page
     .getByRole("button", { name: "Koble stasjoner", exact: true })
     .click();
