@@ -116,6 +116,12 @@ try {
   assert.equal(await page.locator("[data-handle]").count(), 0);
   assert.equal(await page.locator("#route-length").isVisible(), false);
   await page.locator("#line-advanced summary").click();
+  await page.locator("#route-length").fill("21");
+  await page.locator("#route-length").press("Tab");
+  assert.equal(
+    await page.locator("#line-advanced").evaluate((el) => el.open),
+    true,
+  );
   await page.locator("[data-handle]").first().waitFor();
   assert.ok((await page.locator("[data-handle]").count()) > 0);
   assert.equal(await page.locator("#route-length").isVisible(), true);

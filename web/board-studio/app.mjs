@@ -470,6 +470,10 @@ function previewParallel(q, g) {
   return q;
 }
 function properties() {
+  // Native details.toggle is asynchronous. Capture the actual DOM state before
+  // replacing the inspector so an immediate field edit cannot close the panel.
+  const previousAdvanced = $("line-advanced");
+  if (previousAdvanced) lineAdvanced = previousAdvanced.open;
   const p = project(),
     s = p.layout.stations.find((s) => s.id === selected[0]),
     panel = $("properties");

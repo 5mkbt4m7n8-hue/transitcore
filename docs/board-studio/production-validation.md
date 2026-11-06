@@ -56,6 +56,8 @@ CI installerer pypdf i en isolert midlertidig katalog og lagrer de faktisk nedla
 
 ## Regresjoner
 
+CI bruker Playwrights Chromium 158. En asynkron `details.toggle`-hendelse kunne la avansertpanelet lukke seg ved første feltendring i denne nettleseren. Panelets faktiske åpningstilstand leses nå før egenskapspanelet bygges på nytt. Chromium-testen åpner panelet, endrer et felt umiddelbart og kontrollerer at både panelet og håndtakene forblir åpne.
+
 Åtte modell- og åtte Chromium-suiter består lokalt: grunneditor, authoring, v0.3, v0.3.1, v0.3.2, stripe-snapping, v0.3.3-arbeidsflyter og produksjon. Den eksisterende uavhengige SVG-geometritesten beholder største sporavstandsavvik 0,003020 mm. Også bestått: plattformmodellene (102 kontroller, 13 tavlefiler), tavlesiden, Gråkallbanen-editoren og retningsmapping.
 
 ## Arkitektur og avgrensning
