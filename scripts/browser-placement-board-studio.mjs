@@ -219,6 +219,11 @@ try {
       led.id,
     );
     await move(led.x, led.y);
+    const hit = await page.evaluate(
+      (pos) => document.elementFromPoint(pos.x, pos.y)?.id,
+      pos,
+    );
+    assert.equal(hit, "canvas");
     expected = await ghost();
     await page.mouse.click(pos.x, pos.y);
     q = await state();
@@ -368,6 +373,22 @@ try {
   await page.keyboard.press("Escape");
   await page.locator("#undo").click();
   assert.deepEqual(await state(), saved);
+  // Explicit rebinding takes over from repeated S placement without creating a stop.
+  await click(leds[3].x, leds[3].y);
+  await page.locator("#canvas").focus();
+  await page.keyboard.press("s");
+  await page.locator("#bind-click").click();
+  assert.equal(await page.locator("#placement-toolbar").isVisible(), false);
+  assert.equal(
+    await page
+      .locator("#canvas")
+      .evaluate((el) => el.classList.contains("placing-station")),
+    false,
+  );
+  await click(leds[7].x, leds[7].y);
+  await page.locator("#physical-dialog").waitFor({ state: "visible" });
+  assert.equal((await state()).layout.stations.length, 1);
+  await page.locator("#physical-cancel").click();
   // Ambiguous overlapping strips require an explicit LED choice.
   const close = placementFixture();
   close.id = "ambiguous-fixture";

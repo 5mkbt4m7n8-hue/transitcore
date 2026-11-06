@@ -66,6 +66,23 @@ try {
   );
   const state = () =>
     page.evaluate(() => JSON.parse(localStorage.getItem("intransit-board-v1")));
+  await page.evaluate(() => {
+    window.placementPointerLog = [];
+    document.addEventListener(
+      "pointerdown",
+      (e) => {
+        window.placementPointerLog.push({
+          x: e.clientX,
+          y: e.clientY,
+          tag: e.target.tagName,
+          id: e.target.id,
+          parent: e.target.parentElement?.id,
+        });
+        window.placementPointerLog = window.placementPointerLog.slice(-4);
+      },
+      true,
+    );
+  });
   const screen = (x, y) =>
     page
       .locator("#canvas > g")
@@ -106,6 +123,7 @@ try {
     2,
     JSON.stringify(
       await page.evaluate(() => ({
+        events: window.placementPointerLog,
         status: document.querySelector("#status").textContent,
         placement: document.querySelector("#placement-status").textContent,
         valid: document

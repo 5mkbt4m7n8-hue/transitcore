@@ -502,6 +502,7 @@ function zoomAt(
   draw();
 }
 function draw(p = project()) {
+  canvas.classList.toggle("placing-station", !!activePlacement());
   const b = p.board,
     w = canvas.clientWidth,
     h = canvas.clientHeight;
@@ -3213,7 +3214,10 @@ function renderBindings(p, s) {
       message("Bindinglaget er låst");
       return;
     }
-    bindTarget = request();
+    const nextBinding = request();
+    pendingStation = null;
+    setTool("select");
+    bindTarget = nextBinding;
     $("led-panel").hidden = true;
     mutate((q) => {
       q.layers.leds.visible = true;

@@ -898,3 +898,9 @@ aside label.inline-toggle input {
   line-height: 15px;
   overflow: auto;
 }
+
+/* During placement the persistent SVG root owns pointer events. Redrawing its
+   children must not invalidate the browser's hit target between move and down. */
+#canvas.placing-station * {
+  pointer-events: none !important;
+}
