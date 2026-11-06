@@ -5,6 +5,7 @@ on:
       [
         "web/board-studio/**",
         "scripts/*board-studio.mjs",
+        "scripts/check-board-studio-pdf.py",
         "scripts/fixtures/board-studio-*.mjs",
         ".github/workflows/board-studio.yml",
       ]
@@ -14,6 +15,7 @@ on:
       [
         "web/board-studio/**",
         "scripts/*board-studio.mjs",
+        "scripts/check-board-studio-pdf.py",
         "scripts/fixtures/board-studio-*.mjs",
         ".github/workflows/board-studio.yml",
       ]
@@ -36,10 +38,13 @@ jobs:
           node scripts/test-v032-board-studio.mjs
           node scripts/test-strip-snap-board-studio.mjs
           node scripts/test-workflows-board-studio.mjs
+          node scripts/test-production-board-studio.mjs
       - name: Install isolated browser tooling
         run: |
           npm install --prefix "$RUNNER_TEMP/board-browser" playwright
           "$RUNNER_TEMP/board-browser/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Install isolated PDF reader
+        run: python3 -m pip install --target "$RUNNER_TEMP/board-pdf" pypdf==6.10.0
       - name: Chromium interaction and download tests
         run: |
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_SCREENSHOT="$RUNNER_TEMP/board-studio.png" node scripts/browser-board-studio.mjs
@@ -49,8 +54,13 @@ jobs:
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_V032_SCREENSHOT="$RUNNER_TEMP/board-studio-v032.png" node scripts/browser-v032-board-studio.mjs
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" node scripts/browser-strip-snap-board-studio.mjs
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_WORKFLOWS_SCREENSHOT="$RUNNER_TEMP/board-studio-workflows.png" node scripts/browser-workflows-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_PRODUCTION_OUTPUT="$RUNNER_TEMP/board-production" BOARD_PRODUCTION_SCREENSHOT="$RUNNER_TEMP/board-studio-production.png" node scripts/browser-production-board-studio.mjs
+      - name: Independently inspect downloaded PDF, SVG and CSV
+        run: PYTHONPATH="$RUNNER_TEMP/board-pdf" python3 scripts/check-board-studio-pdf.py "$RUNNER_TEMP/board-production"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: board-studio-chromium
-          path: ${{ runner.temp }}/board-studio*.png
+          path: |
+            ${{ runner.temp }}/board-studio*.png
+            ${{ runner.temp }}/board-production/*

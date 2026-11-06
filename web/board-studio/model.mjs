@@ -1,3 +1,4 @@
+import { productionSettings } from "./production-settings.mjs";
 import { validatePorts } from "./ports.mjs";
 import { validateBindings, bindingMarkup } from "./bindings.mjs";
 import { validateLedLayout, physicalMarkup } from "./led-layout.mjs";
@@ -287,6 +288,8 @@ export function parseProject(input) {
     throw Error("Ugyldige hjelpelinjer.");
   if (!p.network || !p.ledLayout || !p.production)
     throw Error("Prosjektet mangler dataområder.");
+  if (p.production.exportSettings)
+    productionSettings(p.production.exportSettings);
   p.version = 3;
   validateLedLayout(p);
   validateBindings(p);

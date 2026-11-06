@@ -1,6 +1,38 @@
-# InTransit Board Studio v0.3.3
+# InTransit Board Studio v0.4
 
 Vektoreditor og fysisk LED-layout i millimeter: `web/board-studio/index.html`. Arbeidet er beholdt i draft-PR #324. Ingen merge, produksjonsdeploy eller endringer i Map Studio/PR #323, GPS, Entur eller firmware.
+
+## Boremal og produksjonsfiler i v0.4
+
+1. Kontroller faktisk LED-pitch og første LED-senters avstand fra stripeenden på den målte stripen. Oppdater profilen og bekreft eventuelle fysiske hullflyttinger i editoren. Lagre prosjektets JSON sammen med filene du skal bruke.
+2. Velg **Boremal 1:1** øverst. Dialogen viser fysiske feil, antall hull, arkoppsett og forhåndsvisning. Hull utenfor platen, hullkonflikter, direkte senteravvik og andre mekaniske funn må rettes før borefiler kan lastes ned. Ubundne punkter krever et eksplisitt valg hver gang dialogen åpnes.
+3. Velg **Forside** eller **Bakside**. Baksiden speiles venstre–høyre rundt tavlens loddrette midtakse. TOPP er fortsatt opp. Originalprosjektet, hullene og LED-bindingene flyttes ikke.
+4. Velg **A4 stående**, **A4 liggende** eller **Samlet tavleformat**. Standard er 15 mm marg og 10 mm overlapp. En tavle på 300 × 400 mm gir fire stående A4-ark eller seks liggende A4-ark. Samlet PDF er 330 × 430 mm med merknadsmarg, mens selve tavlen fortsatt er nøyaktig 300 × 400 mm. Små tavler får minst 180 × 80 mm ark for lesbare merknader.
+5. Last ned riktig fil fra tabellen under. **Lagre eksportvalg i prosjektet** er et eget valg med Angre/Gjør om. Selve eksporten endrer ingen prosjektdata. Tillatelse til å eksportere ubundne punkter lagres ikke som en varig godkjenning.
+6. Skriv ut **100 % / faktisk størrelse**, uten «Tilpass til ark». Mål kontrollstrekene i både X og Y med en fysisk linjal. På A4 og store tavleark er de 100 mm; mindre ark kan ha en kortere Y-kontroll med faktisk lengde angitt. Juster skriveroppsettet eller øk margen hvis skriveren klipper merknader. Ikke bruk en skalert utskrift til boring.
+7. Ved flislagt PDF: sett arkene sammen etter R/C-numrene, X/Y-forskyvningen og registreringskryssene i overlappsområdene. Samme kryss har samme koordinattekst på naboarkene. Ikke legg arkene kant mot kant; bruk overlappen.
+
+| Fil                       | Innhold og koordinater                                                                                                                                                                                                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Bore-PDF**              | Vektorhull i 1:1, separat tavlekontur, valgfrie senterkryss/hullnummer, sidebetegnelse, X/Y-kontrollmål og arkregistrering. Samlet format eller A4-fliser.                                                                                                                                                          |
+| **Bore-SVG for utskrift** | Samlet tavle med merknadsmarg og separate lag for hull, senterkryss, hullnummer, kontur og kontrollmål. For eksempel 330 × 430 mm ark med 300 × 400 mm tavle. Dette er en utskriftsmal; root-origo inkluderer margen.                                                                                               |
+| **Hull-SVG (plateorigo)** | Bare fysiske hull, uten marg, tekst, kontrollmål eller platekontur. Root-størrelse er tavlens faktiske mål, med origo i øvre venstre platehjørne sett fra valgt side. Bruk denne til maskinimport. Ingen kerf-/verktøykompensasjon er gjort.                                                                        |
+| **Grafikk-SVG**           | Bare grafiske eksportlag: traséer, kapsler, ringer, navn og eventuell kontur. Ingen borehull eller LED-layout. Root-størrelsen er tavlemålet. Baksidevalg speiler også teksten som del av hele grafikken. Kontroller fontgjengivelse i mottakerverktøyet.                                                           |
+| **Koordinater CSV**       | UTF-8 med BOM, semikolon og punktum som desimalskilletegn. Hullnummer, faktisk hull-ID, stasjons-ID/navn/punkt, valgt sides X/Y, diameter, forsidekoordinater og kvalifiserte LED-identiteter. Tekst som kan tolkes som regnearkformler beskyttes med en innledende apostrof; prosjekt-JSON beholder originaltekst. |
+
+Alle fysiske hull tas med uavhengig av skjulte/låste lag eller editorens eksportvalg. Grafikk-SVG følger derimot de grafiske eksportvalgene. Grafiske ringdiametere endrer aldri borediameteren. Eksplisitt delte, sammenfallende hull med samme diameter tegnes én gang, mens CSV beholder én rad per logisk referanse til samme hullnummer. Lyslederbindinger beholder sine eksplisitte hullkoordinater. Monteringshull som ligger i `production.mountingHoles` tas også med og kontrolleres; en egen visuell redigerer for disse er ikke inkludert i denne fasen.
+
+Eksemplene under er generert fra det tenkte Trondheim-prosjektet med nominell 10 mm pitch. De dokumenterer filformatet og er ikke en verifisering av en målt stripe, materialtoleranser eller en faktisk bussrute.
+
+| Eksempel          | Forside                                               | Bakside                                              |
+| ----------------- | ----------------------------------------------------- | ---------------------------------------------------- |
+| A4-boremal        | [PDF](examples/trondheim-buss-v04-drill-a4-front.pdf) | [PDF](examples/trondheim-buss-v04-drill-a4-back.pdf) |
+| Utskrifts-SVG     | [SVG](examples/trondheim-buss-v04-drill-front.svg)    | [SVG](examples/trondheim-buss-v04-drill-back.svg)    |
+| Hull i plateorigo | [SVG](examples/trondheim-buss-v04-holes-front.svg)    | [SVG](examples/trondheim-buss-v04-holes-back.svg)    |
+| Grafikk           | [SVG](examples/trondheim-buss-v04-graphics-front.svg) | [SVG](examples/trondheim-buss-v04-graphics-back.svg) |
+| Koordinater       | [CSV](examples/trondheim-buss-v04-holes-front.csv)    | [CSV](examples/trondheim-buss-v04-holes-back.csv)    |
+
+[Samlet PDF, forside](examples/trondheim-buss-v04-drill-full-front.pdf) · [Produksjonsdialog](v04-production.png) · [Gjengitt PDF-side](v04-drill-page.png) · [Validering](production-validation.md).
 
 ## Nye arbeidsflyter i v0.3.3
 
@@ -135,7 +167,7 @@ Grunnkontrollen finner LED-/stripedeler/hull utenfor platen, overlappende eller 
 [Dokumentert v0.3-testmatrise](v03-validation.md). Trinn A ble testet og lagret før B (`4bea91b`); B ble testet før C (`39f0057`). Alle tidligere modell-/Chromium-suiter samt de nye v0.3-suitene inngår i sluttkontrollen og CI-oppsettet.
 
 - Bare rette fysiske segmenter. Ingen strømforsyningsstyring, fysisk kontrollerkonfigurasjon, sanntidssporing eller automatisk elektrisk skjøting.
-- Kontrollene er generell geometrisk grunnkontroll, ikke validering av diffusor, lyslederens optikk, lasertoleranser eller materiale. PDF-boremal/produksjonseksport kommer senere.
+- Kontrollene er generell geometrisk grunnkontroll, ikke validering av diffusor, lyslederens optikk, lasertoleranser eller materiale. PDF-/SVG-boremal og grafikk-SVG finnes i v0.4; strømstyring, maskin-/materialtoleranser og fysisk produksjon er fortsatt ikke validert.
 - Én til åtte ringer per symbol. Overgangssymboler kan ha flere fysiske punkter; v0.2-rutemotoren bruker fortsatt de to ytterste grafiske portene. Avansert per-rutevalg av alle mellomporter/nettverksimport er ikke del av v0.3.
 - Opptil 10 000 fysiske LED-er per prosjekt. Store, svært tettpakkede tavler er ikke ytelsesvalidert. Tabelldesimaler er visning; JSON beholder tallpresisjonen.
 - Bibliotek og LED-panel bruker den samme arbeidsflaten som tidligere; zoom inn for små fysiske LED-punkter. Baksideflagget speiler ikke automatisk frontkoordinatene.

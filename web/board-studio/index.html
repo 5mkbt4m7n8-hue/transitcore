@@ -10,11 +10,12 @@
     <header>
       <a class="brand" href="../../index.html"
         >in<span>transit</span><i> / </i><b>Board Studio</b></a
-      ><span class="badge">v0.3.3 · fysisk design</span>
+      ><span class="badge">v0.4 · fysisk design</span>
       <div class="header-actions">
         <button id="open">Åpne prosjekt</button
         ><button id="save">Lagre JSON</button
-        ><button id="export" class="primary">Eksporter SVG ↗</button>
+        ><button id="export" class="primary">Eksporter SVG ↗</button
+        ><button id="production-open">Boremal 1:1</button>
       </div>
     </header>
     <div class="projectbar">
@@ -357,6 +358,85 @@
       <div>
         <button id="export-close">Avbryt</button
         ><button id="export-download" class="primary">Last ned SVG</button>
+      </div>
+    </dialog>
+    <dialog id="production-dialog">
+      <h2>Boremal og produksjonsgrafikk · 1:1</h2>
+      <div class="production-layout">
+        <div class="production-controls">
+          <label
+            >Side<select id="prod-side">
+              <option value="front">Forside</option>
+              <option value="back">
+                Bakside – speilvendt om loddrett akse
+              </option>
+            </select></label
+          >
+          <label
+            >PDF-ark<select id="prod-paper">
+              <option value="board">Samlet tavleformat</option>
+              <option value="a4-portrait">A4 stående – fliser</option>
+              <option value="a4-landscape">A4 liggende – fliser</option>
+            </select></label
+          >
+          <div class="pair">
+            <label
+              >Marg, mm<input
+                id="prod-margin"
+                type="number"
+                min="15"
+                max="30"
+                step="1" /></label
+            ><label
+              >Overlapp, mm<input
+                id="prod-overlap"
+                type="number"
+                min="5"
+                max="30"
+                step="1"
+            /></label>
+          </div>
+          <label class="inline-toggle"
+            ><input id="prod-crosshairs" type="checkbox" />Vis
+            senterkryss</label
+          ><label class="inline-toggle"
+            ><input id="prod-labels" type="checkbox" />Vis hullnummer</label
+          >
+          <label class="inline-toggle" id="prod-unbound-label"
+            ><input id="prod-unbound" type="checkbox" />Jeg vil eksportere
+            ubundne punkters lagrede hullkoordinater</label
+          >
+          <button id="prod-save">Lagre eksportvalg i prosjektet</button>
+          <p id="prod-save-status" role="status"></p>
+          <div id="prod-report" role="status"></div>
+          <p class="note">
+            PDF og bore-SVG bruker alle faktiske hull, også skjulte lag, ikke
+            grafiske ringdiametere. Grafikk-SVG følger eksportvalgene for
+            grafiske lag og speiles samlet, også navn, ved baksidevalg.
+          </p>
+          <p class="note">
+            Skriv ut 100 % / faktisk størrelse, uten Tilpass til ark. Mål
+            kontrollstrekene i begge retninger før malen brukes. Mål også
+            faktisk LED-pitch og første-LED-offset på stripen før boring.
+            Bore-SVG for utskrift har merknadsmarg; PDF følger valgt arkoppsett.
+            Til maskinimport brukes Hull-SVG (plateorigo): bare hull i
+            platekoordinater, uten merknadsmarg, tekst eller kontrollmål.
+          </p>
+        </div>
+        <div>
+          <p id="prod-summary"></p>
+          <label>Forhåndsvis PDF-ark<select id="prod-page"></select></label>
+          <div id="prod-preview" aria-label="Forhåndsvisning av boremal"></div>
+        </div>
+      </div>
+      <div class="production-actions">
+        <button id="production-close">Lukk</button
+        ><button id="prod-checks">Åpne kontrollisten</button
+        ><button id="prod-svg">Bore-SVG for utskrift</button
+        ><button id="prod-machining">Hull-SVG (plateorigo)</button
+        ><button id="prod-graphics">Last ned grafikk-SVG</button
+        ><button id="prod-csv">Last ned koordinater CSV</button
+        ><button id="prod-pdf" class="primary">Last ned bore-PDF</button>
       </div>
     </dialog>
     <dialog id="physical-dialog">

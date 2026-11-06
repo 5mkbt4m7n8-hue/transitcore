@@ -95,6 +95,7 @@ header {
   color: #648269;
 }
 .header-actions {
+  flex-wrap: wrap;
   margin-left: auto;
   display: flex;
   gap: 8px;
@@ -740,4 +741,58 @@ aside label.inline-toggle input {
 }
 #rapid-panel label[hidden] {
   display: none;
+}
+#production-dialog {
+  width: min(1120px, 96vw);
+  max-width: 96vw;
+  max-height: 92vh;
+  overflow: auto;
+}
+.production-layout {
+  display: grid;
+  grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
+  gap: 24px;
+}
+.production-controls label {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.production-controls input,
+.production-controls select {
+  width: 100%;
+}
+.production-controls label.inline-toggle {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+}
+.production-controls .inline-toggle input {
+  width: auto;
+}
+#prod-unbound-label[hidden] {
+  display: none;
+}
+#prod-preview {
+  background: #ecefec;
+  padding: 12px;
+  max-height: 65vh;
+  overflow: auto;
+}
+#prod-preview svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: white;
+}
+.production-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+@media (max-width: 700px) {
+  .production-layout {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,3 +1,15 @@
+import { productionSettings } from "./production-settings.mjs";
+import {
+  productionReport,
+  productionPlan,
+  productionPage,
+  pageSvg,
+  drillSvg,
+  drillPdf,
+  graphicsSvg,
+  drillCsv,
+  machiningSvg,
+} from "./production.mjs";
 import {
   connectionPreview,
   nextRapidStop,
@@ -2054,6 +2066,124 @@ $("file").onchange = async (e) => {
     message(err.message);
   }
 };
+function readProduction() {
+  return {
+    ...productionSettings({
+      side: $("prod-side").value,
+      paper: $("prod-paper").value,
+      margin: +$("prod-margin").value,
+      overlap: +$("prod-overlap").value,
+      crosshairs: $("prod-crosshairs").checked,
+      labels: $("prod-labels").checked,
+    }),
+    allowUnbound: $("prod-unbound").checked,
+  };
+}
+function renderProduction() {
+  for (const id of [
+    "prod-pdf",
+    "prod-svg",
+    "prod-graphics",
+    "prod-csv",
+    "prod-machining",
+  ])
+    $(id).disabled = true;
+  try {
+    const options = readProduction(),
+      p = project(),
+      report = productionReport(p, options),
+      plan = productionPlan(p, options),
+      oldPage = +$("prod-page").value || 0;
+    $("prod-save").disabled = false;
+    $("prod-overlap").disabled = options.paper === "board";
+    $("prod-unbound-label").hidden = !report.unboundCount;
+    $("prod-report").innerHTML =
+      `${report.errors.length ? '<p class="warning">Rett følgende før produksjonseksport:</p><ul>' + report.errors.map((e) => "<li>" + esc(e) + "</li>").join("") + "</ul>" : "<p>Fysisk grunnkontroll: ingen feil.</p>"}${report.warnings.length ? "<ul>" + report.warnings.map((e) => "<li>" + esc(e) + "</li>").join("") + "</ul>" : ""}`;
+    $("prod-summary").textContent =
+      `${report.holes.length} fysiske hull · ${options.side === "front" ? "forside" : "bakside, speilvendt"} · PDF: ${plan.pages.length} ark, ${plan.pages[0].width} × ${plan.pages[0].height} mm. Tavle ${p.board.width} × ${p.board.height} mm, 1:1.`;
+    $("prod-page").innerHTML = plan.pages
+      .map(
+        (page, i) =>
+          `<option value="${i}">Ark ${i + 1} · R${page.row + 1} C${page.col + 1}</option>`,
+      )
+      .join("");
+    $("prod-page").value = Math.min(oldPage, plan.pages.length - 1);
+    const page = productionPage(
+      p,
+      plan,
+      plan.pages[+$("prod-page").value],
+      report.holes,
+    );
+    $("prod-preview").innerHTML = pageSvg(page).replace(/^<\?xml[^>]*>/, "");
+    for (const id of ["prod-pdf", "prod-svg", "prod-csv", "prod-machining"])
+      $(id).disabled = !report.allowed;
+    $("prod-graphics").disabled =
+      !report.allowed || report.graphicsBlocked || !report.graphicLayers.length;
+  } catch (e) {
+    $("prod-report").textContent = e.message;
+    $("prod-preview").replaceChildren();
+    $("prod-summary").textContent = "Ingen eksport er laget.";
+    $("prod-save").disabled = true;
+  }
+}
+$("production-open").onclick = () => {
+  const settings = productionSettings(
+    project().production.exportSettings ?? {},
+  );
+  for (const key of ["side", "paper", "margin", "overlap"])
+    $("prod-" + key).value = settings[key];
+  $("prod-crosshairs").checked = settings.crosshairs;
+  $("prod-labels").checked = settings.labels;
+  $("prod-unbound").checked = false;
+  $("prod-page").replaceChildren();
+  $("prod-save-status").textContent = "";
+  renderProduction();
+  $("production-dialog").showModal();
+};
+$("production-close").onclick = () => $("production-dialog").close();
+for (const id of [
+  "prod-side",
+  "prod-paper",
+  "prod-margin",
+  "prod-overlap",
+  "prod-crosshairs",
+  "prod-labels",
+  "prod-unbound",
+  "prod-page",
+])
+  $(id).onchange = renderProduction;
+$("prod-save").onclick = () =>
+  safe(() => {
+    const settings = productionSettings(readProduction());
+    mutate((p) => (p.production.exportSettings = settings));
+    $("prod-save-status").textContent =
+      "Eksportvalgene er lagret. Hull og LED-bindinger er uendret.";
+  });
+$("prod-checks").onclick = () => {
+  $("production-dialog").close();
+  $("checks-toggle").click();
+};
+for (const [id, make, suffix, mime] of [
+  ["prod-pdf", drillPdf, "boremal", "application/pdf"],
+  ["prod-svg", drillSvg, "boremal", "image/svg+xml"],
+  ["prod-machining", machiningSvg, "hull", "image/svg+xml"],
+  ["prod-graphics", graphicsSvg, "grafikk", "image/svg+xml"],
+  ["prod-csv", drillCsv, "hull", "text/csv;charset=utf-8"],
+])
+  $(id).onclick = () =>
+    safe(() => {
+      const options = readProduction(),
+        extension =
+          id === "prod-pdf" ? "pdf" : id === "prod-csv" ? "csv" : "svg";
+      download(
+        make(project(), options),
+        `intransit-${suffix}-${options.side}.${extension}`,
+        mime,
+      );
+      message(
+        "Produksjonsfil lastet ned. Kontroller 100 % utskrift med X/Y-kontrollmål.",
+      );
+    });
 $("export").onclick = () => $("export-dialog").showModal();
 $("export-close").onclick = () => $("export-dialog").close();
 $("export-download").onclick = () =>
