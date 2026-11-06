@@ -211,6 +211,14 @@ try {
         .getAttribute("data-led-id"),
       led.id,
     );
+    await page.locator("#placement-rotate").hover();
+    assert.equal(
+      await page
+        .locator('.placement-preview [data-placement-target="0"]')
+        .getAttribute("data-led-id"),
+      led.id,
+    );
+    await move(led.x, led.y);
     expected = await ghost();
     await page.mouse.click(pos.x, pos.y);
     q = await state();

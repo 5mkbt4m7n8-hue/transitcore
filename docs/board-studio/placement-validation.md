@@ -12,7 +12,7 @@ Det faktiske vektorsymbolet følger pekeren med gjennomsiktighet. **R** roterer 
 
 Velg **Fri**, **Fest uten binding**, **Fest og bind** eller **Krev ledig LED**. Utenfor fangstavstanden viser de første modusene fri plassering; krav om LED viser en ugyldig plassering og blokkerer klikket. Opptatte LED-er bindes ikke automatisk. **Fest uten binding** er et eksplisitt geometriverktøy og kan sentrere på en brukt LED uten å lage en ny binding; kontrollisten vil fortsatt finne hullkonflikter.
 
-Canvas viser stripe og faktisk LED-indeks ved målpunktet. Når to striper har nesten like nære kandidater, må du velge i **LED-kandidater**. Listen viser også andre nærliggende indekser. Et eksplisitt valg beholdes til du velger automatikk, fullfører plasseringen eller avbryter; en valgt LED som ikke lenger er tilgjengelig, vises som ugyldig.
+Canvas viser stripe og faktisk LED-indeks ved målpunktet. Forhåndsvisningen blir stående på siste posisjon mens du bruker plasseringslinjen, og avsluttes med Esc eller Avslutt. Når to striper har nesten like nære kandidater, må du velge i **LED-kandidater**. Listen viser også andre nærliggende indekser. Et eksplisitt valg beholdes til du velger automatikk, fullfører plasseringen eller avbryter; en valgt LED som ikke lenger er tilgjengelig, vises som ugyldig.
 
 Klikk for å plassere. S-verktøyet forblir aktivt for neste stopp. **Esc** eller **Avslutt** går tilbake til vanlig peker. Ctrl slipper snapping midlertidig; i en modus som krever LED må du slippe Ctrl før plasseringen kan bekreftes. Ctrl+C/V beholder den eksisterende arbeidsflyten for én kopi; kopien kan også roteres med R før plassering. Kopiering av tekst i tekstfelt påvirkes ikke.
 

@@ -3467,17 +3467,9 @@ $("placement-exit").onclick = () => {
   setTool("select");
   renderPlacementToolbar();
 };
-canvas.addEventListener("pointerleave", (e) => {
-  if (
-    activePlacement() &&
-    !placementTouch &&
-    !canvas.hasPointerCapture?.(e.pointerId)
-  ) {
-    placementPreview = null;
-    ledSnap = null;
-    draw();
-  }
-});
+// Keep the last candidate visible while the user operates the placement bar.
+// SVG child replacement can emit boundary events even inside the canvas; these
+// events must never clear a valid placement or its LED indicator.
 
 function chooseStationSymbol(record) {
   if (!placementSession) {
