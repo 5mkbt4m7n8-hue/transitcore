@@ -1,3 +1,11 @@
+import {
+  editMount,
+  removeMount,
+  cornerPattern,
+  addCorners,
+  mechanicalSettings,
+  edgeDistance,
+} from "./mounting.mjs";
 import { productionSettings } from "./production-settings.mjs";
 import {
   productionReport,
@@ -91,6 +99,9 @@ try {
   if (saved) initial = parseProject(saved);
 } catch {}
 const history = new History(initial);
+let selectedMount = null,
+  pendingMount = null,
+  pendingCorners = null;
 let selected = [],
   tool = "select",
   zoom = 1,
@@ -148,7 +159,7 @@ function commit(p, options = {}) {
     $("physical-changes").innerHTML = changes
       .map(
         (c) =>
-          `<tr><td>${esc(c.name)} · ${c.pointIndex + 1}</td><td>${coord(c.holeBefore)} → ${coord(c.holeAfter)}</td><td>${coord(c.ledBefore)} → ${coord(c.ledAfter)}</td></tr>`,
+          `<tr><td>${esc(c.name)} · ${c.pointIndex + 1}</td><td>${coord(c.holeBefore)} → ${coord(c.holeAfter)}${c.diameterBefore !== undefined ? ` · Ø ${c.diameterBefore} → ${c.diameterAfter ?? "—"} mm` : ""}</td><td>${coord(c.ledBefore)} → ${coord(c.ledAfter)}</td></tr>`,
       )
       .join("");
     draw(q);
@@ -178,7 +189,7 @@ function snapped(pt, p = project(), anchor = null) {
     guidesEnabled: $("snap-guides").checked && !snapSuspended,
     gridStep: +$("grid-step").value,
     zoom,
-    excludeIds: selected,
+    excludeIds: [...selected, ...(selectedMount ? [selectedMount] : [])],
     anchor,
   });
   smartGuides = result.guides;
@@ -859,6 +870,27 @@ function workflowMarkup(p) {
       ? "Velg sluttport for forhåndsvisning."
       : "";
   let markup = "";
+  let mountGhosts = pendingMount?.point
+      ? [{ ...pendingMount, ...pendingMount.point }]
+      : [],
+    mountPreviewValid = true;
+  if (pendingCorners) {
+    try {
+      const preview = cornerPattern(p, pendingCorners);
+      mountGhosts = preview.holes;
+      mountPreviewValid = !preview.issues.length;
+    } catch {
+      mountPreviewValid = false;
+    }
+  }
+  if (mountGhosts.length)
+    markup += `<g id="mount-preview-overlay" pointer-events="none" opacity=".65">${mountGhosts.map((h) => `<circle cx="${h.x}" cy="${h.y}" r="${h.diameter / 2}" fill="${mountPreviewValid ? "#a7d6a6" : "#efb7b1"}" stroke="${mountPreviewValid ? "#387743" : "#b54737"}" stroke-width=".3"/>`).join("")}</g>`;
+  const activeMount = p.production.mountingHoles?.find(
+    (h) => h.id === selectedMount,
+  );
+  if (activeMount && p.layers.mounting.visible)
+    markup += `<circle pointer-events="none" cx="${activeMount.x}" cy="${activeMount.y}" r="${activeMount.diameter / 2 + 2 / zoom}" fill="none" stroke="#775493" stroke-width="${1 / zoom}"/>`;
+
   if (focusMark)
     markup += `<g id="check-focus" pointer-events="none"><circle cx="${focusMark.x}" cy="${focusMark.y}" r="${14 / zoom}" fill="#e5ac5422" stroke="#c48a26" stroke-width="${2 / zoom}"/></g>`;
   if (tool === "route" && routeStart && portHover) {
@@ -1323,6 +1355,7 @@ function render() {
   properties();
   renderChecks();
   renderPhysical();
+  renderMount();
   renderLibrary();
   renderRapid();
   draw();
@@ -1336,6 +1369,9 @@ function safe(fn) {
   }
 }
 function setTool(next) {
+  pendingMount = null;
+  pendingCorners = null;
+  selectedMount = null;
   ledSnap = null;
   stripSnap = null;
   if (next !== "select") pendingStation = null;
@@ -1366,6 +1402,7 @@ function setTool(next) {
   );
   properties();
   renderRapid();
+  renderMount();
   draw();
 }
 canvas.onpointerdown = (e) => {
@@ -1375,6 +1412,34 @@ canvas.onpointerdown = (e) => {
   e.preventDefault();
   canvas.focus();
   canvas.setPointerCapture(e.pointerId);
+  if (pendingMount && e.button === 0) {
+    safe(() => {
+      const result = editMount(project(), null, {
+        ...pendingMount,
+        ...snapped(xy(e)),
+      });
+      pendingMount = null;
+      selectedMount = result.id;
+      commit(result.project);
+    });
+    return;
+  }
+  const mountTarget = e.target.closest("[data-mounting]");
+  if (mountTarget && tool === "select") {
+    selectedMount = mountTarget.dataset.mounting;
+    selected = [];
+    selectedRoute = null;
+    $("mount-panel").hidden = false;
+    if (!project().layers.mounting.locked)
+      gesture = {
+        kind: "mount",
+        id: selectedMount,
+        start: xy(e),
+        base: copy(project()),
+      };
+    render();
+    return;
+  }
   const portTarget = e.target.closest("[data-port]");
   if (portTarget) {
     choosePort(portTarget.dataset.portStation, portTarget.dataset.port);
@@ -1671,6 +1736,22 @@ canvas.onpointermove = (e) => {
   };
   snapSuspended = e.ctrlKey;
   const pt = xy(e);
+  if (pendingMount && !gesture) {
+    pendingMount.point = snapped(pt);
+    draw();
+    return;
+  }
+  if (gesture?.kind === "mount") {
+    const g = gesture,
+      h = g.base.production.mountingHoles.find((h) => h.id === g.id);
+    const pos = snapped(
+      { x: h.x + pt.x - g.start.x, y: h.y + pt.y - g.start.y },
+      g.base,
+    );
+    g.preview = editMount(g.base, g.id, pos).project;
+    draw(g.preview);
+    return;
+  }
   $("coords").textContent = `X ${pt.x.toFixed(2)} · Y ${pt.y.toFixed(2)} mm`;
   if (!gesture) {
     const target = e.target.closest("[data-port]"),
@@ -2213,10 +2294,20 @@ for (const [id, demo] of [
   };
 function refreshSnapModifier(active) {
   snapSuspended = active;
-  if (lastPointer && (gesture || pendingStrip || pendingStation))
+  if (
+    lastPointer &&
+    (gesture || pendingStrip || pendingStation || pendingMount)
+  )
     canvas.onpointermove({ ...lastPointer, ctrlKey: active });
 }
 document.onkeydown = (e) => {
+  if (e.key === "Escape" && (pendingMount || pendingCorners)) {
+    pendingMount = null;
+    pendingCorners = null;
+    render();
+    message("Monteringsplassering avbrutt.");
+    return;
+  }
   if (e.key === "Escape" && rapidPlacement) {
     rapidPlacement = null;
     render();
@@ -2680,6 +2771,11 @@ function focusIssue(issue) {
   selected = [];
   selectedRoute = null;
   let point = null;
+  if (t.kind === "mounting") {
+    selectedMount = t.id;
+    $("mount-panel").hidden = false;
+    point = p.production.mountingHoles.find((h) => h.id === t.id);
+  }
   if (t.kind === "station") {
     const station = p.layout.stations.find((s) => s.id === t.id);
     if (!station) return;
@@ -2908,3 +3004,128 @@ $("trondheim-demo").onclick = () => {
   commit(trondheimPrototype(), { load: true });
   fit();
 };
+
+function renderMount() {
+  const p = project(),
+    holes = p.production.mountingHoles ?? [],
+    h = holes.find((h) => h.id === selectedMount),
+    settings = mechanicalSettings(p.production.mechanicalSettings);
+  if (!h) selectedMount = null;
+  $("mount-select").innerHTML =
+    '<option value="">Nytt hull</option>' +
+    holes
+      .map(
+        (h) => `<option value="${esc(h.id)}">${esc(h.name ?? h.id)}</option>`,
+      )
+      .join("");
+  $("mount-select").value = selectedMount ?? "";
+  for (const [key, value] of Object.entries(
+    h ?? { name: "Monteringshull", x: 15, y: 15, diameter: 3.2 },
+  ))
+    if ($("mount-" + key)) $("mount-" + key).value = value;
+  $("mount-distance").textContent = h
+    ? `Minste kantavstand: ${edgeDistance(p, h).toFixed(3)} mm`
+    : "Nytt hull får en egen ID.";
+  $("edge-clearance").value = settings.edgeClearance;
+  $("hole-clearance").value = settings.holeClearance;
+  for (const id of [
+    "mount-save",
+    "mount-place",
+    "mount-preview",
+    "mount-settings",
+  ])
+    $(id).disabled = p.layers.mounting.locked;
+  $("mount-delete").disabled = !h || p.layers.mounting.locked;
+  let issues = [];
+  if (pendingCorners) {
+    try {
+      issues = cornerPattern(p, pendingCorners).issues;
+    } catch (e) {
+      issues = [{ message: e.message }];
+    }
+  }
+  $("mount-preview-status").textContent = pendingCorners
+    ? issues.length
+      ? issues.map((i) => i.message).join(" ")
+      : "Fire hull klare. Kontroller plasseringen før du legger til."
+    : "";
+  $("mount-corners").disabled =
+    !pendingCorners || !!issues.length || p.layers.mounting.locked;
+}
+function mountFields() {
+  return {
+    name: $("mount-name").value,
+    x: +$("mount-x").value,
+    y: +$("mount-y").value,
+    diameter: +$("mount-diameter").value,
+  };
+}
+$("mount-toggle").onclick = () => {
+  $("mount-panel").hidden = !$("mount-panel").hidden;
+  $("led-panel").hidden = true;
+  renderMount();
+};
+$("mount-close").onclick = () => {
+  $("mount-panel").hidden = true;
+  pendingMount = null;
+  pendingCorners = null;
+  draw();
+};
+$("mount-select").onchange = () => {
+  selectedMount = $("mount-select").value || null;
+  renderMount();
+  draw();
+};
+$("mount-save").onclick = () =>
+  safe(() => {
+    const result = editMount(project(), selectedMount, mountFields());
+    selectedMount = result.id;
+    commit(result.project);
+  });
+$("mount-place").onclick = () =>
+  safe(() => {
+    const fields = mountFields();
+    editMount(project(), null, fields);
+    setTool("select");
+    pendingMount = fields;
+    message(
+      "Klikk for å plassere nytt monteringshull · Ctrl: fri plassering · Escape avbryter",
+    );
+  });
+$("mount-delete").onclick = () =>
+  safe(() => commit(removeMount(project(), selectedMount)));
+$("mount-preview").onclick = () =>
+  safe(() => {
+    const options = {
+      inset: +$("mount-inset").value,
+      diameter: +$("corner-diameter").value,
+    };
+    cornerPattern(project(), options);
+    pendingMount = null;
+    pendingCorners = options;
+    renderMount();
+    draw();
+  });
+$("mount-corners").onclick = () =>
+  safe(() => {
+    const q = addCorners(project(), pendingCorners);
+    pendingCorners = null;
+    commit(q);
+  });
+$("mount-settings").onclick = () =>
+  safe(() =>
+    mutate(
+      (q) =>
+        (q.production.mechanicalSettings = mechanicalSettings({
+          edgeClearance: +$("edge-clearance").value,
+          holeClearance: +$("hole-clearance").value,
+        })),
+    ),
+  );
+
+for (const id of ["mount-inset", "corner-diameter"])
+  $(id).oninput = () => {
+    pendingCorners = null;
+    renderMount();
+    draw();
+  };

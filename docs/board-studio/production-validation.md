@@ -67,3 +67,8 @@ CI bruker Playwrights Chromium 158. En asynkron `details.toggle`-hendelse kunne 
 `production-settings.mjs` definerer versjon 1 av valgfrie `production.exportSettings` i prosjektformat v3. Eksisterende prosjekter migreres som før. Kun et eksplisitt Lagre-valg skriver preferanser. Aksept av ubundne punkter lagres ikke som en varig godkjenning.
 
 Boremalen gjør ingen korrigering av hull, ingen verktøy-/kerfkompensasjon og ingen tilpasning til faktisk skriver, materiale, optikk eller strømoppsett. Mål utskriftens kontrollstreker og stripens pitch/offset før bruk. Det finnes ikke en egen visuell redigerer for monteringshull i denne fasen. Ingen merge, produksjonsdeploy eller fysisk maskinkjøring er utført.
+
+
+## Oppdatering v0.5
+
+Den visuelle monteringsredigereren og prosjektets justerbare hullklaringer er nå implementert. Se [monteringsvalideringen](mounting-validation.md). Produksjonstestene kjøres både med 18 LED-hull og med fire ekstra monteringshull; uavhengig pypdf/XML/CSV-kontroll dekker begge datasett.

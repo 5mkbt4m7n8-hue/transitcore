@@ -1,3 +1,4 @@
+import { addCorners } from "../web/board-studio/mounting.mjs";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
@@ -72,7 +73,11 @@ try {
     );
     return p;
   }
-  const original = await load(trondheimPrototype());
+  const withMounting = !!process.env.BOARD_PRODUCTION_MOUNTING,
+    holeCount = withMounting ? 22 : 18;
+  const original = await load(
+    withMounting ? addCorners(trondheimPrototype()) : trondheimPrototype(),
+  );
   const output = process.env.BOARD_PRODUCTION_OUTPUT;
   if (output) {
     await mkdir(output, { recursive: true });
@@ -92,7 +97,7 @@ try {
   );
   assert.match(
     await page.locator("#prod-summary").textContent(),
-    /18 fysiske hull/,
+    new RegExp(`${holeCount} fysiske hull`),
   );
   assert.match(await page.locator("#prod-summary").textContent(), /4 ark/);
   assert.equal(await page.locator("#prod-page option").count(), 4);
@@ -126,7 +131,7 @@ try {
   }, frontSvg);
   assert.equal(frontHoles.width, "330mm");
   assert.equal(frontHoles.height, "430mm");
-  assert.equal(frontHoles.holes.length, 18);
+  assert.equal(frontHoles.holes.length, holeCount);
   assert.equal(
     frontHoles.holes[0].x,
     original.layout.stations[0].holes[0].x + 15,
@@ -158,7 +163,7 @@ try {
   assert.ok(art.includes("translate(300 0) scale(-1 1)"));
   assert.ok(!art.includes("data-hole="));
   const csv = (await download("prod-csv", "back.csv")).toString();
-  assert.equal(csv.split("\r\n").filter(Boolean).length, 19);
+  assert.equal(csv.split("\r\n").filter(Boolean).length, holeCount + 1);
   assert.deepEqual(await state(), original);
   await page.locator("#prod-paper").selectOption("board");
   assert.equal(await page.locator("#prod-page option").count(), 1);

@@ -39,6 +39,7 @@ jobs:
           node scripts/test-strip-snap-board-studio.mjs
           node scripts/test-workflows-board-studio.mjs
           node scripts/test-production-board-studio.mjs
+          node scripts/test-mounting-board-studio.mjs
       - name: Install isolated browser tooling
         run: |
           npm install --prefix "$RUNNER_TEMP/board-browser" playwright
@@ -55,8 +56,12 @@ jobs:
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" node scripts/browser-strip-snap-board-studio.mjs
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_WORKFLOWS_SCREENSHOT="$RUNNER_TEMP/board-studio-workflows.png" node scripts/browser-workflows-board-studio.mjs
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_PRODUCTION_OUTPUT="$RUNNER_TEMP/board-production" BOARD_PRODUCTION_SCREENSHOT="$RUNNER_TEMP/board-studio-production.png" node scripts/browser-production-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_MOUNTING_SCREENSHOT="$RUNNER_TEMP/board-studio-mounting.png" node scripts/browser-mounting-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_PRODUCTION_MOUNTING=1 BOARD_PRODUCTION_OUTPUT="$RUNNER_TEMP/board-mounting-production" node scripts/browser-production-board-studio.mjs
       - name: Independently inspect downloaded PDF, SVG and CSV
-        run: PYTHONPATH="$RUNNER_TEMP/board-pdf" python3 scripts/check-board-studio-pdf.py "$RUNNER_TEMP/board-production"
+        run: |
+          PYTHONPATH="$RUNNER_TEMP/board-pdf" python3 scripts/check-board-studio-pdf.py "$RUNNER_TEMP/board-production"
+          PYTHONPATH="$RUNNER_TEMP/board-pdf" python3 scripts/check-board-studio-pdf.py "$RUNNER_TEMP/board-mounting-production"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -64,3 +69,4 @@ jobs:
           path: |
             ${{ runner.temp }}/board-studio*.png
             ${{ runner.temp }}/board-production/*
+            ${{ runner.temp }}/board-mounting-production/*

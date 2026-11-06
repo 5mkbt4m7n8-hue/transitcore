@@ -27,7 +27,7 @@ for station in source['layout']['stations']:
 for hole in source['production'].get('mountingHoles', []):
     key = (hole['x'], hole['y'], hole['diameter'])
     expected[key] = key
-assert len(expected) == 18
+assert len(expected) >= 18
 labels = {f"H{i+1:03d}": key for i, key in enumerate(expected)}
 
 
@@ -148,8 +148,16 @@ for element in circles:
 
 with (root / 'back.csv').open(encoding='utf-8-sig', newline='') as file:
     rows = list(csv.DictReader(file, delimiter=';'))
-assert len(rows) == 18
+assert len(rows) == sum(len(s['holes']) for s in source['layout']['stations']) + len(source['production'].get('mountingHoles', []))
 for row in rows:
+    if row['Type'] == 'mounting':
+        hole = next(h for h in source['production']['mountingHoles'] if h['id'] == row['Hull-ID'])
+        assert row['Navn'] == hole['name']
+        assert not any(row[key] for key in ['Stasjons-ID','Punkt','Segment-ID','LED-ID','LED-indeks','Kontroller','Kjede'])
+        for field, value in [('Forside_X_mm',hole['x']),('Forside_Y_mm',hole['y']),('X_mm',w-hole['x']),('Y_mm',hole['y']),('Diameter_mm',hole['diameter'])]:
+            near(float(row[field]),value)
+        assert labels[row['Hullnr']] == (hole['x'],hole['y'],hole['diameter'])
+        continue
     station = next(s for s in source['layout']['stations'] if s['id'] == row['Stasjons-ID'])
     point_index = int(row['Punkt'])-1
     hole = station['holes'][point_index]
@@ -170,4 +178,4 @@ for row in rows:
     near(float(row['X_mm']), w - float(row['Forside_X_mm']))
     near(float(row['Y_mm']), float(row['Forside_Y_mm']))
     assert row['Stasjons-ID'] and row['Hull-ID'] and row['LED-ID'] and row['Segment-ID']
-print('Independent pypdf/XML/CSV PASS: 15 real PDF pages, exact MediaBox sizes, 18 source hole centres/diameters, mirrored back and A4 offsets/coverage, physical layers, X/Y 100 mm controls, side labels, SVG and identity-preserving CSV')
+print(f'Independent pypdf/XML/CSV PASS: 15 real PDF pages, exact MediaBox sizes, {len(expected)} source hole centres/diameters, mirrored back and A4 offsets/coverage, physical layers, X/Y 100 mm controls, side labels, SVG and identity-preserving CSV')

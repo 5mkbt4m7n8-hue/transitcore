@@ -35,6 +35,8 @@ export function snapPoint(
       targets.push({ x: s.x, y: s.y, kind: "station" });
       for (const h of holeCenters(p, s)) targets.push({ ...h, kind: "hole" });
     }
+  for (const h of p.production.mountingHoles ?? [])
+    if (!excludeIds.includes(h.id)) targets.push({ ...h, kind: "mounting" });
   for (const r of p.layout.routes)
     for (const b of Object.values(r.bends))
       targets.push({ ...b, kind: "bend" });

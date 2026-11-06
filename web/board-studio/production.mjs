@@ -98,33 +98,6 @@ export function productionReport(input, options = {}) {
         );
     });
   }
-  // Mounting holes share the same physical plate and must clear all other holes.
-  for (let i = 0; i < holes.length; i++) {
-    const h = holes[i];
-    if (h.references.some((r) => r.kind === "mounting")) {
-      if (h.references.length > 1)
-        errors.push(
-          h.id + ": monteringshull deler posisjon med et annet hull.",
-        );
-      if (
-        h.x - h.diameter / 2 < 0 ||
-        h.x + h.diameter / 2 > p.board.width ||
-        h.y - h.diameter / 2 < 0 ||
-        h.y + h.diameter / 2 > p.board.height
-      )
-        errors.push(h.id + ": monteringshullet ligger utenfor platen.");
-      for (let j = 0; j < holes.length; j++)
-        if (
-          j !== i &&
-          Math.hypot(h.x - holes[j].x, h.y - holes[j].y) <
-            (h.diameter + holes[j].diameter) / 2 + 1
-        )
-          errors.push(
-            h.id +
-              ": monteringshullet overlapper eller ligger nærmere enn 1 mm fra et annet hull.",
-          );
-    }
-  }
   if (unbound.length)
     warnings.push(
       `${unbound.length} stasjonspunkter mangler LED-binding. Boremalen bruker deres lagrede hullkoordinater.`,

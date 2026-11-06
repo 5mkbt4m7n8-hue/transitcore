@@ -1,3 +1,4 @@
+import { validateMounting, mountingMarkup } from "./mounting.mjs";
 import { productionSettings } from "./production-settings.mjs";
 import { validatePorts } from "./ports.mjs";
 import { validateBindings, bindingMarkup } from "./bindings.mjs";
@@ -22,6 +23,7 @@ export const LAYERS = [
   ["names", "Stasjonsnavn"],
   ["leds", "Fysiske LED-posisjoner"],
   ["holes", "Hull og boremarkeringer"],
+  ["mounting", "Monteringshull"],
   ["bindings", "LED-bindinger"],
   ["strips", "Stripesegmenter"],
   ["outline", "Tavlekontur og montering"],
@@ -270,6 +272,7 @@ export function parseProject(input) {
       )
         throw Error("Ugyldig knekkpunkt.");
   }
+  p.layers.mounting ??= { visible: true, locked: false, export: true };
   p.layers.bindings ??= { visible: false, locked: false, export: false };
   for (const [id] of LAYERS)
     if (
@@ -288,6 +291,7 @@ export function parseProject(input) {
     throw Error("Ugyldige hjelpelinjer.");
   if (!p.network || !p.ledLayout || !p.production)
     throw Error("Prosjektet mangler dataområder.");
+  validateMounting(p);
   if (p.production.exportSettings)
     productionSettings(p.production.exportSettings);
   p.version = 3;
@@ -551,11 +555,13 @@ export const PAINT_ORDER = [
   "strips",
   "leds",
   "holes",
+  "mounting",
   "bindings",
   "outline",
   "guides",
 ];
 export function layerMarkup(p, id) {
+  if (id === "mounting") return mountingMarkup(p, esc);
   if (id === "bindings") return bindingMarkup(p, esc);
   if (["strips", "leds"].includes(id)) return physicalMarkup(p, id, esc);
   if (id === "routes") return routeMarkup(p);

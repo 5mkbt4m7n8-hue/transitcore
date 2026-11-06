@@ -1,3 +1,8 @@
+import {
+  mechanicalSettings,
+  mountingIssues,
+  mountChanges,
+} from "./mounting.mjs";
 import { symbolCenters, holeCenters } from "./geometry.mjs";
 import { ledFor, ledPositions, segmentCorners } from "./led-layout.mjs";
 const distance = (a, b) =>
@@ -233,7 +238,7 @@ export function physicalChanges(old, next) {
           });
       }
     }
-  return rows;
+  return [...rows, ...mountChanges(old, next)];
 }
 export function bindingMarkup(p, esc) {
   return p.ledLayout.bindings
@@ -249,6 +254,7 @@ export function bindingMarkup(p, esc) {
 }
 export function mechanicalCheck(p) {
   let currentTarget = null;
+  const settings = mechanicalSettings(p.production.mechanicalSettings);
   const issues = [],
     outside = (pt, r = 0) =>
       pt.x - r < 0 ||
@@ -345,12 +351,12 @@ export function mechanicalCheck(p) {
           Math.abs(a.diameter - b.diameter) < 1e-8 &&
           d < 1e-8;
       if (shared) continue;
-      if (d < (a.diameter + b.diameter) / 2 + 1)
+      if (d + 1e-8 < (a.diameter + b.diameter) / 2 + settings.holeClearance)
         add(
           `${a.s.name} / ${b.s.name}`,
           d < (a.diameter + b.diameter) / 2
             ? "Overlappende hull."
-            : "Hull ligger nærmere enn 1 mm kantavstand.",
+            : `Hull ligger nærmere enn ${settings.holeClearance} mm kantavstand.`,
           {
             kind: "station",
             id: a.s.id,
@@ -385,7 +391,7 @@ export function mechanicalCheck(p) {
         "Direkte LED-, hull- og ringsenter er ikke sammenfallende.",
       );
   }
-  return issues;
+  return [...issues, ...mountingIssues(p)];
 }
 
 export function setFrontPoint(p, stationId, pointIndex, front) {

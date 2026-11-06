@@ -10,7 +10,7 @@
     <header>
       <a class="brand" href="../../index.html"
         >in<span>transit</span><i> / </i><b>Board Studio</b></a
-      ><span class="badge">v0.4 · fysisk design</span>
+      ><span class="badge">v0.5 · fysisk design</span>
       <div class="header-actions">
         <button id="open">Åpne prosjekt</button
         ><button id="save">Lagre JSON</button
@@ -26,7 +26,8 @@
       <div class="project-meta">
         <span id="size-summary"></span><span>Millimeter · vektorgrafikk</span>
       </div>
-      <button id="led-toggle">LED-layout</button
+      <button id="mount-toggle">Montering</button
+      ><button id="led-toggle">LED-layout</button
       ><button id="library-toggle">Symbolbibliotek</button
       ><button id="new">Ny tavle</button
       ><button id="trondheim-demo">Trondheim buss</button
@@ -151,6 +152,76 @@
           ><span id="template-status">Standard enkeltstasjon</span>
         </div>
         <div id="viewport">
+          <section id="mount-panel" class="drawer physical-drawer" hidden>
+            <div class="drawer-heading">
+              <h2>Monteringshull · mm</h2>
+              <button id="mount-close" aria-label="Lukk montering">×</button>
+            </div>
+            <label>Hull<select id="mount-select"></select></label>
+            <label>Navn<input id="mount-name" maxlength="100" /></label>
+            <div class="pair">
+              <label>X, mm<input id="mount-x" type="number" step="0.1" /></label
+              ><label
+                >Y, mm<input id="mount-y" type="number" step="0.1"
+              /></label>
+            </div>
+            <label
+              >Hulldiameter, mm<input
+                id="mount-diameter"
+                type="number"
+                min="0.1"
+                max="100"
+                step="0.1"
+            /></label>
+            <p id="mount-distance" class="note"></p>
+            <div class="pair">
+              <button id="mount-save">Lagre hull</button
+              ><button id="mount-place">Plasser med mus</button
+              ><button id="mount-delete">Slett hull</button>
+            </div>
+            <h3>Fire hjørnehull</h3>
+            <label
+              >Hullsenters avstand fra platekant, mm<input
+                id="mount-inset"
+                type="number"
+                value="15"
+                step="0.1"
+            /></label>
+            <label
+              >Diameter, mm<input
+                id="corner-diameter"
+                type="number"
+                value="3.2"
+                step="0.1"
+            /></label>
+            <button id="mount-preview">Forhåndsvis hjørnehull</button>
+            <p id="mount-preview-status" class="note"></p>
+            <button id="mount-corners" disabled>
+              Legg til fire hjørnehull
+            </button>
+            <h3>Mekaniske klaringer</h3>
+            <label
+              >Hullkant til platekant, mm<input
+                id="edge-clearance"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+            /></label>
+            <label
+              >Mellom hullkanter, mm<input
+                id="hole-clearance"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1" /></label
+            ><button id="mount-settings">Lagre klaringer</button>
+            <p class="note">
+              Klaringer gjelder alle hull. Endringer flytter aldri hull
+              automatisk. Ctrl gir fri plassering. Escape avbryter
+              forhåndsvisning.
+            </p>
+          </section>
           <section id="led-panel" class="drawer physical-drawer" hidden>
             <div class="drawer-heading">
               <h2>Fysisk LED-layout</h2>

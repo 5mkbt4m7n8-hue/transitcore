@@ -1,6 +1,17 @@
-# InTransit Board Studio v0.4
+# InTransit Board Studio v0.5
 
 Vektoreditor og fysisk LED-layout i millimeter: `web/board-studio/index.html`. Arbeidet er beholdt i draft-PR #324. Ingen merge, produksjonsdeploy eller endringer i Map Studio/PR #323, GPS, Entur eller firmware.
+
+## Montering og klaringer i v0.5
+
+1. Åpne **Montering**. Velg **Nytt hull**, navn, X/Y og hulldiameter i mm. **Lagre hull** oppretter hullet, mens **Plasser med mus** lar deg klikke ønsket plassering på tavlen. Rutenett og hjelpelinjer brukes; hold Ctrl for fri plassering. Escape avbryter.
+2. Velg et eksisterende hull fra listen eller klikk det på tavlen. Endre mål eller dra hullet. Flytting, diameterendring og sletting viser før/etter i den fysiske bekreftelsesdialogen. **Avbryt** beholder originalen. Angre/Gjør om bevarer ID-en.
+3. Under **Fire hjørnehull** angir du hullsenters avstand fra platekanten og diameter. **Forhåndsvis hjørnehull** endrer ikke prosjektet. Grønt betyr at plasseringen består hullkontrollen; rødt viser konflikt. **Legg til fire hjørnehull** oppretter alle fire i én angrehandling. Eksisterende hull erstattes aldri.
+4. Under **Mekaniske klaringer** velger du minste avstand fra **hullkant til platekant** og mellom **hullkanter**. **Lagre klaringer** lagrer dem for hele prosjektet, inkludert LED-hull. Standard 0 mm til platekant og 1 mm mellom hull beholder tidligere validering; velg mål for ditt materiale og feste. Dette er ikke en materialberegning.
+5. Åpne **Kontrolliste** for å finne objekter som bryter kravene. Klikk et funn for å se hullet og åpne monteringspanelet. Ingen automatisk flytting utføres. Samme krav blokkerer produksjonseksport.
+6. Laget **Monteringshull** har egne vis/skjul-, lås- og eksportvalg. Lås hindrer redigering. Borefilene inkluderer alltid alle fysiske hull, også skjulte hull. Lagre JSON for å bevare permanente ID-er og klaringsinnstillinger.
+
+Eksempel med 18 LED-hull og fire monteringshull, 15 mm senterinnrykk og Ø 3,2 mm: [Prosjekt-JSON](examples/trondheim-buss-v05-mounting.json) · [A4-PDF forside](examples/trondheim-buss-v05-mounting-front.pdf) · [Hull-SVG bakside](examples/trondheim-buss-v05-mounting-back.svg) · [Koordinater bakside](examples/trondheim-buss-v05-mounting-back.csv). [Testresultater og begrensninger](mounting-validation.md).
 
 ## Boremal og produksjonsfiler i v0.4
 
@@ -20,7 +31,7 @@ Vektoreditor og fysisk LED-layout i millimeter: `web/board-studio/index.html`. A
 | **Grafikk-SVG**           | Bare grafiske eksportlag: traséer, kapsler, ringer, navn og eventuell kontur. Ingen borehull eller LED-layout. Root-størrelsen er tavlemålet. Baksidevalg speiler også teksten som del av hele grafikken. Kontroller fontgjengivelse i mottakerverktøyet.                                                           |
 | **Koordinater CSV**       | UTF-8 med BOM, semikolon og punktum som desimalskilletegn. Hullnummer, faktisk hull-ID, stasjons-ID/navn/punkt, valgt sides X/Y, diameter, forsidekoordinater og kvalifiserte LED-identiteter. Tekst som kan tolkes som regnearkformler beskyttes med en innledende apostrof; prosjekt-JSON beholder originaltekst. |
 
-Alle fysiske hull tas med uavhengig av skjulte/låste lag eller editorens eksportvalg. Grafikk-SVG følger derimot de grafiske eksportvalgene. Grafiske ringdiametere endrer aldri borediameteren. Eksplisitt delte, sammenfallende hull med samme diameter tegnes én gang, mens CSV beholder én rad per logisk referanse til samme hullnummer. Lyslederbindinger beholder sine eksplisitte hullkoordinater. Monteringshull som ligger i `production.mountingHoles` tas også med og kontrolleres; en egen visuell redigerer for disse er ikke inkludert i denne fasen.
+Alle fysiske hull tas med uavhengig av skjulte/låste lag eller editorens eksportvalg. Grafikk-SVG følger derimot de grafiske eksportvalgene. Grafiske ringdiametere endrer aldri borediameteren. Eksplisitt delte, sammenfallende hull med samme diameter tegnes én gang, mens CSV beholder én rad per logisk referanse til samme hullnummer. Lyslederbindinger beholder sine eksplisitte hullkoordinater. Monteringshull som ligger i `production.mountingHoles` tas også med og kontrolleres; disse redigeres i **Montering** fra v0.5.
 
 Eksemplene under er generert fra det tenkte Trondheim-prosjektet med nominell 10 mm pitch. De dokumenterer filformatet og er ikke en verifisering av en målt stripe, materialtoleranser eller en faktisk bussrute.
 
