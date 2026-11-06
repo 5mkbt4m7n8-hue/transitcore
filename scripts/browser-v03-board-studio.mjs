@@ -101,6 +101,21 @@ try {
     .getByRole("button", { name: "Legg til stasjon", exact: true })
     .click();
   await click(160, 160);
+  assert.equal(
+    (await state()).layout.stations.length,
+    2,
+    JSON.stringify(
+      await page.evaluate(() => ({
+        status: document.querySelector("#status").textContent,
+        placement: document.querySelector("#placement-status").textContent,
+        valid: document
+          .querySelector(".placement-preview")
+          ?.getAttribute("data-placement-valid"),
+        errors: document.querySelector("#geometry-status").textContent,
+      })),
+    ),
+  );
+
   await page
     .getByRole("button", { name: "Velg og flytt", exact: true })
     .click();

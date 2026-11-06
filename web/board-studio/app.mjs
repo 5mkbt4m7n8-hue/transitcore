@@ -315,6 +315,7 @@ function updateStationPlacement(
   ledSnap = preview.target ?? null;
   if (pointerType === "touch") placementTouch = true;
   renderPlacementStatus();
+  return preview;
 }
 function placementMarkup(p) {
   const preview = placementPreview;
@@ -328,11 +329,11 @@ function placementMarkup(p) {
         : "Fri plassering");
   return `${placementSession?.mode !== "normal" && placementSession && !p.layers.leds.visible ? `<g class="placement-led-layout" opacity=".5" pointer-events="none">${layerMarkup(p, "leds")}</g>` : ""}<g class="placement-preview" data-placement-valid="${preview.valid}" data-placement-stage="${preview.stage}" pointer-events="none" opacity=".65">${["capsules", "rings", "names", ...(p.layers.holes.visible ? ["holes"] : [])].map((layer) => stationMarkup(preview.station, layer, preview.project)).join("")}${preview.targets.map((l, i) => `<g data-placement-target="${i}" data-led-id="${esc(l.id)}" data-segment-id="${esc(l.segmentId)}" data-led-index="${l.index}"><circle cx="${l.x}" cy="${l.y}" r="${9 / zoom}" fill="none" stroke="${preview.valid ? "#1b8050" : "#bd4c3c"}" stroke-width="${2 / zoom}"/><text x="${l.x + 11 / zoom}" y="${l.y + 13 / zoom}" font-size="${11 / zoom}" fill="#275b45">${String.fromCharCode(65 + i)} · ${esc(l.segmentName)} · LED ${l.index}</text></g>`).join("")}<text x="${preview.station.x}" y="${Math.max(...symbolCenters(preview.project, preview.station).map((c) => c.y)) + preview.station.ringOuter / 2 + 17 / zoom}" text-anchor="middle" font-size="${11 / zoom}" fill="${preview.valid ? "#275b45" : "#a34032"}">${esc(text)}</text></g>`;
 }
-function finishStationPlacement() {
-  const session = activePlacement(),
-    preview = placementPreview;
+function finishStationPlacement(preview = placementPreview) {
+  const session = activePlacement();
   if (!session || !preview) return;
   if (!preview.valid) {
+    draw();
     message(preview.reason);
     return;
   }
@@ -1767,9 +1768,11 @@ canvas.onpointerdown = (e) => {
     safe(() => {
       const point = xy(e);
       if (e.pointerType === "touch") point.y -= 64 / zoom;
-      updateStationPlacement(point, e);
-      draw();
-      if (e.pointerType !== "touch") finishStationPlacement();
+      // Commit the exact returned candidate before replacing SVG hit targets.
+      // Boundary events caused by a redraw must not erase a valid click.
+      const preview = updateStationPlacement(point, e);
+      if (e.pointerType === "touch") draw();
+      else finishStationPlacement(preview);
     });
     return;
   }
