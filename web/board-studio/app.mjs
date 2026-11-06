@@ -622,13 +622,24 @@ function draw(p = project()) {
     const py = origin.y + y * zoom;
     rulers += `<path d="M 18 ${py} H 23" stroke="#a7b3a1"/><text x="3" y="${py - 3}" font-size="8" fill="#819078">${y}</text>`;
   }
-  canvas.innerHTML = `<g transform="translate(${origin.x} ${origin.y}) scale(${zoom})"><rect x="2" y="3" width="${b.width}" height="${b.height}" fill="#243522" opacity=".09"/><rect width="${b.width}" height="${b.height}" fill="white"/>${gridMarkup}${PAINT_ORDER.filter(
+  // Preserve the rendered coordinate group. Replacing it briefly produces an
+  // identity screen matrix in newer Chromium before the next rendering frame.
+  if (!canvas.querySelector(":scope > [data-scene]"))
+    canvas.innerHTML =
+      '<g data-scene="true"></g><g data-rulers="true" pointer-events="none"></g>';
+  const scene = canvas.querySelector(":scope > [data-scene]");
+  scene.setAttribute(
+    "transform",
+    `translate(${origin.x} ${origin.y}) scale(${zoom})`,
+  );
+  scene.innerHTML = `<rect x="2" y="3" width="${b.width}" height="${b.height}" fill="#243522" opacity=".09"/><rect width="${b.width}" height="${b.height}" fill="white"/>${gridMarkup}${PAINT_ORDER.filter(
     (id) => p.layers[id].visible,
   )
     .map((id) => `<g data-layer="${id}">${layerMarkup(p, id)}</g>`)
     .join(
       "",
-    )}${marks}${overlay}${controls}${placementMarkup(p)}${workflowMarkup(p)}${portMarkup(p)}</g><g pointer-events="none">${rulers}</g>`;
+    )}${marks}${overlay}${controls}${placementMarkup(p)}${workflowMarkup(p)}${portMarkup(p)}`;
+  canvas.querySelector(":scope > [data-rulers]").innerHTML = rulers;
   for (const routeLayer of canvas.querySelectorAll(
     "[data-layer=routes],[data-layer=capsules]",
   ))
