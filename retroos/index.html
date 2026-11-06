@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>RETRO/OS BUILDER 0.1 — VESPER-9</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="aqua" class="crt-on">
+<div class="stars" id="stars"></div>
+<div class="shell" id="shell">
+  <header class="top">
+    <div class="logo"><div class="logo-mark">◇</div><div><div class="logo-title">RETRO<span style="color:var(--dim)">/</span><b>OS</b> <span style="font-size:10px;color:var(--muted);font-weight:400">BUILDER</span></div><div class="logo-caption">VESPER-9 · DERELICT RELAY STATION</div></div></div>
+    <div class="top-right"><div class="top-state"><span class="live-dot"></span>LOCAL SIMULATION</div><div class="clock" id="clock">T+ 00:00:00</div><button class="top-button" id="sound-btn" title="Slå lydeffekter på eller av">♪ OFF</button><button class="top-button" id="crt-btn" title="Slå CRT-effekt av eller på">CRT ON</button><button class="top-button strong" id="editor-open">✦ ÅPNE EDITOR</button></div>
+  </header>
+  <div class="body">
+    <aside class="left"><div class="side-section"><span class="micro">// SYSTEMMODULER</span></div><nav class="nav" id="nav"></nav><div class="left-bottom"><div class="os-version">◈ VESPER/OS 0.1</div><p>Ikke koblet til faktisk maskinvare. Alle systemer simuleres lokalt i nettleseren.</p></div></aside>
+    <main class="desk" id="desk"><div class="desk-top"><span class="micro">// ARBEIDSFLATE · SEKTOR 09</span><span id="desk-status">STANDBY / DECK 07</span></div><div id="window-layer"></div><div class="desk-bottom" id="taskbar"><button class="task" id="desktop-start">◇ ÅPNE OVERSIKT</button></div></main>
+    <aside class="right" id="right"></aside>
+  </div>
+  <footer class="statusbar"><span><b>●</b> <span id="status-message">Klar til oppstart</span></span><span class="hidden-mobile">RETROOS // ORIGINAL BUILD 0.1</span><span>LOCAL STORAGE <b>●</b></span></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <section class="editor" id="editor" aria-label="Skjermeditor">
+    <div class="editor-top"><div><div class="micro">// KONSTRUKSJONSMODUS</div><div class="editor-top-title">RETRO/OS <span>SCREEN BUILDER</span></div></div><div class="editor-tools"><button class="btn small primary" id="editor-new">+ Ny skjerm</button><button class="btn small" id="editor-export">Eksporter JSON</button><button class="btn small" id="editor-import">Importer</button><button class="btn small" id="editor-close">Lukk editor ×</button><input type="file" id="import-file" accept="application/json,.json" hidden></div></div>
+    <div class="editor-layout"><div class="editor-side"><h3>EGNE PROGRAMMER</h3><div id="editor-screens"></div><button class="btn small" id="editor-duplicate" style="width:100%;margin:12px 0 0">Dupliser valgt</button></div><div class="editor-center"><div class="editor-preview" id="editor-preview"></div></div><aside class="inspector" id="editor-inspector"></aside></div>
+    <div class="editor-foot"><span>Du redigerer en lokal kopi · endringer lagres automatisk</span><span>V0.1 / OFFLINE</span></div>
+  </section>
+  <div class="ending" id="ending"><div class="ending-card"><span class="kicker">◈ OPPDRAG FULLFØRT · SEKTOR 09</span><h2>En stemme fra mørket.</h2><p>VESPER-9 har sendt den siste meldingen hjem. Stasjonen var aldri helt forlatt.<br><br>«Hvis noen mottar dette: Vi holdt lyset tent for dere.»</p><div class="btns"><button class="btn primary" id="ending-close">Fortsett å utforske</button><button class="btn" id="ending-editor">Bygg ditt eget system</button></div></div></div>
+  <div class="boot" id="boot"><div class="boot-card"><div class="boot-emblem">◇</div><div class="micro">DEEP SPACE AUTHORITY · RECOVERY TERMINAL</div><h1>VESPER<span>/</span>OS</h1><p>Automatisk gjenoppretting av forlatt reléstasjon.<br>Signaturen til siste operatør er fortsatt i minnet.</p><div class="boot-log" id="boot-log">&gt; EMERGENCY WAKE INTERFACE READY<br>&gt; SIGNAL FROM SECTOR 09 DETECTED<br>&gt; WAITING FOR OPERATOR…</div><div class="boot-progress"><div id="boot-progress"></div></div><div class="boot-actions"><button class="btn primary" id="boot-start">START SYSTEMET →</button><button class="btn ghost" id="boot-skip">Hopp over oppstart</button></div><div class="boot-meta">BUILD 0.1 // EXPERIMENTAL</div></div></div>
+</div>
+<script defer src="app.js"></script>
+</body>
+</html>
