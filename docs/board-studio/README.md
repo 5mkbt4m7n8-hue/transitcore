@@ -1,6 +1,12 @@
-# InTransit Board Studio v0.7
+# InTransit Board Studio v0.8
 
 Vektoreditor og fysisk LED-layout i millimeter: `web/board-studio/index.html`. Arbeidet er beholdt i draft-PR #324. Ingen merge, produksjonsdeploy eller endringer i Map Studio/PR #323, GPS, Entur eller firmware.
+
+## Stasjonsnavn og segmenter i v0.8
+
+Velg alle eller enkelte navn, masseendre bare ønskede tekstegenskaper og plasser dem med en 3 × 3-kontroll. Tekstrotasjon, avstand og manuell forskyvning er separate. Nye LED-segmenter arver innstillinger, får et ledig indeksområde og viser plassering før klikk. Automatisk lengde bruker faktisk pitch og begge endemarger; eksisterende manuelle lengder bevares.
+
+[Norsk brukerveiledning, arkitektur, tester og begrensninger](names-segments-validation.md).
 
 ## Fri stasjonsredigering i v0.7
 
@@ -171,7 +177,7 @@ Velg **Trondheim buss** øverst. Dette er en **fysisk demonstrasjon, ikke en ver
 
 Regenerer med `node scripts/generate-v03-board-studio.mjs`. SVG-filen er grafikk, ikke en produksjonsvalidert boremal.
 
-## Prosjektformat v3
+## Prosjektformat v3 (v0.3–v0.6; migreres nå til v4)
 
 `format: intransit-board`, `version: 3`. V1/v2 åpnes med eksplisitt migrering: eksisterende nettverksdata, stasjons-ID-er, millimeterkoordinater, hull, ruter, spor-ID-er, kontrollpunkter, lagvalg og eldre maler beholdes. Nye felt får standardverdier; en faktisk lagret v0.2-fil inngår i migreringstesten. Ukjente versjoner avvises.
 

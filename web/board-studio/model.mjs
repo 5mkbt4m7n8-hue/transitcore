@@ -1,3 +1,4 @@
+import { labelLayout, validateLabel } from "./label-layout.mjs";
 import { validatePoints, pointStyle } from "./point-style.mjs";
 import { validateMounting, mountingMarkup } from "./mounting.mjs";
 import { productionSettings } from "./production-settings.mjs";
@@ -202,6 +203,7 @@ export function parseProject(input) {
       cornerRadius: r.cornerRadius ?? 8,
       bends: r.bends ?? {},
     });
+  if (p.labelDefault) validateLabel(p.labelDefault);
   const ids = new Set();
   for (const s of p.layout.stations) {
     if (
@@ -304,6 +306,7 @@ export function parseProject(input) {
     throw Error("Ugyldig symbolbibliotek.");
   for (const s of p.layout.stations) {
     validatePoints(s);
+    validateLabel(s.label);
     if (
       !["none", "stadium", "rounded-box"].includes(s.capsuleType) ||
       !num(s.markerAngle, -360, 360) ||
@@ -559,8 +562,9 @@ export function stationMarkup(s, layer, p) {
     return `<g data-station="${esc(s.id)}" transform="translate(${a.x + (s.markerDx ?? 0)} ${a.y + (s.markerDy ?? 0)}) rotate(${angle})"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${s.capsuleType === "rounded-box" ? Math.min(r, 2) : Math.min(w, h) / 2}" fill="white" stroke="${color}" stroke-width="${s.capsuleStroke}"/></g>`;
   }
   if (layer === "names") {
-    const l = s.label;
-    return `<text data-label="${esc(s.id)}" x="${s.x + l.dx}" y="${s.y + l.dy}" transform="rotate(${l.angle} ${s.x + l.dx} ${s.y + l.dy})" font-family="${esc(l.font)}" font-size="${l.size}" font-weight="${esc(l.weight)}" letter-spacing="${l.spacing}" text-anchor="${l.anchor}" dominant-baseline="middle" fill="#151515">${esc(s.name)}</text>`;
+    const l = s.label,
+      g = labelLayout(p, s);
+    return `<text text-rendering="geometricPrecision" data-label="${esc(s.id)}" x="${g.x}" y="${g.y}" transform="${g.transform}" font-family="${esc(l.font)}" font-size="${l.size}" font-weight="${esc(l.weight)}" letter-spacing="${l.spacing}" text-anchor="${g.textAnchor}" dominant-baseline="middle" fill="${esc(l.color ?? "#151515")}">${esc(s.name)}</text>`;
   }
   return "";
 }

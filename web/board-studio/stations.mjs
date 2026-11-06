@@ -39,9 +39,22 @@ export const STATION_DEFAULTS = {
 const clone = (x) => structuredClone(x);
 const labelStyle = (l) =>
   Object.fromEntries(
-    ["dx", "dy", "angle", "size", "spacing", "weight", "font", "anchor"].map(
-      (k) => [k, clone(l[k])],
-    ),
+    [
+      "dx",
+      "dy",
+      "angle",
+      "size",
+      "spacing",
+      "weight",
+      "font",
+      "anchor",
+      "position",
+      "reference",
+      "gap",
+      "color",
+    ]
+      .filter((k) => l[k] !== undefined)
+      .map((k) => [k, clone(l[k])]),
   );
 export function stationTemplate(p, s) {
   const n = symbolNormal(p, s);
@@ -99,7 +112,14 @@ export function fromTemplate(template, point, id = crypto.randomUUID()) {
         clone(template.appearance[k] ?? STATION_DEFAULTS[k]),
       ]),
     ),
-    label: labelStyle(template.label),
+    label: {
+      ...labelStyle(template.label),
+      ...(template.label.reference !== undefined &&
+      template.label.reference !== "all" &&
+      +template.label.reference >= template.appearance.points
+        ? { reference: "all" }
+        : {}),
+    },
     ...(template.ringOffsets
       ? {
           ringCenters: template.ringOffsets.map((c) => ({

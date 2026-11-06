@@ -936,3 +936,13 @@ aside label.inline-toggle input {
   flex-shrink: 0;
   white-space: normal;
 }
+.name-directions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 12px 0;
+}
+.name-directions button[aria-pressed="true"] {
+  background: #285f4a;
+  color: white;
+}

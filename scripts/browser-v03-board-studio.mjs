@@ -185,6 +185,7 @@ try {
   await page.locator("#seg-x").fill("20");
   await page.locator("#seg-y").fill("30");
   await page.locator("#seg-count").fill("4");
+  await page.locator("#seg-manual").check();
   await page.locator("#seg-length").fill("40");
   await page.locator("#segment-save").click();
   let physical = await state();
@@ -325,6 +326,7 @@ try {
       (s) => s.name === "Lerkendal",
     );
   await page.locator(`[data-label="${intervalStation.id}"]`).click();
+  await page.locator("#names-to-stations").click();
   for (const interval of [1, 2, 3, 4]) {
     await page.locator("#bind-led").selectOption({ index: 0 });
     await page.locator("#bind-interval").selectOption(String(interval));

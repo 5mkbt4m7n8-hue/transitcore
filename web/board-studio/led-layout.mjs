@@ -14,6 +14,7 @@ export function newProfile() {
     count: 500,
     length: 5000,
     firstOffset: 5,
+    endMargin: 5,
     housingWidth: 2,
     housingLength: 2,
     cutPoints: [],
@@ -24,7 +25,7 @@ export function newSegment(p, profileId, options = {}) {
   const profile = p.ledLayout.profiles.find((r) => r.id === profileId);
   if (!profile) throw Error("Velg en stripeprofil.");
   const number = Math.max(0, ...p.ledLayout.segments.map((s) => s.number)) + 1;
-  return {
+  const segment = {
     id: crypto.randomUUID(),
     number,
     name: `S${String(number).padStart(2, "0")}`,
@@ -34,6 +35,8 @@ export function newSegment(p, profileId, options = {}) {
     angle: 0,
     count: 16,
     length: 160,
+    lengthMode: options.length !== undefined ? "manual" : "auto",
+    endMargin: profile.endMargin ?? 5,
     startIndex: 0,
     controllerId: "kontroller-1",
     chainId: `kjede-${number}`,
@@ -43,6 +46,61 @@ export function newSegment(p, profileId, options = {}) {
     splices: [],
     ...options,
   };
+  if (segment.lengthMode === "auto") segment.length = segmentLength(p, segment);
+  return segment;
+}
+export function segmentLength(p, s) {
+  const r = p.ledLayout.profiles.find((r) => r.id === s.profileId);
+  if (!r) throw Error("Velg stripeprofil.");
+  return (
+    r.firstOffset + (s.count - 1) * r.pitch + (s.endMargin ?? r.endMargin ?? 5)
+  );
+}
+export function inheritSegment(
+  p,
+  source = p.ledLayout.segments.at(-1),
+  profileId = source?.profileId ?? p.ledLayout.profiles[0]?.id,
+) {
+  const r = p.ledLayout.profiles.find((r) => r.id === profileId);
+  if (!r) throw Error("Velg stripeprofil.");
+  const fields =
+    source && source.profileId === profileId
+      ? Object.fromEntries(
+          [
+            "count",
+            "angle",
+            "direction",
+            "mounting",
+            "controllerId",
+            "chainId",
+            "lengthMode",
+            "length",
+            "endMargin",
+          ].map((k) => [k, source[k]]),
+        )
+      : {};
+  const s = newSegment(p, profileId, fields);
+  let start = source
+    ? Math.max(
+        0,
+        ...p.ledLayout.segments
+          .filter(
+            (t) => t.controllerId === s.controllerId && t.chainId === s.chainId,
+          )
+          .map((t) => t.startIndex + t.count),
+      )
+    : 0;
+  if (start + s.count - 1 > 1000000)
+    throw Error(
+      "Ingen ledig indeksrekke. Velg ny kjede eller manuelt startnummer.",
+    );
+  s.startIndex = start;
+  if (source) {
+    const a = (source.angle * Math.PI) / 180;
+    s.x = source.x + Math.cos(a) * source.length;
+    s.y = source.y + Math.sin(a) * source.length;
+  }
+  return s;
 }
 export function ledPositions(p, segment) {
   const profile = p.ledLayout.profiles.find((r) => r.id === segment.profileId);
@@ -91,6 +149,21 @@ export function validateLedLayout(p) {
     throw Error(
       "Maksimalt 10000 fysiske LED-er per prosjekt i denne versjonen.",
     );
+  for (const r of l.profiles) {
+    r.endMargin ??= 5;
+    if (!finite(r.endMargin, 0, 1000)) throw Error("Ugyldig sluttmargin.");
+  }
+  for (const s of l.segments) {
+    s.lengthMode ??= "manual";
+    s.endMargin ??=
+      l.profiles.find((r) => r.id === s.profileId)?.endMargin ?? 5;
+    if (
+      !["auto", "manual"].includes(s.lengthMode) ||
+      !finite(s.endMargin, 0, 1000)
+    )
+      throw Error("Ugyldig lengdemodus/sluttmargin.");
+    if (s.lengthMode === "auto") s.length = segmentLength(p, s);
+  }
   const ids = new Set();
   for (const r of l.profiles) {
     if (

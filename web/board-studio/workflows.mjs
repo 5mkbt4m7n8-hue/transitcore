@@ -71,7 +71,12 @@ export function placeRapidStop(p, config) {
   if (!candidate)
     throw Error("Ingen flere ledige LED-posisjoner for dette symbolet.");
   let q = structuredClone(p);
-  const station = fromTemplate(config.template, candidate.leds[0]);
+  const station = fromTemplate(
+    p.labelDefault
+      ? { ...config.template, label: p.labelDefault }
+      : config.template,
+    candidate.leds[0],
+  );
   station.name =
     (config.namePrefix?.trim() || "Ny stasjon") +
     " " +

@@ -1,3 +1,10 @@
+import {
+  DIRECTIONS,
+  DIRECTION_NAMES,
+  labelLayout,
+  editLabels,
+} from "./label-layout.mjs";
+import { segmentLength, inheritSegment } from "./led-layout.mjs";
 import { pointStyle, activeHole } from "./point-style.mjs";
 import {
   editStation,
@@ -115,6 +122,9 @@ try {
 } catch {}
 const history = new History(initial);
 let pointEditMode = false;
+let selectedNames = [],
+  nameTool = false,
+  segmentDraft = null;
 let placementSession = null,
   placementPreview = null,
   placementTouch = false,
@@ -652,7 +662,7 @@ function draw(p = project()) {
     .map((id) => `<g data-layer="${id}">${layerMarkup(p, id)}</g>`)
     .join(
       "",
-    )}${marks}${overlay}${controls}${placementMarkup(p)}${workflowMarkup(p)}${portMarkup(p)}${pointHandleMarkup(p)}`;
+    )}${marks}${overlay}${controls}${placementMarkup(p)}${workflowMarkup(p)}${portMarkup(p)}${pointHandleMarkup(p)}${nameSelectionMarkup(p)}`;
   canvas.querySelector(":scope > [data-rulers]").innerHTML = rulers;
   for (const routeLayer of canvas.querySelectorAll(
     "[data-layer=routes],[data-layer=capsules]",
@@ -680,6 +690,12 @@ function templatePlacementMode(template) {
       ? "common"
       : "normal";
 }
+function withTextDefault(t) {
+  return {
+    ...copy(t),
+    ...(project().labelDefault ? { label: copy(project().labelDefault) } : {}),
+  };
+}
 function defaultTemplate() {
   const p = createProject(),
     t = stationTemplate(p, p.layout.stations[0]);
@@ -693,7 +709,7 @@ function defaultTemplate() {
 function setStationDefault(template) {
   mutate((q) => (q.stationTemplate = template));
   if (placementSession) {
-    placementSession.template = copy(template ?? defaultTemplate());
+    placementSession.template = withTextDefault(template ?? defaultTemplate());
     placementSession.mode = templatePlacementMode(template);
     placementSession.symbolId = "current";
     placementSession.rotation = 0;
@@ -787,7 +803,7 @@ function stationPanelMarkup(s, p) {
  ${pair('<label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>', field("symbol-color", "Ringfarge", s.ringColor, "color"))}
  ${field("station-transition", "Egen overgang, mm (tom = trasé)", s.transitionLength ?? "", "number", 'min="0.1" max="100"')}</details>
  <section id="graphic-points-panel"></section>
- <h2>Stasjonsnavn</h2>${pair(field("label-dx", "Forskyvning X, mm", s.label.dx), field("label-dy", "Forskyvning Y, mm", s.label.dy))}
+ <h2>Stasjonsnavn</h2><button id="edit-station-name">Rediger navn og plassering</button>${pair(field("label-dx", "Forskyvning X, mm", s.label.dx), field("label-dy", "Forskyvning Y, mm", s.label.dy))}
  ${pair(field("label-angle", "Rotasjon, °", s.label.angle), field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'min="0.1" step="0.1"'))}
  ${pair(field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"'), '<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label>')}
  <label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label>
@@ -904,6 +920,13 @@ function pointHandleMarkup(p) {
 }
 
 function properties() {
+  selectedNames = selectedNames.filter((id) =>
+    project().layout.stations.some((s) => s.id === id),
+  );
+  if (selectedNames.length) {
+    nameProperties();
+    return;
+  }
   // Native details.toggle is asynchronous. Capture the actual DOM state before
   // replacing the inspector so an immediate field edit cannot close the panel.
   const previousAdvanced = $("line-advanced");
@@ -942,6 +965,13 @@ function properties() {
     bindingPoint = +e.target.value;
     stationPart = String(bindingPoint);
     $("station-parts").value = stationPart;
+    if ($("edit-station-name"))
+      $("edit-station-name").onclick = () => {
+        selectedNames = [s.id];
+        selected = [];
+        nameTool = true;
+        render();
+      };
     renderBindings(p, s);
     draw();
   };
@@ -1757,9 +1787,11 @@ function render() {
   )
     ? `${p.board.width},${p.board.height}`
     : "custom";
-  $("selection-count").textContent = selected.length
-    ? `${selected.length} valgt`
-    : `${p.layout.stations.length} stasjoner`;
+  $("selection-count").textContent = selectedNames.length
+    ? `${selectedNames.length} navn valgt`
+    : selected.length
+      ? `${selected.length} valgt`
+      : `${p.layout.stations.length} stasjoner`;
   $("undo").disabled = !history.past.length;
   $("redo").disabled = !history.future.length;
   $("layers").innerHTML = LAYERS.map(
@@ -1789,6 +1821,16 @@ function render() {
     (el) =>
       (el.onclick = () => {
         const id = el.dataset.selectLayer;
+        if (
+          id === "names" &&
+          p.layers.names.visible &&
+          !p.layers.names.locked
+        ) {
+          selectAllNames();
+          return;
+        }
+        selectedNames = [];
+        nameTool = false;
         selected =
           ["rings", "names", "holes", "capsules"].includes(id) &&
           p.layers[id].visible &&
@@ -1823,13 +1865,20 @@ function safe(fn) {
   }
 }
 function setTool(next) {
+  selectedNames = [];
+  nameTool = false;
   placementPreview = null;
   placementSession = null;
   placementTouch = false;
   if (next === "station") {
     pendingStation = null;
     placementSession = {
-      template: copy(project().stationTemplate ?? defaultTemplate()),
+      template: {
+        ...copy(project().stationTemplate ?? defaultTemplate()),
+        ...(project().labelDefault
+          ? { label: copy(project().labelDefault) }
+          : {}),
+      },
       id: crypto.randomUUID(),
       mode: templatePlacementMode(project().stationTemplate),
       rotation: 0,
@@ -1919,6 +1968,46 @@ canvas.onpointerdown = (e) => {
     });
     return;
   }
+  const nameHit = e.target.closest("[data-label]");
+  if (tool === "select" && nameHit) {
+    if (project().layers.names.locked) {
+      message("Stasjonsnavn-laget er låst.");
+      return;
+    }
+    const id = nameHit.dataset.label;
+    if (e.ctrlKey || e.metaKey || e.shiftKey) {
+      selectedNames = selectedNames.includes(id)
+        ? selectedNames.filter((x) => x !== id)
+        : [...selectedNames, id];
+      selected = [];
+      selectedRoute = null;
+      render();
+      return;
+    }
+    if (!selectedNames.includes(id)) selectedNames = [id];
+    selected = [];
+    selectedRoute = null;
+    nameTool = true;
+    gesture = {
+      kind: "label",
+      id,
+      start: xy(e),
+      base: copy(project()),
+      moved: false,
+      ids: [...selectedNames],
+    };
+    render();
+    return;
+  }
+  if (
+    nameTool &&
+    tool === "select" &&
+    !nameHit &&
+    !e.target.closest("[data-handle]")
+  ) {
+    selectedNames = [];
+    nameTool = false;
+  }
   const pointHandle = e.target.closest("[data-point-handle]"),
     graphicRing = e.target.closest("[data-ring-point]");
   if (
@@ -1989,6 +2078,7 @@ canvas.onpointerdown = (e) => {
     stripSnap = null;
     pendingStrip = null;
     selectedSegment = s.id;
+    segmentDraft = null;
     safe(() => {
       let q = copy(p);
       const index = q.ledLayout.segments.findIndex((t) => t.id === s.id);
@@ -2381,12 +2471,17 @@ canvas.onpointermove = (e) => {
     }
   } else if (g.kind === "label") {
     const q = copy(g.base),
-      s = q.layout.stations.find((s) => s.id === g.id);
-    s.label.dx += pt.x - g.start.x;
-    s.label.dy += pt.y - g.start.y;
+      delta = { x: pt.x - g.start.x, y: pt.y - g.start.y };
+    const d = nameTool ? snapped(delta, g.base) : delta;
+    for (const s of q.layout.stations)
+      if ((g.ids ?? [g.id]).includes(s.id)) {
+        s.label.dx += d.x;
+        s.label.dy += d.y;
+      }
     g.preview = q;
     g.moved = true;
     draw(q);
+    message(`Navneforskyvning ${d.x.toFixed(3)}, ${d.y.toFixed(3)} mm`);
   }
 };
 function finishGesture(cancel = false) {
@@ -2885,6 +2980,12 @@ document.onkeydown = (e) => {
   if (tools[e.key.toLowerCase()]) setTool(tools[e.key.toLowerCase()]);
   if (e.key === "Delete" || e.key === "Backspace") {
     e.preventDefault();
+    if (selectedNames.length) {
+      message(
+        "Navn slettes ikke med stasjonen. Rediger navnet i stasjonspanelet.",
+      );
+      return;
+    }
     $("delete").click();
   }
 };
@@ -3067,7 +3168,7 @@ function readSegment() {
     profile = p.ledLayout.profiles.find((r) => r.id === selectedProfile);
   if (!profile) throw Error("Opprett en stripeprofil først.");
   const old = p.ledLayout.segments.find((s) => s.id === selectedSegment),
-    s = old ? copy(old) : newSegment(p, profile.id);
+    s = old ? copy(old) : copy(segmentDraft ?? newSegment(p, profile.id));
   Object.assign(s, {
     profileId: profile.id,
     name: $("seg-name").value,
@@ -3076,6 +3177,8 @@ function readSegment() {
     angle: numeric("seg-angle"),
     count: numeric("seg-count"),
     length: numeric("seg-length"),
+    lengthMode: $("seg-manual").checked ? "manual" : "auto",
+    endMargin: numeric("seg-end-margin"),
     startIndex: numeric("seg-index"),
     controllerId: $("seg-controller").value,
     chainId: $("seg-chain").value,
@@ -3096,6 +3199,7 @@ function readSegment() {
           }))
       : [],
   });
+  if (s.lengthMode === "auto") s.length = segmentLength(p, s);
   return s;
 }
 function renderPhysical() {
@@ -3115,8 +3219,10 @@ function renderPhysical() {
       '<p class="note">Opprett WS2812B-profilen for å starte.</p>';
     return;
   }
-  const draft = s ?? newSegment(p, r.id);
-  editor.innerHTML = `<details><summary>Stripeprofil · mål i mm</summary>${field("profile-name", "Profilnavn", r.name, "text")}${field("profile-type", "LED-type", r.ledType, "text")}<div class="pair">${field("profile-width", "Stripebredde", r.width)}${field("profile-pitch", "Faktisk LED-pitch", r.pitch, "number", 'step="0.01"')}</div><div class="pair">${field("profile-nominal", "Nominell pitch", r.nominalPitch)}${field("profile-offset", "Første LED fra ende", r.firstOffset)}</div><div class="pair">${field("profile-count", "Antall LED på stripe", r.count)}${field("profile-length", "Hele stripens lengde", r.length)}</div><button id="profile-save">Oppdater profil</button></details><hr><label>Segment<select id="led-segment"><option value="">Ny kladd</option>${p.ledLayout.segments.map((s) => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("")}</select></label>${field("seg-name", "Segmentnavn", draft.name, "text")}<div class="pair">${field("seg-x", "Start X, mm", draft.x)}${field("seg-y", "Start Y, mm", draft.y)}</div><div class="pair">${field("seg-angle", "Rotasjon, °", draft.angle)}${field("seg-count", "Antall LED", draft.count)}</div><div class="pair">${field("seg-length", "Segmentlengde, mm", draft.length)}${field("seg-index", "Startindeks", draft.startIndex)}</div><div class="pair">${field("seg-controller", "Kontrolleridentitet", draft.controllerId, "text")}${field("seg-chain", "Kjedeidentitet", draft.chainId, "text")}</div><div class="pair"><label>Indeksering<select id="seg-direction"><option value="1">Fremover →</option><option value="-1">Bakover ←</option></select></label><label>Montering<select id="seg-mount"><option value="back">Bakside</option><option value="front">Forside</option></select></label></div>${field("seg-cuts", "Kutt etter lokale LED-posisjoner (komma)", draft.cutPoints.join(","), "text")}${field("seg-splices", "Skjøtepunkter fra start, mm (komma)", draft.splices.map((j) => j.atMm).join(","), "text")}${field("seg-splice-note", "Notat for nye skjøter", "", "text")}<div class="pair"><button id="segment-save">${s ? "Oppdater segment" : "Opprett segment"}</button><button id="segment-place">Plasser med mus</button></div><button id="segment-delete">Slett valgt segment</button>${
+  const draft =
+    s ??
+    (segmentDraft?.profileId === r.id ? segmentDraft : newSegment(p, r.id));
+  editor.innerHTML = `<details><summary>Stripeprofil · mål i mm</summary>${field("profile-name", "Profilnavn", r.name, "text")}${field("profile-type", "LED-type", r.ledType, "text")}<div class="pair">${field("profile-width", "Stripebredde", r.width)}${field("profile-pitch", "Faktisk LED-pitch", r.pitch, "number", 'step="0.01"')}</div><div class="pair">${field("profile-nominal", "Nominell pitch", r.nominalPitch)}${field("profile-offset", "Første LED fra ende", r.firstOffset)}</div><div class="pair">${field("profile-end-margin", "Standard sluttmargin, mm", r.endMargin ?? 5)}${field("profile-count", "Antall LED på stripe", r.count)}${field("profile-length", "Hele stripens lengde", r.length)}</div><button id="profile-save">Oppdater profil</button></details><hr><label>Segment<select id="led-segment"><option value="">Ny kladd</option>${p.ledLayout.segments.map((s) => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("")}</select></label>${field("seg-name", "Segmentnavn", draft.name, "text")}<div class="pair">${field("seg-x", "Start X, mm", draft.x)}${field("seg-y", "Start Y, mm", draft.y)}</div><div class="pair">${field("seg-angle", "Rotasjon, °", draft.angle)}${field("seg-count", "Antall LED", draft.count)}</div><div class="pair"><label><input id="seg-manual" type="checkbox" ${draft.lengthMode === "manual" ? "checked" : ""}>Manuell lengde (avansert)</label>${field("seg-end-margin", "Sluttmargin, mm", draft.endMargin ?? 5)}${field("seg-length", "Segmentlengde, mm", draft.length)}${field("seg-index", "Startindeks", draft.startIndex)}</div><div class="pair">${field("seg-controller", "Kontrolleridentitet", draft.controllerId, "text")}${field("seg-chain", "Kjedeidentitet", draft.chainId, "text")}</div><div class="pair"><label>Indeksering<select id="seg-direction"><option value="1">Fremover →</option><option value="-1">Bakover ←</option></select></label><label>Montering<select id="seg-mount"><option value="back">Bakside</option><option value="front">Forside</option></select></label></div>${field("seg-cuts", "Kutt etter lokale LED-posisjoner (komma)", draft.cutPoints.join(","), "text")}${field("seg-splices", "Skjøtepunkter fra start, mm (komma)", draft.splices.map((j) => j.atMm).join(","), "text")}${field("seg-splice-note", "Notat for nye skjøter", "", "text")}<div class="pair"><button id="segment-save">${s ? "Oppdater segment" : "Opprett segment"}</button><button id="segment-place">Plasser med mus</button></div><button id="segment-continue">Fortsett fra forrige segment</button><p id="segment-preview-status" class="note" aria-live="polite"></p><button id="segment-delete">Slett valgt segment</button>${
     s
       ? `<table class="led-coordinates"><thead><tr><th>Indeks</th><th>X mm</th><th>Y mm</th></tr></thead><tbody>${ledPositions(
           p,
@@ -3131,6 +3237,8 @@ function renderPhysical() {
   }`;
   $("led-segment").value = s?.id ?? "";
   $("led-segment").onchange = (e) => {
+    segmentDraft = null;
+    pendingStrip = null;
     selectedSegment = e.target.value || null;
     const selected = p.ledLayout.segments.find((s) => s.id === selectedSegment);
     if (selected) selectedProfile = selected.profileId;
@@ -3151,16 +3259,105 @@ function renderPhysical() {
             pitch: numeric("profile-pitch"),
             nominalPitch: numeric("profile-nominal"),
             firstOffset: numeric("profile-offset"),
+            endMargin: numeric("profile-end-margin"),
             count: numeric("profile-count"),
             length: numeric("profile-length"),
           },
         ),
       );
     });
+  $("seg-length").disabled = draft.lengthMode !== "manual";
+  const initialLeds = ledPositions(p, draft),
+    firstLed = initialLeds[0],
+    lastLed = initialLeds.at(-1);
+  $("segment-preview-status").textContent =
+    `${draft.lengthMode === "auto" ? "Automatisk lengde" : "Manuell lengde"}: ${draft.length.toFixed(3)} mm · ${draft.count} LED · pitch ${r.pitch} mm · første ${firstLed.x.toFixed(3)}, ${firstLed.y.toFixed(3)} · siste ${lastLed.x.toFixed(3)}, ${lastLed.y.toFixed(3)} mm`;
+
+  function previewSegment() {
+    try {
+      const proposed = readSegment(),
+        q = copy(project());
+      const index = q.ledLayout.segments.findIndex((t) => t.id === proposed.id);
+      if (index < 0) q.ledLayout.segments.push(proposed);
+      else q.ledLayout.segments[index] = proposed;
+      q.layers.strips.visible = true;
+      q.layers.leds.visible = true;
+      const leds = ledPositions(q, proposed),
+        profile = q.ledLayout.profiles.find((r) => r.id === proposed.profileId),
+        first = leds[0],
+        last = leds.at(-1);
+      $("seg-length").value = proposed.length;
+      $("seg-length").disabled = proposed.lengthMode !== "manual";
+      const removed = q.ledLayout.bindings.filter(
+        (b) =>
+          b.segmentId === proposed.id && !leds.some((l) => l.id === b.ledId),
+      );
+      $("segment-preview-status").textContent =
+        `${proposed.lengthMode === "auto" ? "Automatisk lengde" : "Manuell lengde"}: ${proposed.length.toFixed(3)} mm · ${proposed.count} LED · pitch ${profile.pitch} mm · første ${first?.x.toFixed(3)}, ${first?.y.toFixed(3)} · siste ${last?.x.toFixed(3)}, ${last?.y.toFixed(3)} mm${removed.length ? " · Løsne " + removed.length + " bindinger før reduksjon." : ""}`;
+      if (!s) {
+        segmentDraft = proposed;
+        if (pendingStrip) pendingStrip = copy(proposed);
+      }
+      draw(q);
+    } catch (e) {
+      $("segment-preview-status").textContent = e.message;
+    }
+  }
+  for (const id of [
+    "seg-count",
+    "seg-angle",
+    "seg-x",
+    "seg-y",
+    "seg-end-margin",
+    "seg-length",
+    "seg-manual",
+    "seg-direction",
+  ])
+    $(id).addEventListener("input", previewSegment);
+  $("segment-continue").onclick = () => beginSegment(true);
+  for (const id of ["profile-pitch", "profile-offset", "profile-end-margin"])
+    $(id).addEventListener("input", () => {
+      try {
+        const q = copy(project()),
+          profile = q.ledLayout.profiles.find((t) => t.id === r.id);
+        Object.assign(profile, {
+          pitch: numeric("profile-pitch"),
+          firstOffset: numeric("profile-offset"),
+          endMargin: numeric("profile-end-margin"),
+        });
+        if (profile.pitch <= 0) throw Error("Pitch må være positiv.");
+        for (const seg of q.ledLayout.segments)
+          if (seg.profileId === r.id && seg.lengthMode === "auto")
+            seg.length = segmentLength(q, seg);
+        const current =
+          q.ledLayout.segments.find((t) => t.id === selectedSegment) ??
+          readSegment();
+        if (current.lengthMode === "auto")
+          current.length = segmentLength(q, current);
+        $("seg-length").value = current.length;
+        const leds = ledPositions(q, current);
+        $("segment-preview-status").textContent =
+          `Forhåndsvisning: ${current.length.toFixed(3)} mm · pitch ${profile.pitch} mm · første ${leds[0]?.x.toFixed(3)}, ${leds[0]?.y.toFixed(3)} · siste ${leds.at(-1)?.x.toFixed(3)}, ${leds.at(-1)?.y.toFixed(3)} mm. Lagres først med Oppdater profil.`;
+        draw(q);
+      } catch (e) {
+        $("segment-preview-status").textContent = e.message;
+      }
+    });
   $("segment-save").onclick = () =>
     safe(() => {
       if (physicalLocked()) throw Error("LED-layouten er låst.");
       const proposed = readSegment();
+      const removed = project().ledLayout.bindings.filter(
+        (b) =>
+          b.segmentId === proposed.id &&
+          !ledPositions(project(), proposed).some((l) => l.id === b.ledId),
+      );
+      if (removed.length)
+        throw Error(
+          `Reduksjonen fjerner ${removed.length} bundne LED-punkter. Løsne eller flytt disse bindingene først: ${removed.map((b) => project().layout.stations.find((s) => s.id === b.stationId)?.name + " / " + b.ledId).join(", ")}`,
+        );
+      pendingStrip = null;
+      segmentDraft = null;
       selectedSegment = proposed.id;
       mutate((q) => {
         const i = q.ledLayout.segments.findIndex((s) => s.id === proposed.id);
@@ -3205,6 +3402,8 @@ $("led-toggle").onclick = () => {
 };
 $("led-close").onclick = () => ($("led-panel").hidden = true);
 $("led-profile").onchange = (e) => {
+  segmentDraft = null;
+  pendingStrip = null;
   selectedProfile = e.target.value;
   selectedSegment = null;
   renderPhysical();
@@ -3215,10 +3414,49 @@ $("led-add-profile").onclick = () =>
     selectedProfile = r.id;
     mutate((q) => q.ledLayout.profiles.push(r));
   });
-$("led-new-segment").onclick = () => {
-  selectedSegment = null;
-  renderPhysical();
-};
+function beginSegment(continuation = false, newChain = false) {
+  safe(() => {
+    if (physicalLocked()) throw Error("LED-layouten er låst.");
+    const p = project(),
+      source =
+        p.ledLayout.segments.find((s) => s.id === selectedSegment) ??
+        p.ledLayout.segments.at(-1);
+    let reference = source;
+    if (newChain && source) {
+      let n = Math.max(0, ...p.ledLayout.segments.map((s) => s.number)) + 1;
+      while (
+        p.ledLayout.segments.some(
+          (s) =>
+            s.controllerId === source.controllerId &&
+            s.chainId === `kjede-${n}`,
+        )
+      )
+        n++;
+      reference = { ...source, chainId: `kjede-${n}` };
+    }
+    segmentDraft = inheritSegment(
+      p,
+      reference,
+      source?.profileId ?? selectedProfile,
+    );
+    selectedProfile = segmentDraft.profileId;
+    selectedSegment = null;
+    pendingStrip = copy(segmentDraft);
+    setTool("select");
+    renderPhysical();
+    const q = copy(p);
+    q.ledLayout.segments.push(segmentDraft);
+    q.layers.strips.visible = true;
+    q.layers.leds.visible = true;
+    draw(q);
+    message(
+      continuation
+        ? "Fortsett etter forrige ende. Klikk for å plassere eller rediger først."
+        : "Nytt segment følger pekeren. Rediger innstillinger eller klikk for å plassere.",
+    );
+  });
+}
+$("led-new-segment").onclick = () => beginSegment();
 
 function renderChecks() {
   const issues = boardChecks(project()),
@@ -3632,6 +3870,7 @@ $("placement-symbol").onchange = (e) => {
       templatePlacementMode(session.template) !== "normal")
   )
     session.mode = templatePlacementMode(session.template);
+  if (placementSession) session.template = withTextDefault(session.template);
   session.symbolId = e.target.value;
   session.first = null;
   session.preferredLed = null;
@@ -3683,10 +3922,10 @@ $("placement-exit").onclick = () => {
 
 function chooseStationSymbol(record) {
   if (!placementSession) {
-    beginPaste(record.template);
+    beginPaste(withTextDefault(record.template));
     return;
   }
-  placementSession.template = copy(record.template);
+  placementSession.template = withTextDefault(record.template);
   if (templatePlacementMode(record.template) !== "normal")
     placementSession.mode = templatePlacementMode(record.template);
   placementSession.symbolId = record.id;
@@ -3725,3 +3964,122 @@ canvas.addEventListener("dblclick", (e) => {
   render();
   $("graphic-point").focus();
 });
+
+function nameSelectionMarkup(p) {
+  if (!p.layers.names.visible) return "";
+  return selectedNames
+    .flatMap((id) => {
+      const s = p.layout.stations.find((s) => s.id === id);
+      if (!s) return [];
+      const b = labelLayout(p, s).bounds;
+      return `<rect class="name-selection" data-selected-name="${esc(id)}" x="${b.x - 1}" y="${b.y - 1}" width="${Math.max(0.1, b.right - b.x) + 2}" height="${Math.max(0.1, b.bottom - b.y) + 2}" fill="none" stroke="#28795b" stroke-width="${1 / zoom}" stroke-dasharray="${3 / zoom} ${2 / zoom}" pointer-events="none"/>`;
+    })
+    .join("");
+}
+function nameProperties() {
+  const p = project(),
+    ss = p.layout.stations.filter((s) => selectedNames.includes(s.id)),
+    common = (k) =>
+      ss.every(
+        (s) =>
+          (s.label[k] ?? { color: "#151515", gap: 2, reference: "all" }[k]) ===
+          (ss[0].label[k] ?? { color: "#151515", gap: 2, reference: "all" }[k]),
+      )
+        ? (ss[0].label[k] ??
+          { color: "#151515", gap: 2, reference: "all" }[k] ??
+          "")
+        : "";
+  $("properties").innerHTML =
+    `<h2>Stasjonsnavn · ${ss.length}</h2><p class="note">Bare navn er valgt. Tomme felt merket Blandet beholder individuelle verdier.</p><button id="names-all-local">Marker alle stasjonsnavn</button><button id="names-to-stations">Velg tilhørende stasjoner</button><div class="name-directions">${Object.keys(
+      DIRECTIONS,
+    )
+      .map(
+        (key, i) =>
+          `<button data-name-position="${key}" aria-label="${DIRECTION_NAMES[i]}" aria-pressed="${common("position") === key}">${["↖", "↑", "↗", "←", "•", "→", "↙", "↓", "↘"][i]}</button>`,
+      )
+      .join(
+        "",
+      )}</div><label>Referanse<select id="name-reference"><option value="">Blandet</option><option value="all">Hele stasjonen</option>${Array.from({ length: Math.min(...ss.map((s) => s.points)) }, (_, i) => `<option value="${i}">Punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label>${field("name-gap", "Avstand fra stasjon, mm", common("gap"))}${["font", "size", "color", "weight", "angle", "dx", "dy", "spacing"].map((k, i) => field("label-" + k, ["Font", "Tekststørrelse, mm", "Tekstfarge (#RRGGBB)", "Tekstvekt", "Tekstvinkel, °", "Forskyvning X, mm", "Forskyvning Y, mm", "Bokstavavstand, mm"][i], common(k), ["font", "color"].includes(k) ? "text" : "number", 'placeholder="Blandet"')).join("")}<label>Vinkelvalg<select id="name-angle-preset"><option value="">Egendefinert / blandet</option>${[0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<option>${a}</option>`).join("")}</select></label><button id="name-reset">Tilbakestill forskyvning</button><button id="name-standard">Bruk som standard for nye stasjoner</button><p id="name-preview-status" class="note" aria-live="polite"></p>`;
+  $("names-all-local").onclick = selectAllNames;
+  $("names-to-stations").onclick = () => {
+    selected = [...selectedNames];
+    selectedNames = [];
+    nameTool = false;
+    render();
+  };
+  const apply = (patch) =>
+    safe(() => commit(editLabels(project(), selectedNames, patch)));
+  for (const key of [
+    "font",
+    "size",
+    "color",
+    "weight",
+    "angle",
+    "dx",
+    "dy",
+    "spacing",
+  ])
+    $("label-" + key).onchange = (e) => {
+      if (e.target.value !== "")
+        apply({
+          [key]: ["font", "color"].includes(key)
+            ? e.target.value
+            : +e.target.value,
+        });
+    };
+  $("name-reference").value = common("reference");
+  $("name-reference").onchange = (e) => {
+    if (e.target.value !== "") apply({ reference: e.target.value });
+  };
+  $("name-gap").onchange = (e) =>
+    apply({
+      gap: +e.target.value,
+      ...(ss.some((s) => !s.label.position) ? { position: "e" } : {}),
+    });
+  $("name-angle-preset").onchange = (e) => {
+    if (e.target.value !== "") apply({ angle: +e.target.value });
+  };
+  for (const b of document.querySelectorAll("[data-name-position]")) {
+    b.onclick = () => apply({ position: b.dataset.namePosition });
+    b.onpointerenter = () => {
+      try {
+        draw(
+          editLabels(project(), selectedNames, {
+            position: b.dataset.namePosition,
+          }),
+        );
+        $("name-preview-status").textContent = b.getAttribute("aria-label");
+      } catch (e) {
+        message(e.message);
+      }
+    };
+    b.onpointerleave = () => draw();
+  }
+  $("name-reset").onclick = () => apply({ dx: 0, dy: 0 });
+  $("name-standard").onclick = () =>
+    safe(() => {
+      if (ss.length !== 1) throw Error("Velg ett navn som standard.");
+      mutate((q) => {
+        q.labelDefault = { ...ss[0].label };
+      });
+    });
+}
+function selectAllNames() {
+  setTool("select");
+  nameTool = true;
+  selected = [];
+  selectedRoute = null;
+  selectedNames = project().layout.stations.map((s) => s.id);
+  render();
+}
+const nameButton = document.createElement("button");
+nameButton.id = "names-all";
+nameButton.textContent = "Marker alle stasjonsnavn";
+nameButton.onclick = selectAllNames;
+$("led-toggle").before(nameButton);
+
+const newChainButton = document.createElement("button");
+newChainButton.id = "led-new-chain";
+newChainButton.textContent = "Nytt segment i ny kjede";
+newChainButton.onclick = () => beginSegment(false, true);
+$("led-new-segment").after(newChainButton);

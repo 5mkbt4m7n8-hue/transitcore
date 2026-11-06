@@ -55,13 +55,11 @@ try {
   );
   const p = ledFixture(90);
   p.id = "strip-snapping";
-  await page
-    .locator("#file")
-    .setInputFiles({
-      name: "strip.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(serialize(p)),
-    });
+  await page.locator("#file").setInputFiles({
+    name: "strip.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(serialize(p)),
+  });
   await page.waitForFunction(
     () =>
       JSON.parse(localStorage.getItem("intransit-board-v1")).id ===
@@ -115,6 +113,7 @@ try {
   await page.locator("#led-new-segment").click();
   await page.locator("#seg-angle").fill("90");
   await page.locator("#seg-count").fill("12");
+  await page.locator("#seg-manual").check();
   await page.locator("#seg-length").fill("120");
   await page.locator("#segment-place").click();
   await move(80.7, 131.1);
@@ -129,7 +128,11 @@ try {
   const side = q.ledLayout.segments.at(-1);
   assert.ok(Math.abs(side.x - 80) < 1e-8);
   assert.ok(Math.abs(side.y - 130) < 1e-8);
-  assert.notEqual(side.chainId, q.ledLayout.segments[0].chainId);
+  assert.equal(side.chainId, q.ledLayout.segments[0].chainId);
+  assert.ok(
+    side.startIndex >=
+      q.ledLayout.segments[0].startIndex + q.ledLayout.segments[0].count,
+  );
   // Hold Ctrl from the start of a strip move; all snapping is temporarily off.
   await move(80, 150);
   await page.keyboard.down("Control");
@@ -159,13 +162,11 @@ try {
   rotated.layout.stations[0].holes[0].y = 140;
   rotated.layout.stations[0].holes[1].x = 80;
   rotated.layout.stations[0].holes[1].y = 140;
-  await page
-    .locator("#file")
-    .setInputFiles({
-      name: "rotated.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(serialize(rotated)),
-    });
+  await page.locator("#file").setInputFiles({
+    name: "rotated.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(serialize(rotated)),
+  });
   await page.waitForFunction(
     () =>
       JSON.parse(localStorage.getItem("intransit-board-v1")).id ===

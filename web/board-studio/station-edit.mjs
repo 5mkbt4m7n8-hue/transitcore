@@ -140,6 +140,12 @@ export function editStation(
       y: s.y + n.y * (i - (s.points - 1) / 2 + s.splitBias) * s.pointSpacing,
     }));
   }
+  if (
+    s.label.reference !== undefined &&
+    s.label.reference !== "all" &&
+    +s.label.reference >= s.points
+  )
+    s.label.reference = "all";
   if (s.points !== oldCount) {
     const ports = stationPorts(q, s);
     for (const r of q.layout.routes)

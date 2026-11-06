@@ -42,6 +42,7 @@ jobs:
           node scripts/test-mounting-board-studio.mjs
           node scripts/test-placement-board-studio.mjs
           node scripts/test-point-edit-board-studio.mjs
+          node scripts/test-names-segments-board-studio.mjs
       - name: Install isolated browser tooling
         run: |
           npm install --prefix "$RUNNER_TEMP/board-browser" playwright
@@ -64,6 +65,7 @@ jobs:
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_PRODUCTION_MOUNTING=1 BOARD_PRODUCTION_OUTPUT="$RUNNER_TEMP/board-mounting-production" node scripts/browser-production-board-studio.mjs
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_PLACEMENT_SCREENSHOT="$RUNNER_TEMP/board-studio-placement.png" node scripts/browser-placement-board-studio.mjs
           PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_POINT_EDIT_SCREENSHOT="$RUNNER_TEMP/board-studio-point-edit.png" node scripts/browser-point-edit-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" node scripts/browser-names-segments-board-studio.mjs
       - name: Independently inspect downloaded PDF, SVG and CSV
         run: |
           PYTHONPATH="$RUNNER_TEMP/board-pdf" python3 scripts/check-board-studio-pdf.py "$RUNNER_TEMP/board-production"
