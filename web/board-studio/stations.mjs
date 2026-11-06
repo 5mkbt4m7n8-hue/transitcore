@@ -20,6 +20,9 @@ export const APPEARANCE = [
   "symbolKind",
   "allowShared",
   "transitionLength",
+  "markerAngle",
+  "markerDx",
+  "markerDy",
 ];
 export const STATION_DEFAULTS = {
   capsuleType: "stadium",
@@ -28,6 +31,9 @@ export const STATION_DEFAULTS = {
   symbolKind: "single",
   allowShared: false,
   transitionLength: null,
+  markerAngle: 0,
+  markerDx: 0,
+  markerDy: 0,
 };
 const clone = (x) => structuredClone(x);
 const labelStyle = (l) =>

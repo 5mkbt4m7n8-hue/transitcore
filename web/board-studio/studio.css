@@ -796,3 +796,105 @@ aside label.inline-toggle input {
     grid-template-columns: 1fr;
   }
 }
+
+.placement-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  flex-wrap: wrap;
+  background: #f0f7f2;
+  border-bottom: 1px solid #c9d9cd;
+  font-size: 11px;
+}
+.placement-toolbar[hidden] {
+  display: none;
+}
+.placement-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.placement-toolbar select {
+  max-width: 225px;
+  padding: 5px;
+  font-size: 11px;
+}
+.placement-toolbar details label {
+  margin-top: 8px;
+}
+#placement-status {
+  flex-basis: 100%;
+  color: #466a52;
+}
+#placement-status[data-valid="false"] {
+  color: #a14638;
+}
+.placement-toolbar button {
+  min-height: 32px;
+}
+[data-ring-point],
+[data-mounting] {
+  cursor: move;
+}
+@media (pointer: coarse) {
+  .placement-toolbar button,
+  .placement-toolbar select {
+    min-height: 44px;
+  }
+}
+
+#placement-touch-controls {
+  position: absolute;
+  z-index: 7;
+  right: 12px;
+  bottom: 15px;
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  background: #f9fff9ee;
+  border: 1px solid #c9d9cd;
+  border-radius: 6px;
+}
+#placement-touch-controls[hidden] {
+  display: none;
+}
+#placement-touch-controls button {
+  min-height: 44px;
+}
+#placement-touch-confirm {
+  background: #315b47;
+  color: white;
+}
+@media (max-width: 700px) {
+  .workspace {
+    height: auto;
+  }
+  #viewport,
+  #canvas {
+    min-height: 400px;
+  }
+  .placement-toolbar {
+    gap: 5px;
+  }
+  .placement-toolbar select {
+    max-width: 170px;
+  }
+}
+
+/* Candidate discovery must never reflow the canvas beneath the pointer. */
+#placement-led {
+  width: 160px;
+}
+#placement-angle {
+  width: 100px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#placement-status {
+  height: 30px;
+  line-height: 15px;
+  overflow: auto;
+}

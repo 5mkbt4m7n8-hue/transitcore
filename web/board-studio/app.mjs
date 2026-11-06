@@ -1,4 +1,11 @@
 import {
+  stationPlacement,
+  ledKey,
+  rotateStation,
+  moveBoundPair,
+  rotationChanges,
+} from "./placement.mjs";
+import {
   editMount,
   removeMount,
   cornerPattern,
@@ -99,6 +106,10 @@ try {
   if (saved) initial = parseProject(saved);
 } catch {}
 const history = new History(initial);
+let placementSession = null,
+  placementPreview = null,
+  placementTouch = false,
+  stationPart = "all";
 let selectedMount = null,
   pendingMount = null,
   pendingCorners = null;
@@ -206,7 +217,11 @@ function stripPlacement(base, segment, raw) {
 }
 function stationDrag(g, pt) {
   const s = g.base.layout.stations.find((s) => s.id === g.id),
-    index = g.pointIndex ?? 0,
+    index =
+      ["cross-strip", "double-strip"].includes(s.symbolKind) &&
+      g.scope === "all"
+        ? 0
+        : (g.pointIndex ?? 0),
     delta = { x: pt.x - g.start.x, y: pt.y - g.start.y },
     origin = symbolCenters(g.base, s)[index],
     rawPoint = { x: origin.x + delta.x, y: origin.y + delta.y },
@@ -224,7 +239,31 @@ function stationDrag(g, pt) {
   let q;
   if (constrained && $("snap-led").checked) q = copy(g.base);
   else q = moveStations(g.base, selected, anchor.x - s.x, anchor.y - s.y);
-  if (target)
+  if (
+    ["cross-strip", "double-strip"].includes(s.symbolKind) &&
+    g.scope === "all" &&
+    constrained
+  ) {
+    if (!target)
+      throw Error(
+        "Flytt den samlede stasjonen til to ledige LED-er, eller velg bare A/B.",
+      );
+    ledSnap = target;
+    return moveBoundPair(g.base, s.id, target, zoom);
+  }
+  if (g.scope !== undefined && g.scope !== "all" && !constrained)
+    q = movePoint(g.base, s.id, index, snapped(rawPoint, g.base));
+  if (target && g.scope !== undefined && g.scope !== "all")
+    q = $("snap-led-bind").checked
+      ? bindPoint(q, {
+          stationId: g.id,
+          pointIndex: index,
+          segmentId: target.segmentId,
+          ledId: target.id,
+          share: g.share,
+        })
+      : movePoint(q, g.id, index, target);
+  else if (target)
     q = snapStationPoint(q, g.id, index, target, {
       bind: $("snap-led-bind").checked,
       share: g.share,
@@ -236,21 +275,202 @@ function stationDrag(g, pt) {
     });
   return enforceParallels(q);
 }
-function newStationIndicator(pt) {
-  const p = project(),
-    template =
-      pendingStation?.template ?? p.stationTemplate ?? defaultTemplate(),
-    s = fromTemplate(template, pt, "snap-preview"),
-    index = Math.min(+$("snap-led-point").value, s.points - 1);
-  ledSnap = nearestPhysicalLed(
-    p,
-    symbolCenters(
-      { ...p, layout: { ...p.layout, stations: [s], routes: [] } },
-      s,
-    )[index],
+function activePlacement() {
+  return placementSession ?? pendingStation;
+}
+function updateStationPlacement(
+  point,
+  { ctrlKey = snapSuspended, pointerType = "mouse" } = {},
+) {
+  const session = activePlacement();
+  if (!session) return;
+  session.point = point;
+  snapSuspended = ctrlKey;
+  const pair = placementSession && session.mode !== "normal";
+  const snap = pair
+    ? "required"
+    : !$("snap-led").checked
+      ? "off"
+      : $("snap-led-bind").checked
+        ? session.requireLed
+          ? "required"
+          : "bind"
+        : "align";
+  const preview = stationPlacement(project(), {
+    template: session.template,
+    id: session.id,
+    point,
+    freePoint: snapped(point),
+    rotation: session.rotation ?? 0,
+    mode: session.mode ?? "normal",
+    anchorIndex: session.anchorIndex ?? null,
+    snapIndex: +$("snap-led-point").value,
+    snap,
     zoom,
-    { enabled: $("snap-led").checked && !snapSuspended },
-  );
+    first: session.first,
+    preferredLed: session.preferredLed,
+    suspended: ctrlKey,
+  });
+  placementPreview = preview;
+  ledSnap = preview.target ?? null;
+  if (pointerType === "touch") placementTouch = true;
+  renderPlacementStatus();
+}
+function placementMarkup(p) {
+  const preview = placementPreview;
+  if (!activePlacement() || !preview) return "";
+  let text =
+    preview.reason ||
+    (preview.stage === "second"
+      ? "Punkt B klar"
+      : preview.target
+        ? `${preview.target.segmentName} · LED ${preview.target.index}`
+        : "Fri plassering");
+  return `${placementSession?.mode !== "normal" && placementSession && !p.layers.leds.visible ? `<g class="placement-led-layout" opacity=".5" pointer-events="none">${layerMarkup(p, "leds")}</g>` : ""}<g class="placement-preview" data-placement-valid="${preview.valid}" data-placement-stage="${preview.stage}" pointer-events="none" opacity=".65">${["capsules", "rings", "names", ...(p.layers.holes.visible ? ["holes"] : [])].map((layer) => stationMarkup(preview.station, layer, preview.project)).join("")}${preview.targets.map((l, i) => `<g data-placement-target="${i}" data-led-id="${esc(l.id)}" data-segment-id="${esc(l.segmentId)}" data-led-index="${l.index}"><circle cx="${l.x}" cy="${l.y}" r="${9 / zoom}" fill="none" stroke="${preview.valid ? "#1b8050" : "#bd4c3c"}" stroke-width="${2 / zoom}"/><text x="${l.x + 11 / zoom}" y="${l.y + 13 / zoom}" font-size="${11 / zoom}" fill="#275b45">${String.fromCharCode(65 + i)} · ${esc(l.segmentName)} · LED ${l.index}</text></g>`).join("")}<text x="${preview.station.x}" y="${Math.max(...symbolCenters(preview.project, preview.station).map((c) => c.y)) + preview.station.ringOuter / 2 + 17 / zoom}" text-anchor="middle" font-size="${11 / zoom}" fill="${preview.valid ? "#275b45" : "#a34032"}">${esc(text)}</text></g>`;
+}
+function finishStationPlacement() {
+  const session = activePlacement(),
+    preview = placementPreview;
+  if (!session || !preview) return;
+  if (!preview.valid) {
+    message(preview.reason);
+    return;
+  }
+  if (preview.action === "anchor") {
+    session.first = {
+      segmentId: preview.target.segmentId,
+      ledId: preview.target.id,
+      rotation: session.rotation ?? 0,
+    };
+    session.preferredLed = null;
+    session.point = symbolCenters(preview.project, preview.station)[1];
+    updateStationPlacement(session.point);
+    draw();
+    message("Punkt A valgt · velg LED på en annen stripe for punkt B.");
+    return;
+  }
+  selected = [preview.station.id];
+  selectedRoute = null;
+  bindingStation = preview.station.id;
+  bindingPoint = 0;
+  stationPart = "all";
+  if (placementSession) {
+    session.id = crypto.randomUUID();
+    session.first = null;
+    session.preferredLed = null;
+  } else {
+    pendingStation = null;
+    placementPreview = null;
+    ledSnap = null;
+  }
+  commit(preview.project);
+  if (placementSession) {
+    updateStationPlacement(session.point);
+    draw();
+  } else {
+    canvas.style.cursor = "default";
+    renderPlacementToolbar();
+  }
+}
+function refreshPlacement() {
+  const session = activePlacement();
+  if (session?.point) updateStationPlacement(session.point);
+  draw();
+}
+function renderPlacementStatus() {
+  const preview = placementPreview,
+    session = activePlacement();
+  $("placement-touch-controls").hidden = !activePlacement() || !placementTouch;
+  $("placement-touch-confirm").disabled = !preview?.valid;
+  $("placement-touch-confirm").textContent =
+    preview?.action === "anchor" ? "Velg punkt A" : "Plasser stasjon";
+  const actualAngle = preview?.station.symbolAngle ?? session?.rotation ?? 0;
+  $("placement-angle").textContent =
+    `${Math.round(actualAngle * 10) / 10}°${preview?.stage === "second" ? " · LED-styrt" : ""}`;
+  $("placement-status").textContent = preview
+    ? preview.reason ||
+      (preview.stage === "first"
+        ? "Klikk LED på stripe A."
+        : preview.stage === "second"
+          ? "Klikk LED på stripe B."
+          : preview.target
+            ? `${preview.target.segmentName} · LED ${preview.target.index}`
+            : "Fri plassering")
+    : "Beveg pekeren over tavlen.";
+  $("placement-status").dataset.valid = String(preview?.valid ?? false);
+  const candidates = preview?.candidates ?? [];
+  $("placement-led-label").hidden = false;
+  $("placement-led").disabled = !candidates.length;
+  $("placement-led").innerHTML =
+    '<option value="">Automatisk (nærmest)</option>' +
+    candidates
+      .map(
+        (l) =>
+          `<option value="${esc(ledKey(l))}" ${l.occupied.length && !preview?.allowOccupied ? "disabled" : ""}>${esc(l.segmentName)} · LED ${l.index} · ${esc(l.controllerId)}/${esc(l.chainId)}${l.occupied.length ? " · i bruk" : ""}</option>`,
+      )
+      .join("");
+  $("placement-led").value = session?.preferredLed ?? "";
+}
+function renderPlacementToolbar() {
+  const previousHeight = canvas.clientHeight,
+    session = activePlacement();
+  $("placement-toolbar").hidden = !placementSession;
+  if (!session) {
+    $("placement-touch-controls").hidden = true;
+    origin.y += (canvas.clientHeight - previousHeight) / 2;
+    return;
+  }
+  const records = libraryRecords();
+  $("placement-symbol").innerHTML =
+    '<option value="current">Valgt mal / kopiert symbol</option><option value="default">Standard enkeltstasjon</option>' +
+    records
+      .map(
+        (r) =>
+          `<option value="${esc(r.id)}">${esc(r.category)} · ${esc(r.name)}</option>`,
+      )
+      .join("");
+  $("placement-symbol").value = session.symbolId ?? "current";
+  $("placement-mode").value = session.mode ?? "normal";
+  $("placement-mode").disabled = !placementSession;
+  $("placement-snap").value =
+    session.mode && session.mode !== "normal"
+      ? "required"
+      : !$("snap-led").checked
+        ? "off"
+        : !$("snap-led-bind").checked
+          ? "align"
+          : session.requireLed
+            ? "required"
+            : "bind";
+  $("placement-snap").disabled =
+    !!session.first ||
+    (session.mode !== undefined && session.mode !== "normal");
+  $("placement-anchor").disabled = !!session.mode && session.mode !== "normal";
+  $("placement-anchor").value =
+    session.mode && session.mode !== "normal"
+      ? "0"
+      : session.anchorIndex === null || session.anchorIndex === undefined
+        ? "center"
+        : String(session.anchorIndex);
+  $("placement-anchor").querySelector('[value="1"]').disabled =
+    session.template.appearance.points < 2;
+  renderPlacementStatus();
+  origin.y += (canvas.clientHeight - previousHeight) / 2;
+}
+function rotateSelectedStations(degrees) {
+  const before = project();
+  let q = before;
+  for (const id of selected)
+    q = rotateStation(q, id, degrees, {
+      pointIndex: stationPart === "all" ? null : +stationPart,
+    });
+  commit(q, { additionalPhysical: rotationChanges(before, q) });
+}
+function rotatePlacement(degrees) {
+  const session = activePlacement();
+  if (!session) return;
+  session.rotation = ((session.rotation ?? 0) + degrees + 360) % 360;
+  refreshPlacement();
 }
 function fit() {
   const r = canvas.getBoundingClientRect(),
@@ -261,6 +481,8 @@ function fit() {
     x: (r.width - b.width * zoom) / 2,
     y: (r.height - b.height * zoom) / 2,
   };
+  if (activePlacement() && lastPointer && !placementTouch)
+    updateStationPlacement(xy(lastPointer));
   draw();
 }
 function zoomAt(
@@ -274,6 +496,8 @@ function zoomAt(
     y: cy - ((cy - origin.y) * next) / zoom,
   };
   zoom = next;
+  if (activePlacement() && lastPointer && !placementTouch)
+    updateStationPlacement(xy(lastPointer));
   draw();
 }
 function draw(p = project()) {
@@ -349,6 +573,18 @@ function draw(p = project()) {
     )
     .join("");
   let overlay = "";
+  if (selected.length === 1) {
+    const s = p.layout.stations.find((s) => s.id === selected[0]);
+    if (s)
+      overlay += symbolCenters(p, s)
+        .filter((c) => stationPart === "all" || c.index === +stationPart)
+        .map(
+          (c) =>
+            `<circle data-selected-point="${c.index}" pointer-events="none" cx="${c.x}" cy="${c.y}" r="${s.ringOuter / 2 + 2 / zoom}" fill="none" stroke="#258b66" stroke-width="${1 / zoom}"/>`,
+        )
+        .join("");
+  }
+
   if (gesture?.kind === "box") {
     const a = gesture.start,
       c = gesture.last;
@@ -357,7 +593,9 @@ function draw(p = project()) {
   if (stripSnap) {
     overlay += `<g id="strip-snap-indicator" data-snap-kind="${stripSnap.kind}" pointer-events="none"><circle cx="${stripSnap.x}" cy="${stripSnap.y}" r="${8 / zoom}" fill="#d4eede99" stroke="#287b67" stroke-width="${1.5 / zoom}"/><text x="${stripSnap.x + 10 / zoom}" y="${stripSnap.y - 9 / zoom}" font-size="${11 / zoom}" fill="#21623e">${esc(stripSnap.label)}</text></g>`;
   }
-  if (ledSnap) {
+  if (ledSnap && activePlacement())
+    overlay += `<g id="led-snap-indicator" pointer-events="none" data-led-id="${esc(ledSnap.id)}" data-snap-index="${ledSnap.index}"/>`;
+  else if (ledSnap) {
     overlay += `<g id="led-snap-indicator" pointer-events="none" data-led-id="${esc(ledSnap.id)}" data-snap-index="${ledSnap.index}"><circle cx="${ledSnap.x}" cy="${ledSnap.y}" r="${8 / zoom}" fill="${ledSnap.occupied.length ? "#e8bd6733" : "#4baf9033"}" stroke="#287b67" stroke-width="${2 / zoom}"/><text x="${ledSnap.x + 11 / zoom}" y="${ledSnap.y - 9 / zoom}" font-size="${11 / zoom}" fill="#236e5d">${esc(ledSnap.segmentName)} · LED ${ledSnap.index} · ${$("snap-led-bind").checked ? "fest og bind" : "kun sentrering"}${ledSnap.occupied.length ? " · i bruk" : ""}</text></g>`;
   }
   if (measure) {
@@ -388,7 +626,7 @@ function draw(p = project()) {
     .map((id) => `<g data-layer="${id}">${layerMarkup(p, id)}</g>`)
     .join(
       "",
-    )}${marks}${overlay}${controls}${pendingStation?.point ? `<g class="placement-preview" pointer-events="none" opacity=".6">${["capsules", "rings", "names", ...(p.layers.holes.visible ? ["holes"] : [])].map((layer) => stationMarkup(fromTemplate(pendingStation.template, pendingStation.point, pendingStation.id), layer, p)).join("")}</g>` : ""}${workflowMarkup(p)}${portMarkup(p)}</g><g pointer-events="none">${rulers}</g>`;
+    )}${marks}${overlay}${controls}${placementMarkup(p)}${workflowMarkup(p)}${portMarkup(p)}</g><g pointer-events="none">${rulers}</g>`;
   for (const routeLayer of canvas.querySelectorAll(
     "[data-layer=routes],[data-layer=capsules]",
   ))
@@ -407,6 +645,13 @@ function draw(p = project()) {
 }
 const field = (id, label, value, type = "number", attrs = "") =>
   `<label>${label}<input id="${id}" type="${type}" value="${esc(value)}" ${attrs}></label>`;
+function templatePlacementMode(template) {
+  return template?.appearance.symbolKind === "double-strip"
+    ? "double"
+    : template?.appearance.symbolKind === "cross-strip"
+      ? "common"
+      : "normal";
+}
 function defaultTemplate() {
   const p = createProject(),
     t = stationTemplate(p, p.layout.stations[0]);
@@ -416,6 +661,19 @@ function defaultTemplate() {
   t.label.anchor = "start";
   t.holeOffsets = [{ x: 0, y: 0 }];
   return t;
+}
+function setStationDefault(template) {
+  mutate((q) => (q.stationTemplate = template));
+  if (placementSession) {
+    placementSession.template = copy(template ?? defaultTemplate());
+    placementSession.mode = templatePlacementMode(template);
+    placementSession.symbolId = "current";
+    placementSession.rotation = 0;
+    placementSession.first = null;
+    placementSession.preferredLed = null;
+    refreshPlacement();
+    renderPlacementToolbar();
+  }
 }
 function stationLocks() {
   return ["rings", "holes", "capsules", "names", "routes"].some(
@@ -429,6 +687,9 @@ function startDuplicate() {
   beginPaste();
 }
 function beginPaste(template = clipboard) {
+  placementSession = null;
+  placementPreview = null;
+  placementTouch = false;
   pendingStrip = null;
   bindTarget = null;
   if (!template) return;
@@ -444,7 +705,9 @@ function beginPaste(template = clipboard) {
   selectedRoute = null;
   setTool("select");
   canvas.focus();
-  message("Plasser kopien med et klikk · Escape avbryter");
+  canvas.style.cursor = "none";
+  renderPlacementToolbar();
+  message("Plasser kopien med et klikk · R roterer · Escape avbryter");
   draw();
 }
 function previewParallel(q, g) {
@@ -496,6 +759,8 @@ function properties() {
     creationProperties();
     return;
   }
+  if (s && stationPart !== "all" && +stationPart >= s.points)
+    stationPart = "all";
   if (s && bindingStation !== s.id) {
     bindingStation = s.id;
     bindingPoint = 0;
@@ -503,11 +768,10 @@ function properties() {
   if (!s) {
     panel.innerHTML =
       '<h2>Egenskaper <span>02</span></h2><p class="note">Velg en stasjon på tavlen for presis plassering. S legger til en stasjon, L kobler stasjoner.</p><button id="reset-template">Standard enkeltstasjon</button>';
-    $("reset-template").onclick = () =>
-      mutate((q) => (q.stationTemplate = null));
+    $("reset-template").onclick = () => setStationDefault(null);
     return;
   }
-  panel.innerHTML = `<h2>${selected.length > 1 ? selected.length + " stasjoner" : "Stasjon"} <span>02</span></h2><div class="station-actions"><button id="duplicate-station">Dupliser stasjon</button><button id="set-template">Bruk som standardstasjon</button><button id="reset-template">Standard enkeltstasjon</button></div><label class="inline-toggle"><input id="station-snap-led" type="checkbox" ${$("snap-led").checked ? "checked" : ""}>Fest til LED</label><label>Aktivt stasjonspunkt<select id="station-snap-point">${Array.from({ length: s.points }, (_, i) => `<option value="${i}">Punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label>${field("station-name", "Navn", s.name, "text")}<div class="pair">${field("station-x", "X, mm", s.x, "number", 'step="0.1"')}${field("station-y", "Y, mm", s.y, "number", 'step="0.1"')}</div><div class="pair">${field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"')}${field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("hole-diameter", "Hull Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}</div><h2>Symbol og kapsel</h2><label>Kapseltype<select id="capsule-type"><option value="none">Ingen kapsel</option><option value="stadium">Avrundet kapsel</option><option value="rounded-box">Avrundet ramme</option></select></label><div class="pair">${field("capsule-width", "Ekstra bredde, mm", s.capsuleExtraWidth ?? 0)}${field("capsule-height", "Ekstra høyde, mm", s.capsuleExtraHeight ?? 0)}</div>${field("station-transition", "Egen overgang, mm (tom = trasé)", s.transitionLength ?? "", "number", 'min="0.1" max="100"')}<div class="pair">${field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"')}${field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"')}${field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"')}</div><div class="pair">${field("symbol-angle", "Vinkel, ° (tom = auto)", s.symbolAngle ?? "", "number", 'min="-360" max="360"')}${field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias, "number", 'min="-0.5" max="0.5" step="0.1"')}</div><div class="pair"><label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>${field("symbol-color", "Ringfarge", s.ringColor, "color")}</div><button id="align-holes">Tilpass hull til symbolet</button><p class="note">Grafisk rotasjon flytter ikke fysiske hull. Tilpass hull eksplisitt ved behov.</p><h2>Stasjonsnavn</h2><div class="pair">${field("label-dx", "Forskyvning X, mm", s.label.dx)}${field("label-dy", "Forskyvning Y, mm", s.label.dy)}</div><div class="pair">${field("label-angle", "Rotasjon, °", s.label.angle)}${field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'step="0.1" min="0.1"')}</div><div class="pair">${field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"')}<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label></div><label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label><p class="note">${selected.length > 1 ? "X/Y flytter utvalget. Ring-/kapselstil gjelder alle; navn og punktantall gjelder første." : "Navn og ring er uavhengige av hulldiameteren."}</p>`;
+  panel.innerHTML = `<h2>${selected.length > 1 ? selected.length + " stasjoner" : "Stasjon"} <span>02</span></h2><div class="station-actions"><button id="station-rotate">Roter 90° (R)</button><button id="duplicate-station">Dupliser stasjon</button><button id="set-template">Bruk som standardstasjon</button><button id="reset-template">Standard enkeltstasjon</button></div><label class="inline-toggle"><input id="station-snap-led" type="checkbox" ${$("snap-led").checked ? "checked" : ""}>Fest til LED</label><label>Velg deler<select id="station-parts"><option value="all">Begge / hele stasjonen</option>${Array.from({ length: s.points }, (_, i) => `<option value="${i}">Bare punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label><label>Aktivt stasjonspunkt<select id="station-snap-point">${Array.from({ length: s.points }, (_, i) => `<option value="${i}">Punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label>${field("station-name", "Navn", s.name, "text")}<div class="pair">${field("station-x", "X, mm", s.x, "number", 'step="0.1"')}${field("station-y", "Y, mm", s.y, "number", 'step="0.1"')}</div><div class="pair">${field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"')}${field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("hole-diameter", "Hull Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}</div><h2>Symbol og kapsel</h2><label>Kapseltype<select id="capsule-type"><option value="none">Ingen kapsel</option><option value="stadium">Avrundet kapsel</option><option value="rounded-box">Avrundet ramme</option></select></label><div class="pair">${field("capsule-width", "Ekstra bredde, mm", s.capsuleExtraWidth ?? 0)}${field("capsule-height", "Ekstra høyde, mm", s.capsuleExtraHeight ?? 0)}</div>${field("station-transition", "Egen overgang, mm (tom = trasé)", s.transitionLength ?? "", "number", 'min="0.1" max="100"')}<div class="pair">${field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"')}${field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"')}</div><div class="pair">${field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"')}${field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"')}</div><div class="pair">${field("symbol-angle", "Vinkel, ° (tom = auto)", s.symbolAngle ?? "", "number", 'min="-360" max="360"')}${field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias, "number", 'min="-0.5" max="0.5" step="0.1"')}</div><div class="pair"><label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>${field("symbol-color", "Ringfarge", s.ringColor, "color")}</div><button id="align-holes">Tilpass hull til symbolet</button><p class="note">Grafisk rotasjon flytter ikke fysiske hull. Tilpass hull eksplisitt ved behov.</p><h2>Stasjonsnavn</h2><div class="pair">${field("label-dx", "Forskyvning X, mm", s.label.dx)}${field("label-dy", "Forskyvning Y, mm", s.label.dy)}</div><div class="pair">${field("label-angle", "Rotasjon, °", s.label.angle)}${field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'step="0.1" min="0.1"')}</div><div class="pair">${field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"')}<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label></div><label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label><p class="note">${selected.length > 1 ? "X/Y flytter utvalget. Ring-/kapselstil gjelder alle; navn og punktantall gjelder første." : "Navn og ring er uavhengige av hulldiameteren."}</p>`;
   $("station-snap-led").onchange = (e) => {
     $("snap-led").checked = e.target.checked;
     draw();
@@ -515,12 +779,56 @@ function properties() {
   $("station-snap-point").value = bindingPoint;
   $("station-snap-point").onchange = (e) => {
     bindingPoint = +e.target.value;
+    stationPart = String(bindingPoint);
+    $("station-parts").value = stationPart;
     renderBindings(p, s);
+    draw();
   };
+  $("station-parts").value = stationPart;
+  $("station-parts").onchange = (e) => {
+    stationPart = e.target.value;
+    if (stationPart !== "all") {
+      bindingPoint = +stationPart;
+      $("station-snap-point").value = bindingPoint;
+      renderBindings(project(), s);
+    }
+    draw();
+  };
+  $("station-rotate").disabled =
+    p.layers.rings.locked || p.layers.capsules.locked || p.layers.routes.locked;
+  $("station-rotate").onclick = () => safe(() => rotateSelectedStations(90));
+  if (
+    p.ledLayout.bindings.some(
+      (b) => b.stationId === s.id && b.mode === "direct",
+    )
+  )
+    panel.insertAdjacentHTML(
+      "beforeend",
+      '<p class="note">Direktebundne ringer står fast på LED-ene. Roter gjelder yttermarkeringen; navn redigeres separat.</p>',
+    );
+  panel.insertAdjacentHTML(
+    "beforeend",
+    `<h2>Yttermarkering</h2>${field("marker-angle", "Rotasjon rundt ringsentrene, °", s.markerAngle ?? 0)}<div class="pair">${field("marker-dx", "Forskyvning X, mm", s.markerDx ?? 0)}${field("marker-dy", "Forskyvning Y, mm", s.markerDy ?? 0)}</div>`,
+  );
+  for (const [fieldId, key] of [
+    ["marker-angle", "markerAngle"],
+    ["marker-dx", "markerDx"],
+    ["marker-dy", "markerDy"],
+  ]) {
+    $(fieldId).disabled = p.layers.capsules.locked;
+    $(fieldId).onchange = (e) =>
+      safe(() =>
+        mutate(
+          (q) =>
+            (q.layout.stations.find((t) => t.id === s.id)[key] =
+              +e.target.value),
+        ),
+      );
+  }
   $("duplicate-station").onclick = startDuplicate;
   $("set-template").onclick = () =>
-    mutate((q) => (q.stationTemplate = stationTemplate(q, s)));
-  $("reset-template").onclick = () => mutate((q) => (q.stationTemplate = null));
+    setStationDefault(stationTemplate(project(), s));
+  $("reset-template").onclick = () => setStationDefault(null);
   const physical = holeCenters(p, s),
     graphic = symbolCenters(p, s),
     mismatch =
@@ -1358,6 +1666,8 @@ function render() {
   renderMount();
   renderLibrary();
   renderRapid();
+  renderPlacementToolbar();
+  if (activePlacement()?.point) updateStationPlacement(activePlacement().point);
   draw();
 }
 function safe(fn) {
@@ -1369,6 +1679,24 @@ function safe(fn) {
   }
 }
 function setTool(next) {
+  placementPreview = null;
+  placementSession = null;
+  placementTouch = false;
+  if (next === "station") {
+    pendingStation = null;
+    placementSession = {
+      template: copy(project().stationTemplate ?? defaultTemplate()),
+      id: crypto.randomUUID(),
+      mode: templatePlacementMode(project().stationTemplate),
+      rotation: 0,
+      anchorIndex: null,
+      first: null,
+      point: lastPointer
+        ? xy(lastPointer)
+        : { x: project().board.width / 2, y: project().board.height / 2 },
+    };
+  }
+
   pendingMount = null;
   pendingCorners = null;
   selectedMount = null;
@@ -1390,7 +1718,13 @@ function setTool(next) {
     .querySelectorAll("[data-tool]")
     .forEach((b) => b.classList.toggle("active", b.dataset.tool === tool));
   canvas.style.cursor =
-    tool === "hand" ? "grab" : tool === "select" ? "default" : "crosshair";
+    placementSession || pendingStation
+      ? "none"
+      : tool === "hand"
+        ? "grab"
+        : tool === "select"
+          ? "default"
+          : "crosshair";
   message(
     {
       select: "Velg eller dra en stasjon",
@@ -1403,6 +1737,11 @@ function setTool(next) {
   properties();
   renderRapid();
   renderMount();
+  renderPlacementToolbar();
+  if (placementSession)
+    updateStationPlacement(
+      lastPointer ? xy(lastPointer) : placementSession.point,
+    );
   draw();
 }
 canvas.onpointerdown = (e) => {
@@ -1421,6 +1760,16 @@ canvas.onpointerdown = (e) => {
       pendingMount = null;
       selectedMount = result.id;
       commit(result.project);
+    });
+    return;
+  }
+  if (activePlacement() && !space && e.button === 0) {
+    safe(() => {
+      const point = xy(e);
+      if (e.pointerType === "touch") point.y -= 64 / zoom;
+      updateStationPlacement(point, e);
+      draw();
+      if (e.pointerType !== "touch") finishStationPlacement();
     });
     return;
   }
@@ -1456,47 +1805,6 @@ canvas.onpointerdown = (e) => {
           )?.stationId
         : null),
     p = project();
-  if (pendingStation && e.button === 0) {
-    if (stationLocks()) {
-      message("Lås opp berørte lag før plassering");
-      return;
-    }
-    const index = Math.min(
-        +$("snap-led-point").value,
-        pendingStation.template.appearance.points - 1,
-      ),
-      raw = fromTemplate(pendingStation.template, a, pendingStation.id),
-      candidate = nearestPhysicalLed(
-        p,
-        symbolCenters(
-          { ...p, layout: { ...p.layout, stations: [raw], routes: [] } },
-          raw,
-        )[index],
-        zoom,
-        { enabled: $("snap-led").checked && !snapSuspended },
-      ),
-      pt = snapped(a);
-    if (pt.x < 0 || pt.y < 0 || pt.x > p.board.width || pt.y > p.board.height)
-      return;
-    safe(() => {
-      const station = fromTemplate(
-        pendingStation.template,
-        pt,
-        pendingStation.id,
-      );
-      let q = copy(p);
-      q.layout.stations.push(station);
-      if (candidate)
-        q = snapStationPoint(q, station.id, index, candidate, {
-          bind: $("snap-led-bind").checked,
-        });
-      pendingStation = null;
-      ledSnap = null;
-      selected = [station.id];
-      commit(q);
-    });
-    return;
-  }
   if (pendingStrip && e.button === 0 && !space && tool !== "hand") {
     const s = stripPlacement(p, pendingStrip, a),
       guide = stripSnap;
@@ -1552,7 +1860,15 @@ canvas.onpointerdown = (e) => {
           start: a,
           base: copy(p),
           moved: false,
-          pointIndex: linked.pointIndex,
+          pointIndex:
+            stationPart === "all" &&
+            ["cross-strip", "double-strip"].includes(
+              p.layout.stations.find((s) => s.id === linked.stationId)
+                ?.symbolKind,
+            )
+              ? 0
+              : linked.pointIndex,
+          scope: stationPart,
           share: $("bind-share")?.checked ?? false,
         };
       render();
@@ -1603,50 +1919,6 @@ canvas.onpointerdown = (e) => {
     measure = { a, b: a };
     gesture = { kind: "measure" };
     draw();
-    return;
-  }
-  if (tool === "station") {
-    selectedRoute = null;
-    if (
-      p.layers.rings.locked ||
-      p.layers.holes.locked ||
-      p.layers.capsules.locked ||
-      p.layers.routes.locked ||
-      p.layers.names.locked
-    ) {
-      message("Stasjons- eller hullaget er låst");
-      return;
-    }
-    const template = p.stationTemplate ?? defaultTemplate(),
-      index = Math.min(
-        +$("snap-led-point").value,
-        template.appearance.points - 1,
-      ),
-      raw = fromTemplate(template, a),
-      candidate = nearestPhysicalLed(
-        p,
-        symbolCenters(
-          { ...p, layout: { ...p.layout, stations: [raw], routes: [] } },
-          raw,
-        )[index],
-        zoom,
-        { enabled: $("snap-led").checked && !snapSuspended },
-      ),
-      pt = snapped(a);
-    if (pt.x < 0 || pt.y < 0 || pt.x > p.board.width || pt.y > p.board.height)
-      return;
-    safe(() => {
-      const station = fromTemplate(template, pt, raw.id);
-      let q = copy(p);
-      q.layout.stations.push(station);
-      if (candidate)
-        q = snapStationPoint(q, station.id, index, candidate, {
-          bind: $("snap-led-bind").checked,
-        });
-      selected = [station.id];
-      ledSnap = null;
-      commit(q);
-    });
     return;
   }
   if (tool === "route") {
@@ -1703,7 +1975,13 @@ canvas.onpointerdown = (e) => {
       render();
       return;
     }
-    if (!selected.includes(id)) selected = [id];
+    if (!selected.includes(id)) {
+      selected = [id];
+      stationPart = "all";
+    }
+    const ringPoint = e.target.closest("[data-ring-point]");
+    if (e.shiftKey && ringPoint) stationPart = ringPoint.dataset.ringPoint;
+
     if (bindingStation !== id) {
       bindingStation = id;
       bindingPoint = 0;
@@ -1715,10 +1993,11 @@ canvas.onpointerdown = (e) => {
       base: copy(p),
       moved: false,
       pointIndex: Math.min(
-        bindingPoint,
+        stationPart === "all" ? bindingPoint : +stationPart,
         p.layout.stations.find((s) => s.id === id).points - 1,
       ),
       share: $("bind-share")?.checked ?? false,
+      scope: stationPart,
     };
     render();
   } else {
@@ -1733,6 +2012,7 @@ canvas.onpointermove = (e) => {
     clientY: e.clientY,
     target: e.target,
     ctrlKey: e.ctrlKey,
+    pointerType: e.pointerType,
   };
   snapSuspended = e.ctrlKey;
   const pt = xy(e);
@@ -1774,27 +2054,10 @@ canvas.onpointermove = (e) => {
     draw(preview);
     return;
   }
-  if (pendingStation) {
-    newStationIndicator(pt);
-    pendingStation.point = snapped(pt);
-    if (ledSnap) {
-      const ghost = fromTemplate(
-          pendingStation.template,
-          pendingStation.point,
-          pendingStation.id,
-        ),
-        index = Math.min(+$("snap-led-point").value, ghost.points - 1),
-        center = symbolCenters(project(), ghost)[index];
-      pendingStation.point = {
-        x: pendingStation.point.x + ledSnap.x - center.x,
-        y: pendingStation.point.y + ledSnap.y - center.y,
-      };
-    }
-    draw();
-    return;
-  }
-  if (!gesture && tool === "station") {
-    newStationIndicator(pt);
+  if (activePlacement() && !gesture) {
+    const point = { ...pt };
+    if (e.pointerType === "touch") point.y -= 64 / zoom;
+    updateStationPlacement(point, e);
     draw();
     return;
   }
@@ -2296,7 +2559,7 @@ function refreshSnapModifier(active) {
   snapSuspended = active;
   if (
     lastPointer &&
-    (gesture || pendingStrip || pendingStation || pendingMount)
+    (gesture || pendingStrip || activePlacement() || pendingMount)
   )
     canvas.onpointermove({ ...lastPointer, ctrlKey: active });
 }
@@ -2335,12 +2598,15 @@ document.onkeydown = (e) => {
     message("Segmentplassering avbrutt");
     return;
   }
-  if (e.key === "Escape" && pendingStation) {
+  if (e.key === "Escape" && activePlacement()) {
     e.preventDefault();
     pendingStation = null;
+    placementSession = null;
+    placementPreview = null;
     ledSnap = null;
-    draw();
-    message("Plassering avbrutt");
+    setTool("select");
+    renderPlacementToolbar();
+    message("Stasjonsplassering avsluttet.");
     return;
   }
   if (
@@ -2394,6 +2660,13 @@ document.onkeydown = (e) => {
     return;
   }
   if (e.ctrlKey || e.metaKey) return;
+  if (e.key.toLowerCase() === "r") {
+    e.preventDefault();
+    if (activePlacement()) rotatePlacement(e.shiftKey ? -90 : 90);
+    else if (selected.length)
+      safe(() => rotateSelectedStations(e.shiftKey ? -90 : 90));
+    return;
+  }
   const tools = {
     v: "select",
     s: "station",
@@ -2493,8 +2766,8 @@ function renderLibrary() {
     .forEach(
       (b) =>
         (b.onclick = () =>
-          beginPaste(
-            libraryRecords().find((r) => r.id === b.dataset.symbol).template,
+          chooseStationSymbol(
+            libraryRecords().find((r) => r.id === b.dataset.symbol),
           )),
     );
   document.querySelectorAll("[data-symbol-update]").forEach(
@@ -3129,3 +3402,110 @@ for (const id of ["mount-inset", "corner-diameter"])
     renderMount();
     draw();
   };
+
+$("placement-symbol").onchange = (e) => {
+  const session = activePlacement();
+  if (!session) return;
+  session.template = copy(
+    e.target.value === "default"
+      ? defaultTemplate()
+      : e.target.value === "current"
+        ? (project().stationTemplate ?? session.template)
+        : libraryRecords().find((r) => r.id === e.target.value).template,
+  );
+  if (
+    placementSession &&
+    (e.target.value === "default" ||
+      templatePlacementMode(session.template) !== "normal")
+  )
+    session.mode = templatePlacementMode(session.template);
+  session.symbolId = e.target.value;
+  session.first = null;
+  session.preferredLed = null;
+  if (session.anchorIndex >= session.template.appearance.points)
+    session.anchorIndex = null;
+  refreshPlacement();
+  renderPlacementToolbar();
+};
+$("placement-mode").onchange = (e) => {
+  if (!placementSession) return;
+  placementSession.mode = e.target.value;
+  placementSession.first = null;
+  placementSession.preferredLed = null;
+  refreshPlacement();
+  renderPlacementToolbar();
+};
+$("placement-snap").onchange = (e) => {
+  const session = activePlacement();
+  if (!session) return;
+  $("snap-led").checked = e.target.value !== "off";
+  $("snap-led-bind").checked = e.target.value !== "align";
+  session.requireLed = e.target.value === "required";
+  session.preferredLed = null;
+  refreshPlacement();
+};
+$("placement-anchor").onchange = (e) => {
+  const session = activePlacement();
+  if (!session) return;
+  session.anchorIndex = e.target.value === "center" ? null : +e.target.value;
+  refreshPlacement();
+};
+$("placement-led").onchange = (e) => {
+  const session = activePlacement();
+  if (!session) return;
+  session.preferredLed = e.target.value || null;
+  refreshPlacement();
+};
+$("placement-rotate").onclick = () => rotatePlacement(90);
+$("placement-rotate-back").onclick = () => rotatePlacement(-90);
+$("placement-exit").onclick = () => {
+  pendingStation = null;
+  ledSnap = null;
+  setTool("select");
+  renderPlacementToolbar();
+};
+canvas.addEventListener("pointerleave", (e) => {
+  if (
+    activePlacement() &&
+    !placementTouch &&
+    !canvas.hasPointerCapture?.(e.pointerId)
+  ) {
+    placementPreview = null;
+    ledSnap = null;
+    draw();
+  }
+});
+
+function chooseStationSymbol(record) {
+  if (!placementSession) {
+    beginPaste(record.template);
+    return;
+  }
+  placementSession.template = copy(record.template);
+  if (templatePlacementMode(record.template) !== "normal")
+    placementSession.mode = templatePlacementMode(record.template);
+  placementSession.symbolId = record.id;
+  placementSession.first = null;
+  placementSession.preferredLed = null;
+  placementSession.anchorIndex = null;
+  refreshPlacement();
+  renderPlacementToolbar();
+}
+
+$("placement-touch-confirm").onclick = () => safe(finishStationPlacement);
+$("placement-touch-exit").onclick = () => {
+  pendingStation = null;
+  ledSnap = null;
+  setTool("select");
+  renderPlacementToolbar();
+};
+$("led-place-station").onclick = () => {
+  $("led-panel").hidden = true;
+  $("snap-led").checked = true;
+  $("snap-led-bind").checked = true;
+  setTool("station");
+  placementSession.requireLed = true;
+  renderPlacementToolbar();
+  refreshPlacement();
+  canvas.focus();
+};

@@ -10,7 +10,7 @@
     <header>
       <a class="brand" href="../../index.html"
         >in<span>transit</span><i> / </i><b>Board Studio</b></a
-      ><span class="badge">v0.5 · fysisk design</span>
+      ><span class="badge">v0.6 · stasjonsplassering</span>
       <div class="header-actions">
         <button id="open">Åpne prosjekt</button
         ><button id="save">Lagre JSON</button
@@ -151,7 +151,56 @@
             >Ctrl: fri flytting</span
           ><span id="template-status">Standard enkeltstasjon</span>
         </div>
+        <div
+          id="placement-toolbar"
+          class="placement-toolbar"
+          hidden
+          aria-label="Stasjonsplassering"
+        >
+          <label>Symbol<select id="placement-symbol"></select></label>
+          <button id="placement-rotate-back" title="Roter −90° (Shift+R)">
+            ↶</button
+          ><button id="placement-rotate" title="Roter 90° (R)">Roter 90°</button
+          ><output id="placement-angle">0°</output>
+          <label
+            >Plassering<select id="placement-mode">
+              <option value="normal">Vanlig stasjon</option>
+              <option value="common">Felles stasjon – to LED-striper</option>
+              <option value="double">Dobbelstasjon – to LED-striper</option>
+            </select></label
+          >
+          <label
+            >Fest til LED<select id="placement-snap">
+              <option value="off">Fri</option>
+              <option value="align">Fest uten binding</option>
+              <option value="bind">Fest og bind</option>
+              <option value="required">Krev ledig LED</option>
+            </select></label
+          >
+          <label id="placement-led-label" hidden
+            >LED-kandidater<select
+              id="placement-led"
+              aria-label="Velg stripe og LED-indeks"
+            ></select
+          ></label>
+          <details id="placement-advanced">
+            <summary>Anker</summary>
+            <label
+              >Roter rundt<select id="placement-anchor">
+                <option value="center">Symbolsenter</option>
+                <option value="0">Punkt A</option>
+                <option value="1">Punkt B</option>
+              </select></label
+            >
+          </details>
+          <button id="placement-exit">Avslutt (Esc)</button
+          ><span id="placement-status" role="status" aria-live="polite"></span>
+        </div>
         <div id="viewport">
+          <div id="placement-touch-controls" hidden>
+            <button id="placement-touch-confirm">Plasser stasjon</button
+            ><button id="placement-touch-exit">Avslutt</button>
+          </div>
           <section id="mount-panel" class="drawer physical-drawer" hidden>
             <div class="drawer-heading">
               <h2>Monteringshull · mm</h2>
@@ -230,7 +279,8 @@
             <p class="note">
               Rette stripesegmenter i mm. Grafiske kurver bøyer ikke stripen.
             </p>
-            <label>Stripeprofil<select id="led-profile"></select></label>
+            <button id="led-place-station">Plasser stasjon (S)</button
+            ><label>Stripeprofil<select id="led-profile"></select></label>
             <div class="pair">
               <button id="led-add-profile">Ny WS2812B-profil</button
               ><button id="led-new-segment">Nytt segment</button>

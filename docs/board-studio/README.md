@@ -1,6 +1,15 @@
-# InTransit Board Studio v0.5
+# InTransit Board Studio v0.6
 
 Vektoreditor og fysisk LED-layout i millimeter: `web/board-studio/index.html`. Arbeidet er beholdt i draft-PR #324. Ingen merge, produksjonsdeploy eller endringer i Map Studio/PR #323, GPS, Entur eller firmware.
+
+## Stasjonsplassering i v0.6
+
+- **S** viser det faktiske symbolet ved pekeren før klikk. **R / Shift+R** roterer, og **Esc** avslutter. Velg symbol og LED-modus i den lokale plasseringslinjen; S forblir aktivt for flere stopp.
+- **Felles stasjon – to LED-striper** og **Dobbelstasjon – to LED-striper** velger først A og deretter B. Begge ringene og de faktiske LED-indeksene vises før siste klikk. Resultatet er én stasjon, ett navn og to separate bindinger.
+- Velg **Bare A / Bare B / Hele stasjonen** etter plassering. Samlet eller individuell fysisk flytting krever bekreftelse. Direktebundne sentre står fast ved grafisk redigering; ringstørrelse, yttermarkering og navn kan endres separat.
+- På mobil/nettbrett vises symbolet over fingeren og bekreftes med en egen stor knapp ved tegneflaten.
+
+[Full norsk veiledning, testresultater og begrensninger](placement-validation.md) · [Tostripe-prosjekt](examples/two-strip-stations-v06.json) · [Vektor-SVG](examples/two-strip-stations-v06.svg).
 
 ## Montering og klaringer i v0.5
 

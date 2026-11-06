@@ -227,7 +227,7 @@ export function parseProject(input) {
     if (
       !Number.isInteger(s.points) ||
       !num(s.points, 1, 8) ||
-      !num(s.pointSpacing, 0.1, 100) ||
+      !num(s.pointSpacing, 0.1, s.ringCenters ? 10000 : 100) ||
       !(s.symbolAngle === null || num(s.symbolAngle, -360, 360)) ||
       !num(s.splitBias, -0.5, 0.5) ||
       !num(s.capsulePadding, 0, 20) ||
@@ -304,6 +304,9 @@ export function parseProject(input) {
   for (const s of p.layout.stations) {
     if (
       !["none", "stadium", "rounded-box"].includes(s.capsuleType) ||
+      !num(s.markerAngle, -360, 360) ||
+      !num(s.markerDx, -5000, 5000) ||
+      !num(s.markerDy, -5000, 5000) ||
       !num(s.capsuleExtraWidth, 0, 100) ||
       !num(s.capsuleExtraHeight, 0, 100) ||
       typeof s.allowShared !== "boolean" ||
@@ -516,7 +519,7 @@ export function stationMarkup(s, layer, p) {
   const centers = layer === "holes" ? holeCenters(p, s) : symbolCenters(p, s),
     color = s.ringColor ?? "#555555";
   if (layer === "rings")
-    return `<g data-station="${esc(s.id)}">${centers.map((c) => `<circle cx="${c.x}" cy="${c.y}" r="${s.ringOuter / 2}" fill="white" stroke="${color}" stroke-width="${s.stroke}"/>${s.doubleRing !== false ? `<circle cx="${c.x}" cy="${c.y}" r="${s.ringInner / 2}" fill="none" stroke="${color}" stroke-width="${s.stroke}"/>` : ""}`).join("")}</g>`;
+    return `<g data-station="${esc(s.id)}">${centers.map((c) => `<g data-ring-point="${c.index}"><circle cx="${c.x}" cy="${c.y}" r="${s.ringOuter / 2}" fill="white" stroke="${color}" stroke-width="${s.stroke}"/>${s.doubleRing !== false ? `<circle cx="${c.x}" cy="${c.y}" r="${s.ringInner / 2}" fill="none" stroke="${color}" stroke-width="${s.stroke}"/>` : ""}</g>`).join("")}</g>`;
   if (layer === "holes")
     return centers
       .map(
@@ -526,8 +529,11 @@ export function stationMarkup(s, layer, p) {
       .join("");
   if (layer === "capsules" && s.capsuleType !== "none" && centers.length > 1) {
     const a = centers[0],
-      n = symbolNormal(p, s),
-      angle = (Math.atan2(n.y, n.x) * 180) / Math.PI,
+      basis = symbolNormal(p, s),
+      theta =
+        Math.atan2(basis.y, basis.x) + ((s.markerAngle ?? 0) * Math.PI) / 180,
+      n = { x: Math.cos(theta), y: Math.sin(theta) },
+      angle = (theta * 180) / Math.PI,
       r = s.ringOuter / 2 + s.capsulePadding,
       projected = centers.map((c) => ({
         x: (c.x - a.x) * n.x + (c.y - a.y) * n.y,
@@ -539,7 +545,7 @@ export function stationMarkup(s, layer, p) {
       y = Math.min(...projected.map((c) => c.y)) - r - extraY / 2,
       w = Math.max(...projected.map((c) => c.x)) - x + r + extraX / 2,
       h = Math.max(...projected.map((c) => c.y)) - y + r + extraY / 2;
-    return `<g data-station="${esc(s.id)}" transform="translate(${a.x} ${a.y}) rotate(${angle})"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${s.capsuleType === "rounded-box" ? Math.min(r, 2) : Math.min(w, h) / 2}" fill="white" stroke="${color}" stroke-width="${s.capsuleStroke}"/></g>`;
+    return `<g data-station="${esc(s.id)}" transform="translate(${a.x + (s.markerDx ?? 0)} ${a.y + (s.markerDy ?? 0)}) rotate(${angle})"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${s.capsuleType === "rounded-box" ? Math.min(r, 2) : Math.min(w, h) / 2}" fill="white" stroke="${color}" stroke-width="${s.capsuleStroke}"/></g>`;
   }
   if (layer === "names") {
     const l = s.label;
