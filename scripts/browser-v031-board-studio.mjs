@@ -82,6 +82,17 @@ try {
       (id) => JSON.parse(localStorage.getItem("intransit-board-v1")).id === id,
       p.id,
     );
+    // Reopening the same project keeps its ID and data. Wait for the load's
+    // selection reset as well, then let fit/ResizeObserver reach the rendered CTM.
+    await page.waitForFunction(
+      () => !document.querySelector(".selected-connection"),
+    );
+    await page.evaluate(
+      () =>
+        new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        ),
+    );
   }
   const screen = (x, y) =>
     page
@@ -153,6 +164,7 @@ try {
   assert.deepEqual(saved, q);
   await load(saved);
   await selectRoute("other");
+  assert.equal(await page.locator("#route-object").inputValue(), "other");
   await page.keyboard.press("Delete");
   assert.equal((await state()).layout.routes.length, 2);
   download = page.waitForEvent("download");
