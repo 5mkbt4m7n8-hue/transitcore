@@ -1,0 +1,478 @@
+{
+  "format": "intransit-board",
+  "version": 4,
+  "id": "free-station-design-v07",
+  "title": "Fri stasjonsdesign · tre punkter og kompakt LED-stasjon",
+  "network": {
+    "stations": [],
+    "routes": []
+  },
+  "schematic": null,
+  "board": {
+    "width": 300,
+    "height": 400,
+    "material": "general",
+    "thickness": 3
+  },
+  "layers": {
+    "routes": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "rings": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "capsules": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "names": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "leds": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "holes": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "mounting": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "bindings": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "strips": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "outline": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "guides": {
+      "visible": true,
+      "locked": false,
+      "export": false
+    }
+  },
+  "layout": {
+    "stations": [
+      {
+        "pointDataVersion": 1,
+        "pointIds": [
+          "free-three:point:0",
+          "free-three:point:1",
+          "59435b50-94fd-4b93-95c1-1969b31c58df"
+        ],
+        "pointStyles": {
+          "free-three:point:1": {
+            "ringOuter": 4,
+            "ringInner": 3,
+            "stroke": 0.1
+          }
+        },
+        "id": "free-three",
+        "name": "Tre punkter",
+        "x": 90,
+        "y": 90,
+        "source": null,
+        "points": 3,
+        "pointSpacing": 10,
+        "symbolAngle": 0,
+        "splitBias": 0,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "capsuleType": "none",
+        "capsuleExtraWidth": 0,
+        "capsuleExtraHeight": 0,
+        "symbolKind": "double",
+        "allowShared": false,
+        "transitionLength": null,
+        "markerAngle": 0,
+        "markerDx": 0,
+        "markerDy": 0,
+        "label": {
+          "dx": 0,
+          "dy": -12,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "middle"
+        },
+        "holes": [
+          {
+            "id": "free-three:hole:0",
+            "x": 85,
+            "y": 90,
+            "enabled": false
+          },
+          {
+            "id": "free-three:hole:1",
+            "x": 95,
+            "y": 90,
+            "enabled": false
+          },
+          {
+            "id": "59435b50-94fd-4b93-95c1-1969b31c58df:hole",
+            "x": 105,
+            "y": 90,
+            "enabled": false
+          }
+        ],
+        "ringCenters": [
+          {
+            "x": 75,
+            "y": 90
+          },
+          {
+            "x": 90,
+            "y": 84
+          },
+          {
+            "x": 105,
+            "y": 90
+          }
+        ]
+      },
+      {
+        "pointDataVersion": 1,
+        "pointIds": [
+          "compact-two:point:0",
+          "compact-two:point:1"
+        ],
+        "pointStyles": {},
+        "id": "compact-two",
+        "name": "Kompakt",
+        "x": 100,
+        "y": 202.5,
+        "source": null,
+        "points": 2,
+        "pointSpacing": 5,
+        "symbolAngle": 90,
+        "splitBias": 0,
+        "ringOuter": 3.8,
+        "ringInner": 2.8,
+        "stroke": 0.1,
+        "holeDiameter": 2.5,
+        "capsulePadding": 0.2,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "capsuleType": "stadium",
+        "capsuleExtraWidth": 0,
+        "capsuleExtraHeight": 0,
+        "symbolKind": "cross-strip",
+        "allowShared": false,
+        "transitionLength": null,
+        "markerAngle": 0,
+        "markerDx": 0,
+        "markerDy": 0,
+        "label": {
+          "dx": 8,
+          "dy": 0,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "ringCenters": [
+          {
+            "x": 100,
+            "y": 200
+          },
+          {
+            "x": 100,
+            "y": 205
+          }
+        ],
+        "holes": [
+          {
+            "id": "compact-two:hole:0",
+            "x": 100,
+            "y": 200,
+            "enabled": true
+          },
+          {
+            "id": "compact-two:hole:1",
+            "x": 100,
+            "y": 205,
+            "enabled": true
+          }
+        ]
+      }
+    ],
+    "routes": [],
+    "guides": [],
+    "parallelConstraints": []
+  },
+  "ledLayout": {
+    "profiles": [
+      {
+        "id": "profile-5-mm",
+        "name": "WS2812B-2020 · 100 LED/m",
+        "ledType": "WS2812B-2020 RGB",
+        "voltage": 5,
+        "density": 100,
+        "nominalPitch": 10,
+        "pitch": 10,
+        "width": 5,
+        "count": 500,
+        "length": 5000,
+        "firstOffset": 5,
+        "housingWidth": 2,
+        "housingLength": 2,
+        "cutPoints": [],
+        "splices": []
+      }
+    ],
+    "segments": [
+      {
+        "id": "strip-A",
+        "number": 1,
+        "name": "A · 5 mm bred",
+        "profileId": "profile-5-mm",
+        "x": 55,
+        "y": 200,
+        "angle": 0,
+        "count": 16,
+        "length": 160,
+        "startIndex": 0,
+        "controllerId": "kontroller-1",
+        "chainId": "A",
+        "direction": 1,
+        "mounting": "back",
+        "cutPoints": [],
+        "splices": []
+      },
+      {
+        "id": "strip-B",
+        "number": 2,
+        "name": "B · kant mot kant",
+        "profileId": "profile-5-mm",
+        "x": 55,
+        "y": 205,
+        "angle": 0,
+        "count": 16,
+        "length": 160,
+        "startIndex": 100,
+        "controllerId": "kontroller-1",
+        "chainId": "B",
+        "direction": -1,
+        "mounting": "back",
+        "cutPoints": [],
+        "splices": []
+      }
+    ],
+    "bindings": [
+      {
+        "id": "baba44e6-24b0-41f9-ba81-cfc587efbe52",
+        "stationId": "compact-two",
+        "pointIndex": 0,
+        "segmentId": "strip-A",
+        "ledId": "strip-A:led:4",
+        "mode": "direct",
+        "shared": false
+      },
+      {
+        "id": "b445dc23-4000-49dc-8ce6-c73e5e5b6f0f",
+        "stationId": "compact-two",
+        "pointIndex": 1,
+        "segmentId": "strip-B",
+        "ledId": "strip-B:led:4",
+        "mode": "direct",
+        "shared": false
+      }
+    ]
+  },
+  "library": {
+    "templates": [
+      {
+        "id": "free-three-template",
+        "name": "Tre punkter · liten midtring",
+        "category": "Trondheim buss",
+        "template": {
+          "version": 1,
+          "appearance": {
+            "points": 3,
+            "pointSpacing": 10,
+            "symbolAngle": 0,
+            "splitBias": 0,
+            "ringOuter": 6,
+            "ringInner": 4.6,
+            "stroke": 0.18,
+            "holeDiameter": 2.5,
+            "capsulePadding": 1,
+            "capsuleStroke": 0.18,
+            "ringColor": "#555555",
+            "doubleRing": true,
+            "capsuleType": "none",
+            "capsuleExtraWidth": 0,
+            "capsuleExtraHeight": 0,
+            "symbolKind": "double",
+            "allowShared": false,
+            "transitionLength": null,
+            "markerAngle": 0,
+            "markerDx": 0,
+            "markerDy": 0
+          },
+          "label": {
+            "dx": 0,
+            "dy": -12,
+            "angle": 0,
+            "size": 4.1,
+            "spacing": 0.4,
+            "weight": 600,
+            "font": "Arial",
+            "anchor": "middle"
+          },
+          "pointStyles": [
+            {},
+            {
+              "ringOuter": 4,
+              "ringInner": 3,
+              "stroke": 0.1
+            },
+            {}
+          ],
+          "ringOffsets": [
+            {
+              "x": -15,
+              "y": 0
+            },
+            {
+              "x": 0,
+              "y": -6
+            },
+            {
+              "x": 15,
+              "y": 0
+            }
+          ],
+          "holeOffsets": [
+            {
+              "x": -5,
+              "y": 0,
+              "enabled": false
+            },
+            {
+              "x": 5,
+              "y": 0,
+              "enabled": false
+            },
+            {
+              "x": 15,
+              "y": 0,
+              "enabled": false
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "production": {
+    "profiles": [],
+    "mountingHoles": []
+  },
+  "stationTemplate": {
+    "version": 1,
+    "appearance": {
+      "points": 3,
+      "pointSpacing": 10,
+      "symbolAngle": 0,
+      "splitBias": 0,
+      "ringOuter": 6,
+      "ringInner": 4.6,
+      "stroke": 0.18,
+      "holeDiameter": 2.5,
+      "capsulePadding": 1,
+      "capsuleStroke": 0.18,
+      "ringColor": "#555555",
+      "doubleRing": true,
+      "capsuleType": "none",
+      "capsuleExtraWidth": 0,
+      "capsuleExtraHeight": 0,
+      "symbolKind": "double",
+      "allowShared": false,
+      "transitionLength": null,
+      "markerAngle": 0,
+      "markerDx": 0,
+      "markerDy": 0
+    },
+    "label": {
+      "dx": 0,
+      "dy": -12,
+      "angle": 0,
+      "size": 4.1,
+      "spacing": 0.4,
+      "weight": 600,
+      "font": "Arial",
+      "anchor": "middle"
+    },
+    "pointStyles": [
+      {},
+      {
+        "ringOuter": 4,
+        "ringInner": 3,
+        "stroke": 0.1
+      },
+      {}
+    ],
+    "ringOffsets": [
+      {
+        "x": -15,
+        "y": 0
+      },
+      {
+        "x": 0,
+        "y": -6
+      },
+      {
+        "x": 15,
+        "y": 0
+      }
+    ],
+    "holeOffsets": [
+      {
+        "x": -5,
+        "y": 0,
+        "enabled": false
+      },
+      {
+        "x": 5,
+        "y": 0,
+        "enabled": false
+      },
+      {
+        "x": 15,
+        "y": 0,
+        "enabled": false
+      }
+    ]
+  }
+}

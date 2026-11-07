@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="nb">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>InTransit · Board Studio</title>
+    <link rel="stylesheet" href="studio.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="../../index.html"
+        >in<span>transit</span><i> / </i><b>Board Studio</b></a
+      ><span class="badge">v0.8 · navn og segmenter</span>
+      <div class="header-actions">
+        <button id="open">Åpne prosjekt</button
+        ><button id="save">Lagre JSON</button
+        ><button id="export" class="primary">Eksporter SVG ↗</button
+        ><button id="production-open">Boremal 1:1</button>
+      </div>
+    </header>
+    <div class="projectbar">
+      <div>
+        <span class="eyebrow">TAVLEPROSJEKT</span
+        ><input id="title" aria-label="Prosjektnavn" />
+      </div>
+      <div class="project-meta">
+        <span id="size-summary"></span><span>Millimeter · vektorgrafikk</span>
+      </div>
+      <button id="mount-toggle">Montering</button
+      ><button id="led-toggle">LED-layout</button
+      ><button id="library-toggle">Symbolbibliotek</button
+      ><button id="new">Ny tavle</button
+      ><button id="trondheim-demo">Trondheim buss</button
+      ><button id="demo">Gråkallbanen</button
+      ><button id="fixture">Geometriprøver</button
+      ><button id="checks-toggle">Kontroll</button>
+    </div>
+    <main>
+      <nav class="tools" aria-label="Verktøy">
+        <button
+          data-tool="select"
+          class="active"
+          title="Velg og flytt (V)"
+          aria-label="Velg og flytt"
+        >
+          ↖</button
+        ><button
+          data-tool="station"
+          title="Legg til stasjon (S)"
+          aria-label="Legg til stasjon"
+        >
+          ⊙</button
+        ><button
+          data-tool="route"
+          title="Koble stasjoner (L)"
+          aria-label="Koble stasjoner"
+        >
+          ⌁</button
+        ><button data-tool="measure" title="Mål i mm (M)" aria-label="Mål i mm">
+          ↔</button
+        ><button
+          data-tool="hand"
+          title="Panorer (H / Space)"
+          aria-label="Panorer"
+        >
+          ✥
+        </button>
+        <hr />
+        <button id="undo" title="Angre (Ctrl+Z)" aria-label="Angre">↶</button
+        ><button id="redo" title="Gjør om (Ctrl+Shift+Z)" aria-label="Gjør om">
+          ↷</button
+        ><button
+          id="delete"
+          title="Slett valgte stasjoner"
+          aria-label="Slett valgte stasjoner"
+        >
+          ×
+        </button>
+      </nav>
+      <section class="workspace">
+        <div class="canvasbar">
+          <span>DESIGN <small> / fysisk tavle</small></span>
+          <div>
+            <label><input id="grid" type="checkbox" checked />Rutenett</label
+            ><select id="grid-step" aria-label="Rutenettavstand">
+              <option>0.5</option>
+              <option>1</option>
+              <option>2</option>
+              <option>2.5</option>
+              <option selected>5</option>
+              <option>10</option>
+              <option>20</option></select
+            ><span>mm</span
+            ><button
+              id="grid-half"
+              title="Halver rutenettavstand og rutenettsnapping"
+            >
+              ½ rutenett</button
+            ><select id="grid-major" aria-label="Hovedrutenett">
+              <option value="10" selected>10 mm</option>
+              <option value="20">20 mm</option></select
+            ><select id="grid-contrast" aria-label="Rutenettkontrast">
+              <option value="faint">Svakt</option>
+              <option value="normal" selected>Normalt</option>
+              <option value="strong">Tydelig</option></select
+            ><label
+              ><input id="snap" type="checkbox" checked />Fest rutenett</label
+            ><button id="zoom-out" aria-label="Zoom ut">−</button
+            ><span id="zoom"></span
+            ><button id="zoom-in" aria-label="Zoom inn">+</button
+            ><button id="fit">Tilpass</button>
+          </div>
+        </div>
+        <div class="precisionbar">
+          <label
+            >Parallellavstand
+            <input
+              id="parallel-distance"
+              type="number"
+              value="20"
+              min="0.1"
+              max="5000"
+              step="0.1"
+            />
+            mm</label
+          ><label
+            ><input id="parallel-lock" type="checkbox" checked />Behold
+            parallellavstand</label
+          ><label
+            ><input id="snap-guides" type="checkbox" checked />Fest
+            hjelpelinjer</label
+          ><label><input id="snap-led" type="checkbox" />Fest til LED</label
+          ><label
+            ><input id="snap-led-bind" type="checkbox" checked />Fest og bind
+            til LED</label
+          ><label
+            >Punkt<select id="snap-led-point">
+              <option value="0">A</option>
+              <option value="1">B</option>
+              <option value="2">C</option>
+              <option value="3">D</option>
+              <option value="4">E</option>
+              <option value="5">F</option>
+              <option value="6">G</option>
+              <option value="7">H</option>
+            </select></label
+          ><label
+            ><input id="snap-strip" type="checkbox" checked />Fest
+            LED-striper</label
+          ><span title="Hold Ctrl under flytting for fri plassering"
+            >Ctrl: fri flytting</span
+          ><span id="template-status">Standard enkeltstasjon</span>
+        </div>
+        <div
+          id="placement-toolbar"
+          class="placement-toolbar"
+          hidden
+          aria-label="Stasjonsplassering"
+        >
+          <label>Symbol<select id="placement-symbol"></select></label>
+          <button id="placement-rotate-back" title="Roter −90° (Shift+R)">
+            ↶</button
+          ><button id="placement-rotate" title="Roter 90° (R)">Roter 90°</button
+          ><output id="placement-angle">0°</output>
+          <label
+            >Plassering<select id="placement-mode">
+              <option value="normal">Vanlig stasjon</option>
+              <option value="common">Felles stasjon – to LED-striper</option>
+              <option value="double">Dobbelstasjon – to LED-striper</option>
+            </select></label
+          >
+          <label
+            >Fest til LED<select id="placement-snap">
+              <option value="off">Fri</option>
+              <option value="align">Fest uten binding</option>
+              <option value="bind">Fest og bind</option>
+              <option value="required">Krev ledig LED</option>
+            </select></label
+          >
+          <label id="placement-led-label" hidden
+            >LED-kandidater<select
+              id="placement-led"
+              aria-label="Velg stripe og LED-indeks"
+            ></select
+          ></label>
+          <details id="placement-advanced">
+            <summary>Anker</summary>
+            <label
+              >Roter rundt<select id="placement-anchor">
+                <option value="center">Symbolsenter</option>
+                <option value="0">Punkt A</option>
+                <option value="1">Punkt B</option>
+              </select></label
+            >
+          </details>
+          <button id="placement-exit">Avslutt (Esc)</button
+          ><span id="placement-status" role="status" aria-live="polite"></span>
+        </div>
+        <p id="edit-error" class="warning" role="alert" hidden></p>
+        <div id="viewport">
+          <div id="placement-touch-controls" hidden>
+            <button id="placement-touch-confirm">Plasser stasjon</button
+            ><button id="placement-touch-exit">Avslutt</button>
+          </div>
+          <section id="mount-panel" class="drawer physical-drawer" hidden>
+            <div class="drawer-heading">
+              <h2>Monteringshull · mm</h2>
+              <button id="mount-close" aria-label="Lukk montering">×</button>
+            </div>
+            <label>Hull<select id="mount-select"></select></label>
+            <label>Navn<input id="mount-name" maxlength="100" /></label>
+            <div class="pair">
+              <label>X, mm<input id="mount-x" type="number" step="0.1" /></label
+              ><label
+                >Y, mm<input id="mount-y" type="number" step="0.1"
+              /></label>
+            </div>
+            <label
+              >Hulldiameter, mm<input
+                id="mount-diameter"
+                type="number"
+                min="0.1"
+                max="100"
+                step="0.1"
+            /></label>
+            <p id="mount-distance" class="note"></p>
+            <div class="pair">
+              <button id="mount-save">Lagre hull</button
+              ><button id="mount-place">Plasser med mus</button
+              ><button id="mount-delete">Slett hull</button>
+            </div>
+            <h3>Fire hjørnehull</h3>
+            <label
+              >Hullsenters avstand fra platekant, mm<input
+                id="mount-inset"
+                type="number"
+                value="15"
+                step="0.1"
+            /></label>
+            <label
+              >Diameter, mm<input
+                id="corner-diameter"
+                type="number"
+                value="3.2"
+                step="0.1"
+            /></label>
+            <button id="mount-preview">Forhåndsvis hjørnehull</button>
+            <p id="mount-preview-status" class="note"></p>
+            <button id="mount-corners" disabled>
+              Legg til fire hjørnehull
+            </button>
+            <h3>Mekaniske klaringer</h3>
+            <label
+              >Hullkant til platekant, mm<input
+                id="edge-clearance"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+            /></label>
+            <label
+              >Mellom hullkanter, mm<input
+                id="hole-clearance"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1" /></label
+            ><button id="mount-settings">Lagre klaringer</button>
+            <p class="note">
+              Klaringer gjelder alle hull. Endringer flytter aldri hull
+              automatisk. Ctrl gir fri plassering. Escape avbryter
+              forhåndsvisning.
+            </p>
+          </section>
+          <section id="led-panel" class="drawer physical-drawer" hidden>
+            <div class="drawer-heading">
+              <h2>Fysisk LED-layout</h2>
+              <button id="led-close" aria-label="Lukk LED-layout">×</button>
+            </div>
+            <p class="note">
+              Rette stripesegmenter i mm. Grafiske kurver bøyer ikke stripen.
+            </p>
+            <button id="led-place-station">Plasser stasjon (S)</button
+            ><label>Stripeprofil<select id="led-profile"></select></label>
+            <div class="pair">
+              <button id="led-add-profile">Ny WS2812B-profil</button
+              ><button id="led-new-segment">Nytt segment</button>
+            </div>
+            <details id="rapid-panel">
+              <summary>Plasser stopp langs stripen</summary>
+              <label>Symbol<select id="rapid-symbol"></select></label
+              ><label>Segment<select id="rapid-segment"></select></label>
+              <div class="pair">
+                <label
+                  >Start ved LED-indeks<input
+                    id="rapid-start"
+                    type="number"
+                    value="0"
+                    step="1" /></label
+                ><label
+                  >Stoppintervall<select id="rapid-step">
+                    <option value="1">Hver LED</option>
+                    <option value="2">Annenhver</option>
+                    <option value="3">Hver tredje</option>
+                    <option value="4">Hver fjerde</option>
+                    <option value="custom">Egne indekser</option>
+                  </select></label
+                >
+              </div>
+              <label
+                >Egne LED-indekser (komma)<input
+                  id="rapid-indices"
+                  placeholder="0, 4, 9" /></label
+              ><label
+                >Navneprefiks<input id="rapid-name" value="Ny stasjon"
+              /></label>
+              <p class="note">
+                Flerpunktsymboler bruker påfølgende LED-er. Opptatte posisjoner
+                hoppes over. Pitch og rotasjon følger stripen.
+              </p>
+              <button id="rapid-begin">Start plassering</button
+              ><button id="rapid-place" disabled>Plasser neste stopp</button
+              ><button id="rapid-stop" disabled>Avslutt</button>
+              <p id="rapid-status" role="status"></p>
+            </details>
+            <div id="led-editor"></div>
+          </section>
+          <section id="symbol-library" class="drawer" hidden>
+            <div class="drawer-heading">
+              <h2>Symbolbibliotek</h2>
+              <button id="library-close" aria-label="Lukk symbolbibliotek">
+                ×
+              </button>
+            </div>
+            <label
+              >Kategori<select id="library-category">
+                <option value="">Alle profiler</option>
+                <option>Trondheim buss</option>
+                <option>Gråkallbanen</option>
+                <option>Oslo T-bane</option>
+              </select></label
+            >
+            <div id="library-items"></div>
+            <hr />
+            <label
+              >Ny mal fra valgt stasjon<input
+                id="library-name"
+                value="Mitt symbol"
+                maxlength="100" /></label
+            ><select
+              id="library-save-category"
+              aria-label="Kategori for egen mal"
+            >
+              <option>Trondheim buss</option>
+              <option>Gråkallbanen</option>
+              <option>Oslo T-bane</option></select
+            ><button id="library-save">Lagre valgt som symbolmal</button>
+            <div class="pair">
+              <button id="library-import">Importer</button
+              ><button id="library-export">Eksporter egne</button>
+            </div>
+            <input id="library-file" type="file" accept=".json" hidden />
+          </section>
+          <svg
+            id="canvas"
+            xmlns="http://www.w3.org/2000/svg"
+            tabindex="0"
+            aria-label="Tavle i millimeter"
+          ></svg>
+          <div id="geometry-status" role="status" hidden></div>
+          <div id="hint">
+            Velg en stasjon for å redigere · Ctrl+klikk for flervalg · Space for
+            panorering
+          </div>
+        </div>
+        <footer>
+          <span id="coords">X — · Y — mm</span
+          ><span id="status" role="status">Klar</span
+          ><span id="selection-count"></span>
+        </footer>
+      </section>
+      <aside>
+        <section>
+          <h2>Tavle <span>01</span></h2>
+          <label
+            >Format<select id="preset">
+              <option value="300,400">300 × 400 mm</option>
+              <option value="400,400">400 × 400 mm</option>
+              <option value="500,700">500 × 700 mm</option>
+              <option value="custom">Egendefinert</option>
+            </select></label
+          >
+          <div class="pair">
+            <label
+              >Bredde, mm<input
+                id="width"
+                type="number"
+                min="20"
+                max="5000" /></label
+            ><label
+              >Høyde, mm<input id="height" type="number" min="20" max="5000"
+            /></label>
+          </div>
+          <button id="rotate">Bytt stående / liggende</button>
+          <p class="note">
+            Endrer tavlekonturen. Objektmål og plasseringer beholdes.
+          </p>
+        </section>
+        <section id="properties">
+          <h2>Egenskaper <span>02</span></h2>
+          <p class="note">
+            Velg en stasjon på tavlen. Du kan flytte den direkte eller angi
+            eksakte mål.
+          </p>
+        </section>
+        <section>
+          <h2>Lag <span>03</span></h2>
+          <div class="layer-legend"><span>Vis / lås</span><span>SVG</span></div>
+          <div id="layers"></div>
+          <p class="note">
+            Eksportvalg er uavhengige av visning. Navn har sitt eget lag.
+          </p>
+        </section>
+        <section>
+          <h2>Hjelpelinjer <span>04</span></h2>
+          <div class="pair">
+            <select id="guide-axis" aria-label="Hjelpelinjeretning">
+              <option value="x">Loddrett X</option>
+              <option value="y">Vannrett Y</option></select
+            ><input
+              id="guide-value"
+              type="number"
+              value="50"
+              min="0"
+              max="5000"
+              aria-label="Hjelpelinje i mm"
+            />
+          </div>
+          <button id="guide-add">Legg til hjelpelinje</button
+          ><button id="guide-clear">Fjern alle</button>
+        </section>
+        <section>
+          <h2>Kontroll av tavlen</h2>
+          <label
+            >Vis<select id="check-filter">
+              <option value="all">Alle funn</option>
+              <option value="physical">Fysisk layout</option>
+              <option value="geometry">Linjegeometri</option>
+              <option value="unbound">Ubundne punkter</option>
+            </select></label
+          >
+          <div id="mechanical-report" role="status"></div>
+        </section>
+        <section class="about">
+          <span class="eyebrow">FRA SKJERM TIL TAVLE</span>
+          <p>
+            Alle mål er i millimeter.<br />Referansestudie, ikke geografisk
+            kart.
+          </p>
+          <a href="../../docs/board-studio/README.md"
+            >Brukerveiledning og begrensninger ↗</a
+          >
+        </section>
+      </aside>
+    </main>
+    <div id="station-menu" role="menu" hidden>
+      <button id="context-duplicate" role="menuitem">Dupliser stasjon</button>
+    </div>
+    <input id="file" type="file" accept=".json,application/json" hidden />
+    <dialog id="export-dialog">
+      <h2>Eksporter vektorgrafikk</h2>
+      <p>
+        SVG i faktisk tavlestørrelse. Valgte eksportlag beholdes som separate
+        grupper.
+      </p>
+      <p class="note">
+        Tekst beholdes som redigerbar tekst. Kontroller font og mål i
+        produksjonsverktøyet.
+      </p>
+      <div>
+        <button id="export-close">Avbryt</button
+        ><button id="export-download" class="primary">Last ned SVG</button>
+      </div>
+    </dialog>
+    <dialog id="production-dialog">
+      <h2>Boremal og produksjonsgrafikk · 1:1</h2>
+      <div class="production-layout">
+        <div class="production-controls">
+          <label
+            >Side<select id="prod-side">
+              <option value="front">Forside</option>
+              <option value="back">
+                Bakside – speilvendt om loddrett akse
+              </option>
+            </select></label
+          >
+          <label
+            >PDF-ark<select id="prod-paper">
+              <option value="board">Samlet tavleformat</option>
+              <option value="a4-portrait">A4 stående – fliser</option>
+              <option value="a4-landscape">A4 liggende – fliser</option>
+            </select></label
+          >
+          <div class="pair">
+            <label
+              >Marg, mm<input
+                id="prod-margin"
+                type="number"
+                min="15"
+                max="30"
+                step="1" /></label
+            ><label
+              >Overlapp, mm<input
+                id="prod-overlap"
+                type="number"
+                min="5"
+                max="30"
+                step="1"
+            /></label>
+          </div>
+          <label class="inline-toggle"
+            ><input id="prod-crosshairs" type="checkbox" />Vis
+            senterkryss</label
+          ><label class="inline-toggle"
+            ><input id="prod-labels" type="checkbox" />Vis hullnummer</label
+          >
+          <label class="inline-toggle" id="prod-unbound-label"
+            ><input id="prod-unbound" type="checkbox" />Jeg vil eksportere
+            ubundne punkters lagrede hullkoordinater</label
+          >
+          <button id="prod-save">Lagre eksportvalg i prosjektet</button>
+          <p id="prod-save-status" role="status"></p>
+          <div id="prod-report" role="status"></div>
+          <p class="note">
+            PDF og bore-SVG bruker alle faktiske hull, også skjulte lag, ikke
+            grafiske ringdiametere. Grafikk-SVG følger eksportvalgene for
+            grafiske lag og speiles samlet, også navn, ved baksidevalg.
+          </p>
+          <p class="note">
+            Skriv ut 100 % / faktisk størrelse, uten Tilpass til ark. Mål
+            kontrollstrekene i begge retninger før malen brukes. Mål også
+            faktisk LED-pitch og første-LED-offset på stripen før boring.
+            Bore-SVG for utskrift har merknadsmarg; PDF følger valgt arkoppsett.
+            Til maskinimport brukes Hull-SVG (plateorigo): bare hull i
+            platekoordinater, uten merknadsmarg, tekst eller kontrollmål.
+          </p>
+        </div>
+        <div>
+          <p id="prod-summary"></p>
+          <label>Forhåndsvis PDF-ark<select id="prod-page"></select></label>
+          <div id="prod-preview" aria-label="Forhåndsvisning av boremal"></div>
+        </div>
+      </div>
+      <div class="production-actions">
+        <button id="production-close">Lukk</button
+        ><button id="prod-checks">Åpne kontrollisten</button
+        ><button id="prod-svg">Bore-SVG for utskrift</button
+        ><button id="prod-machining">Hull-SVG (plateorigo)</button
+        ><button id="prod-graphics">Last ned grafikk-SVG</button
+        ><button id="prod-csv">Last ned koordinater CSV</button
+        ><button id="prod-pdf" class="primary">Last ned bore-PDF</button>
+      </div>
+    </dialog>
+    <dialog id="physical-dialog">
+      <h2>Bekreft fysisk endring</h2>
+      <p>
+        Forhåndsvisningen viser ny plassering. Hull eller bundne LED-er flyttes
+        først når du bekrefter. Avbryt beholder alle mål og bindinger.
+      </p>
+      <div class="change-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Stasjonspunkt</th>
+              <th>Hull før → etter</th>
+              <th>LED før → etter</th>
+            </tr>
+          </thead>
+          <tbody id="physical-changes"></tbody>
+        </table>
+      </div>
+      <div>
+        <button id="physical-cancel">Avbryt</button
+        ><button id="physical-confirm" class="primary">
+          Bekreft fysisk endring
+        </button>
+      </div>
+    </dialog>
+    <script type="module" src="app.mjs"></script>
+  </body>
+</html>

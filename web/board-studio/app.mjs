@@ -1,0 +1,4085 @@
+import {
+  DIRECTIONS,
+  DIRECTION_NAMES,
+  labelLayout,
+  editLabels,
+} from "./label-layout.mjs";
+import { segmentLength, inheritSegment } from "./led-layout.mjs";
+import { pointStyle, activeHole } from "./point-style.mjs";
+import {
+  editStation,
+  editGraphicPoint,
+  fitPointSizes,
+  setHoleEnabled,
+  moveGraphicStation,
+} from "./station-edit.mjs";
+import {
+  stationPlacement,
+  ledKey,
+  rotateStation,
+  moveBoundPair,
+  rotationChanges,
+} from "./placement.mjs";
+import {
+  editMount,
+  removeMount,
+  cornerPattern,
+  addCorners,
+  mechanicalSettings,
+  edgeDistance,
+} from "./mounting.mjs";
+import { productionSettings } from "./production-settings.mjs";
+import {
+  productionReport,
+  productionPlan,
+  productionPage,
+  pageSvg,
+  drillSvg,
+  drillPdf,
+  graphicsSvg,
+  drillCsv,
+  machiningSvg,
+} from "./production.mjs";
+import {
+  connectionPreview,
+  nextRapidStop,
+  placeRapidStop,
+  boardChecks,
+} from "./workflows.mjs";
+import { snapStrip, alignStripHoles } from "./strip-snap.mjs";
+import { stationPorts, stationPort } from "./ports.mjs";
+import {
+  nearestPhysicalLed,
+  snapStationPoint,
+  movePoint,
+} from "./station-snap.mjs";
+import {
+  deleteConnection,
+  splitConnection,
+  connectPorts,
+  routeStyle,
+} from "./connections.mjs";
+import { trondheimPrototype } from "./prototype.mjs";
+import {
+  bindPoint,
+  unbindPoint,
+  prepareBindings,
+  physicalChanges,
+  mechanicalCheck,
+  setFrontPoint,
+} from "./bindings.mjs";
+import {
+  newProfile,
+  newSegment,
+  ledPositions,
+  validateLedLayout,
+  ledFor,
+} from "./led-layout.mjs";
+import {
+  CATEGORIES,
+  builtInSymbols,
+  symbolBundle,
+  importSymbolBundle,
+  applyVisualStyle,
+} from "./symbols.mjs";
+import { stationTemplate, fromTemplate } from "./stations.mjs";
+import {
+  parallelCandidate,
+  applyParallel,
+  enforceParallels,
+  translateRoute,
+  segmentPoints,
+} from "./parallel.mjs";
+import { gridSpec, snapPoint } from "./editing.mjs";
+import { geometryFixture } from "./fixtures.mjs";
+import {
+  holeCenters,
+  symbolCenters,
+  symbolNormal,
+  edgeGeometry,
+  geometryReport,
+} from "./geometry.mjs";
+import {
+  createProject,
+  parseProject,
+  serialize,
+  History,
+  copy,
+  LAYERS,
+  esc,
+  layerMarkup,
+  stationMarkup,
+  svg,
+  moveStations,
+  PAINT_ORDER,
+} from "./model.mjs";
+const $ = (id) => document.getElementById(id),
+  canvas = $("canvas");
+let initial = createProject();
+try {
+  const saved = localStorage.getItem("intransit-board-v1");
+  if (saved) initial = parseProject(saved);
+} catch {}
+const history = new History(initial);
+let pointEditMode = false;
+let selectedNames = [],
+  nameTool = false,
+  segmentDraft = null;
+let placementSession = null,
+  placementPreview = null,
+  placementTouch = false,
+  stationPart = "all";
+let selectedMount = null,
+  pendingMount = null,
+  pendingCorners = null;
+let selected = [],
+  tool = "select",
+  zoom = 1,
+  origin = { x: 0, y: 0 },
+  gesture = null,
+  space = false,
+  measure = null,
+  routeStart = null,
+  reconnectTarget = null,
+  lineAdvanced = false,
+  portHover = null,
+  rapidPlacement = null,
+  focusMark = null,
+  checkLimit = 100,
+  selectedRoute = null,
+  pendingPhysical = null,
+  bindTarget = null,
+  bindingPoint = 0,
+  bindingStation = null,
+  bindingCursor = null,
+  stopInterval = 1,
+  selectedProfile = null,
+  selectedSegment = null,
+  pendingStrip = null,
+  stripSnap = null,
+  snapSuspended = false,
+  lastPointer = null,
+  clipboard = null,
+  pendingStation = null,
+  routeMoveEnabled = false,
+  selectedEdge = 0,
+  smartGuides = [],
+  ledSnap = null;
+const project = () => history.value;
+const message = (t) => ($("status").textContent = t);
+function persist() {
+  try {
+    localStorage.setItem("intransit-board-v1", serialize(project()));
+    message("Lagret lokalt · last ned JSON for sikker kopi");
+  } catch {
+    message("Lokal lagring utilgjengelig. Last ned JSON.");
+  }
+}
+function commit(p, options = {}) {
+  $("edit-error").hidden = true;
+  const candidate = parseProject(enforceParallels(copy(p))),
+    q = options.load
+      ? candidate
+      : parseProject(prepareBindings(project(), candidate));
+  const changes = options.load
+    ? []
+    : [...physicalChanges(project(), q), ...(options.additionalPhysical ?? [])];
+  if (changes.length && !options.approved) {
+    pendingPhysical = { project: q, changes };
+    const coord = (c) => (c ? `${c.x.toFixed(4)}, ${c.y.toFixed(4)} mm` : "—");
+    $("physical-changes").innerHTML = changes
+      .map(
+        (c) =>
+          `<tr><td>${esc(c.name)} · ${c.pointIndex + 1}</td><td>${coord(c.holeBefore)} → ${coord(c.holeAfter)}${c.diameterBefore !== undefined ? ` · Ø ${c.diameterBefore} → ${c.diameterAfter ?? "—"} mm` : ""}</td><td>${coord(c.ledBefore)} → ${coord(c.ledAfter)}</td></tr>`,
+      )
+      .join("");
+    draw(q);
+    $("physical-dialog").showModal();
+    return;
+  }
+  history.commit(q);
+  persist();
+  render();
+}
+function mutate(fn) {
+  const p = copy(project());
+  fn(p);
+  commit(p);
+}
+function xy(e) {
+  const r = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - r.left - origin.x) / zoom,
+    y: (e.clientY - r.top - origin.y) / zoom,
+  };
+}
+function snapped(pt, p = project(), anchor = null) {
+  const result = snapPoint(p, pt, {
+    enabled: $("snap").checked,
+    gridEnabled: $("snap").checked && !snapSuspended,
+    guidesEnabled: $("snap-guides").checked && !snapSuspended,
+    gridStep: +$("grid-step").value,
+    zoom,
+    excludeIds: [...selected, ...(selectedMount ? [selectedMount] : [])],
+    anchor,
+  });
+  smartGuides = result.guides;
+  return result.point;
+}
+function stripPlacement(base, segment, raw) {
+  const result = snapStrip(base, { ...segment, x: raw.x, y: raw.y }, zoom, {
+    enabled: $("snap-strip").checked && !snapSuspended,
+  });
+  stripSnap = result.guide;
+  if (result.guide) return result.segment;
+  const point = snapped(raw, base);
+  return { ...segment, x: point.x, y: point.y };
+}
+function stationDrag(g, pt) {
+  const s = g.base.layout.stations.find((s) => s.id === g.id),
+    index =
+      ["cross-strip", "double-strip"].includes(s.symbolKind) &&
+      g.scope === "all"
+        ? 0
+        : (g.pointIndex ?? 0),
+    delta = { x: pt.x - g.start.x, y: pt.y - g.start.y },
+    origin = symbolCenters(g.base, s)[index],
+    rawPoint = { x: origin.x + delta.x, y: origin.y + delta.y },
+    target = nearestPhysicalLed(g.base, rawPoint, zoom, {
+      enabled: $("snap-led").checked && !snapSuspended,
+    });
+  ledSnap = target;
+  const constrained = g.base.ledLayout.bindings.some(
+      (b) => b.stationId === s.id,
+    ),
+    anchor = snapped({ x: s.x + delta.x, y: s.y + delta.y }, g.base, {
+      x: s.x,
+      y: s.y,
+    });
+  if (pointEditMode)
+    return enforceParallels(
+      moveGraphicStation(g.base, selected, anchor.x - s.x, anchor.y - s.y),
+    );
+  let q;
+  if (constrained && $("snap-led").checked) q = copy(g.base);
+  else q = moveGraphicStation(g.base, selected, anchor.x - s.x, anchor.y - s.y);
+  if (
+    ["cross-strip", "double-strip"].includes(s.symbolKind) &&
+    g.scope === "all" &&
+    constrained
+  ) {
+    if (!target)
+      throw Error(
+        "Flytt den samlede stasjonen til to ledige LED-er, eller velg bare A/B.",
+      );
+    ledSnap = target;
+    return moveBoundPair(g.base, s.id, target, zoom);
+  }
+  if (g.scope !== undefined && g.scope !== "all" && !constrained)
+    q = movePoint(g.base, s.id, index, snapped(rawPoint, g.base));
+  if (target && g.scope !== undefined && g.scope !== "all")
+    q = $("snap-led-bind").checked
+      ? bindPoint(q, {
+          stationId: g.id,
+          pointIndex: index,
+          segmentId: target.segmentId,
+          ledId: target.id,
+          share: g.share,
+        })
+      : movePoint(q, g.id, index, target);
+  else if (target)
+    q = snapStationPoint(q, g.id, index, target, {
+      bind: $("snap-led-bind").checked,
+      share: g.share,
+    });
+  else if (constrained && $("snap-led").checked)
+    q = movePoint(q, g.id, index, {
+      x: origin.x + anchor.x - s.x,
+      y: origin.y + anchor.y - s.y,
+    });
+  return enforceParallels(q);
+}
+function activePlacement() {
+  return placementSession ?? pendingStation;
+}
+function updateStationPlacement(
+  point,
+  { ctrlKey = snapSuspended, pointerType = "mouse" } = {},
+) {
+  const session = activePlacement();
+  if (!session) return;
+  session.point = point;
+  snapSuspended = ctrlKey;
+  const pair = placementSession && session.mode !== "normal";
+  const snap = pair
+    ? "required"
+    : !$("snap-led").checked
+      ? "off"
+      : $("snap-led-bind").checked
+        ? session.requireLed
+          ? "required"
+          : "bind"
+        : "align";
+  const preview = stationPlacement(project(), {
+    template: session.template,
+    id: session.id,
+    point,
+    freePoint: snapped(point),
+    rotation: session.rotation ?? 0,
+    mode: session.mode ?? "normal",
+    anchorIndex: session.anchorIndex ?? null,
+    snapIndex: +$("snap-led-point").value,
+    snap,
+    zoom,
+    first: session.first,
+    preferredLed: session.preferredLed,
+    suspended: ctrlKey,
+  });
+  placementPreview = preview;
+  ledSnap = preview.target ?? null;
+  if (pointerType === "touch") placementTouch = true;
+  renderPlacementStatus();
+  return preview;
+}
+function placementMarkup(p) {
+  const preview = placementPreview;
+  if (!activePlacement() || !preview) return "";
+  let text =
+    preview.reason ||
+    (preview.stage === "second"
+      ? "Punkt B klar"
+      : preview.target
+        ? `${preview.target.segmentName} · LED ${preview.target.index}`
+        : "Fri plassering");
+  return `${placementSession?.mode !== "normal" && placementSession && !p.layers.leds.visible ? `<g class="placement-led-layout" opacity=".5" pointer-events="none">${layerMarkup(p, "leds")}</g>` : ""}<g class="placement-preview" data-placement-valid="${preview.valid}" data-placement-stage="${preview.stage}" pointer-events="none" opacity=".65">${["capsules", "rings", "names", ...(p.layers.holes.visible ? ["holes"] : [])].map((layer) => stationMarkup(preview.station, layer, preview.project)).join("")}${preview.targets.map((l, i) => `<g data-placement-target="${i}" data-led-id="${esc(l.id)}" data-segment-id="${esc(l.segmentId)}" data-led-index="${l.index}"><circle cx="${l.x}" cy="${l.y}" r="${9 / zoom}" fill="none" stroke="${preview.valid ? "#1b8050" : "#bd4c3c"}" stroke-width="${2 / zoom}"/><text x="${l.x + 11 / zoom}" y="${l.y + (i === 0 ? -12 : 13) / zoom}" font-size="${11 / zoom}" fill="#275b45">${String.fromCharCode(65 + i)} · ${esc(l.segmentName)} · LED ${l.index}</text></g>`).join("")}<text x="${preview.station.x}" y="${Math.max(...symbolCenters(preview.project, preview.station).map((c) => c.y)) + preview.station.ringOuter / 2 + 17 / zoom}" text-anchor="middle" font-size="${11 / zoom}" fill="${preview.valid ? "#275b45" : "#a34032"}">${esc(text)}</text></g>`;
+}
+function finishStationPlacement(preview = placementPreview) {
+  const session = activePlacement();
+  if (!session || !preview) return;
+  if (!preview.valid) {
+    draw();
+    message(preview.reason);
+    return;
+  }
+  if (preview.action === "anchor") {
+    session.first = {
+      segmentId: preview.target.segmentId,
+      ledId: preview.target.id,
+      rotation: session.rotation ?? 0,
+    };
+    session.preferredLed = null;
+    session.point = symbolCenters(preview.project, preview.station)[1];
+    updateStationPlacement(session.point);
+    draw();
+    message("Punkt A valgt · velg LED på en annen stripe for punkt B.");
+    return;
+  }
+  selected = [preview.station.id];
+  selectedRoute = null;
+  bindingStation = preview.station.id;
+  bindingPoint = 0;
+  stationPart = "all";
+  if (placementSession) {
+    session.id = crypto.randomUUID();
+    session.first = null;
+    session.preferredLed = null;
+  } else {
+    pendingStation = null;
+    placementPreview = null;
+    ledSnap = null;
+  }
+  commit(preview.project);
+  if (placementSession) {
+    updateStationPlacement(session.point);
+    draw();
+  } else {
+    canvas.style.cursor = "default";
+    renderPlacementToolbar();
+  }
+}
+function refreshPlacement() {
+  const session = activePlacement();
+  if (session?.point) updateStationPlacement(session.point);
+  draw();
+}
+function renderPlacementStatus() {
+  const preview = placementPreview,
+    session = activePlacement();
+  $("placement-touch-controls").hidden = !activePlacement() || !placementTouch;
+  $("placement-touch-confirm").disabled = !preview?.valid;
+  $("placement-touch-confirm").textContent =
+    preview?.action === "anchor" ? "Velg punkt A" : "Plasser stasjon";
+  const actualAngle = preview?.station.symbolAngle ?? session?.rotation ?? 0;
+  $("placement-angle").textContent =
+    `${Math.round(actualAngle * 10) / 10}°${preview?.stage === "second" ? " · LED-styrt" : ""}`;
+  $("placement-status").textContent = preview
+    ? preview.reason ||
+      (preview.stage === "first"
+        ? "Klikk LED på stripe A."
+        : preview.stage === "second"
+          ? "Klikk LED på stripe B."
+          : preview.target
+            ? `${preview.target.segmentName} · LED ${preview.target.index}`
+            : "Fri plassering")
+    : "Beveg pekeren over tavlen.";
+  $("placement-status").dataset.valid = String(preview?.valid ?? false);
+  const candidates = preview?.candidates ?? [];
+  $("placement-led-label").hidden = false;
+  $("placement-led").disabled = !candidates.length;
+  $("placement-led").innerHTML =
+    '<option value="">Automatisk (nærmest)</option>' +
+    candidates
+      .map(
+        (l) =>
+          `<option value="${esc(ledKey(l))}" ${l.occupied.length && !preview?.allowOccupied ? "disabled" : ""}>${esc(l.segmentName)} · LED ${l.index} · ${esc(l.controllerId)}/${esc(l.chainId)}${l.occupied.length ? " · i bruk" : ""}</option>`,
+      )
+      .join("");
+  $("placement-led").value = session?.preferredLed ?? "";
+}
+function renderPlacementToolbar() {
+  const previousHeight = canvas.clientHeight,
+    session = activePlacement();
+  $("placement-toolbar").hidden = !placementSession;
+  if (!session) {
+    $("placement-touch-controls").hidden = true;
+    origin.y += (canvas.clientHeight - previousHeight) / 2;
+    return;
+  }
+  const records = libraryRecords();
+  $("placement-symbol").innerHTML =
+    '<option value="current">Valgt mal / kopiert symbol</option><option value="default">Standard enkeltstasjon</option>' +
+    records
+      .map(
+        (r) =>
+          `<option value="${esc(r.id)}">${esc(r.category)} · ${esc(r.name)}</option>`,
+      )
+      .join("");
+  $("placement-symbol").value = session.symbolId ?? "current";
+  $("placement-mode").value = session.mode ?? "normal";
+  $("placement-mode").disabled = !placementSession;
+  $("placement-snap").value =
+    session.mode && session.mode !== "normal"
+      ? "required"
+      : !$("snap-led").checked
+        ? "off"
+        : !$("snap-led-bind").checked
+          ? "align"
+          : session.requireLed
+            ? "required"
+            : "bind";
+  $("placement-snap").disabled =
+    !!session.first ||
+    (session.mode !== undefined && session.mode !== "normal");
+  $("placement-anchor").disabled = !!session.mode && session.mode !== "normal";
+  $("placement-anchor").value =
+    session.mode && session.mode !== "normal"
+      ? "0"
+      : session.anchorIndex === null || session.anchorIndex === undefined
+        ? "center"
+        : String(session.anchorIndex);
+  $("placement-anchor").querySelector('[value="1"]').disabled =
+    session.template.appearance.points < 2;
+  renderPlacementStatus();
+  origin.y += (canvas.clientHeight - previousHeight) / 2;
+}
+function rotateSelectedStations(degrees) {
+  const before = project();
+  let q = before;
+  for (const id of selected)
+    q = rotateStation(q, id, degrees, {
+      pointIndex: stationPart === "all" ? null : +stationPart,
+    });
+  commit(q, { additionalPhysical: rotationChanges(before, q) });
+}
+function rotatePlacement(degrees) {
+  const session = activePlacement();
+  if (!session) return;
+  session.rotation = ((session.rotation ?? 0) + degrees + 360) % 360;
+  refreshPlacement();
+}
+function fit() {
+  const r = canvas.getBoundingClientRect(),
+    b = project().board;
+  zoom = Math.min((r.width - 100) / b.width, (r.height - 80) / b.height);
+  zoom = Math.max(0.05, zoom);
+  origin = {
+    x: (r.width - b.width * zoom) / 2,
+    y: (r.height - b.height * zoom) / 2,
+  };
+  if (activePlacement() && lastPointer && !placementTouch)
+    updateStationPlacement(xy(lastPointer));
+  draw();
+}
+function zoomAt(
+  factor,
+  cx = canvas.clientWidth / 2,
+  cy = canvas.clientHeight / 2,
+) {
+  const next = Math.max(0.05, Math.min(30, zoom * factor));
+  origin = {
+    x: cx - ((cx - origin.x) * next) / zoom,
+    y: cy - ((cy - origin.y) * next) / zoom,
+  };
+  zoom = next;
+  if (activePlacement() && lastPointer && !placementTouch)
+    updateStationPlacement(xy(lastPointer));
+  draw();
+}
+function draw(p = project()) {
+  canvas.classList.toggle("placing-station", !!activePlacement());
+  const b = p.board,
+    w = canvas.clientWidth,
+    h = canvas.clientHeight;
+  canvas.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  const guides = p.layers.guides.visible,
+    spec = gridSpec(
+      +$("grid-step").value,
+      +$("grid-major").value,
+      $("grid-contrast").value,
+      zoom,
+    );
+  const gridMarkup =
+    $("grid").checked && guides
+      ? `<defs>${[
+          ["fine", spec.fine, spec.fineOpacity],
+          ["minor", spec.minor, spec.minorOpacity],
+          ["major", spec.major, spec.majorOpacity],
+        ]
+          .map(
+            ([kind, step, opacity]) =>
+              `<pattern id="background-grid-${kind}" data-grid="${kind}" data-spacing="${step}" width="${step}" height="${step}" patternUnits="userSpaceOnUse"><path d="M ${step} 0 H 0 V ${step}" fill="none" stroke="#667e6b" stroke-width="${(kind === "major" ? 0.9 : 0.6) / zoom}" opacity="${opacity}"/></pattern>`,
+          )
+          .join(
+            "",
+          )}</defs><rect width="${b.width}" height="${b.height}" fill="url(#background-grid-fine)" pointer-events="none"/><rect width="${b.width}" height="${b.height}" fill="url(#background-grid-minor)" pointer-events="none"/><rect width="${b.width}" height="${b.height}" fill="url(#background-grid-major)" pointer-events="none"/>`
+      : "";
+  const route = p.layout.routes.find((r) => r.id === selectedRoute);
+  let controls = "";
+  if (route && p.layers.routes.visible && !routeMoveEnabled) {
+    selectedEdge = Math.min(selectedEdge, route.stationIds.length - 2);
+    const g = edgeGeometry(p, route, selectedEdge);
+    if (g.curves?.length) {
+      const c = g.curves[0],
+        last = g.curves.at(-1),
+        bend =
+          route.bends[selectedEdge] ??
+          g.center[Math.floor(g.center.length / 2)];
+      const shape = route.controls[selectedEdge]?.shape;
+      controls = `<g class="selected-connection" pointer-events="none">${g.paths.map((path) => `<path d="${path.d}" fill="none" stroke="#3c9c74" stroke-opacity=".28" stroke-width="${5 / zoom}"/>`).join("")}</g><g class="curve-controls"><path d="${g.center.map((pt, i) => `${i ? "L" : "M"} ${pt.x} ${pt.y}`).join(" ")}" fill="none" stroke="${g.adjusted ? "#c28427" : "#537f91"}" stroke-width="${1 / zoom}" stroke-dasharray="${4 / zoom} ${3 / zoom}"/><path d="M ${c.start.x} ${c.start.y} L ${c.c1.x} ${c.c1.y} M ${last.end.x} ${last.end.y} L ${last.c2.x} ${last.c2.y}" stroke="#6896a1" stroke-width="${1 / zoom}"/>${shape ? `<path d="M ${c.c2.x} ${c.c2.y} L ${g.curves[1].c1.x} ${g.curves[1].c1.y}" stroke="#9664a5" stroke-width="${1 / zoom}"/>` : ""}${[
+        ["start", c.c1],
+        ["end", last.c2],
+        ...(shape
+          ? [
+              ["form", shape],
+              ["shape-tangent", g.curves[1].c1],
+            ]
+          : [["bend", bend]]),
+      ]
+        .map(
+          ([kind, pt]) =>
+            `<circle data-handle="${kind}" data-control-route="${esc(route.id)}" cx="${pt.x}" cy="${pt.y}" r="${5 / zoom}" fill="${kind === "bend" ? "#f9e2a3" : kind === "form" ? "#d8c2e7" : "white"}" stroke="#386b7a" stroke-width="${1.5 / zoom}"/>`,
+        )
+        .join(
+          "",
+        )}<text x="${bend.x + 6 / zoom}" y="${bend.y - 9 / zoom}" font-size="${10 / zoom}" fill="#446f7a">R min ${Number.isFinite(g.minRadius) ? g.minRadius.toFixed(1) : "∞"} mm · ${route.transitionLength} mm overgang</text></g>`;
+    }
+  }
+  if (!lineAdvanced) controls = controls.split('<g class="curve-controls">')[0];
+  const issues = geometryReport(p).filter((g) => !g.valid || g.adjusted);
+  $("geometry-status").textContent = issues.length
+    ? issues.map((g) => g.warnings.join(" ")).join(" ")
+    : "";
+  $("geometry-status").hidden = !issues.length;
+  const marks = selected
+    .map((id) => p.layout.stations.find((s) => s.id === id))
+    .filter(Boolean)
+    .map(
+      (s) =>
+        `<circle class="selected-mark" cx="${s.x}" cy="${s.y}" r="${s.ringOuter / 2 + 2}" fill="none" stroke="#4b9471" stroke-width="${1.2 / zoom}" stroke-dasharray="${3 / zoom} ${2 / zoom}"/>`,
+    )
+    .join("");
+  let overlay = "";
+  if (selected.length === 1) {
+    const s = p.layout.stations.find((s) => s.id === selected[0]);
+    if (s)
+      overlay += symbolCenters(p, s)
+        .filter((c) => stationPart === "all" || c.index === +stationPart)
+        .map(
+          (c) =>
+            `<circle data-selected-point="${c.index}" pointer-events="none" cx="${c.x}" cy="${c.y}" r="${s.ringOuter / 2 + 2 / zoom}" fill="none" stroke="#258b66" stroke-width="${1 / zoom}"/>`,
+        )
+        .join("");
+  }
+
+  if (gesture?.kind === "box") {
+    const a = gesture.start,
+      c = gesture.last;
+    overlay = `<rect x="${Math.min(a.x, c.x)}" y="${Math.min(a.y, c.y)}" width="${Math.abs(a.x - c.x)}" height="${Math.abs(a.y - c.y)}" fill="#629b7a22" stroke="#4b9471" stroke-width="${1 / zoom}"/>`;
+  }
+  if (stripSnap) {
+    overlay += `<g id="strip-snap-indicator" data-snap-kind="${stripSnap.kind}" pointer-events="none"><circle cx="${stripSnap.x}" cy="${stripSnap.y}" r="${8 / zoom}" fill="#d4eede99" stroke="#287b67" stroke-width="${1.5 / zoom}"/><text x="${stripSnap.x + 10 / zoom}" y="${stripSnap.y - 9 / zoom}" font-size="${11 / zoom}" fill="#21623e">${esc(stripSnap.label)}</text></g>`;
+  }
+  if (ledSnap && activePlacement())
+    overlay += `<g id="led-snap-indicator" pointer-events="none" data-led-id="${esc(ledSnap.id)}" data-snap-index="${ledSnap.index}"/>`;
+  else if (ledSnap) {
+    overlay += `<g id="led-snap-indicator" pointer-events="none" data-led-id="${esc(ledSnap.id)}" data-snap-index="${ledSnap.index}"><circle cx="${ledSnap.x}" cy="${ledSnap.y}" r="${8 / zoom}" fill="${ledSnap.occupied.length ? "#e8bd6733" : "#4baf9033"}" stroke="#287b67" stroke-width="${2 / zoom}"/><text x="${ledSnap.x + 11 / zoom}" y="${ledSnap.y - 9 / zoom}" font-size="${11 / zoom}" fill="#236e5d">${esc(ledSnap.segmentName)} · LED ${ledSnap.index} · ${$("snap-led-bind").checked ? "fest og bind" : "kun sentrering"}${ledSnap.occupied.length ? " · i bruk" : ""}</text></g>`;
+  }
+  if (measure) {
+    const { a, b: c } = measure;
+    overlay += `<path d="M ${a.x} ${a.y} L ${c.x} ${c.y}" stroke="#b8893b" fill="none" stroke-width="${1.5 / zoom}"/><text x="${(a.x + c.x) / 2}" y="${(a.y + c.y) / 2 - 3 / zoom}" font-size="${12 / zoom}" fill="#946419">${Math.hypot(a.x - c.x, a.y - c.y).toFixed(2)} mm</text>`;
+  }
+  if (gesture && p.layers.guides.visible)
+    overlay += `<g class="smart-guides" pointer-events="none">${smartGuides.map((g) => (g.axis ? `<path data-smart-kind="${g.kind}" d="${g.axis === "x" ? `M ${g.value} 0 V ${b.height}` : `M 0 ${g.value} H ${b.width}`}" stroke="#168eac" stroke-width="${1.2 / zoom}" stroke-dasharray="${5 / zoom} ${3 / zoom}"/>` : `<g data-smart-kind="${g.kind}"><path d="M ${g.a.x} ${g.a.y} L ${g.b.x} ${g.b.y}" stroke="${g.kind === "distance" ? "#ab813a" : "#168eac"}" stroke-width="${1 / zoom}" stroke-dasharray="${4 / zoom} ${2 / zoom}"/><text x="${(g.a.x + g.b.x) / 2}" y="${(g.a.y + g.b.y) / 2 - 3 / zoom}" font-size="${10 / zoom}" fill="#16809b">${g.label}</text></g>`)).join("")}</g>`;
+  // Rulers are screen UI; their values are derived from canonical millimetres.
+  let rulers =
+    '<rect width="100%" height="19" fill="#f6f8f3"/><rect width="23" height="100%" fill="#f6f8f3"/>';
+  let tick = 10;
+  while (tick * zoom < 45) tick *= 2;
+  while (tick * zoom > 150) tick /= 2;
+  const x0 = Math.max(0, Math.ceil(-origin.x / zoom / tick) * tick),
+    y0 = Math.max(0, Math.ceil(-origin.y / zoom / tick) * tick);
+  for (let x = x0; x <= Math.min(b.width, (w - origin.x) / zoom); x += tick) {
+    const px = origin.x + x * zoom;
+    rulers += `<path d="M ${px} 14 V 19" stroke="#a7b3a1"/><text x="${px + 3}" y="11" font-size="9" fill="#819078">${x}</text>`;
+  }
+  for (let y = y0; y <= Math.min(b.height, (h - origin.y) / zoom); y += tick) {
+    const py = origin.y + y * zoom;
+    rulers += `<path d="M 18 ${py} H 23" stroke="#a7b3a1"/><text x="3" y="${py - 3}" font-size="8" fill="#819078">${y}</text>`;
+  }
+  // Preserve the rendered coordinate group. Replacing it briefly produces an
+  // identity screen matrix in newer Chromium before the next rendering frame.
+  if (!canvas.querySelector(":scope > [data-scene]"))
+    canvas.innerHTML =
+      '<g data-scene="true"></g><g data-rulers="true" pointer-events="none"></g>';
+  const scene = canvas.querySelector(":scope > [data-scene]");
+  scene.setAttribute(
+    "transform",
+    `translate(${origin.x} ${origin.y}) scale(${zoom})`,
+  );
+  scene.innerHTML = `<rect x="2" y="3" width="${b.width}" height="${b.height}" fill="#243522" opacity=".09"/><rect width="${b.width}" height="${b.height}" fill="white"/>${gridMarkup}${PAINT_ORDER.filter(
+    (id) => p.layers[id].visible,
+  )
+    .map((id) => `<g data-layer="${id}">${layerMarkup(p, id)}</g>`)
+    .join(
+      "",
+    )}${marks}${overlay}${controls}${placementMarkup(p)}${workflowMarkup(p)}${portMarkup(p)}${pointHandleMarkup(p)}${nameSelectionMarkup(p)}`;
+  canvas.querySelector(":scope > [data-rulers]").innerHTML = rulers;
+  for (const routeLayer of canvas.querySelectorAll(
+    "[data-layer=routes],[data-layer=capsules]",
+  ))
+    for (const path of [...routeLayer.querySelectorAll("[data-route]")]) {
+      const hit = path.cloneNode();
+      hit.setAttribute("stroke", "transparent");
+      hit.setAttribute("stroke-width", 6 / zoom);
+      hit.setAttribute("pointer-events", "stroke");
+      routeLayer.append(hit);
+    }
+  $("hint").textContent =
+    p.id === "trondheim-buss-fysisk-v03"
+      ? "Fysisk demonstrasjon · ikke en verifisert ruteplan"
+      : "Velg stasjon · Ctrl+klikk for flervalg · Space for panorering";
+  $("zoom").textContent = `${Math.round(zoom * 100)}%`;
+}
+const field = (id, label, value, type = "number", attrs = "") =>
+  `<label>${label}<input id="${id}" type="${type}" value="${esc(value)}" ${attrs}></label>`;
+function templatePlacementMode(template) {
+  if (template?.appearance.points !== 2) return "normal";
+  return template?.appearance.symbolKind === "double-strip"
+    ? "double"
+    : template?.appearance.symbolKind === "cross-strip"
+      ? "common"
+      : "normal";
+}
+function withTextDefault(t) {
+  return {
+    ...copy(t),
+    ...(project().labelDefault ? { label: copy(project().labelDefault) } : {}),
+  };
+}
+function defaultTemplate() {
+  const p = createProject(),
+    t = stationTemplate(p, p.layout.stations[0]);
+  t.appearance.symbolAngle = null;
+  t.label.dx = 9;
+  t.label.dy = 0;
+  t.label.anchor = "start";
+  t.holeOffsets = [{ x: 0, y: 0 }];
+  return t;
+}
+function setStationDefault(template) {
+  mutate((q) => (q.stationTemplate = template));
+  if (placementSession) {
+    placementSession.template = withTextDefault(template ?? defaultTemplate());
+    placementSession.mode = templatePlacementMode(template);
+    placementSession.symbolId = "current";
+    placementSession.rotation = 0;
+    placementSession.first = null;
+    placementSession.preferredLed = null;
+    refreshPlacement();
+    renderPlacementToolbar();
+  }
+}
+function stationLocks() {
+  return ["rings", "holes", "capsules", "names", "routes"].some(
+    (id) => project().layers[id].locked,
+  );
+}
+function startDuplicate() {
+  const s = project().layout.stations.find((s) => s.id === selected[0]);
+  if (!s) return;
+  clipboard = stationTemplate(project(), s);
+  beginPaste();
+}
+function beginPaste(template = clipboard) {
+  placementSession = null;
+  placementPreview = null;
+  placementTouch = false;
+  pendingStrip = null;
+  bindTarget = null;
+  if (!template) return;
+  if (stationLocks()) {
+    message("Lås opp berørte lag før plassering");
+    return;
+  }
+  pendingStation = {
+    template: copy(template),
+    point: null,
+    id: crypto.randomUUID(),
+  };
+  selectedRoute = null;
+  setTool("select");
+  canvas.focus();
+  canvas.style.cursor = "none";
+  renderPlacementToolbar();
+  message("Plasser kopien med et klikk · R roterer · Escape avbryter");
+  draw();
+}
+function previewParallel(q, g) {
+  const candidate = parallelCandidate(
+    q,
+    g.routeId,
+    g.edge,
+    +$("parallel-distance").value,
+    zoom,
+  );
+  if (candidate) {
+    smartGuides.push(candidate.guide, {
+      kind: "parallel-offset-line",
+      a: candidate.line.a,
+      b: candidate.line.b,
+      label: "Beregnet parallellplassering",
+    });
+    if ($("snap-guides").checked && !snapSuspended) {
+      applyParallel(q, candidate);
+      if ($("parallel-lock").checked) {
+        q.layout.parallelConstraints = (
+          q.layout.parallelConstraints ?? []
+        ).filter((c) => c.follower.routeId !== g.routeId);
+        q.layout.parallelConstraints.push({
+          id: candidate.id,
+          reference: candidate.reference,
+          follower: candidate.follower,
+          distance: candidate.distance,
+        });
+      }
+    }
+  }
+  enforceParallels(q);
+  return q;
+}
+function stationPanelMarkup(s, p) {
+  const pair = (...fields) => `<div class="pair">${fields.join("")}</div>`;
+  return `<h2>Stasjon <span>02</span></h2><div class="station-actions"><button id="station-rotate">Roter 90° (R)</button><button id="duplicate-station">Dupliser stasjon</button><button id="set-template">Bruk som standardstasjon</button><button id="reset-template">Standard enkeltstasjon</button></div>
+ ${field("station-name", "Navn", s.name, "text")}${pair(field("station-x", "X, mm", s.x), field("station-y", "Y, mm", s.y))}
+ ${pair(field("symbol-points", "Antall punkter", s.points, "number", 'min="1" max="8" step="1"'), field("symbol-spacing", "Punktavstand, mm", s.pointSpacing, "number", 'min="0.1" step="0.1"'))}
+ ${pair(field("symbol-angle", "Punktrekkens vinkel, ° (tom = auto)", s.symbolAngle ?? ""), field("symbol-bias", "Asymmetri (−0,5–0,5)", s.splitBias))}
+ <div class="station-actions"><button id="points-horizontal">Vannrett</button><button id="points-vertical">Loddrett</button><button id="points-uniform">Jevn fordeling</button><button id="points-fit">Tilpass størrelser til avstand</button></div>
+ <details open id="appearance-panel"><summary>Utseende · felles innstillinger</summary>
+ ${pair(field("ring-outer", "Ytterring Ø, mm", s.ringOuter, "number", 'min="0.1" step="0.1"'), field("ring-inner", "Innerring Ø, mm", s.ringInner, "number", 'min="0" step="0.1"'))}
+ ${field("ring-stroke", "Ringstrek, mm", s.stroke, "number", 'min="0.01" step="0.01"')}
+ <label>Kapseltype<select id="capsule-type"><option value="none">Ingen kapsel</option><option value="stadium">Avrundet kapsel</option><option value="rounded-box">Avrundet ramme</option></select></label>
+ ${pair(field("capsule-width", "Ekstra bredde, mm", s.capsuleExtraWidth ?? 0), field("capsule-height", "Ekstra høyde, mm", s.capsuleExtraHeight ?? 0))}
+ ${pair(field("symbol-padding", "Kapselmarg, mm", s.capsulePadding, "number", 'min="0" step="0.1"'), field("symbol-stroke", "Kapselstrek, mm", s.capsuleStroke, "number", 'min="0.01" step="0.01"'))}
+ ${pair('<label>Ringer<select id="symbol-double"><option value="true">Dobbel ring</option><option value="false">Enkel ring</option></select></label>', field("symbol-color", "Ringfarge", s.ringColor, "color"))}
+ ${field("station-transition", "Egen overgang, mm (tom = trasé)", s.transitionLength ?? "", "number", 'min="0.1" max="100"')}</details>
+ <section id="graphic-points-panel"></section>
+ <h2>Stasjonsnavn</h2><button id="edit-station-name">Rediger navn og plassering</button>${pair(field("label-dx", "Forskyvning X, mm", s.label.dx), field("label-dy", "Forskyvning Y, mm", s.label.dy))}
+ ${pair(field("label-angle", "Rotasjon, °", s.label.angle), field("label-size", "Tekststørrelse, mm", s.label.size, "number", 'min="0.1" step="0.1"'))}
+ ${pair(field("label-spacing", "Bokstavavstand, mm", s.label.spacing, "number", 'step="0.1"'), '<label>Justering<select id="label-anchor"><option value="start">Venstre</option><option value="middle">Midtstilt</option><option value="end">Høyre</option></select></label>')}
+ <label>Skrift<select id="label-font"><option>Arial</option><option>Verdana</option><option>Georgia</option><option>monospace</option></select></label><label>Skriftvekt<select id="label-weight"><option>400</option><option>600</option><option>700</option></select></label>
+ <details id="physical-station-panel" ${p.ledLayout.segments.length || p.ledLayout.bindings.some((b) => b.stationId === s.id) ? "open" : ""}><summary>Fysisk LED og hull</summary>
+ <label class="inline-toggle"><input id="station-snap-led" type="checkbox" ${$("snap-led").checked ? "checked" : ""}>Fest til LED ved fysisk flytting</label>
+ <label>Velg deler<select id="station-parts"><option value="all">Begge / hele stasjonen</option>${Array.from({ length: s.points }, (_, i) => `<option value="${i}">Bare punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label>
+ <label>Aktivt stasjonspunkt<select id="station-snap-point">${Array.from({ length: s.points }, (_, i) => `<option value="${i}">Punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label>
+ ${field("hole-diameter", "Felles hull-/lysåpning Ø, mm", s.holeDiameter, "number", 'min="0.1" step="0.1"')}
+ <button id="align-holes">Tilpass hull til symbolet</button><p class="note">Grafikken kan redigeres fritt. Hull og LED-er flyttes bare ved eksplisitte fysiske handlinger.</p></details>`;
+}
+function renderPointEditor(p, s) {
+  bindingPoint = Math.min(bindingPoint, s.points - 1);
+  const i = bindingPoint,
+    c = symbolCenters(p, s)[i],
+    style = pointStyle(s, i),
+    own = s.pointStyles?.[s.pointIds[i]] ?? {},
+    panel = $("graphic-points-panel");
+  panel.innerHTML = `<h2>Individuelle punkter</h2><label>Punkt<select id="graphic-point">${s.pointIds.map((id, i) => `<option value="${i}">${String.fromCharCode(65 + i)}</option>`).join("")}</select></label>
+ <div class="pair">${field("point-x", "Grafisk X, mm", c.x, "number", 'step="0.1"')}${field("point-y", "Grafisk Y, mm", c.y, "number", 'step="0.1"')}</div>
+ ${["ringOuter", "ringInner", "stroke"].map((key, j) => field(["point-outer", "point-inner", "point-stroke"][j], ["Egen ytterring Ø, mm", "Egen innerring Ø, mm", "Egen ringstrek, mm"][j], own[key] ?? "", "number", `step="${key === "stroke" ? 0.01 : 0.1}" placeholder="Arver ${style[key]} mm"`)).join("")}
+ <p class="note">Gjeldende: Ø ${style.ringOuter} / ${style.ringInner} mm · strek ${style.stroke} mm${style.ringInner > style.ringOuter ? ". Innerringen er større enn ytterringen; størrelsene kan justeres uavhengig." : ""}</p>
+ <button id="point-inherit">Bruk felles ringinnstillinger</button><div class="station-actions"><button id="point-add">+ Legg til punkt</button><button id="point-remove">− Fjern punkt</button><button id="point-edit-toggle" aria-pressed="${pointEditMode}">Rediger punkter på tavlen</button></div>
+ <p class="note">Tomme størrelsesfelt arver felles innstillinger. Dra størrelseshåndtakene, eller aktiver punktredigering og dra ringene. Nye punkter opprettes som grafikk uten nytt aktivt hull.</p>`;
+  $("graphic-point").value = String(i);
+  $("graphic-point").onchange = (e) => {
+    bindingPoint = +e.target.value;
+    const current = project().layout.stations.find((t) => t.id === s.id);
+    renderPointEditor(project(), current);
+    renderBindings(project(), current);
+    $("station-snap-point").value = bindingPoint;
+    draw();
+  };
+  for (const [id, key] of [
+    ["point-x", "x"],
+    ["point-y", "y"],
+    ["point-outer", "ringOuter"],
+    ["point-inner", "ringInner"],
+    ["point-stroke", "stroke"],
+  ]) {
+    $(id).disabled = p.layers.rings.locked;
+    $(id).onchange = (e) =>
+      safe(() => {
+        if (["x", "y"].includes(key) && e.target.value === "")
+          throw Error(
+            "Punktets X/Y kan ikke være tomme. Oppgi et millimetermål.",
+          );
+        commit(
+          editGraphicPoint(project(), s.id, bindingPoint, {
+            [key]: e.target.value === "" ? null : +e.target.value,
+          }),
+        );
+      });
+  }
+  $("point-inherit").onclick = () =>
+    safe(() =>
+      commit(
+        editGraphicPoint(project(), s.id, bindingPoint, { inherit: true }),
+      ),
+    );
+  $("point-add").disabled = s.points === 8 || p.layers.rings.locked;
+  $("point-remove").disabled = s.points === 1 || p.layers.rings.locked;
+  $("point-add").onclick = () =>
+    safe(() => {
+      const q = editStation(project(), s.id, { count: s.points + 1 });
+      bindingPoint = s.points;
+      pointEditMode = true;
+      commit(q);
+    });
+  $("point-remove").onclick = () =>
+    safe(() => {
+      const q = editStation(project(), s.id, { removeIndex: bindingPoint });
+      bindingPoint = Math.min(bindingPoint, s.points - 2);
+      commit(q);
+    });
+  $("point-edit-toggle").onclick = () => {
+    pointEditMode = !pointEditMode;
+    renderPointEditor(project(), s);
+    draw();
+  };
+  for (const [id, options] of [
+    ["points-horizontal", { angle: 0 }],
+    ["points-vertical", { angle: 90 }],
+    ["points-uniform", { uniform: true }],
+  ])
+    $(id).onclick = () =>
+      safe(() => commit(editStation(project(), s.id, options)));
+  $("points-fit").onclick = () =>
+    safe(() => commit(fitPointSizes(project(), s.id)));
+  const physical = $("physical-station-panel"),
+    h = s.holes[i];
+  let holder = $("point-hole-controls");
+  if (!holder) {
+    holder = document.createElement("div");
+    holder.id = "point-hole-controls";
+    physical.append(holder);
+  }
+  holder.innerHTML = `<label class="inline-toggle"><input id="point-hole-enabled" type="checkbox" ${activeHole(h) ? "checked" : ""}>Aktivt fysisk hull for punkt ${String.fromCharCode(65 + i)}</label>`;
+  $("point-hole-enabled").onchange = (e) =>
+    safe(() =>
+      commit(setHoleEnabled(project(), s.id, bindingPoint, e.target.checked)),
+    );
+}
+function pointHandleMarkup(p) {
+  if (tool !== "select" || selected.length !== 1 || pendingStation) return "";
+  const s = p.layout.stations.find((s) => s.id === selected[0]);
+  if (!s || !p.layers.rings.visible || p.layers.rings.locked) return "";
+  return `<g class="point-handles">${symbolCenters(p, s)
+    .map((c) => {
+      const style = pointStyle(s, c.index),
+        r = style.ringOuter / 2;
+      return `<g data-point-station="${esc(s.id)}" data-point-index="${c.index}">${pointEditMode ? `<circle data-point-handle="move" cx="${c.x}" cy="${c.y}" r="${4 / zoom}" fill="#d5ebe5" fill-opacity=".6" stroke="#28795b" stroke-width="${1 / zoom}"/>` : ""}<rect data-point-handle="size" x="${c.x + r - 3 / zoom}" y="${c.y - 3 / zoom}" width="${6 / zoom}" height="${6 / zoom}" fill="white" stroke="#28795b" stroke-width="${1 / zoom}"/>${c.index === bindingPoint ? `<text pointer-events="none" x="${c.x}" y="${c.y - r - 5 / zoom}" text-anchor="middle" font-size="${10 / zoom}" fill="#28795b">${String.fromCharCode(65 + c.index)} · Ø ${style.ringOuter.toFixed(2)} mm</text>` : ""}<title>Punkt ${String.fromCharCode(65 + c.index)} · Ø ${style.ringOuter.toFixed(3)} mm</title></g>`;
+    })
+    .join("")}</g>`;
+}
+
+function properties() {
+  selectedNames = selectedNames.filter((id) =>
+    project().layout.stations.some((s) => s.id === id),
+  );
+  if (selectedNames.length) {
+    nameProperties();
+    return;
+  }
+  // Native details.toggle is asynchronous. Capture the actual DOM state before
+  // replacing the inspector so an immediate field edit cannot close the panel.
+  const previousAdvanced = $("line-advanced");
+  if (previousAdvanced) lineAdvanced = previousAdvanced.open;
+  const p = project(),
+    s = p.layout.stations.find((s) => s.id === selected[0]),
+    panel = $("properties");
+  if (selectedRoute) {
+    routeProperties();
+    return;
+  }
+  if (tool === "route") {
+    creationProperties();
+    return;
+  }
+  if (s && stationPart !== "all" && +stationPart >= s.points)
+    stationPart = "all";
+  if (s) bindingPoint = Math.min(bindingPoint, s.points - 1);
+  if (s && bindingStation !== s.id) {
+    bindingStation = s.id;
+    bindingPoint = 0;
+  }
+  if (!s) {
+    panel.innerHTML =
+      '<h2>Egenskaper <span>02</span></h2><p class="note">Velg en stasjon på tavlen for presis plassering. S legger til en stasjon, L kobler stasjoner.</p><button id="reset-template">Standard enkeltstasjon</button>';
+    $("reset-template").onclick = () => setStationDefault(null);
+    return;
+  }
+  panel.innerHTML = stationPanelMarkup(s, p);
+  $("station-snap-led").onchange = (e) => {
+    $("snap-led").checked = e.target.checked;
+    draw();
+  };
+  $("station-snap-point").value = bindingPoint;
+  $("station-snap-point").onchange = (e) => {
+    bindingPoint = +e.target.value;
+    stationPart = String(bindingPoint);
+    $("station-parts").value = stationPart;
+    if ($("edit-station-name"))
+      $("edit-station-name").onclick = () => {
+        selectedNames = [s.id];
+        selected = [];
+        nameTool = true;
+        render();
+      };
+    renderBindings(p, s);
+    draw();
+  };
+  $("station-parts").value = stationPart;
+  $("station-parts").onchange = (e) => {
+    stationPart = e.target.value;
+    if (stationPart !== "all") {
+      bindingPoint = +stationPart;
+      $("station-snap-point").value = bindingPoint;
+      renderBindings(project(), s);
+    }
+    draw();
+  };
+  $("station-rotate").disabled =
+    p.layers.rings.locked || p.layers.capsules.locked || p.layers.routes.locked;
+  $("station-rotate").onclick = () => safe(() => rotateSelectedStations(90));
+  if (
+    p.ledLayout.bindings.some(
+      (b) => b.stationId === s.id && b.mode === "direct",
+    )
+  )
+    panel.insertAdjacentHTML(
+      "beforeend",
+      '<p class="note">Grafikken kan avvike fra hull og LED-er. Kontrollisten viser avvik før produksjon. Roter-knappen styrer yttermarkeringen ved direktebinding; feltet for punktrekkens vinkel kan redigeres fritt.</p>',
+    );
+  panel.insertAdjacentHTML(
+    "beforeend",
+    `<h2>Yttermarkering</h2>${field("marker-angle", "Rotasjon rundt ringsentrene, °", s.markerAngle ?? 0)}<div class="pair">${field("marker-dx", "Forskyvning X, mm", s.markerDx ?? 0)}${field("marker-dy", "Forskyvning Y, mm", s.markerDy ?? 0)}</div>`,
+  );
+  for (const [fieldId, key] of [
+    ["marker-angle", "markerAngle"],
+    ["marker-dx", "markerDx"],
+    ["marker-dy", "markerDy"],
+  ]) {
+    $(fieldId).disabled = p.layers.capsules.locked;
+    $(fieldId).onchange = (e) =>
+      safe(() =>
+        mutate(
+          (q) =>
+            (q.layout.stations.find((t) => t.id === s.id)[key] =
+              +e.target.value),
+        ),
+      );
+  }
+  $("duplicate-station").onclick = startDuplicate;
+  $("set-template").onclick = () =>
+    setStationDefault(stationTemplate(project(), s));
+  $("reset-template").onclick = () => setStationDefault(null);
+  const physical = holeCenters(p, s),
+    graphic = symbolCenters(p, s),
+    mismatch = physical.some(
+      (h) =>
+        !graphic[h.index] ||
+        Math.hypot(h.x - graphic[h.index].x, h.y - graphic[h.index].y) > 0.01,
+    );
+  if (mismatch)
+    panel.insertAdjacentHTML(
+      "afterbegin",
+      '<p class="warning">Grafikk og hull er forskjøvet. Hullsentrene er beholdt.</p>',
+    );
+  $("align-holes").disabled = p.layers.holes.locked;
+  $("align-holes").onclick = () =>
+    mutate((q) => {
+      const target = q.layout.stations.find((t) => t.id === s.id);
+      target.holes = symbolCenters(q, target).map((c, i) => ({
+        ...target.holes[i],
+        id: target.holes[i]?.id ?? `${target.id}:hole:${i}`,
+        x: c.x,
+        y: c.y,
+        enabled: true,
+      }));
+    });
+  for (const [id, key] of [
+    ["capsule-type", "capsuleType"],
+    ["capsule-width", "capsuleExtraWidth"],
+    ["capsule-height", "capsuleExtraHeight"],
+  ]) {
+    $(id).value = s[key] ?? 0;
+    $(id).disabled = p.layers.capsules.locked;
+    $(id).onchange = (e) =>
+      safe(() =>
+        commit(
+          applyVisualStyle(p, selected, {
+            [key]: key === "capsuleType" ? e.target.value : +e.target.value,
+          }),
+        ),
+      );
+  }
+  const symbolFields = {
+    "symbol-points": "points",
+    "symbol-spacing": "pointSpacing",
+    "symbol-padding": "capsulePadding",
+    "symbol-stroke": "capsuleStroke",
+    "symbol-angle": "symbolAngle",
+    "symbol-bias": "splitBias",
+    "symbol-color": "ringColor",
+    "symbol-double": "doubleRing",
+  };
+  $("symbol-double").value = String(s.doubleRing);
+  for (const [id, key] of Object.entries(symbolFields)) {
+    $(id).disabled = ["capsules", "rings"].some((l) => p.layers[l].locked);
+    $(id).onchange = (e) =>
+      safe(() =>
+        mutate(
+          (q) =>
+            (q.layout.stations.find((t) => t.id === s.id)[key] =
+              key === "symbolAngle" && e.target.value === ""
+                ? null
+                : key === "ringColor"
+                  ? e.target.value
+                  : key === "doubleRing"
+                    ? e.target.value === "true"
+                    : +e.target.value),
+        ),
+      );
+  }
+  for (const [id, key] of [
+    ["symbol-color", "ringColor"],
+    ["symbol-double", "doubleRing"],
+    ["symbol-padding", "capsulePadding"],
+    ["symbol-stroke", "capsuleStroke"],
+  ])
+    $(id).onchange = (e) =>
+      safe(() =>
+        commit(
+          applyVisualStyle(p, selected, {
+            [key]:
+              key === "ringColor"
+                ? e.target.value
+                : key === "doubleRing"
+                  ? e.target.value === "true"
+                  : +e.target.value,
+          }),
+        ),
+      );
+  $("station-transition").onchange = (e) =>
+    safe(() =>
+      mutate(
+        (q) =>
+          (q.layout.stations.find((t) => t.id === s.id).transitionLength =
+            e.target.value === "" ? null : +e.target.value),
+      ),
+    );
+  for (const [id, key] of [
+    ["symbol-points", "count"],
+    ["symbol-spacing", "spacing"],
+    ["symbol-angle", "angle"],
+  ]) {
+    $(id).disabled = p.layers.rings.locked || p.layers.capsules.locked;
+    $(id).onchange = (e) =>
+      safe(() =>
+        commit(
+          editStation(project(), s.id, {
+            [key]:
+              key === "angle" && e.target.value === "" ? null : +e.target.value,
+          }),
+        ),
+      );
+  }
+  $("symbol-bias").onchange = (e) =>
+    safe(() => {
+      const q = copy(project());
+      q.layout.stations.find((t) => t.id === s.id).splitBias = +e.target.value;
+      commit(editStation(q, s.id, { uniform: true }));
+    });
+  const mappings = {
+    "station-name": ["name", "names", true],
+    "ring-outer": ["ringOuter", "rings"],
+    "ring-inner": ["ringInner", "rings"],
+    "hole-diameter": ["holeDiameter", "holes"],
+    "ring-stroke": ["stroke", "rings"],
+  };
+  for (const [id, [key, layer, text]] of Object.entries(mappings)) {
+    $(id).disabled = p.layers[layer].locked;
+    $(id).onchange = (e) =>
+      safe(() => {
+        const value = text ? e.target.value : +e.target.value;
+        if (["ringOuter", "ringInner", "stroke"].includes(key))
+          commit(applyVisualStyle(p, selected, { [key]: value }));
+        else
+          mutate(
+            (q) => (q.layout.stations.find((t) => t.id === s.id)[key] = value),
+          );
+      });
+  }
+  for (const axis of ["x", "y"]) {
+    $("station-" + axis).disabled =
+      p.layers.rings.locked ||
+      p.layers.holes.locked ||
+      p.layers.capsules.locked ||
+      p.layers.routes.locked ||
+      p.layers.names.locked;
+    $("station-" + axis).onchange = (e) =>
+      safe(() => {
+        const delta = +e.target.value - s[axis];
+        commit(
+          moveGraphicStation(
+            p,
+            selected,
+            axis === "x" ? delta : 0,
+            axis === "y" ? delta : 0,
+          ),
+        );
+      });
+  }
+  for (const key of [
+    "dx",
+    "dy",
+    "angle",
+    "size",
+    "spacing",
+    "anchor",
+    "font",
+    "weight",
+  ]) {
+    $("label-" + key).value = s.label[key];
+    $("label-" + key).disabled = p.layers.names.locked;
+    $("label-" + key).onchange = (e) =>
+      safe(() =>
+        mutate(
+          (q) =>
+            (q.layout.stations.find((t) => t.id === s.id).label[key] = [
+              "anchor",
+              "font",
+            ].includes(key)
+              ? e.target.value
+              : +e.target.value),
+        ),
+      );
+  }
+  renderBindings(p, s);
+  $("physical-station-panel").append($("station-bindings"));
+  renderPointEditor(p, s);
+}
+function deleteSelectedConnection() {
+  if (!selectedRoute) return;
+  safe(() => {
+    const next = deleteConnection(project(), selectedRoute, selectedEdge);
+    selectedRoute = null;
+    selectedEdge = 0;
+    commit(next);
+    message(
+      "Valgt grafisk forbindelse slettet. Stasjoner og LED-bindinger beholdt.",
+    );
+  });
+}
+function rapidCandidate() {
+  if (!rapidPlacement) return null;
+  try {
+    return nextRapidStop(project(), rapidPlacement);
+  } catch {
+    return null;
+  }
+}
+function rapidPlace() {
+  safe(() => {
+    const result = placeRapidStop(project(), rapidPlacement);
+    selected = [result.stationId];
+    selectedRoute = null;
+    commit(result.project);
+    message("Stopp plassert og bundet. Neste ledige LED er markert.");
+  });
+}
+function renderRapid() {
+  const segmentSelect = $("rapid-segment"),
+    symbolSelect = $("rapid-symbol"),
+    oldSegment = segmentSelect.value,
+    oldSymbol = symbolSelect.value;
+  segmentSelect.innerHTML = project()
+    .ledLayout.segments.map(
+      (s) =>
+        `<option value="${esc(s.id)}">${esc(s.name)} · ${esc(s.chainId)}</option>`,
+    )
+    .join("");
+  if (project().ledLayout.segments.some((s) => s.id === oldSegment))
+    segmentSelect.value = oldSegment;
+  else if (project().ledLayout.segments.length)
+    $("rapid-start").value = ledPositions(
+      project(),
+      project().ledLayout.segments[0],
+    )[0].index;
+  const records = libraryRecords();
+  symbolSelect.innerHTML =
+    '<option value="current">Valgt standardstasjon</option>' +
+    records
+      .map(
+        (r) =>
+          `<option value="${esc(r.id)}">${esc(r.category + " · " + r.name)}</option>`,
+      )
+      .join("");
+  if (oldSymbol === "current" || records.some((r) => r.id === oldSymbol))
+    symbolSelect.value = oldSymbol;
+  for (const id of [
+    "rapid-symbol",
+    "rapid-segment",
+    "rapid-start",
+    "rapid-step",
+    "rapid-indices",
+    "rapid-name",
+  ])
+    $(id).disabled = !!rapidPlacement;
+  $("rapid-indices").closest("label").hidden =
+    $("rapid-step").value !== "custom";
+  $("rapid-begin").disabled =
+    !!rapidPlacement || !project().ledLayout.segments.length;
+  $("rapid-stop").disabled = !rapidPlacement;
+  const candidate = rapidCandidate();
+  $("rapid-place").disabled = !candidate;
+  $("rapid-status").textContent = rapidPlacement
+    ? candidate
+      ? `Neste: ${candidate.segment.name} · LED ${candidate.leds.map((l) => l.index).join(", ")}. Klikk første markerte LED, trykk Enter eller Plasser neste stopp.`
+      : "Ingen flere ledige posisjoner for dette symbolet. Avslutt for å velge et annet intervall."
+    : "Velg symbol og startindeks. Opptatte LED-er hoppes over.";
+}
+$("rapid-step").onchange = renderRapid;
+$("rapid-segment").onchange = () => {
+  const s = project().ledLayout.segments.find(
+    (s) => s.id === $("rapid-segment").value,
+  );
+  if (s) $("rapid-start").value = ledPositions(project(), s)[0].index;
+};
+$("rapid-begin").onclick = () =>
+  safe(() => {
+    const p = project(),
+      segment = p.ledLayout.segments.find(
+        (s) => s.id === $("rapid-segment").value,
+      ),
+      template =
+        $("rapid-symbol").value === "current"
+          ? (p.stationTemplate ?? defaultTemplate())
+          : libraryRecords().find((r) => r.id === $("rapid-symbol").value)
+              ?.template;
+    if (!segment || !template) throw Error("Velg segment og symbol.");
+    const config = {
+      segmentId: segment.id,
+      template: copy(template),
+      namePrefix: $("rapid-name").value,
+      startSlot: ledPositions(p, segment).findIndex(
+        (l) => l.index === +$("rapid-start").value,
+      ),
+      step: +$("rapid-step").value,
+    };
+    if ($("rapid-step").value === "custom")
+      config.indices = $("rapid-indices")
+        .value.split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .map(Number);
+    nextRapidStop(p, config);
+    selected = [];
+    selectedRoute = null;
+    setTool("select");
+    rapidPlacement = config;
+    selectedSegment = segment.id;
+    selectedProfile = segment.profileId;
+    pendingStrip = null;
+    pendingStation = null;
+    bindTarget = null;
+    mutate((q) => {
+      q.layers.leds.visible = true;
+      q.layers.strips.visible = true;
+    });
+    renderRapid();
+    draw();
+    canvas.focus();
+  });
+$("rapid-place").onclick = rapidPlace;
+$("rapid-stop").onclick = () => {
+  rapidPlacement = null;
+  render();
+};
+function workflowMarkup(p) {
+  const previewMessage = $("connection-preview-message");
+  if (previewMessage)
+    previewMessage.textContent = routeStart
+      ? "Velg sluttport for forhåndsvisning."
+      : "";
+  let markup = "";
+  let mountGhosts = pendingMount?.point
+      ? [{ ...pendingMount, ...pendingMount.point }]
+      : [],
+    mountPreviewValid = true;
+  if (pendingCorners) {
+    try {
+      const preview = cornerPattern(p, pendingCorners);
+      mountGhosts = preview.holes;
+      mountPreviewValid = !preview.issues.length;
+    } catch {
+      mountPreviewValid = false;
+    }
+  }
+  if (mountGhosts.length)
+    markup += `<g id="mount-preview-overlay" pointer-events="none" opacity=".65">${mountGhosts.map((h) => `<circle cx="${h.x}" cy="${h.y}" r="${h.diameter / 2}" fill="${mountPreviewValid ? "#a7d6a6" : "#efb7b1"}" stroke="${mountPreviewValid ? "#387743" : "#b54737"}" stroke-width=".3"/>`).join("")}</g>`;
+  const activeMount = p.production.mountingHoles?.find(
+    (h) => h.id === selectedMount,
+  );
+  if (activeMount && p.layers.mounting.visible)
+    markup += `<circle pointer-events="none" cx="${activeMount.x}" cy="${activeMount.y}" r="${activeMount.diameter / 2 + 2 / zoom}" fill="none" stroke="#775493" stroke-width="${1 / zoom}"/>`;
+
+  if (focusMark)
+    markup += `<g id="check-focus" pointer-events="none"><circle cx="${focusMark.x}" cy="${focusMark.y}" r="${14 / zoom}" fill="#e5ac5422" stroke="#c48a26" stroke-width="${2 / zoom}"/></g>`;
+  if (tool === "route" && routeStart && portHover) {
+    const separator = portHover.lastIndexOf("|"),
+      end = {
+        stationId: portHover.slice(0, separator),
+        portId: portHover.slice(separator + 1),
+      };
+    if (end.stationId !== routeStart.stationId) {
+      const g = connectionPreview(p, routeStart, end, reconnectTarget);
+      markup += `<g id="connection-preview" pointer-events="none" data-valid="${g.valid}">${g.paths.map((path) => `<path d="${path.d}" fill="none" stroke="${g.valid ? "#21834d" : "#c34f3f"}" stroke-opacity=".7" stroke-width="${2 / zoom}" stroke-dasharray="${4 / zoom} ${2 / zoom}"/>`).join("")}</g>`;
+      message(
+        g.valid
+          ? "Forhåndsvisning klar · klikk sluttporten."
+          : g.warnings.join(" "),
+      );
+      const status = $("connection-preview-message");
+      if (status)
+        status.textContent = g.valid
+          ? "Forhåndsvisning: klikk for å opprette forbindelsen."
+          : g.warnings.join(" ");
+    }
+  }
+  if (rapidPlacement) {
+    try {
+      const candidate = nextRapidStop(p, rapidPlacement);
+      if (candidate) {
+        const preview = placeRapidStop(p, rapidPlacement),
+          station = preview.project.layout.stations.find(
+            (s) => s.id === preview.stationId,
+          );
+        markup += `<g id="rapid-preview" pointer-events="none" opacity=".6">${["capsules", "rings", "names"].map((layer) => stationMarkup(station, layer, preview.project)).join("")}${candidate.leds.map((led, i) => `<circle data-rapid-led="${esc(led.id)}" cx="${led.x}" cy="${led.y}" r="${(i === 0 ? 9 : 6) / zoom}" fill="none" stroke="#c48a26" stroke-width="${2 / zoom}"/>`).join("")}</g>`;
+      }
+    } catch {}
+  }
+  return markup;
+}
+function creationProperties() {
+  const d = routeStyle(project().routeDefaults ?? {}),
+    panel = $("properties");
+  panel.innerHTML = `<h2>Tegn forbindelse</h2><p class="note">Velg et konkret startpunkt og sluttpunkt. Runde punkter gjelder én ring; firkantede punkter gjelder ringparet. Pekeren viser hvilken ring og side du velger.</p><label>Grafisk sporantall<select id="new-route-tracks"><option value="1">Enkeltspor</option><option value="2">Dobbeltspor</option></select></label>${field("new-route-spacing", "Sporavstand, mm", d.trackSpacing)}<label>Kurvestil<select id="new-route-curve"><option value="rounded">Avrundet</option><option value="straight">Rett</option></select></label><p id="connection-preview-message" class="note" aria-live="polite"></p><p id="port-selection" class="note">${routeStart ? `Start: ${esc(project().layout.stations.find((s) => s.id === routeStart.stationId)?.name)} · ${esc(stationPort(project(), routeStart.stationId, routeStart.portId)?.label)}. Velg sluttport.` : "Velg startport."}</p><button id="cancel-connection">Avbryt portvalg</button>`;
+  $("new-route-tracks").value = d.tracks;
+  $("new-route-curve").value = d.curveStyle;
+  for (const [id, key] of [
+    ["new-route-tracks", "tracks"],
+    ["new-route-spacing", "trackSpacing"],
+    ["new-route-curve", "curveStyle"],
+  ])
+    $(id).onchange = (e) =>
+      safe(() =>
+        mutate(
+          (q) =>
+            (q.routeDefaults = {
+              ...routeStyle(q.routeDefaults ?? {}),
+              [key]: key === "curveStyle" ? e.target.value : +e.target.value,
+            }),
+        ),
+      );
+  $("cancel-connection").onclick = () => {
+    routeStart = null;
+    reconnectTarget = null;
+    render();
+  };
+}
+function choosePort(stationId, portId) {
+  safe(() => {
+    if (project().layers.routes.locked || project().layers.capsules.locked)
+      throw Error("Trasélaget er låst.");
+    if (!stationPort(project(), stationId, portId))
+      throw Error("Porten finnes ikke.");
+    if (tool !== "route") {
+      selected = [];
+      selectedRoute = null;
+      setTool("route");
+    }
+    const ref = { stationId, portId };
+    if (!routeStart) {
+      if (reconnectTarget) {
+        const r = project().layout.routes.find(
+          (r) => r.id === reconnectTarget.routeId,
+        );
+        if (stationId !== r.stationIds[reconnectTarget.edge])
+          throw Error("Velg først startstasjonens port.");
+      }
+      selectedRoute = null;
+      routeStart = ref;
+      properties();
+      draw();
+      message("Startport valgt. Velg sluttport på en annen stasjon.");
+      return;
+    }
+    const result = connectPorts(project(), routeStart, ref, reconnectTarget),
+      r = result.project.layout.routes.find((r) => r.id === result.routeId),
+      edge = reconnectTarget?.edge ?? 0,
+      g = edgeGeometry(result.project, r, edge);
+    if (!g.valid) throw Error(g.warnings.join(" "));
+    selectedRoute = result.routeId;
+    selectedEdge = edge;
+    routeStart = null;
+    reconnectTarget = null;
+    portHover = null;
+    selected = [];
+    commit(result.project);
+    message(
+      "Forbindelsen bruker valgte porter. Velg ny startport for neste forbindelse.",
+    );
+  });
+}
+function portMarkup(p) {
+  if (!(tool === "route" || selectedRoute) || !p.layers.rings.visible)
+    return "";
+  const selectedConnection = p.layout.routes.find(
+      (r) => r.id === selectedRoute,
+    ),
+    endpoints = selectedConnection?.stationIds.slice(
+      selectedEdge,
+      selectedEdge + 2,
+    ),
+    anchors = selectedConnection?.anchors?.[selectedEdge];
+  return `<g class="station-ports">${p.layout.stations
+    .filter((s) => tool === "route" || endpoints?.includes(s.id))
+    .flatMap((s) =>
+      stationPorts(p, s).map((port) => {
+        const start =
+            (routeStart?.stationId === s.id && routeStart.portId === port.id) ||
+            (endpoints?.[0] === s.id && anchors?.start === port.id),
+          end = endpoints?.[1] === s.id && anchors?.end === port.id,
+          hover = portHover === s.id + "|" + port.id,
+          active = start || end || hover,
+          radius = (port.width ? 5.5 : 4) / zoom,
+          tag = port.width ? "rect" : "circle",
+          coords = port.width
+            ? `x="${port.marker.x - radius}" y="${port.marker.y - radius}" width="${radius * 2}" height="${radius * 2}" rx="${2 / zoom}"`
+            : `cx="${port.marker.x}" cy="${port.marker.y}" r="${radius}"`;
+        return `<g><path pointer-events="none" d="M ${port.point.x} ${port.point.y} L ${port.marker.x} ${port.marker.y}" stroke="#3b856b" stroke-width="${1 / zoom}"/><${tag} class="station-port" role="button" tabindex="0" aria-label="${esc(s.name + " · " + port.label)}" data-port-station="${esc(s.id)}" data-port="${port.id}" data-port-state="${start ? "start" : end ? "end" : hover ? "hover" : "idle"}" ${coords} fill="${start ? "#277852" : end ? "#d49a36" : hover ? "#a1ddbd" : "#fff"}" stroke="#28734f" stroke-width="${(active ? 2.5 : 1.2) / zoom}"><title>${esc(s.name + " · " + port.label)}</title></${tag}>${active ? `<text pointer-events="none" x="${port.marker.x + 8 / zoom}" y="${port.marker.y - 9 / zoom}" font-size="${11 / zoom}" fill="#1c623f">${start ? "Start: " : end ? "Slutt: " : ""}${esc(s.name + " · " + port.label)}</text>` : ""}</g>`;
+      }),
+    )
+    .join("")}</g>`;
+}
+function routeProperties() {
+  const p = project(),
+    r = p.layout.routes.find((r) => r.id === selectedRoute);
+  if (!r) {
+    selectedRoute = null;
+    return properties();
+  }
+  const parallelBinding = p.layout.parallelConstraints.find(
+    (c) => c.follower.routeId === r.id,
+  );
+  const warnings = Array.from(
+    { length: r.stationIds.length - 1 },
+    (_, i) => edgeGeometry(p, r, i).warnings,
+  ).flat();
+  const panel = $("properties");
+  panel.innerHTML = `<h2>Trasé <span>02</span></h2><label>Grafisk rute for valgt forbindelse<select id="route-object"></select></label>${warnings.length ? `<p class="warning">${esc([...new Set(warnings)].join(". "))}</p>` : ""}${parallelBinding ? `<p class="note">Låst parallellavstand: ${Math.abs(parallelBinding.distance).toFixed(2)} mm. Bruk «Frigi parallellavstand» for fri flytting.</p>` : ""}<div class="station-actions"><button id="move-route" aria-pressed="${routeMoveEnabled}">Flytt trasé</button><button id="free-shape">Fri kurveform</button><button id="reset-shape">Automatisk kurveform</button><button id="parallel-release">Frigi parallellavstand</button></div><label>Grafisk sporantall<select id="route-tracks"><option value="1">Enkeltspor</option><option value="2">Dobbeltspor</option></select></label><div class="pair">${field("route-spacing", "Sporavstand, mm", r.trackSpacing)}${field("route-stroke", "Linjebredde, mm", r.stroke, "number", 'step="0.01"')}</div><div class="pair">${field("route-length", "Overgangslengde, mm", r.transitionLength)}${field("route-tension", "Kurveform (0,05–0,95)", r.tension, "number", 'step="0.05"')}</div><label>Delstrekning<select id="route-edge">${r.stationIds
+    .slice(0, -1)
+    .map(
+      (id, i) =>
+        `<option value="${i}">${esc(p.layout.stations.find((s) => s.id === id).name)} → ${esc(p.layout.stations.find((s) => s.id === r.stationIds[i + 1]).name)}</option>`,
+    )
+    .join(
+      "",
+    )}</select></label><div class="pair">${field("bend-x", "Knekkpunkt X, mm", "")}${field("bend-y", "Knekkpunkt Y, mm", "")}</div><div class="pair">${field("route-radius", "Min. kurveradius, mm", r.cornerRadius)}<button id="bend-save">Sett knekkpunkt</button></div><div class="pair">${field("control-start", "Starthåndtak, mm", r.controls[selectedEdge]?.startReach ?? edgeGeometry(p, r, selectedEdge).effectiveReach?.start ?? 12)}${field("control-end", "Slutthåndtak, mm", r.controls[selectedEdge]?.endReach ?? edgeGeometry(p, r, selectedEdge).effectiveReach?.end ?? 12)}</div>${field("route-grow", "Tillatt automatisk utvidelse, mm", r.autoGrow, "number", 'min="0" max="48"')}<button id="bend-clear">Rett delstrekning</button><button id="edge-track">Skill ut delstrekning</button><button id="edge-delete">Slett valgt strekning</button><p class="note">Nye forbindelser arver siste valgte sporoppsett. Andre eksisterende forbindelser endres ikke.</p><p class="note">Velg en trasélinje på tavlen. Stasjonssymboler har eget punktantall. Radius gjelder knekkpunktet, med geometrisk parallelle spor. For kort strekning begrenser radiusen.</p>`;
+  const title = panel.querySelector("h2"),
+    warningsUI = [...panel.querySelectorAll(".warning")],
+    routeChoice = $("route-object").closest("label"),
+    tracks = $("route-tracks").closest("label"),
+    spacing = $("route-spacing").closest("label"),
+    edge = $("route-edge").closest("label"),
+    split = $("edge-track"),
+    remove = $("edge-delete");
+  for (const el of [
+    title,
+    ...warningsUI,
+    routeChoice,
+    tracks,
+    spacing,
+    edge,
+    split,
+    remove,
+  ])
+    el.remove();
+  const advanced = document.createElement("details");
+  advanced.id = "line-advanced";
+  advanced.innerHTML = "<summary>Avanserte linjeinnstillinger</summary>";
+  advanced.append(...panel.childNodes);
+  advanced.open = lineAdvanced;
+  advanced.ontoggle = () => {
+    if (!advanced.isConnected) return;
+    lineAdvanced = advanced.open;
+    draw();
+  };
+  const curve = document.createElement("label");
+  curve.innerHTML =
+    'Kurvestil<select id="route-curve"><option value="rounded">Avrundet</option><option value="straight">Rett</option></select>';
+  const ports = document.createElement("p");
+  ports.className = "note";
+  ports.id = "connection-ports";
+  const anchors = r.anchors?.[selectedEdge];
+  ports.textContent = anchors
+    ? `Start: ${stationPort(p, r.stationIds[selectedEdge], anchors.start)?.label} → slutt: ${stationPort(p, r.stationIds[selectedEdge + 1], anchors.end)?.label}`
+    : "Eksisterende forbindelse med opprinnelig automatisk tilkobling. Velg porter for å endre den.";
+  const reconnect = document.createElement("button");
+  reconnect.id = "reconnect-ports";
+  reconnect.textContent = "Velg nye koblingspunkter";
+  reconnect.onclick = () => {
+    const target = { routeId: r.id, edge: selectedEdge };
+    selectedRoute = null;
+    selected = [];
+    setTool("route");
+    reconnectTarget = target;
+    render();
+    message("Velg startport og sluttport på forbindelsens to stasjoner.");
+  };
+  panel.replaceChildren(
+    title,
+    ...warningsUI,
+    routeChoice,
+    tracks,
+    spacing,
+    curve,
+    edge,
+    ports,
+    reconnect,
+    split,
+    remove,
+    advanced,
+  );
+  $("route-curve").value = r.curveStyle ?? "rounded";
+  $("route-curve").disabled =
+    p.layers.routes.locked || p.layers.capsules.locked;
+  $("route-curve").onchange = (e) =>
+    mutate((q) => {
+      const target = q.layout.routes.find((t) => t.id === r.id);
+      target.curveStyle = e.target.value;
+      q.routeDefaults = routeStyle(target);
+    });
+  $("move-route").onclick = () => {
+    routeMoveEnabled = !routeMoveEnabled;
+    $("move-route").setAttribute("aria-pressed", routeMoveEnabled);
+    canvas.focus();
+    message(
+      "Dra den markerte traséen. Parallellsnapping følger avstanden i verktøylinjen.",
+    );
+    draw();
+  };
+  $("free-shape").onclick = () => {
+    if (p.layers.routes.locked || p.layers.capsules.locked) return;
+    const g = edgeGeometry(p, r, selectedEdge),
+      mid = g.center[Math.floor(g.center.length / 2)];
+    mutate(
+      (q) =>
+        (q.layout.routes.find((t) => t.id === r.id).controls[selectedEdge] = {
+          ...r.controls[selectedEdge],
+          startReach: g.effectiveReach.start,
+          endReach: g.effectiveReach.end,
+          shape: { x: mid.x, y: mid.y },
+        }),
+    );
+  };
+  $("reset-shape").onclick = () => {
+    if (p.layers.routes.locked || p.layers.capsules.locked) return;
+    mutate((q) => {
+      const c = q.layout.routes.find((t) => t.id === r.id).controls[
+        selectedEdge
+      ];
+      if (c) {
+        delete c.shape;
+        delete c.shapeAngle;
+        delete c.shapeReach;
+      }
+    });
+  };
+  $("parallel-release").disabled = !(p.layout.parallelConstraints ?? []).some(
+    (c) => c.follower.routeId === r.id,
+  );
+  $("parallel-release").onclick = () =>
+    mutate(
+      (q) =>
+        (q.layout.parallelConstraints = q.layout.parallelConstraints.filter(
+          (c) => c.follower.routeId !== r.id,
+        )),
+    );
+  const pair = r.stationIds.slice(selectedEdge, selectedEdge + 2),
+    choices = p.layout.routes.filter((t) =>
+      t.stationIds.some(
+        (id, i) =>
+          i < t.stationIds.length - 1 &&
+          pair.includes(id) &&
+          pair.includes(t.stationIds[i + 1]),
+      ),
+    );
+  $("route-object").innerHTML = choices
+    .map(
+      (t) =>
+        `<option value="${esc(t.id)}">${esc(t.name ?? `Rute ${p.layout.routes.indexOf(t) + 1}`)} · ${esc(p.layout.stations.find((s) => s.id === t.stationIds[0])?.name)} → ${esc(p.layout.stations.find((s) => s.id === t.stationIds.at(-1))?.name)}</option>`,
+    )
+    .join("");
+  $("route-object").value = r.id;
+  $("route-object").onchange = (e) => {
+    const target = p.layout.routes.find((t) => t.id === e.target.value);
+    selectedRoute = target.id;
+    selectedEdge = target.stationIds.findIndex(
+      (id, i) =>
+        i < target.stationIds.length - 1 &&
+        pair.includes(id) &&
+        pair.includes(target.stationIds[i + 1]),
+    );
+    render();
+  };
+  $("edge-delete").onclick = deleteSelectedConnection;
+  $("route-tracks").value = r.tracks;
+  const map = {
+    "route-tracks": "tracks",
+    "route-spacing": "trackSpacing",
+    "route-stroke": "stroke",
+    "route-length": "transitionLength",
+    "route-tension": "tension",
+    "route-radius": "cornerRadius",
+    "route-grow": "autoGrow",
+  };
+  for (const [id, key] of Object.entries(map)) {
+    $(id).disabled = p.layers.routes.locked || p.layers.capsules.locked;
+    $(id).onchange = (e) =>
+      safe(() =>
+        mutate((q) =>
+          (() => {
+            const target = q.layout.routes.find((t) => t.id === r.id);
+            target[key] = +e.target.value;
+            q.routeDefaults = routeStyle(target);
+          })(),
+        ),
+      );
+  }
+  $("route-edge").value = String(
+    Math.min(selectedEdge, r.stationIds.length - 2),
+  );
+  for (const side of ["start", "end"]) {
+    $("control-" + side).disabled =
+      p.layers.routes.locked || p.layers.capsules.locked;
+    $("control-" + side).onchange = (e) =>
+      safe(() => {
+        const value = +e.target.value,
+          g = edgeGeometry(p, r, selectedEdge);
+        mutate(
+          (q) =>
+            (q.layout.routes.find((t) => t.id === r.id).controls[selectedEdge] =
+              {
+                startReach: g.effectiveReach.start,
+                endReach: g.effectiveReach.end,
+                ...r.controls[selectedEdge],
+                [side + "Reach"]: value,
+              }),
+        );
+      });
+  }
+  const setBend = () => {
+    selectedEdge = +$("route-edge").value;
+    const edge = +$("route-edge").value,
+      b = r.bends[edge];
+    $("bend-x").value = b?.x ?? "";
+    $("bend-y").value = b?.y ?? "";
+    const g = edgeGeometry(p, r, edge);
+    $("control-start").value =
+      r.controls[edge]?.startReach ?? g.effectiveReach?.start ?? 12;
+    $("control-end").value =
+      r.controls[edge]?.endReach ?? g.effectiveReach?.end ?? 12;
+  };
+  $("route-edge").onchange = () => {
+    setBend();
+    render();
+  };
+  setBend();
+  $("bend-save").onclick = () =>
+    safe(() => {
+      if (p.layers.routes.locked || p.layers.capsules.locked) return;
+      if (!$("bend-x").value || !$("bend-y").value)
+        throw Error("Angi begge koordinater");
+      const edge = +$("route-edge").value,
+        x = +$("bend-x").value,
+        y = +$("bend-y").value;
+      mutate(
+        (q) =>
+          (q.layout.routes.find((t) => t.id === r.id).bends[edge] = { x, y }),
+      );
+    });
+  $("bend-clear").onclick = () => {
+    if (p.layers.routes.locked || p.layers.capsules.locked) return;
+    const edge = +$("route-edge").value;
+    mutate(
+      (q) => delete q.layout.routes.find((t) => t.id === r.id).bends[edge],
+    );
+  };
+  $("edge-track").onclick = () => {
+    if (p.layers.routes.locked || p.layers.capsules.locked) return;
+    const edge = +$("route-edge").value;
+    safe(() => {
+      const result = splitConnection(p, r.id);
+      selectedRoute = result.edgeMap.get(edge).routeId;
+      selectedEdge = 0;
+      commit(result.project);
+    });
+    message("Delstrekning valgt · endre sporantall");
+  };
+}
+function render() {
+  const p = project();
+  $("title").value = p.title;
+  $("width").value = p.board.width;
+  $("height").value = p.board.height;
+  $("size-summary").textContent = `${p.board.width} × ${p.board.height} mm`;
+  $("preset").value = ["300,400", "400,400", "500,700"].includes(
+    `${p.board.width},${p.board.height}`,
+  )
+    ? `${p.board.width},${p.board.height}`
+    : "custom";
+  $("selection-count").textContent = selectedNames.length
+    ? `${selectedNames.length} navn valgt`
+    : selected.length
+      ? `${selected.length} valgt`
+      : `${p.layout.stations.length} stasjoner`;
+  $("undo").disabled = !history.past.length;
+  $("redo").disabled = !history.future.length;
+  $("layers").innerHTML = LAYERS.map(
+    ([id, name]) =>
+      `<div class="layer"><input type="checkbox" data-visible="${id}" aria-label="Vis ${name}" ${p.layers[id].visible ? "checked" : ""}><button class="lock" data-lock="${id}" aria-label="Lås ${name}" aria-pressed="${p.layers[id].locked}">${p.layers[id].locked ? "▣" : "□"}</button><button class="layer-name" data-select-layer="${id}">${name}</button><input type="checkbox" data-export="${id}" aria-label="Eksporter ${name}" ${p.layers[id].export ? "checked" : ""}></div>`,
+  ).join("");
+  for (const key of ["visible", "export"])
+    document
+      .querySelectorAll(`[data-${key}]`)
+      .forEach(
+        (el) =>
+          (el.onchange = () =>
+            mutate((q) => (q.layers[el.dataset[key]][key] = el.checked))),
+      );
+  document
+    .querySelectorAll("[data-lock]")
+    .forEach(
+      (el) =>
+        (el.onclick = () =>
+          mutate(
+            (q) =>
+              (q.layers[el.dataset.lock].locked =
+                !q.layers[el.dataset.lock].locked),
+          )),
+    );
+  document.querySelectorAll("[data-select-layer]").forEach(
+    (el) =>
+      (el.onclick = () => {
+        const id = el.dataset.selectLayer;
+        if (
+          id === "names" &&
+          p.layers.names.visible &&
+          !p.layers.names.locked
+        ) {
+          selectAllNames();
+          return;
+        }
+        selectedNames = [];
+        nameTool = false;
+        selected =
+          ["rings", "names", "holes", "capsules"].includes(id) &&
+          p.layers[id].visible &&
+          !p.layers[id].locked
+            ? p.layout.stations.map((s) => s.id)
+            : [];
+        render();
+        message(`Lag: ${LAYERS.find(([x]) => x === id)[1]}`);
+      }),
+  );
+  $("template-status").textContent = p.stationTemplate
+    ? "Egen stasjonsmal"
+    : "Standard enkeltstasjon";
+  properties();
+  renderChecks();
+  renderPhysical();
+  renderMount();
+  renderLibrary();
+  renderRapid();
+  renderPlacementToolbar();
+  if (activePlacement()?.point) updateStationPlacement(activePlacement().point);
+  draw();
+}
+function safe(fn) {
+  try {
+    fn();
+  } catch (e) {
+    render();
+    $("edit-error").textContent = e.message;
+    $("edit-error").hidden = false;
+    message(e.message);
+  }
+}
+function setTool(next) {
+  selectedNames = [];
+  nameTool = false;
+  placementPreview = null;
+  placementSession = null;
+  placementTouch = false;
+  if (next === "station") {
+    pendingStation = null;
+    placementSession = {
+      template: {
+        ...copy(project().stationTemplate ?? defaultTemplate()),
+        ...(project().labelDefault
+          ? { label: copy(project().labelDefault) }
+          : {}),
+      },
+      id: crypto.randomUUID(),
+      mode: templatePlacementMode(project().stationTemplate),
+      rotation: 0,
+      anchorIndex: null,
+      first: null,
+      point: lastPointer
+        ? xy(lastPointer)
+        : { x: project().board.width / 2, y: project().board.height / 2 },
+    };
+  }
+
+  pendingMount = null;
+  pendingCorners = null;
+  selectedMount = null;
+  ledSnap = null;
+  stripSnap = null;
+  if (next !== "select") pendingStation = null;
+  tool = next;
+  rapidPlacement = null;
+  focusMark = null;
+  if (next !== "select") selectedRoute = null;
+  if (next === "route") {
+    selected = [];
+    selectedRoute = null;
+  }
+  routeStart = null;
+  reconnectTarget = null;
+  portHover = null;
+  document
+    .querySelectorAll("[data-tool]")
+    .forEach((b) => b.classList.toggle("active", b.dataset.tool === tool));
+  canvas.style.cursor =
+    placementSession || pendingStation
+      ? "none"
+      : tool === "hand"
+        ? "grab"
+        : tool === "select"
+          ? "default"
+          : "crosshair";
+  message(
+    {
+      select: "Velg eller dra en stasjon",
+      station: "Klikk på tavlen for å legge til en stasjon",
+      route: "Velg startport og sluttport på stasjonene",
+      measure: "Dra en målelinje",
+      hand: "Dra for å panorere",
+    }[tool],
+  );
+  properties();
+  renderRapid();
+  renderMount();
+  renderPlacementToolbar();
+  if (placementSession)
+    updateStationPlacement(
+      lastPointer ? xy(lastPointer) : placementSession.point,
+    );
+  draw();
+}
+canvas.onpointerdown = (e) => {
+  focusMark = null;
+  snapSuspended = e.ctrlKey;
+  if (e.button !== 0 && e.button !== 1) return;
+  e.preventDefault();
+  canvas.focus();
+  canvas.setPointerCapture(e.pointerId);
+  if (pendingMount && e.button === 0) {
+    safe(() => {
+      const result = editMount(project(), null, {
+        ...pendingMount,
+        ...snapped(xy(e)),
+      });
+      pendingMount = null;
+      selectedMount = result.id;
+      commit(result.project);
+    });
+    return;
+  }
+  if (activePlacement() && !space && e.button === 0) {
+    safe(() => {
+      const point = xy(e);
+      if (e.pointerType === "touch") point.y -= 64 / zoom;
+      // Commit the exact returned candidate before replacing SVG hit targets.
+      // Boundary events caused by a redraw must not erase a valid click.
+      const preview = updateStationPlacement(point, e);
+      if (e.pointerType === "touch") draw();
+      else finishStationPlacement(preview);
+    });
+    return;
+  }
+  const nameHit = e.target.closest("[data-label]");
+  if (tool === "select" && nameHit) {
+    if (project().layers.names.locked) {
+      message("Stasjonsnavn-laget er låst.");
+      return;
+    }
+    const id = nameHit.dataset.label;
+    if (e.ctrlKey || e.metaKey || e.shiftKey) {
+      selectedNames = selectedNames.includes(id)
+        ? selectedNames.filter((x) => x !== id)
+        : [...selectedNames, id];
+      selected = [];
+      selectedRoute = null;
+      render();
+      return;
+    }
+    if (!selectedNames.includes(id)) selectedNames = [id];
+    selected = [];
+    selectedRoute = null;
+    nameTool = true;
+    gesture = {
+      kind: "label",
+      id,
+      start: xy(e),
+      base: copy(project()),
+      moved: false,
+      ids: [...selectedNames],
+    };
+    render();
+    return;
+  }
+  if (
+    nameTool &&
+    tool === "select" &&
+    !nameHit &&
+    !e.target.closest("[data-handle]")
+  ) {
+    selectedNames = [];
+    nameTool = false;
+  }
+  const pointHandle = e.target.closest("[data-point-handle]"),
+    graphicRing = e.target.closest("[data-ring-point]");
+  if (
+    tool === "select" &&
+    (pointHandle || (pointEditMode && graphicRing && !e.ctrlKey && !e.metaKey))
+  ) {
+    const group = pointHandle?.closest("[data-point-station]"),
+      stationId =
+        group?.dataset.pointStation ??
+        graphicRing?.closest("[data-station]")?.dataset.station;
+    if (
+      stationId &&
+      selected.includes(stationId) &&
+      !project().layers.rings.locked
+    ) {
+      bindingPoint = +(
+        group?.dataset.pointIndex ?? graphicRing.dataset.ringPoint
+      );
+      gesture = {
+        kind: "graphic-point",
+        id: stationId,
+        index: bindingPoint,
+        action: pointHandle?.dataset.pointHandle ?? "move",
+        base: copy(project()),
+      };
+      renderPointEditor(
+        project(),
+        project().layout.stations.find((s) => s.id === stationId),
+      );
+      return;
+    }
+  }
+  const mountTarget = e.target.closest("[data-mounting]");
+  if (mountTarget && tool === "select") {
+    selectedMount = mountTarget.dataset.mounting;
+    selected = [];
+    selectedRoute = null;
+    $("mount-panel").hidden = false;
+    if (!project().layers.mounting.locked)
+      gesture = {
+        kind: "mount",
+        id: selectedMount,
+        start: xy(e),
+        base: copy(project()),
+      };
+    render();
+    return;
+  }
+  const portTarget = e.target.closest("[data-port]");
+  if (portTarget) {
+    choosePort(portTarget.dataset.portStation, portTarget.dataset.port);
+    return;
+  }
+  const a = xy(e),
+    target = e.target.closest("[data-station],[data-label]"),
+    id =
+      target?.dataset.station ||
+      target?.dataset.label ||
+      (tool === "route"
+        ? project().ledLayout.bindings.find(
+            (b) => b.ledId === e.target.closest("[data-led]")?.dataset.led,
+          )?.stationId
+        : null),
+    p = project();
+  if (pendingStrip && e.button === 0 && !space && tool !== "hand") {
+    const s = stripPlacement(p, pendingStrip, a),
+      guide = stripSnap;
+    stripSnap = null;
+    pendingStrip = null;
+    selectedSegment = s.id;
+    segmentDraft = null;
+    safe(() => {
+      let q = copy(p);
+      const index = q.ledLayout.segments.findIndex((t) => t.id === s.id);
+      if (index < 0) q.ledLayout.segments.push(s);
+      else q.ledLayout.segments[index] = s;
+      q.layers.strips.visible = true;
+      q.layers.leds.visible = true;
+      const aligned = alignStripHoles(q, guide);
+      commit(aligned.project, { additionalPhysical: aligned.changes });
+    });
+    setTool("select");
+    if (pendingPhysical) draw(pendingPhysical.project);
+    return;
+  }
+  const ledTarget = e.target.closest("[data-led]");
+  if (rapidPlacement && ledTarget) {
+    const candidate = rapidCandidate();
+    if (candidate && ledTarget.dataset.led === candidate.leds[0].id)
+      rapidPlace();
+    else message("Klikk den markerte LED-en, eller bruk Plasser neste stopp.");
+    return;
+  }
+
+  if (bindTarget && ledTarget) {
+    const request = {
+      ...bindTarget,
+      segmentId: ledTarget.dataset.segment,
+      ledId: ledTarget.dataset.led,
+    };
+    bindTarget = null;
+    safe(() => commit(bindPoint(project(), request)));
+    return;
+  }
+  if (ledTarget && !bindTarget && tool === "select") {
+    const linked = p.ledLayout.bindings.find(
+      (b) => b.ledId === ledTarget.dataset.led,
+    );
+    if (linked) {
+      selected = [linked.stationId];
+      selectedRoute = null;
+      bindingStation = linked.stationId;
+      bindingPoint = linked.pointIndex;
+      if (tool === "select" && $("snap-led").checked && !stationLocks())
+        gesture = {
+          kind: "move",
+          id: linked.stationId,
+          start: a,
+          base: copy(p),
+          moved: false,
+          pointIndex:
+            stationPart === "all" &&
+            ["cross-strip", "double-strip"].includes(
+              p.layout.stations.find((s) => s.id === linked.stationId)
+                ?.symbolKind,
+            )
+              ? 0
+              : linked.pointIndex,
+          scope: stationPart,
+          share: $("bind-share")?.checked ?? false,
+        };
+      render();
+      return;
+    }
+  }
+  const segmentTarget = e.target.closest("[data-segment]");
+  if (segmentTarget && tool === "select") {
+    selected = [];
+    selectedRoute = null;
+    selectedSegment = segmentTarget.dataset.segment;
+    const seg = p.ledLayout.segments.find((s) => s.id === selectedSegment);
+    if (!seg) return;
+    selectedProfile = seg.profileId;
+    $("led-panel").hidden = false;
+    renderPhysical();
+    if (p.layers.strips.locked || p.layers.leds.locked) {
+      message("LED-layouten er låst");
+      return;
+    }
+    gesture = { kind: "segment", id: seg.id, start: a, base: copy(p) };
+    return;
+  }
+  const handle = e.target.closest("[data-handle]");
+  if (handle) {
+    const r = p.layout.routes.find((r) => r.id === handle.dataset.controlRoute);
+    if (p.layers.routes.locked || p.layers.capsules.locked) return;
+    const g = edgeGeometry(p, r, selectedEdge);
+    gesture = {
+      kind: "curve",
+      handle: handle.dataset.handle,
+      routeId: r.id,
+      edge: selectedEdge,
+      base: copy(p),
+      geometry: g,
+    };
+    return;
+  }
+  if (space || tool === "hand" || e.button === 1) {
+    gesture = {
+      kind: "pan",
+      client: { x: e.clientX, y: e.clientY },
+      origin: copy(origin),
+    };
+    return;
+  }
+  if (tool === "measure") {
+    measure = { a, b: a };
+    gesture = { kind: "measure" };
+    draw();
+    return;
+  }
+  if (tool === "route") {
+    message("Velg et synlig tilkoblingspunkt, ikke midten av stasjonen.");
+    return;
+  }
+  if (tool !== "select") return;
+  const routeTarget = e.target.closest("[data-route]");
+  if (
+    routeTarget &&
+    !id &&
+    (routeMoveEnabled || e.altKey) &&
+    selectedRoute === routeTarget.dataset.route
+  ) {
+    if (stationLocks()) {
+      message("Lås opp berørte lag før traséflytting");
+      return;
+    }
+    gesture = {
+      kind: "route-move",
+      routeId: selectedRoute,
+      edge: +(routeTarget.dataset.edge ?? 0),
+      start: a,
+      base: copy(p),
+    };
+    return;
+  }
+  if (routeTarget && !id) {
+    routeMoveEnabled = false;
+    selected = [];
+    selectedRoute = routeTarget.dataset.route;
+    selectedEdge = +(routeTarget.dataset.edge ?? 0);
+    render();
+    return;
+  }
+  selectedRoute = null;
+  if (id) {
+    const label = !!target.dataset.label,
+      locked = label
+        ? p.layers.names.locked
+        : p.layers.rings.locked ||
+          p.layers.holes.locked ||
+          p.layers.capsules.locked ||
+          p.layers.routes.locked ||
+          p.layers.names.locked;
+    if (locked) {
+      message("Laget er låst");
+      return;
+    }
+    if (e.ctrlKey || e.metaKey) {
+      selected = selected.includes(id)
+        ? selected.filter((x) => x !== id)
+        : [...selected, id];
+      render();
+      return;
+    }
+    if (!selected.includes(id)) {
+      selected = [id];
+      stationPart = "all";
+    }
+    const ringPoint = e.target.closest("[data-ring-point]");
+    if (e.shiftKey && ringPoint) stationPart = ringPoint.dataset.ringPoint;
+
+    if (bindingStation !== id) {
+      bindingStation = id;
+      bindingPoint = 0;
+    }
+    gesture = {
+      kind: label ? "label" : "move",
+      id,
+      start: a,
+      base: copy(p),
+      moved: false,
+      pointIndex: Math.min(
+        stationPart === "all" ? bindingPoint : +stationPart,
+        p.layout.stations.find((s) => s.id === id).points - 1,
+      ),
+      share: $("bind-share")?.checked ?? false,
+      scope: stationPart,
+    };
+    render();
+  } else {
+    if (!e.ctrlKey && !e.metaKey) selected = [];
+    gesture = { kind: "box", start: a, last: a, previous: [...selected] };
+    render();
+  }
+};
+canvas.onpointermove = (e) => {
+  lastPointer = {
+    clientX: e.clientX,
+    clientY: e.clientY,
+    target: e.target,
+    ctrlKey: e.ctrlKey,
+    pointerType: e.pointerType,
+  };
+  snapSuspended = e.ctrlKey;
+  const pt = xy(e);
+  if (pendingMount && !gesture) {
+    pendingMount.point = snapped(pt);
+    draw();
+    return;
+  }
+  if (gesture?.kind === "graphic-point") {
+    const g = gesture,
+      s = g.base.layout.stations.find((s) => s.id === g.id),
+      c = symbolCenters(g.base, s)[g.index];
+    try {
+      const point = snapped(pt, g.base);
+      const patch =
+        g.action === "size"
+          ? {
+              ringOuter: Math.max(
+                0.1,
+                Math.min(100, Math.hypot(pt.x - c.x, pt.y - c.y) * 2),
+              ),
+            }
+          : { x: point.x, y: point.y };
+      g.preview = editGraphicPoint(g.base, g.id, g.index, patch);
+      g.snapError = null;
+      draw(g.preview);
+      message(
+        g.action === "size"
+          ? `Ø ${patch.ringOuter.toFixed(3)} mm`
+          : `Punkt ${String.fromCharCode(65 + g.index)} · X ${point.x.toFixed(3)}, Y ${point.y.toFixed(3)} mm`,
+      );
+    } catch (e) {
+      g.preview = null;
+      g.snapError = e.message;
+      message(e.message);
+    }
+    return;
+  }
+  if (gesture?.kind === "mount") {
+    const g = gesture,
+      h = g.base.production.mountingHoles.find((h) => h.id === g.id);
+    const pos = snapped(
+      { x: h.x + pt.x - g.start.x, y: h.y + pt.y - g.start.y },
+      g.base,
+    );
+    g.preview = editMount(g.base, g.id, pos).project;
+    draw(g.preview);
+    return;
+  }
+  $("coords").textContent = `X ${pt.x.toFixed(2)} · Y ${pt.y.toFixed(2)} mm`;
+  if (!gesture) {
+    const target = e.target.closest("[data-port]"),
+      key = target
+        ? target.dataset.portStation + "|" + target.dataset.port
+        : null;
+    if (portHover !== key) {
+      portHover = key;
+      draw();
+    }
+  }
+  if (pendingStrip && !gesture) {
+    const preview = copy(project()),
+      segment = stripPlacement(project(), pendingStrip, pt),
+      index = preview.ledLayout.segments.findIndex((t) => t.id === segment.id);
+    if (index < 0) preview.ledLayout.segments.push(segment);
+    else preview.ledLayout.segments[index] = segment;
+    preview.layers.leds.visible = true;
+    preview.layers.strips.visible = true;
+    draw(preview);
+    return;
+  }
+  if (activePlacement() && !gesture) {
+    const point = { ...pt };
+    if (e.pointerType === "touch") point.y -= 64 / zoom;
+    updateStationPlacement(point, e);
+    draw();
+    return;
+  }
+  if (!gesture) return;
+  const g = gesture;
+  if (g.kind === "pan") {
+    origin = {
+      x: g.origin.x + e.clientX - g.client.x,
+      y: g.origin.y + e.clientY - g.client.y,
+    };
+    draw();
+  } else if (g.kind === "measure") {
+    measure.b = pt;
+    draw();
+  } else if (g.kind === "box") {
+    g.last = pt;
+    draw();
+  } else if (g.kind === "move") {
+    try {
+      g.preview = stationDrag(g, pt);
+      g.snapError = null;
+      draw(g.preview);
+    } catch (err) {
+      g.preview = null;
+      g.snapError = err.message;
+      draw(g.base);
+      message(err.message);
+    }
+  } else if (g.kind === "route-move") {
+    smartGuides = [];
+    const q = translateRoute(
+      copy(g.base),
+      g.routeId,
+      pt.x - g.start.x,
+      pt.y - g.start.y,
+    );
+    safe(() => {
+      g.preview = previewParallel(q, g);
+      draw(g.preview);
+    });
+  } else if (g.kind === "segment") {
+    const q = copy(g.base),
+      s = q.ledLayout.segments.find((s) => s.id === g.id),
+      old = g.base.ledLayout.segments.find((s) => s.id === g.id),
+      placed = stripPlacement(g.base, old, {
+        x: old.x + pt.x - g.start.x,
+        y: old.y + pt.y - g.start.y,
+      });
+    s.x = placed.x;
+    s.y = placed.y;
+    const aligned = alignStripHoles(q, stripSnap);
+    g.preview = aligned.project;
+    g.physicalRows = aligned.changes;
+    draw(g.preview);
+  } else if (g.kind === "curve") {
+    const q = copy(g.base),
+      r = q.layout.routes.find((r) => r.id === g.routeId);
+    if (g.handle === "form" || g.handle === "shape-tangent") {
+      const c = {
+        startReach: g.geometry.effectiveReach.start,
+        endReach: g.geometry.effectiveReach.end,
+        ...r.controls[g.edge],
+      };
+      if (g.handle === "form") c.shape = snapped(pt, g.base);
+      else {
+        const dx = pt.x - c.shape.x,
+          dy = pt.y - c.shape.y;
+        c.shapeAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
+        c.shapeReach = Math.max(0.1, Math.min(5000, Math.hypot(dx, dy)));
+      }
+      r.controls[g.edge] = c;
+    } else if (g.handle === "bend")
+      r.bends[g.edge] = snapped(
+        pt,
+        g.base,
+        g.base.layout.routes.find((t) => t.id === g.routeId).bends[g.edge] ??
+          g.geometry.center[Math.floor(g.geometry.center.length / 2)],
+      );
+    else {
+      const geom = g.geometry,
+        c = geom.curves[0],
+        last = geom.curves.at(-1),
+        start = c.start,
+        end = last.end,
+        ref = g.handle === "start" ? start : end,
+        dir =
+          g.handle === "start"
+            ? { x: c.c1.x - start.x, y: c.c1.y - start.y }
+            : { x: last.c2.x - end.x, y: last.c2.y - end.y },
+        len = Math.hypot(dir.x, dir.y),
+        reach = Math.max(
+          0.1,
+          Math.min(
+            5000,
+            ((pt.x - ref.x) * dir.x + (pt.y - ref.y) * dir.y) / len,
+          ),
+        );
+      r.controls[g.edge] = {
+        startReach: geom.effectiveReach.start,
+        endReach: geom.effectiveReach.end,
+        ...r.controls[g.edge],
+        [g.handle === "start" ? "startReach" : "endReach"]: reach,
+      };
+    }
+    try {
+      g.preview =
+        g.handle === "bend" ? previewParallel(q, g) : enforceParallels(q);
+      draw(g.preview);
+    } catch (err) {
+      g.preview = null;
+      message(err.message);
+      draw(g.base);
+    }
+  } else if (g.kind === "label") {
+    const q = copy(g.base),
+      delta = { x: pt.x - g.start.x, y: pt.y - g.start.y };
+    const d = nameTool ? snapped(delta, g.base) : delta;
+    for (const s of q.layout.stations)
+      if ((g.ids ?? [g.id]).includes(s.id)) {
+        s.label.dx += d.x;
+        s.label.dy += d.y;
+      }
+    g.preview = q;
+    g.moved = true;
+    draw(q);
+    message(`Navneforskyvning ${d.x.toFixed(3)}, ${d.y.toFixed(3)} mm`);
+  }
+};
+function finishGesture(cancel = false) {
+  if (!gesture) return;
+  const g = gesture;
+  gesture = null;
+  smartGuides = [];
+  ledSnap = null;
+  stripSnap = null;
+  if (!cancel && g.snapError) {
+    draw();
+    message(g.snapError);
+    return;
+  }
+  if (!cancel && g.preview) {
+    safe(() => commit(g.preview, { additionalPhysical: g.physicalRows ?? [] }));
+  } else if (!cancel && g.kind === "box") {
+    const a = g.start,
+      b = g.last;
+    selected = [
+      ...new Set([
+        ...g.previous,
+        ...project()
+          .layout.stations.filter(
+            (s) =>
+              project().layers.rings.visible &&
+              !project().layers.rings.locked &&
+              s.x >= Math.min(a.x, b.x) &&
+              s.x <= Math.max(a.x, b.x) &&
+              s.y >= Math.min(a.y, b.y) &&
+              s.y <= Math.max(a.y, b.y),
+          )
+          .map((s) => s.id),
+      ]),
+    ];
+    render();
+  } else draw();
+}
+canvas.onpointerup = (e) => {
+  if (gesture && e.ctrlKey !== snapSuspended) canvas.onpointermove(e);
+  finishGesture();
+};
+canvas.onpointercancel = () => finishGesture(true);
+canvas.onlostpointercapture = () => finishGesture(true);
+canvas.addEventListener(
+  "wheel",
+  (e) => {
+    e.preventDefault();
+    const r = canvas.getBoundingClientRect();
+    zoomAt(Math.exp(-e.deltaY * 0.001), e.clientX - r.left, e.clientY - r.top);
+  },
+  { passive: false },
+);
+for (const b of document.querySelectorAll("[data-tool]"))
+  b.onclick = () => setTool(b.dataset.tool);
+$("zoom-in").onclick = () => zoomAt(1.2);
+$("zoom-out").onclick = () => zoomAt(1 / 1.2);
+$("fit").onclick = fit;
+for (const id of [
+  "grid",
+  "grid-step",
+  "grid-major",
+  "grid-contrast",
+  "snap",
+  "snap-guides",
+  "snap-led",
+  "snap-led-bind",
+  "snap-led-point",
+  "snap-strip",
+])
+  $(id).onchange = () => {
+    if (id === "snap-strip") stripSnap = null;
+    if (id === "snap-led") {
+      ledSnap = null;
+      if ($("station-snap-led"))
+        $("station-snap-led").checked = $("snap-led").checked;
+    }
+    draw();
+  };
+$("grid-half").onclick = () => {
+  const step = Math.max(0.125, +$("grid-step").value / 2);
+  if (![...$("grid-step").options].some((o) => +o.value === step))
+    $("grid-step").add(new Option(step, step));
+  $("grid-step").value = step;
+  draw();
+};
+$("undo").onclick = () => {
+  finishGesture(true);
+  history.undo();
+  selected = selected.filter((id) =>
+    project().layout.stations.some((s) => s.id === id),
+  );
+  persist();
+  render();
+};
+$("redo").onclick = () => {
+  history.redo();
+  persist();
+  render();
+};
+$("delete").onclick = () => {
+  if (selectedRoute) {
+    deleteSelectedConnection();
+    return;
+  }
+  if (!selected.length) return;
+  if (
+    ["rings", "holes", "names", "routes", "capsules"].some(
+      (id) => project().layers[id].locked,
+    )
+  ) {
+    message("Lås opp berørte lag før sletting");
+    return;
+  }
+  mutate((p) => {
+    const changedRoutes = p.layout.routes
+      .filter((r) => r.stationIds.some((id) => selected.includes(id)))
+      .map((r) => r.id);
+    p.layout.parallelConstraints = p.layout.parallelConstraints.filter(
+      (c) =>
+        !changedRoutes.includes(c.reference.routeId) &&
+        !changedRoutes.includes(c.follower.routeId),
+    );
+    if (p.layout.tangentHints)
+      for (const id of selected) delete p.layout.tangentHints[id];
+    p.ledLayout.bindings = p.ledLayout.bindings.filter(
+      (b) => !selected.includes(b.stationId),
+    );
+    p.layout.stations = p.layout.stations.filter(
+      (s) => !selected.includes(s.id),
+    );
+    p.layout.routes = p.layout.routes
+      .map((r) => {
+        const ids = r.stationIds.filter((id) => !selected.includes(id)),
+          bends = {};
+        for (let i = 0; i < ids.length - 1; i++) {
+          const old = r.stationIds.indexOf(ids[i]);
+          if (r.stationIds[old + 1] === ids[i + 1] && r.bends[old])
+            bends[i] = copy(r.bends[old]);
+        }
+        const controls = {},
+          anchors = {};
+        for (let i = 0; i < ids.length - 1; i++) {
+          const old = r.stationIds.indexOf(ids[i]);
+          if (r.stationIds[old + 1] === ids[i + 1] && r.controls[old])
+            controls[i] = copy(r.controls[old]);
+        }
+        for (let i = 0; i < ids.length - 1; i++) {
+          const old = r.stationIds.indexOf(ids[i]);
+          if (r.stationIds[old + 1] === ids[i + 1] && r.anchors?.[old])
+            anchors[i] = copy(r.anchors[old]);
+        }
+        return {
+          ...r,
+          stationIds: ids,
+          bends,
+          controls,
+          ...(r.anchors ? { anchors } : {}),
+        };
+      })
+      .filter((r) => r.stationIds.length > 1);
+  });
+  selected = [];
+  render();
+};
+$("title").onchange = (e) => mutate((p) => (p.title = e.target.value));
+for (const axis of ["width", "height"])
+  $(axis).onchange = (e) =>
+    safe(() => mutate((p) => (p.board[axis] = +e.target.value)));
+$("preset").onchange = (e) => {
+  if (e.target.value === "custom") return;
+  const [w, h] = e.target.value.split(",").map(Number);
+  mutate((p) => {
+    p.board.width = w;
+    p.board.height = h;
+  });
+  fit();
+};
+$("rotate").onclick = () => {
+  mutate(
+    (p) => ([p.board.width, p.board.height] = [p.board.height, p.board.width]),
+  );
+  fit();
+};
+$("guide-add").onclick = () =>
+  safe(() => {
+    if (project().layers.guides.locked) throw Error("Hjelpelinjelaget er låst");
+    mutate((p) =>
+      p.layout.guides.push({
+        axis: $("guide-axis").value,
+        value: +$("guide-value").value,
+      }),
+    );
+  });
+$("guide-clear").onclick = () => {
+  if (!project().layers.guides.locked) mutate((p) => (p.layout.guides = []));
+};
+function download(text, name, type) {
+  const url = URL.createObjectURL(new Blob([text], { type })),
+    a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$("save").onclick = () =>
+  safe(() =>
+    download(serialize(project()), "intransit-board.json", "application/json"),
+  );
+$("open").onclick = () => $("file").click();
+$("file").onchange = async (e) => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  if (file.size > 10_000_000) {
+    message("Prosjektfilen er for stor (maks 10 MB)");
+    return;
+  }
+  safe(() => {});
+  try {
+    const p = parseProject(await file.text());
+    rapidPlacement = null;
+    focusMark = null;
+    selected = [];
+    selectedRoute = null;
+    pendingStation = null;
+    pendingStrip = null;
+    bindTarget = null;
+    setTool("select");
+    commit(p, { load: true });
+    fit();
+  } catch (err) {
+    message(err.message);
+  }
+};
+function readProduction() {
+  return {
+    ...productionSettings({
+      side: $("prod-side").value,
+      paper: $("prod-paper").value,
+      margin: +$("prod-margin").value,
+      overlap: +$("prod-overlap").value,
+      crosshairs: $("prod-crosshairs").checked,
+      labels: $("prod-labels").checked,
+    }),
+    allowUnbound: $("prod-unbound").checked,
+  };
+}
+function renderProduction() {
+  for (const id of [
+    "prod-pdf",
+    "prod-svg",
+    "prod-graphics",
+    "prod-csv",
+    "prod-machining",
+  ])
+    $(id).disabled = true;
+  try {
+    const options = readProduction(),
+      p = project(),
+      report = productionReport(p, options),
+      plan = productionPlan(p, options),
+      oldPage = +$("prod-page").value || 0;
+    $("prod-save").disabled = false;
+    $("prod-overlap").disabled = options.paper === "board";
+    $("prod-unbound-label").hidden = !report.unboundCount;
+    $("prod-report").innerHTML =
+      `${report.errors.length ? '<p class="warning">Rett følgende før produksjonseksport:</p><ul>' + report.errors.map((e) => "<li>" + esc(e) + "</li>").join("") + "</ul>" : "<p>Fysisk grunnkontroll: ingen feil.</p>"}${report.warnings.length ? "<ul>" + report.warnings.map((e) => "<li>" + esc(e) + "</li>").join("") + "</ul>" : ""}`;
+    $("prod-summary").textContent =
+      `${report.holes.length} fysiske hull · ${options.side === "front" ? "forside" : "bakside, speilvendt"} · PDF: ${plan.pages.length} ark, ${plan.pages[0].width} × ${plan.pages[0].height} mm. Tavle ${p.board.width} × ${p.board.height} mm, 1:1.`;
+    $("prod-page").innerHTML = plan.pages
+      .map(
+        (page, i) =>
+          `<option value="${i}">Ark ${i + 1} · R${page.row + 1} C${page.col + 1}</option>`,
+      )
+      .join("");
+    $("prod-page").value = Math.min(oldPage, plan.pages.length - 1);
+    const page = productionPage(
+      p,
+      plan,
+      plan.pages[+$("prod-page").value],
+      report.holes,
+    );
+    $("prod-preview").innerHTML = pageSvg(page).replace(/^<\?xml[^>]*>/, "");
+    for (const id of ["prod-pdf", "prod-svg", "prod-csv", "prod-machining"])
+      $(id).disabled = !report.allowed;
+    $("prod-graphics").disabled =
+      report.graphicsBlocked || !report.graphicLayers.length;
+  } catch (e) {
+    $("prod-report").textContent = e.message;
+    $("prod-preview").replaceChildren();
+    $("prod-summary").textContent = "Ingen eksport er laget.";
+    $("prod-save").disabled = true;
+  }
+}
+$("production-open").onclick = () => {
+  const settings = productionSettings(
+    project().production.exportSettings ?? {},
+  );
+  for (const key of ["side", "paper", "margin", "overlap"])
+    $("prod-" + key).value = settings[key];
+  $("prod-crosshairs").checked = settings.crosshairs;
+  $("prod-labels").checked = settings.labels;
+  $("prod-unbound").checked = false;
+  $("prod-page").replaceChildren();
+  $("prod-save-status").textContent = "";
+  renderProduction();
+  $("production-dialog").showModal();
+};
+$("production-close").onclick = () => $("production-dialog").close();
+for (const id of [
+  "prod-side",
+  "prod-paper",
+  "prod-margin",
+  "prod-overlap",
+  "prod-crosshairs",
+  "prod-labels",
+  "prod-unbound",
+  "prod-page",
+])
+  $(id).onchange = renderProduction;
+$("prod-save").onclick = () =>
+  safe(() => {
+    const settings = productionSettings(readProduction());
+    mutate((p) => (p.production.exportSettings = settings));
+    $("prod-save-status").textContent =
+      "Eksportvalgene er lagret. Hull og LED-bindinger er uendret.";
+  });
+$("prod-checks").onclick = () => {
+  $("production-dialog").close();
+  $("checks-toggle").click();
+};
+for (const [id, make, suffix, mime] of [
+  ["prod-pdf", drillPdf, "boremal", "application/pdf"],
+  ["prod-svg", drillSvg, "boremal", "image/svg+xml"],
+  ["prod-machining", machiningSvg, "hull", "image/svg+xml"],
+  ["prod-graphics", graphicsSvg, "grafikk", "image/svg+xml"],
+  ["prod-csv", drillCsv, "hull", "text/csv;charset=utf-8"],
+])
+  $(id).onclick = () =>
+    safe(() => {
+      const options = readProduction(),
+        extension =
+          id === "prod-pdf" ? "pdf" : id === "prod-csv" ? "csv" : "svg";
+      download(
+        make(project(), options),
+        `intransit-${suffix}-${options.side}.${extension}`,
+        mime,
+      );
+      message(
+        "Produksjonsfil lastet ned. Kontroller 100 % utskrift med X/Y-kontrollmål.",
+      );
+    });
+$("export").onclick = () => $("export-dialog").showModal();
+$("export-close").onclick = () => $("export-dialog").close();
+$("export-download").onclick = () =>
+  safe(() => {
+    download(svg(project()), "intransit-board.svg", "image/svg+xml");
+    $("export-dialog").close();
+    message("SVG eksportert med millimetermål");
+  });
+for (const [id, demo] of [
+  ["new", false],
+  ["demo", true],
+])
+  $(id).onclick = () => {
+    selected = [];
+    selectedRoute = null;
+    measure = null;
+    pendingStation = null;
+    pendingStrip = null;
+    bindTarget = null;
+    setTool("select");
+    commit(createProject(demo), { load: true });
+    fit();
+  };
+function refreshSnapModifier(active) {
+  snapSuspended = active;
+  if (
+    lastPointer &&
+    (gesture || pendingStrip || activePlacement() || pendingMount)
+  )
+    canvas.onpointermove({ ...lastPointer, ctrlKey: active });
+}
+document.onkeydown = (e) => {
+  if (e.key === "Escape" && (pendingMount || pendingCorners)) {
+    pendingMount = null;
+    pendingCorners = null;
+    render();
+    message("Monteringsplassering avbrutt.");
+    return;
+  }
+  if (e.key === "Escape" && rapidPlacement) {
+    rapidPlacement = null;
+    render();
+    message("Hurtigplassering avsluttet.");
+    return;
+  }
+
+  if (e.key === "Control") refreshSnapModifier(true);
+  if ((e.key === "Enter" || e.key === " ") && e.target.closest("[data-port]")) {
+    e.preventDefault();
+    const el = e.target.closest("[data-port]");
+    choosePort(el.dataset.portStation, el.dataset.port);
+    return;
+  }
+
+  if (e.key === "Escape" && bindTarget) {
+    bindTarget = null;
+    message("LED-valg avbrutt");
+    return;
+  }
+  if (e.key === "Escape" && pendingStrip) {
+    pendingStrip = null;
+    stripSnap = null;
+    draw();
+    message("Segmentplassering avbrutt");
+    return;
+  }
+  if (e.key === "Escape" && activePlacement()) {
+    e.preventDefault();
+    pendingStation = null;
+    placementSession = null;
+    placementPreview = null;
+    ledSnap = null;
+    setTool("select");
+    renderPlacementToolbar();
+    message("Stasjonsplassering avsluttet.");
+    return;
+  }
+  if (
+    e.target.closest(
+      "input,select,textarea,dialog,[contenteditable]:not([contenteditable=false])",
+    )
+  )
+    return;
+  if (e.code === "Space") {
+    e.preventDefault();
+    space = true;
+    return;
+  }
+  if (e.key === "Escape") {
+    pendingStation = null;
+    $("station-menu").hidden = true;
+    finishGesture(true);
+    routeStart = null;
+    setTool("select");
+    draw();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
+    e.preventDefault();
+    $("redo").click();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+    e.preventDefault();
+    $(e.shiftKey ? "redo" : "undo").click();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+    const s = project().layout.stations.find((s) => s.id === selected[0]);
+    if (s) {
+      e.preventDefault();
+      clipboard = stationTemplate(project(), s);
+      message("Stasjonens utseende kopiert");
+    }
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+    if (clipboard) {
+      e.preventDefault();
+      beginPaste();
+    }
+    return;
+  }
+  if (e.key === "Enter" && rapidPlacement) {
+    e.preventDefault();
+    rapidPlace();
+    return;
+  }
+  if (e.ctrlKey || e.metaKey) return;
+  if (e.key.toLowerCase() === "r") {
+    e.preventDefault();
+    if (activePlacement()) rotatePlacement(e.shiftKey ? -90 : 90);
+    else if (selected.length)
+      safe(() => rotateSelectedStations(e.shiftKey ? -90 : 90));
+    return;
+  }
+  const tools = {
+    v: "select",
+    s: "station",
+    l: "route",
+    m: "measure",
+    h: "hand",
+  };
+  if (tools[e.key.toLowerCase()]) setTool(tools[e.key.toLowerCase()]);
+  if (e.key === "Delete" || e.key === "Backspace") {
+    e.preventDefault();
+    if (selectedNames.length) {
+      message(
+        "Navn slettes ikke med stasjonen. Rediger navnet i stasjonspanelet.",
+      );
+      return;
+    }
+    $("delete").click();
+  }
+};
+document.onkeyup = (e) => {
+  if (e.key === "Control") refreshSnapModifier(false);
+  if (e.code === "Space") space = false;
+};
+window.onblur = () => {
+  snapSuspended = false;
+  stripSnap = null;
+  space = false;
+  finishGesture(true);
+};
+new ResizeObserver(() => draw()).observe($("viewport"));
+render();
+requestAnimationFrame(fit);
+
+const iconPaths = {
+  select: "M4 3 L17 12 L11 13 L8 19 Z",
+  station:
+    "M12 3 A9 9 0 1 0 12 21 A9 9 0 1 0 12 3 M12 7 A5 5 0 1 0 12 17 A5 5 0 1 0 12 7",
+  route: "M3 18 L9 12 L15 12 L21 6",
+  measure: "M3 8 V16 M21 8 V16 M3 12 H21 M7 8 L3 12 L7 16 M17 8 L21 12 L17 16",
+  hand: "M12 2 V22 M2 12 H22 M8 6 L12 2 L16 6 M8 18 L12 22 L16 18 M6 8 L2 12 L6 16 M18 8 L22 12 L18 16",
+  undo: "M8 5 L3 10 L8 15 M3 10 H15 A5 5 0 0 1 15 20",
+  redo: "M16 5 L21 10 L16 15 M21 10 H9 A5 5 0 0 0 9 20",
+  delete: "M6 6 L18 18 M18 6 L6 18",
+};
+for (const [name, path] of Object.entries(iconPaths)) {
+  const button = document.querySelector(`[data-tool="${name}"]`) || $(name);
+  button.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="${path}"/></svg>`;
+}
+
+$("fixture").onclick = () => {
+  selected = [];
+  selectedRoute = null;
+  selectedEdge = 0;
+  measure = null;
+  pendingStation = null;
+  setTool("select");
+  commit(geometryFixture(), { load: true });
+  fit();
+};
+
+canvas.oncontextmenu = (e) => {
+  const el = e.target.closest("[data-station],[data-label]");
+  if (!el) return;
+  e.preventDefault();
+  selected = [el.dataset.station ?? el.dataset.label];
+  selectedRoute = null;
+  render();
+  const menu = $("station-menu");
+  menu.hidden = false;
+  menu.style.left = Math.min(e.clientX, innerWidth - 200) + "px";
+  menu.style.top = Math.min(e.clientY, innerHeight - 55) + "px";
+  $("context-duplicate").focus();
+};
+$("context-duplicate").onclick = () => {
+  $("station-menu").hidden = true;
+  startDuplicate();
+};
+document.addEventListener("pointerdown", (e) => {
+  if (!e.target.closest("#station-menu")) $("station-menu").hidden = true;
+});
+
+function libraryRecords() {
+  return [...builtInSymbols(defaultTemplate()), ...project().library.templates];
+}
+function renderLibrary() {
+  if ($("symbol-library").hidden) return;
+  const category = $("library-category").value,
+    records = libraryRecords().filter(
+      (r) => !category || r.category === category,
+    );
+  $("library-items").innerHTML = records
+    .map((r) => {
+      const s = fromTemplate(r.template, { x: 30, y: 20 }, "preview-" + r.id),
+        p = {
+          ...project(),
+          layout: { ...project().layout, stations: [s], routes: [] },
+        };
+      return `<article><button class="symbol-pick" data-symbol="${esc(r.id)}"><svg viewBox="0 0 60 40" aria-hidden="true">${["capsules", "rings"].map((id) => stationMarkup(s, id, p)).join("")}</svg><span>${esc(r.name)}</span></button><button data-symbol-default="${esc(r.id)}" class="symbol-default">Som standard</button>${!r.builtin ? `<button data-symbol-update="${esc(r.id)}" class="symbol-default">Oppdater fra valgt</button>` : ""}</article>`;
+    })
+    .join("");
+  document
+    .querySelectorAll("[data-symbol]")
+    .forEach(
+      (b) =>
+        (b.onclick = () =>
+          chooseStationSymbol(
+            libraryRecords().find((r) => r.id === b.dataset.symbol),
+          )),
+    );
+  document.querySelectorAll("[data-symbol-update]").forEach(
+    (b) =>
+      (b.onclick = () =>
+        safe(() => {
+          const s = project().layout.stations.find((s) => s.id === selected[0]);
+          if (!s) throw Error("Velg en stasjon å oppdatere malen fra.");
+          mutate(
+            (q) =>
+              (q.library.templates.find(
+                (r) => r.id === b.dataset.symbolUpdate,
+              ).template = stationTemplate(q, s)),
+          );
+        })),
+  );
+  document
+    .querySelectorAll("[data-symbol-default]")
+    .forEach(
+      (b) =>
+        (b.onclick = () =>
+          mutate(
+            (q) =>
+              (q.stationTemplate = copy(
+                libraryRecords().find((r) => r.id === b.dataset.symbolDefault)
+                  .template,
+              )),
+          )),
+    );
+}
+$("library-toggle").onclick = () => {
+  $("symbol-library").hidden = !$("symbol-library").hidden;
+  $("led-panel").hidden = true;
+  renderLibrary();
+};
+$("library-close").onclick = () => ($("symbol-library").hidden = true);
+$("library-category").onchange = renderLibrary;
+$("library-save").onclick = () =>
+  safe(() => {
+    const s = project().layout.stations.find((s) => s.id === selected[0]);
+    if (!s) throw Error("Velg stasjonen som skal lagres som symbolmal.");
+    const name = $("library-name").value.trim();
+    if (!name) throw Error("Gi symbolmalen et navn.");
+    mutate((q) =>
+      q.library.templates.push({
+        id: crypto.randomUUID(),
+        name,
+        category: $("library-save-category").value,
+        template: stationTemplate(q, s),
+      }),
+    );
+  });
+$("library-export").onclick = () =>
+  download(
+    JSON.stringify(symbolBundle(project().library.templates), null, 2),
+    "intransit-symboler.json",
+    "application/json",
+  );
+$("library-import").onclick = () => $("library-file").click();
+$("library-file").onchange = async (e) => {
+  const f = e.target.files[0];
+  e.target.value = "";
+  if (!f) return;
+  try {
+    if (f.size > 2_000_000) throw Error("Symbolfilen er for stor.");
+    const records = importSymbolBundle(await f.text()),
+      q = copy(project());
+    q.library.templates.push(...records);
+    const valid = parseProject(q);
+    for (const r of valid.library.templates) {
+      const s = fromTemplate(r.template, { x: 0, y: 0 }, "import-preview");
+      r.template = stationTemplate(
+        { ...valid, layout: { ...valid.layout, stations: [s], routes: [] } },
+        s,
+      );
+    }
+    commit(valid);
+  } catch (err) {
+    message(err.message);
+  }
+};
+
+const numeric = (id) => +$(id).value;
+function physicalLocked() {
+  return project().layers.strips.locked || project().layers.leds.locked;
+}
+function readSegment() {
+  const p = project(),
+    profile = p.ledLayout.profiles.find((r) => r.id === selectedProfile);
+  if (!profile) throw Error("Opprett en stripeprofil først.");
+  const old = p.ledLayout.segments.find((s) => s.id === selectedSegment),
+    s = old ? copy(old) : copy(segmentDraft ?? newSegment(p, profile.id));
+  Object.assign(s, {
+    profileId: profile.id,
+    name: $("seg-name").value,
+    x: numeric("seg-x"),
+    y: numeric("seg-y"),
+    angle: numeric("seg-angle"),
+    count: numeric("seg-count"),
+    length: numeric("seg-length"),
+    lengthMode: $("seg-manual").checked ? "manual" : "auto",
+    endMargin: numeric("seg-end-margin"),
+    startIndex: numeric("seg-index"),
+    controllerId: $("seg-controller").value,
+    chainId: $("seg-chain").value,
+    direction: numeric("seg-direction"),
+    mounting: $("seg-mount").value,
+    cutPoints: $("seg-cuts").value.trim()
+      ? $("seg-cuts").value.split(",").map(Number)
+      : [],
+    splices: $("seg-splices").value.trim()
+      ? $("seg-splices")
+          .value.split(",")
+          .map(Number)
+          .map((atMm) => ({
+            atMm,
+            note:
+              $("seg-splice-note").value ||
+              (old?.splices.find((j) => j.atMm === atMm)?.note ?? ""),
+          }))
+      : [],
+  });
+  if (s.lengthMode === "auto") s.length = segmentLength(p, s);
+  return s;
+}
+function renderPhysical() {
+  if ($("led-panel").hidden) return;
+  const p = project();
+  if (!p.ledLayout.profiles.some((r) => r.id === selectedProfile))
+    selectedProfile = p.ledLayout.profiles[0]?.id ?? null;
+  const r = p.ledLayout.profiles.find((r) => r.id === selectedProfile),
+    s = p.ledLayout.segments.find((s) => s.id === selectedSegment);
+  $("led-profile").innerHTML = p.ledLayout.profiles
+    .map((r) => `<option value="${esc(r.id)}">${esc(r.name)}</option>`)
+    .join("");
+  $("led-profile").value = selectedProfile ?? "";
+  const editor = $("led-editor");
+  if (!r) {
+    editor.innerHTML =
+      '<p class="note">Opprett WS2812B-profilen for å starte.</p>';
+    return;
+  }
+  const draft =
+    s ??
+    (segmentDraft?.profileId === r.id ? segmentDraft : newSegment(p, r.id));
+  editor.innerHTML = `<details><summary>Stripeprofil · mål i mm</summary>${field("profile-name", "Profilnavn", r.name, "text")}${field("profile-type", "LED-type", r.ledType, "text")}<div class="pair">${field("profile-width", "Stripebredde", r.width)}${field("profile-pitch", "Faktisk LED-pitch", r.pitch, "number", 'step="0.01"')}</div><div class="pair">${field("profile-nominal", "Nominell pitch", r.nominalPitch)}${field("profile-offset", "Første LED fra ende", r.firstOffset)}</div><div class="pair">${field("profile-end-margin", "Standard sluttmargin, mm", r.endMargin ?? 5)}${field("profile-count", "Antall LED på stripe", r.count)}${field("profile-length", "Hele stripens lengde", r.length)}</div><button id="profile-save">Oppdater profil</button></details><hr><label>Segment<select id="led-segment"><option value="">Ny kladd</option>${p.ledLayout.segments.map((s) => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("")}</select></label>${field("seg-name", "Segmentnavn", draft.name, "text")}<div class="pair">${field("seg-x", "Start X, mm", draft.x)}${field("seg-y", "Start Y, mm", draft.y)}</div><div class="pair">${field("seg-angle", "Rotasjon, °", draft.angle)}${field("seg-count", "Antall LED", draft.count)}</div><div class="pair"><label><input id="seg-manual" type="checkbox" ${draft.lengthMode === "manual" ? "checked" : ""}>Manuell lengde (avansert)</label>${field("seg-end-margin", "Sluttmargin, mm", draft.endMargin ?? 5)}${field("seg-length", "Segmentlengde, mm", draft.length)}${field("seg-index", "Startindeks", draft.startIndex)}</div><div class="pair">${field("seg-controller", "Kontrolleridentitet", draft.controllerId, "text")}${field("seg-chain", "Kjedeidentitet", draft.chainId, "text")}</div><div class="pair"><label>Indeksering<select id="seg-direction"><option value="1">Fremover →</option><option value="-1">Bakover ←</option></select></label><label>Montering<select id="seg-mount"><option value="back">Bakside</option><option value="front">Forside</option></select></label></div>${field("seg-cuts", "Kutt etter lokale LED-posisjoner (komma)", draft.cutPoints.join(","), "text")}${field("seg-splices", "Skjøtepunkter fra start, mm (komma)", draft.splices.map((j) => j.atMm).join(","), "text")}${field("seg-splice-note", "Notat for nye skjøter", "", "text")}<div class="pair"><button id="segment-save">${s ? "Oppdater segment" : "Opprett segment"}</button><button id="segment-place">Plasser med mus</button></div><button id="segment-continue">Fortsett fra forrige segment</button><p id="segment-preview-status" class="note" aria-live="polite"></p><button id="segment-delete">Slett valgt segment</button>${
+    s
+      ? `<table class="led-coordinates"><thead><tr><th>Indeks</th><th>X mm</th><th>Y mm</th></tr></thead><tbody>${ledPositions(
+          p,
+          s,
+        )
+          .map(
+            (l) =>
+              `<tr data-coordinate-led="${esc(l.id)}"><td>${l.index}</td><td title="${l.x}">${l.x.toFixed(4)}</td><td title="${l.y}">${l.y.toFixed(4)}</td></tr>`,
+          )
+          .join("")}</tbody></table>`
+      : ""
+  }`;
+  $("led-segment").value = s?.id ?? "";
+  $("led-segment").onchange = (e) => {
+    segmentDraft = null;
+    pendingStrip = null;
+    selectedSegment = e.target.value || null;
+    const selected = p.ledLayout.segments.find((s) => s.id === selectedSegment);
+    if (selected) selectedProfile = selected.profileId;
+    renderPhysical();
+  };
+  $("seg-direction").value = draft.direction;
+  $("seg-mount").value = draft.mounting;
+  $("profile-save").onclick = () =>
+    safe(() => {
+      if (physicalLocked()) throw Error("LED-layouten er låst.");
+      mutate((q) =>
+        Object.assign(
+          q.ledLayout.profiles.find((t) => t.id === r.id),
+          {
+            name: $("profile-name").value,
+            ledType: $("profile-type").value,
+            width: numeric("profile-width"),
+            pitch: numeric("profile-pitch"),
+            nominalPitch: numeric("profile-nominal"),
+            firstOffset: numeric("profile-offset"),
+            endMargin: numeric("profile-end-margin"),
+            count: numeric("profile-count"),
+            length: numeric("profile-length"),
+          },
+        ),
+      );
+    });
+  $("seg-length").disabled = draft.lengthMode !== "manual";
+  const initialLeds = ledPositions(p, draft),
+    firstLed = initialLeds[0],
+    lastLed = initialLeds.at(-1);
+  $("segment-preview-status").textContent =
+    `${draft.lengthMode === "auto" ? "Automatisk lengde" : "Manuell lengde"}: ${draft.length.toFixed(3)} mm · ${draft.count} LED · pitch ${r.pitch} mm · første ${firstLed.x.toFixed(3)}, ${firstLed.y.toFixed(3)} · siste ${lastLed.x.toFixed(3)}, ${lastLed.y.toFixed(3)} mm`;
+
+  function previewSegment() {
+    try {
+      const proposed = readSegment(),
+        q = copy(project());
+      const index = q.ledLayout.segments.findIndex((t) => t.id === proposed.id);
+      if (index < 0) q.ledLayout.segments.push(proposed);
+      else q.ledLayout.segments[index] = proposed;
+      q.layers.strips.visible = true;
+      q.layers.leds.visible = true;
+      const leds = ledPositions(q, proposed),
+        profile = q.ledLayout.profiles.find((r) => r.id === proposed.profileId),
+        first = leds[0],
+        last = leds.at(-1);
+      $("seg-length").value = proposed.length;
+      $("seg-length").disabled = proposed.lengthMode !== "manual";
+      const removed = q.ledLayout.bindings.filter(
+        (b) =>
+          b.segmentId === proposed.id && !leds.some((l) => l.id === b.ledId),
+      );
+      $("segment-preview-status").textContent =
+        `${proposed.lengthMode === "auto" ? "Automatisk lengde" : "Manuell lengde"}: ${proposed.length.toFixed(3)} mm · ${proposed.count} LED · pitch ${profile.pitch} mm · første ${first?.x.toFixed(3)}, ${first?.y.toFixed(3)} · siste ${last?.x.toFixed(3)}, ${last?.y.toFixed(3)} mm${removed.length ? " · Løsne " + removed.length + " bindinger før reduksjon." : ""}`;
+      if (!s) {
+        segmentDraft = proposed;
+        if (pendingStrip) pendingStrip = copy(proposed);
+      }
+      draw(q);
+    } catch (e) {
+      $("segment-preview-status").textContent = e.message;
+    }
+  }
+  for (const id of [
+    "seg-count",
+    "seg-angle",
+    "seg-x",
+    "seg-y",
+    "seg-end-margin",
+    "seg-length",
+    "seg-manual",
+    "seg-direction",
+  ])
+    $(id).addEventListener("input", previewSegment);
+  $("segment-continue").onclick = () => beginSegment(true);
+  for (const id of ["profile-pitch", "profile-offset", "profile-end-margin"])
+    $(id).addEventListener("input", () => {
+      try {
+        const q = copy(project()),
+          profile = q.ledLayout.profiles.find((t) => t.id === r.id);
+        Object.assign(profile, {
+          pitch: numeric("profile-pitch"),
+          firstOffset: numeric("profile-offset"),
+          endMargin: numeric("profile-end-margin"),
+        });
+        if (profile.pitch <= 0) throw Error("Pitch må være positiv.");
+        for (const seg of q.ledLayout.segments)
+          if (seg.profileId === r.id && seg.lengthMode === "auto")
+            seg.length = segmentLength(q, seg);
+        const current =
+          q.ledLayout.segments.find((t) => t.id === selectedSegment) ??
+          readSegment();
+        if (current.lengthMode === "auto")
+          current.length = segmentLength(q, current);
+        $("seg-length").value = current.length;
+        const leds = ledPositions(q, current);
+        $("segment-preview-status").textContent =
+          `Forhåndsvisning: ${current.length.toFixed(3)} mm · pitch ${profile.pitch} mm · første ${leds[0]?.x.toFixed(3)}, ${leds[0]?.y.toFixed(3)} · siste ${leds.at(-1)?.x.toFixed(3)}, ${leds.at(-1)?.y.toFixed(3)} mm. Lagres først med Oppdater profil.`;
+        draw(q);
+      } catch (e) {
+        $("segment-preview-status").textContent = e.message;
+      }
+    });
+  $("segment-save").onclick = () =>
+    safe(() => {
+      if (physicalLocked()) throw Error("LED-layouten er låst.");
+      const proposed = readSegment();
+      const removed = project().ledLayout.bindings.filter(
+        (b) =>
+          b.segmentId === proposed.id &&
+          !ledPositions(project(), proposed).some((l) => l.id === b.ledId),
+      );
+      if (removed.length)
+        throw Error(
+          `Reduksjonen fjerner ${removed.length} bundne LED-punkter. Løsne eller flytt disse bindingene først: ${removed.map((b) => project().layout.stations.find((s) => s.id === b.stationId)?.name + " / " + b.ledId).join(", ")}`,
+        );
+      pendingStrip = null;
+      segmentDraft = null;
+      selectedSegment = proposed.id;
+      mutate((q) => {
+        const i = q.ledLayout.segments.findIndex((s) => s.id === proposed.id);
+        if (i < 0) q.ledLayout.segments.push(proposed);
+        else q.ledLayout.segments[i] = proposed;
+        q.layers.strips.visible = true;
+        q.layers.leds.visible = true;
+      });
+    });
+  $("segment-place").onclick = () =>
+    safe(() => {
+      if (physicalLocked()) throw Error("LED-layouten er låst.");
+      const draft = readSegment();
+      pendingStrip = draft;
+      $("led-panel").hidden = true;
+      canvas.focus();
+      message(
+        "Plasser stripe · fest til hull eller annen stripe · Ctrl gir fri flytting · Escape avbryter",
+      );
+    });
+  $("segment-delete").disabled = !s;
+  $("segment-delete").onclick = () =>
+    safe(() => {
+      if (physicalLocked()) throw Error("LED-layouten er låst.");
+      if (p.ledLayout.bindings.some((b) => b.segmentId === s.id))
+        throw Error("Løsne segmentets LED-bindinger før sletting.");
+      mutate(
+        (q) =>
+          (q.ledLayout.segments = q.ledLayout.segments.filter(
+            (t) => t.id !== s.id,
+          )),
+      );
+      selectedSegment = null;
+    });
+}
+$("led-toggle").onclick = () => {
+  $("snap-led").checked = true;
+  $("snap-led-bind").checked = true;
+  $("led-panel").hidden = !$("led-panel").hidden;
+  $("symbol-library").hidden = true;
+  renderPhysical();
+};
+$("led-close").onclick = () => ($("led-panel").hidden = true);
+$("led-profile").onchange = (e) => {
+  segmentDraft = null;
+  pendingStrip = null;
+  selectedProfile = e.target.value;
+  selectedSegment = null;
+  renderPhysical();
+};
+$("led-add-profile").onclick = () =>
+  safe(() => {
+    const r = newProfile();
+    selectedProfile = r.id;
+    mutate((q) => q.ledLayout.profiles.push(r));
+  });
+function beginSegment(continuation = false, newChain = false) {
+  safe(() => {
+    if (physicalLocked()) throw Error("LED-layouten er låst.");
+    const p = project(),
+      source =
+        p.ledLayout.segments.find((s) => s.id === selectedSegment) ??
+        p.ledLayout.segments.at(-1);
+    let reference = source;
+    if (newChain && source) {
+      let n = Math.max(0, ...p.ledLayout.segments.map((s) => s.number)) + 1;
+      while (
+        p.ledLayout.segments.some(
+          (s) =>
+            s.controllerId === source.controllerId &&
+            s.chainId === `kjede-${n}`,
+        )
+      )
+        n++;
+      reference = { ...source, chainId: `kjede-${n}` };
+    }
+    segmentDraft = inheritSegment(
+      p,
+      reference,
+      source?.profileId ?? selectedProfile,
+    );
+    selectedProfile = segmentDraft.profileId;
+    selectedSegment = null;
+    pendingStrip = copy(segmentDraft);
+    setTool("select");
+    renderPhysical();
+    const q = copy(p);
+    q.ledLayout.segments.push(segmentDraft);
+    q.layers.strips.visible = true;
+    q.layers.leds.visible = true;
+    draw(q);
+    message(
+      continuation
+        ? "Fortsett etter forrige ende. Klikk for å plassere eller rediger først."
+        : "Nytt segment følger pekeren. Rediger innstillinger eller klikk for å plassere.",
+    );
+  });
+}
+$("led-new-segment").onclick = () => beginSegment();
+
+function renderChecks() {
+  const issues = boardChecks(project()),
+    filter = $("check-filter").value,
+    shown = issues.filter((i) => filter === "all" || i.category === filter);
+  $("checks-toggle").textContent = `Kontroll (${issues.length})`;
+  $("mechanical-report").innerHTML = shown.length
+    ? `<p>${shown.length} funn${filter === "all" ? "" : " i filteret"}. Klikk for å finne objektet.</p><ul class="check-list">${shown
+        .slice(0, checkLimit)
+        .map(
+          (i, index) =>
+            `<li><button data-check="${index}" data-target-kind="${esc(i.target?.kind ?? "")}" data-target-id="${esc(i.target?.id ?? "")}" data-target-point="${i.target?.pointIndex ?? ""}" class="check-${i.severity}"><b>${esc(i.object)}</b>: ${esc(i.message)}</button></li>`,
+        )
+        .join(
+          "",
+        )}</ul>${shown.length > checkLimit ? '<button id="check-more">Vis 100 til</button>' : ""}`
+    : "<p>Grunnkontroll: ingen funn i denne visningen.</p>";
+  for (const el of document.querySelectorAll("[data-check]"))
+    el.onclick = () => focusIssue(shown[+el.dataset.check]);
+  if ($("check-more"))
+    $("check-more").onclick = () => {
+      checkLimit += 100;
+      renderChecks();
+    };
+}
+function focusIssue(issue) {
+  const p = project(),
+    t = issue.target;
+  if (!t) return;
+  setTool("select");
+  selected = [];
+  selectedRoute = null;
+  let point = null;
+  if (t.kind === "mounting") {
+    selectedMount = t.id;
+    $("mount-panel").hidden = false;
+    point = p.production.mountingHoles.find((h) => h.id === t.id);
+  }
+  if (t.kind === "station") {
+    const station = p.layout.stations.find((s) => s.id === t.id);
+    if (!station) return;
+    selected = [...new Set(t.stationIds ?? [station.id])];
+    bindingStation = station.id;
+    bindingPoint = t.pointIndex ?? 0;
+    point = station.holes[t.pointIndex ?? 0] ?? station;
+  }
+  if (t.kind === "route") {
+    const route = p.layout.routes.find((r) => r.id === t.id);
+    if (!route) return;
+    selectedRoute = route.id;
+    selectedEdge = t.edge ?? 0;
+    const g = edgeGeometry(p, route, selectedEdge);
+    point =
+      g.center?.[Math.floor(g.center.length / 2)] ??
+      p.layout.stations.find((s) => s.id === route.stationIds[selectedEdge]);
+  }
+  if (t.kind === "segment" || t.kind === "profile") {
+    const segment =
+      t.kind === "segment"
+        ? p.ledLayout.segments.find((s) => s.id === t.id)
+        : p.ledLayout.segments.find((s) => s.profileId === t.id);
+    selectedProfile = t.kind === "profile" ? t.id : segment?.profileId;
+    selectedSegment = segment?.id ?? null;
+    $("led-panel").hidden = false;
+    point = segment ?? { x: p.board.width / 2, y: p.board.height / 2 };
+  }
+  if (point) {
+    focusMark = { x: point.x, y: point.y };
+    origin = {
+      x: canvas.clientWidth / 2 - point.x * zoom,
+      y: canvas.clientHeight / 2 - point.y * zoom,
+    };
+  }
+  render();
+  message(issue.object + ": " + issue.message);
+}
+$("check-filter").onchange = () => {
+  checkLimit = 100;
+  renderChecks();
+};
+$("checks-toggle").onclick = () =>
+  $("check-filter").scrollIntoView({ block: "center", behavior: "smooth" });
+function renderBindings(p, s) {
+  if (bindingStation !== s.id) {
+    bindingStation = s.id;
+    bindingPoint = 0;
+  }
+  bindingPoint = Math.min(bindingPoint, s.points - 1);
+  let root = $("station-bindings");
+  if (!root) {
+    $("properties").insertAdjacentHTML(
+      "beforeend",
+      '<div id="station-bindings"></div>',
+    );
+    root = $("station-bindings");
+  }
+  const b = p.ledLayout.bindings.find(
+      (b) => b.stationId === s.id && b.pointIndex === bindingPoint,
+    ),
+    segment =
+      p.ledLayout.segments.find((t) => t.id === b?.segmentId) ??
+      p.ledLayout.segments[0],
+    led = b && ledFor(p, b.segmentId, b.ledId),
+    h = s.holes[bindingPoint],
+    ring = symbolCenters(p, s)[bindingPoint];
+  root.innerHTML = `<h2>Fysisk LED-binding</h2><label>Stasjonspunkt<select id="bind-point">${Array.from({ length: s.points }, (_, i) => `<option value="${i}">Punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label><p class="note" id="binding-summary">${b ? `${esc(segment?.name ?? b.segmentId)} · LED ${led?.index ?? "mangler"} · ${esc(led?.controllerId ?? "")} / ${esc(led?.chainId ?? "")} · ${b.mode === "direct" ? "direkte" : "lysleder"}${b.shared ? " · bevisst delt" : ""}` : "Ingen fysisk LED-binding"}</p><label>Monteringsmåte<select id="bind-mode"><option value="direct">Direkte belysning</option><option value="lightguide">Lysleder / fiberoptikk</option></select></label><label>Segment<select id="bind-segment">${p.ledLayout.segments.map((t) => `<option value="${esc(t.id)}">${esc(t.name)} · ${esc(t.chainId)}</option>`).join("")}</select></label><label>Fysisk LED-indeks<select id="bind-led"></select></label><div class="pair"><label>Stoppintervall<select id="bind-interval"><option value="1">Hver LED</option><option value="2">Annenhver LED</option><option value="3">Hver tredje LED</option><option value="4">Hver fjerde LED</option><option value="custom">Egendefinert indeks</option></select></label><button id="bind-next">Neste LED</button></div><p class="note" id="binding-users"></p><label><input type="checkbox" id="bind-share">Bevisst deling av samme fysiske LED</label><div class="pair"><button id="bind-click">Velg LED på tavlen</button><button id="bind-apply">Koble valgt LED</button></div><button id="bind-remove">Løsne binding</button>${h ? `<details><summary>Frontpunkt og lyslederforskyvning</summary><p class="note">${led ? `LED: ${led.x.toFixed(4)}, ${led.y.toFixed(4)} mm. Forskyvning til hull: ${(h.x - led.x).toFixed(4)}, ${(h.y - led.y).toFixed(4)} mm.` : "Ubundet frontpunkt."}</p><div class="pair">${field("front-hole-x", "Hull X, mm", h.x)}${field("front-hole-y", "Hull Y, mm", h.y)}</div><div class="pair">${field("front-ring-x", "Ring X, mm", ring.x)}${field("front-ring-y", "Ring Y, mm", ring.y)}</div>${field("front-diameter", "Hulldiameter, mm", h.diameter ?? s.holeDiameter)}<button id="front-save">Oppdater lysleder-frontpunkt</button></details>` : ""}`;
+  $("bind-point").value = bindingPoint;
+  $("bind-point").onchange = (e) => {
+    bindingPoint = +e.target.value;
+    if ($("station-snap-point")) $("station-snap-point").value = bindingPoint;
+    renderBindings(p, s);
+    if ($("graphic-points-panel")) renderPointEditor(p, s);
+    draw();
+  };
+  $("bind-mode").value = b?.mode ?? "direct";
+  $("bind-segment").value = segment?.id ?? "";
+  const users = () => {
+    const other = p.ledLayout.bindings.filter(
+      (t) =>
+        t.ledId === $("bind-led").value &&
+        !(t.stationId === s.id && t.pointIndex === bindingPoint),
+    );
+    $("binding-users").textContent = other.length
+      ? "Allerede brukt av: " +
+        other
+          .map(
+            (t) =>
+              p.layout.stations.find((s) => s.id === t.stationId)?.name ??
+              t.stationId,
+          )
+          .join(", ")
+      : "LED-en er ledig.";
+  };
+  const list = () => {
+    const seg = p.ledLayout.segments.find(
+      (t) => t.id === $("bind-segment").value,
+    );
+    $("bind-led").innerHTML = seg
+      ? ledPositions(p, seg)
+          .map(
+            (l) =>
+              `<option value="${esc(l.id)}">${l.index} · ${l.x.toFixed(3)}, ${l.y.toFixed(3)} mm</option>`,
+          )
+          .join("")
+      : "";
+    if (b && b.segmentId === seg?.id) $("bind-led").value = b.ledId;
+    else if (
+      bindingCursor &&
+      seg &&
+      bindingCursor.segmentId === seg.id &&
+      ledFor(p, seg.id, bindingCursor.ledId)
+    )
+      $("bind-led").value = bindingCursor.ledId;
+    users();
+  };
+  $("bind-segment").onchange = list;
+  $("bind-led").onchange = () => {
+    bindingCursor = {
+      segmentId: $("bind-segment").value,
+      ledId: $("bind-led").value,
+    };
+    users();
+  };
+  list();
+  $("bind-interval").value = String(stopInterval);
+  $("bind-interval").onchange = (e) => {
+    stopInterval = e.target.value === "custom" ? "custom" : +e.target.value;
+  };
+  $("bind-next").onclick = () => {
+    if (stopInterval === "custom") {
+      message("Velg ønsket LED-indeks direkte i listen.");
+      return;
+    }
+    const selector = $("bind-led"),
+      next = selector.selectedIndex + stopInterval;
+    if (next >= selector.options.length) {
+      message("Intervallet går utenfor segmentet.");
+      return;
+    }
+    selector.selectedIndex = next;
+    bindingCursor = {
+      segmentId: $("bind-segment").value,
+      ledId: selector.value,
+    };
+    users();
+  };
+  const request = () => ({
+    stationId: s.id,
+    pointIndex: bindingPoint,
+    segmentId: $("bind-segment").value,
+    ledId: $("bind-led").value,
+    mode: $("bind-mode").value,
+    share: $("bind-share").checked,
+  });
+  $("bind-apply").onclick = () =>
+    safe(() => commit(bindPoint(project(), request())));
+  $("bind-click").onclick = () => {
+    if (p.layers.bindings.locked) {
+      message("Bindinglaget er låst");
+      return;
+    }
+    const nextBinding = request();
+    pendingStation = null;
+    setTool("select");
+    bindTarget = nextBinding;
+    $("led-panel").hidden = true;
+    mutate((q) => {
+      q.layers.leds.visible = true;
+      q.layers.strips.visible = true;
+      q.layers.bindings.visible = true;
+    });
+    canvas.focus();
+    message(
+      "Klikk fysisk LED for " +
+        s.name +
+        " punkt " +
+        (bindingPoint + 1) +
+        " · Escape avbryter",
+    );
+  };
+  $("bind-remove").disabled = !b;
+  $("bind-remove").onclick = () =>
+    safe(() => commit(unbindPoint(project(), s.id, bindingPoint)));
+  if (h) {
+    $("front-save").disabled =
+      b?.mode !== "lightguide" ||
+      p.layers.holes.locked ||
+      p.layers.rings.locked;
+    $("front-save").onclick = () =>
+      safe(() =>
+        commit(
+          setFrontPoint(project(), s.id, bindingPoint, {
+            holeX: numeric("front-hole-x"),
+            holeY: numeric("front-hole-y"),
+            ringX: numeric("front-ring-x"),
+            ringY: numeric("front-ring-y"),
+            diameter: numeric("front-diameter"),
+          }),
+        ),
+      );
+  }
+}
+$("physical-cancel").onclick = () => {
+  $("physical-dialog").close();
+  pendingPhysical = null;
+  render();
+};
+$("physical-dialog").addEventListener("cancel", () => {
+  pendingPhysical = null;
+  render();
+});
+$("physical-confirm").onclick = () =>
+  safe(() => {
+    const proposal = pendingPhysical;
+    pendingPhysical = null;
+    $("physical-dialog").close();
+    commit(proposal.project, { approved: true });
+  });
+
+$("trondheim-demo").onclick = () => {
+  $("snap-led").checked = true;
+  $("snap-led-bind").checked = true;
+  selected = [];
+  selectedRoute = null;
+  pendingStation = null;
+  pendingStrip = null;
+  bindTarget = null;
+  setTool("select");
+  commit(trondheimPrototype(), { load: true });
+  fit();
+};
+
+function renderMount() {
+  const p = project(),
+    holes = p.production.mountingHoles ?? [],
+    h = holes.find((h) => h.id === selectedMount),
+    settings = mechanicalSettings(p.production.mechanicalSettings);
+  if (!h) selectedMount = null;
+  $("mount-select").innerHTML =
+    '<option value="">Nytt hull</option>' +
+    holes
+      .map(
+        (h) => `<option value="${esc(h.id)}">${esc(h.name ?? h.id)}</option>`,
+      )
+      .join("");
+  $("mount-select").value = selectedMount ?? "";
+  for (const [key, value] of Object.entries(
+    h ?? { name: "Monteringshull", x: 15, y: 15, diameter: 3.2 },
+  ))
+    if ($("mount-" + key)) $("mount-" + key).value = value;
+  $("mount-distance").textContent = h
+    ? `Minste kantavstand: ${edgeDistance(p, h).toFixed(3)} mm`
+    : "Nytt hull får en egen ID.";
+  $("edge-clearance").value = settings.edgeClearance;
+  $("hole-clearance").value = settings.holeClearance;
+  for (const id of [
+    "mount-save",
+    "mount-place",
+    "mount-preview",
+    "mount-settings",
+  ])
+    $(id).disabled = p.layers.mounting.locked;
+  $("mount-delete").disabled = !h || p.layers.mounting.locked;
+  let issues = [];
+  if (pendingCorners) {
+    try {
+      issues = cornerPattern(p, pendingCorners).issues;
+    } catch (e) {
+      issues = [{ message: e.message }];
+    }
+  }
+  $("mount-preview-status").textContent = pendingCorners
+    ? issues.length
+      ? issues.map((i) => i.message).join(" ")
+      : "Fire hull klare. Kontroller plasseringen før du legger til."
+    : "";
+  $("mount-corners").disabled =
+    !pendingCorners || !!issues.length || p.layers.mounting.locked;
+}
+function mountFields() {
+  return {
+    name: $("mount-name").value,
+    x: +$("mount-x").value,
+    y: +$("mount-y").value,
+    diameter: +$("mount-diameter").value,
+  };
+}
+$("mount-toggle").onclick = () => {
+  $("mount-panel").hidden = !$("mount-panel").hidden;
+  $("led-panel").hidden = true;
+  renderMount();
+};
+$("mount-close").onclick = () => {
+  $("mount-panel").hidden = true;
+  pendingMount = null;
+  pendingCorners = null;
+  draw();
+};
+$("mount-select").onchange = () => {
+  selectedMount = $("mount-select").value || null;
+  renderMount();
+  draw();
+};
+$("mount-save").onclick = () =>
+  safe(() => {
+    const result = editMount(project(), selectedMount, mountFields());
+    selectedMount = result.id;
+    commit(result.project);
+  });
+$("mount-place").onclick = () =>
+  safe(() => {
+    const fields = mountFields();
+    editMount(project(), null, fields);
+    setTool("select");
+    pendingMount = fields;
+    message(
+      "Klikk for å plassere nytt monteringshull · Ctrl: fri plassering · Escape avbryter",
+    );
+  });
+$("mount-delete").onclick = () =>
+  safe(() => commit(removeMount(project(), selectedMount)));
+$("mount-preview").onclick = () =>
+  safe(() => {
+    const options = {
+      inset: +$("mount-inset").value,
+      diameter: +$("corner-diameter").value,
+    };
+    cornerPattern(project(), options);
+    pendingMount = null;
+    pendingCorners = options;
+    renderMount();
+    draw();
+  });
+$("mount-corners").onclick = () =>
+  safe(() => {
+    const q = addCorners(project(), pendingCorners);
+    pendingCorners = null;
+    commit(q);
+  });
+$("mount-settings").onclick = () =>
+  safe(() =>
+    mutate(
+      (q) =>
+        (q.production.mechanicalSettings = mechanicalSettings({
+          edgeClearance: +$("edge-clearance").value,
+          holeClearance: +$("hole-clearance").value,
+        })),
+    ),
+  );
+
+for (const id of ["mount-inset", "corner-diameter"])
+  $(id).oninput = () => {
+    pendingCorners = null;
+    renderMount();
+    draw();
+  };
+
+$("placement-symbol").onchange = (e) => {
+  const session = activePlacement();
+  if (!session) return;
+  session.template = copy(
+    e.target.value === "default"
+      ? defaultTemplate()
+      : e.target.value === "current"
+        ? (project().stationTemplate ?? session.template)
+        : libraryRecords().find((r) => r.id === e.target.value).template,
+  );
+  if (
+    placementSession &&
+    (e.target.value === "default" ||
+      templatePlacementMode(session.template) !== "normal")
+  )
+    session.mode = templatePlacementMode(session.template);
+  if (placementSession) session.template = withTextDefault(session.template);
+  session.symbolId = e.target.value;
+  session.first = null;
+  session.preferredLed = null;
+  if (session.anchorIndex >= session.template.appearance.points)
+    session.anchorIndex = null;
+  refreshPlacement();
+  renderPlacementToolbar();
+};
+$("placement-mode").onchange = (e) => {
+  if (!placementSession) return;
+  placementSession.mode = e.target.value;
+  placementSession.first = null;
+  placementSession.preferredLed = null;
+  refreshPlacement();
+  renderPlacementToolbar();
+};
+$("placement-snap").onchange = (e) => {
+  const session = activePlacement();
+  if (!session) return;
+  $("snap-led").checked = e.target.value !== "off";
+  $("snap-led-bind").checked = e.target.value !== "align";
+  session.requireLed = e.target.value === "required";
+  session.preferredLed = null;
+  refreshPlacement();
+};
+$("placement-anchor").onchange = (e) => {
+  const session = activePlacement();
+  if (!session) return;
+  session.anchorIndex = e.target.value === "center" ? null : +e.target.value;
+  refreshPlacement();
+};
+$("placement-led").onchange = (e) => {
+  const session = activePlacement();
+  if (!session) return;
+  session.preferredLed = e.target.value || null;
+  refreshPlacement();
+};
+$("placement-rotate").onclick = () => rotatePlacement(90);
+$("placement-rotate-back").onclick = () => rotatePlacement(-90);
+$("placement-exit").onclick = () => {
+  pendingStation = null;
+  ledSnap = null;
+  setTool("select");
+  renderPlacementToolbar();
+};
+// Keep the last candidate visible while the user operates the placement bar.
+// SVG child replacement can emit boundary events even inside the canvas; these
+// events must never clear a valid placement or its LED indicator.
+
+function chooseStationSymbol(record) {
+  if (!placementSession) {
+    beginPaste(withTextDefault(record.template));
+    return;
+  }
+  placementSession.template = withTextDefault(record.template);
+  if (templatePlacementMode(record.template) !== "normal")
+    placementSession.mode = templatePlacementMode(record.template);
+  placementSession.symbolId = record.id;
+  placementSession.first = null;
+  placementSession.preferredLed = null;
+  placementSession.anchorIndex = null;
+  refreshPlacement();
+  renderPlacementToolbar();
+}
+
+$("placement-touch-confirm").onclick = () => safe(finishStationPlacement);
+$("placement-touch-exit").onclick = () => {
+  pendingStation = null;
+  ledSnap = null;
+  setTool("select");
+  renderPlacementToolbar();
+};
+$("led-place-station").onclick = () => {
+  $("led-panel").hidden = true;
+  $("snap-led").checked = true;
+  $("snap-led-bind").checked = true;
+  setTool("station");
+  placementSession.requireLed = true;
+  renderPlacementToolbar();
+  refreshPlacement();
+  canvas.focus();
+};
+
+canvas.addEventListener("dblclick", (e) => {
+  const ring = e.target.closest("[data-ring-point]"),
+    s = ring?.closest("[data-station]");
+  if (!ring || !s || tool !== "select") return;
+  selected = [s.dataset.station];
+  bindingPoint = +ring.dataset.ringPoint;
+  pointEditMode = true;
+  render();
+  $("graphic-point").focus();
+});
+
+function nameSelectionMarkup(p) {
+  if (!p.layers.names.visible) return "";
+  return selectedNames
+    .flatMap((id) => {
+      const s = p.layout.stations.find((s) => s.id === id);
+      if (!s) return [];
+      const b = labelLayout(p, s).bounds;
+      return `<rect class="name-selection" data-selected-name="${esc(id)}" x="${b.x - 1}" y="${b.y - 1}" width="${Math.max(0.1, b.right - b.x) + 2}" height="${Math.max(0.1, b.bottom - b.y) + 2}" fill="none" stroke="#28795b" stroke-width="${1 / zoom}" stroke-dasharray="${3 / zoom} ${2 / zoom}" pointer-events="none"/>`;
+    })
+    .join("");
+}
+function nameProperties() {
+  const p = project(),
+    ss = p.layout.stations.filter((s) => selectedNames.includes(s.id)),
+    common = (k) =>
+      ss.every(
+        (s) =>
+          (s.label[k] ?? { color: "#151515", gap: 2, reference: "all" }[k]) ===
+          (ss[0].label[k] ?? { color: "#151515", gap: 2, reference: "all" }[k]),
+      )
+        ? (ss[0].label[k] ??
+          { color: "#151515", gap: 2, reference: "all" }[k] ??
+          "")
+        : "";
+  $("properties").innerHTML =
+    `<h2>Stasjonsnavn · ${ss.length}</h2><p class="note">Bare navn er valgt. Tomme felt merket Blandet beholder individuelle verdier.</p><button id="names-all-local">Marker alle stasjonsnavn</button><button id="names-to-stations">Velg tilhørende stasjoner</button><div class="name-directions">${Object.keys(
+      DIRECTIONS,
+    )
+      .map(
+        (key, i) =>
+          `<button data-name-position="${key}" aria-label="${DIRECTION_NAMES[i]}" aria-pressed="${common("position") === key}">${["↖", "↑", "↗", "←", "•", "→", "↙", "↓", "↘"][i]}</button>`,
+      )
+      .join(
+        "",
+      )}</div><label>Referanse<select id="name-reference"><option value="">Blandet</option><option value="all">Hele stasjonen</option>${Array.from({ length: Math.min(...ss.map((s) => s.points)) }, (_, i) => `<option value="${i}">Punkt ${String.fromCharCode(65 + i)}</option>`).join("")}</select></label>${field("name-gap", "Avstand fra stasjon, mm", common("gap"))}${["font", "size", "color", "weight", "angle", "dx", "dy", "spacing"].map((k, i) => field("label-" + k, ["Font", "Tekststørrelse, mm", "Tekstfarge (#RRGGBB)", "Tekstvekt", "Tekstvinkel, °", "Forskyvning X, mm", "Forskyvning Y, mm", "Bokstavavstand, mm"][i], common(k), ["font", "color"].includes(k) ? "text" : "number", 'placeholder="Blandet"')).join("")}<label>Vinkelvalg<select id="name-angle-preset"><option value="">Egendefinert / blandet</option>${[0, 45, 90, 135, 180, 225, 270, 315].map((a) => `<option>${a}</option>`).join("")}</select></label><button id="name-reset">Tilbakestill forskyvning</button><button id="name-standard">Bruk som standard for nye stasjoner</button><p id="name-preview-status" class="note" aria-live="polite"></p>`;
+  $("names-all-local").onclick = selectAllNames;
+  $("names-to-stations").onclick = () => {
+    selected = [...selectedNames];
+    selectedNames = [];
+    nameTool = false;
+    render();
+  };
+  const apply = (patch) =>
+    safe(() => commit(editLabels(project(), selectedNames, patch)));
+  for (const key of [
+    "font",
+    "size",
+    "color",
+    "weight",
+    "angle",
+    "dx",
+    "dy",
+    "spacing",
+  ])
+    $("label-" + key).onchange = (e) => {
+      if (e.target.value !== "")
+        apply({
+          [key]: ["font", "color"].includes(key)
+            ? e.target.value
+            : +e.target.value,
+        });
+    };
+  $("name-reference").value = common("reference");
+  $("name-reference").onchange = (e) => {
+    if (e.target.value !== "") apply({ reference: e.target.value });
+  };
+  $("name-gap").onchange = (e) =>
+    apply({
+      gap: +e.target.value,
+      ...(ss.some((s) => !s.label.position) ? { position: "e" } : {}),
+    });
+  $("name-angle-preset").onchange = (e) => {
+    if (e.target.value !== "") apply({ angle: +e.target.value });
+  };
+  for (const b of document.querySelectorAll("[data-name-position]")) {
+    b.onclick = () => apply({ position: b.dataset.namePosition });
+    b.onpointerenter = () => {
+      try {
+        draw(
+          editLabels(project(), selectedNames, {
+            position: b.dataset.namePosition,
+          }),
+        );
+        $("name-preview-status").textContent = b.getAttribute("aria-label");
+      } catch (e) {
+        message(e.message);
+      }
+    };
+    b.onpointerleave = () => draw();
+  }
+  $("name-reset").onclick = () => apply({ dx: 0, dy: 0 });
+  $("name-standard").onclick = () =>
+    safe(() => {
+      if (ss.length !== 1) throw Error("Velg ett navn som standard.");
+      mutate((q) => {
+        q.labelDefault = { ...ss[0].label };
+      });
+    });
+}
+function selectAllNames() {
+  setTool("select");
+  nameTool = true;
+  selected = [];
+  selectedRoute = null;
+  selectedNames = project().layout.stations.map((s) => s.id);
+  render();
+}
+const nameButton = document.createElement("button");
+nameButton.id = "names-all";
+nameButton.textContent = "Marker alle stasjonsnavn";
+nameButton.onclick = selectAllNames;
+$("led-toggle").before(nameButton);
+
+const newChainButton = document.createElement("button");
+newChainButton.id = "led-new-chain";
+newChainButton.textContent = "Nytt segment i ny kjede";
+newChainButton.onclick = () => beginSegment(false, true);
+$("led-new-segment").after(newChainButton);

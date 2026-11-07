@@ -1,0 +1,743 @@
+{
+  "format": "intransit-board",
+  "version": 2,
+  "id": "grakallbanen-board",
+  "title": "Gråkallbanen · studie 01",
+  "network": {
+    "stations": [],
+    "routes": []
+  },
+  "schematic": null,
+  "board": {
+    "width": 300,
+    "height": 400,
+    "material": "general",
+    "thickness": 3
+  },
+  "layers": {
+    "routes": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "rings": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "capsules": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "names": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "leds": {
+      "visible": false,
+      "locked": false,
+      "export": true
+    },
+    "holes": {
+      "visible": false,
+      "locked": false,
+      "export": true
+    },
+    "strips": {
+      "visible": false,
+      "locked": false,
+      "export": true
+    },
+    "outline": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "guides": {
+      "visible": true,
+      "locked": false,
+      "export": false
+    }
+  },
+  "layout": {
+    "stations": [
+      {
+        "id": "station-1",
+        "name": "ILA",
+        "x": 198,
+        "y": 42,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -9,
+          "dy": -9,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 1,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-1:hole:0",
+            "x": 198,
+            "y": 42
+          }
+        ]
+      },
+      {
+        "id": "station-2",
+        "name": "BERGSLI GATE",
+        "x": 204,
+        "y": 72,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": 12,
+          "dy": 0,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-2:hole:0",
+            "x": 208.83117469800624,
+            "y": 70.71168674719834
+          },
+          {
+            "id": "station-2:hole:1",
+            "x": 199.16882530199376,
+            "y": 73.28831325280166
+          }
+        ]
+      },
+      {
+        "id": "station-3",
+        "name": "NYVEIBAKKEN",
+        "x": 214,
+        "y": 102,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": 12,
+          "dy": 0,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 1,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-3:hole:0",
+            "x": 214,
+            "y": 102
+          }
+        ]
+      },
+      {
+        "id": "station-4",
+        "name": "BYGRENSEN",
+        "x": 220,
+        "y": 132,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": 12,
+          "dy": 0,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-4:hole:0",
+            "x": 224.83117469800624,
+            "y": 130.71168674719834
+          },
+          {
+            "id": "station-4:hole:1",
+            "x": 215.16882530199376,
+            "y": 133.28831325280166
+          }
+        ]
+      },
+      {
+        "id": "station-5",
+        "name": "BELVEDERE",
+        "x": 230,
+        "y": 162,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": 12,
+          "dy": 0,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 1,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-5:hole:0",
+            "x": 230,
+            "y": 162
+          }
+        ]
+      },
+      {
+        "id": "station-6",
+        "name": "BREIDABLIKK",
+        "x": 234,
+        "y": 192,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -12,
+          "dy": 0,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "end"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-6:hole:0",
+            "x": 238.9029033784546,
+            "y": 191.01941932430907
+          },
+          {
+            "id": "station-6:hole:1",
+            "x": 229.0970966215454,
+            "y": 192.98058067569093
+          }
+        ]
+      },
+      {
+        "id": "station-7",
+        "name": "NORDRE HOEM",
+        "x": 242,
+        "y": 222,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -12,
+          "dy": 0,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "end"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-7:hole:0",
+            "x": 246.86920604870897,
+            "y": 220.86385192196792
+          },
+          {
+            "id": "station-7:hole:1",
+            "x": 237.13079395129103,
+            "y": 223.13614807803208
+          }
+        ]
+      },
+      {
+        "id": "station-8",
+        "name": "SØNDRE HOEM",
+        "x": 248,
+        "y": 252,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -12,
+          "dy": 0,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "end"
+        },
+        "source": null,
+        "points": 1,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-8:hole:0",
+            "x": 248,
+            "y": 252
+          }
+        ]
+      },
+      {
+        "id": "station-9",
+        "name": "ROGNHEIM",
+        "x": 224,
+        "y": 286,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": 12,
+          "dy": 0,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 1,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-9:hole:0",
+            "x": 224,
+            "y": 286
+          }
+        ]
+      },
+      {
+        "id": "station-10",
+        "name": "MUNKVOLL",
+        "x": 198,
+        "y": 298,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -9,
+          "dy": 10,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "end"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-10:hole:0",
+            "x": 199.41083161995775,
+            "y": 302.79682750785634
+          },
+          {
+            "id": "station-10:hole:1",
+            "x": 196.58916838004225,
+            "y": 293.20317249214366
+          }
+        ]
+      },
+      {
+        "id": "station-11",
+        "name": "FERSTAD",
+        "x": 156,
+        "y": 306,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -9,
+          "dy": 10,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "end"
+        },
+        "source": null,
+        "points": 1,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-11:hole:0",
+            "x": 156,
+            "y": 306
+          }
+        ]
+      },
+      {
+        "id": "station-12",
+        "name": "UGLA",
+        "x": 134,
+        "y": 286,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -9,
+          "dy": 10,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "end"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-12:hole:0",
+            "x": 130.8964852781722,
+            "y": 289.9202291223088
+          },
+          {
+            "id": "station-12:hole:1",
+            "x": 137.1035147218278,
+            "y": 282.0797708776912
+          }
+        ]
+      },
+      {
+        "id": "station-13",
+        "name": "KYVANNET",
+        "x": 108,
+        "y": 268,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -9,
+          "dy": 10,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "end"
+        },
+        "source": null,
+        "points": 1,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-13:hole:0",
+            "x": 108,
+            "y": 268
+          }
+        ]
+      },
+      {
+        "id": "station-14",
+        "name": "VESTMARKA",
+        "x": 72,
+        "y": 272,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -9,
+          "dy": 10,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "end"
+        },
+        "source": null,
+        "points": 1,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-14:hole:0",
+            "x": 72,
+            "y": 272
+          }
+        ]
+      },
+      {
+        "id": "station-15",
+        "name": "HERLOFSENLØYPA",
+        "x": 54,
+        "y": 298,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -9,
+          "dy": 10,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "end"
+        },
+        "source": null,
+        "points": 1,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-15:hole:0",
+            "x": 54,
+            "y": 298
+          }
+        ]
+      },
+      {
+        "id": "station-16",
+        "name": "LIAN",
+        "x": 34,
+        "y": 326,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -9,
+          "dy": 10,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "end"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": null,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "station-16:hole:0",
+            "x": 38.06866735603367,
+            "y": 328.90619096859547
+          },
+          {
+            "id": "station-16:hole:1",
+            "x": 29.931332643966325,
+            "y": 323.09380903140453
+          }
+        ]
+      }
+    ],
+    "routes": [
+      {
+        "id": "route-1",
+        "stationIds": [
+          "station-1",
+          "station-2",
+          "station-3",
+          "station-4",
+          "station-5",
+          "station-6",
+          "station-7",
+          "station-8",
+          "station-9",
+          "station-10",
+          "station-11",
+          "station-12",
+          "station-13",
+          "station-14",
+          "station-15",
+          "station-16"
+        ],
+        "stroke": 0.18,
+        "tracks": 1,
+        "trackSpacing": 10,
+        "transitionLength": 12,
+        "tension": 0.5,
+        "cornerRadius": 8,
+        "bends": {},
+        "trackIds": [
+          "route-1:negative",
+          "route-1:positive"
+        ],
+        "portSigns": {
+          "station-1": 1,
+          "station-2": 1,
+          "station-3": 1,
+          "station-4": 1,
+          "station-5": 1,
+          "station-6": 1,
+          "station-7": 1,
+          "station-8": 1,
+          "station-9": 1,
+          "station-10": 1,
+          "station-11": 1,
+          "station-12": 1,
+          "station-13": 1,
+          "station-14": 1,
+          "station-15": 1,
+          "station-16": 1
+        },
+        "controls": {},
+        "autoGrow": 20
+      }
+    ],
+    "guides": []
+  },
+  "ledLayout": {
+    "profiles": [],
+    "segments": [],
+    "bindings": []
+  },
+  "production": {
+    "profiles": [],
+    "mountingHoles": []
+  }
+}

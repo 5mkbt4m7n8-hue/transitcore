@@ -1,0 +1,499 @@
+{
+  "format": "intransit-board",
+  "version": 2,
+  "id": "geometry-regression-v02",
+  "title": "Geometriprøver · Board Studio v0.2",
+  "network": {
+    "stations": [],
+    "routes": []
+  },
+  "schematic": null,
+  "board": {
+    "width": 300,
+    "height": 400,
+    "material": "general",
+    "thickness": 3
+  },
+  "layers": {
+    "routes": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "rings": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "capsules": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "names": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "leds": {
+      "visible": false,
+      "locked": false,
+      "export": true
+    },
+    "holes": {
+      "visible": false,
+      "locked": false,
+      "export": true
+    },
+    "strips": {
+      "visible": false,
+      "locked": false,
+      "export": true
+    },
+    "outline": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "guides": {
+      "visible": true,
+      "locked": false,
+      "export": false
+    }
+  },
+  "layout": {
+    "stations": [
+      {
+        "id": "a",
+        "name": "90° · START",
+        "x": 35,
+        "y": 55,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -8,
+          "dy": -15,
+          "angle": 0,
+          "size": 3.3,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": 90,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "a:hole:0",
+            "x": 35,
+            "y": 50
+          },
+          {
+            "id": "a:hole:1",
+            "x": 35,
+            "y": 60
+          }
+        ]
+      },
+      {
+        "id": "b",
+        "name": "90° · SLUTT",
+        "x": 125,
+        "y": 115,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -8,
+          "dy": -15,
+          "angle": 0,
+          "size": 3.3,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": 0,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "b:hole:0",
+            "x": 120,
+            "y": 115
+          },
+          {
+            "id": "b:hole:1",
+            "x": 130,
+            "y": 115
+          }
+        ]
+      },
+      {
+        "id": "c",
+        "name": "ROTERT · START",
+        "x": 35,
+        "y": 165,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -8,
+          "dy": -15,
+          "angle": 0,
+          "size": 3.3,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": 90,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "c:hole:0",
+            "x": 35,
+            "y": 160
+          },
+          {
+            "id": "c:hole:1",
+            "x": 35,
+            "y": 170
+          }
+        ]
+      },
+      {
+        "id": "d",
+        "name": "ROTERT · SLUTT",
+        "x": 205,
+        "y": 220,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -8,
+          "dy": -15,
+          "angle": 0,
+          "size": 3.3,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": 0,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "d:hole:0",
+            "x": 200,
+            "y": 220
+          },
+          {
+            "id": "d:hole:1",
+            "x": 210,
+            "y": 220
+          }
+        ]
+      },
+      {
+        "id": "e",
+        "name": "ENKELTSPOR",
+        "x": 35,
+        "y": 270,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -8,
+          "dy": -15,
+          "angle": 0,
+          "size": 3.3,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 1,
+        "pointSpacing": 10,
+        "symbolAngle": 90,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "e:hole:0",
+            "x": 35,
+            "y": 270
+          }
+        ]
+      },
+      {
+        "id": "f",
+        "name": "DOBBELSTASJON",
+        "x": 205,
+        "y": 270,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -8,
+          "dy": -15,
+          "angle": 0,
+          "size": 3.3,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": 90,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "f:hole:0",
+            "x": 205,
+            "y": 265
+          },
+          {
+            "id": "f:hole:1",
+            "x": 205,
+            "y": 275
+          }
+        ]
+      },
+      {
+        "id": "g",
+        "name": "DOBBELTSPOR",
+        "x": 35,
+        "y": 325,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -8,
+          "dy": -15,
+          "angle": 0,
+          "size": 3.3,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 2,
+        "pointSpacing": 10,
+        "symbolAngle": 90,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "g:hole:0",
+            "x": 35,
+            "y": 320
+          },
+          {
+            "id": "g:hole:1",
+            "x": 35,
+            "y": 330
+          }
+        ]
+      },
+      {
+        "id": "h",
+        "name": "ENKELSTASJON",
+        "x": 205,
+        "y": 350,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "label": {
+          "dx": -8,
+          "dy": -15,
+          "angle": 0,
+          "size": 3.3,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "source": null,
+        "points": 1,
+        "pointSpacing": 10,
+        "symbolAngle": 90,
+        "splitBias": 0,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "holes": [
+          {
+            "id": "h:hole:0",
+            "x": 205,
+            "y": 350
+          }
+        ]
+      }
+    ],
+    "routes": [
+      {
+        "id": "turn",
+        "stationIds": [
+          "a",
+          "b"
+        ],
+        "stroke": 0.18,
+        "tracks": 2,
+        "trackSpacing": 10,
+        "transitionLength": 32,
+        "tension": 0.5,
+        "cornerRadius": 8,
+        "bends": {
+          "0": {
+            "x": 125,
+            "y": 55
+          }
+        },
+        "trackIds": [
+          "turn:negative",
+          "turn:positive"
+        ],
+        "portSigns": {
+          "a": 1,
+          "b": -1
+        },
+        "controls": {},
+        "autoGrow": 20
+      },
+      {
+        "id": "rotated",
+        "stationIds": [
+          "c",
+          "d"
+        ],
+        "stroke": 0.18,
+        "tracks": 2,
+        "trackSpacing": 10,
+        "transitionLength": 32,
+        "tension": 0.5,
+        "cornerRadius": 8,
+        "bends": {},
+        "trackIds": [
+          "rotated:negative",
+          "rotated:positive"
+        ],
+        "portSigns": {
+          "c": 1,
+          "d": -1
+        },
+        "controls": {},
+        "autoGrow": 20
+      },
+      {
+        "id": "split",
+        "stationIds": [
+          "e",
+          "f"
+        ],
+        "stroke": 0.18,
+        "tracks": 1,
+        "trackSpacing": 10,
+        "transitionLength": 32,
+        "tension": 0.5,
+        "cornerRadius": 8,
+        "bends": {},
+        "trackIds": [
+          "split:negative",
+          "split:positive"
+        ],
+        "portSigns": {
+          "e": 1,
+          "f": 1
+        },
+        "controls": {},
+        "autoGrow": 20
+      },
+      {
+        "id": "merge",
+        "stationIds": [
+          "g",
+          "h"
+        ],
+        "stroke": 0.18,
+        "tracks": 2,
+        "trackSpacing": 10,
+        "transitionLength": 32,
+        "tension": 0.5,
+        "cornerRadius": 8,
+        "bends": {},
+        "trackIds": [
+          "merge:negative",
+          "merge:positive"
+        ],
+        "portSigns": {
+          "g": 1,
+          "h": 1
+        },
+        "controls": {},
+        "autoGrow": 20
+      }
+    ],
+    "guides": []
+  },
+  "ledLayout": {
+    "profiles": [],
+    "segments": [],
+    "bindings": []
+  },
+  "production": {
+    "profiles": [],
+    "mountingHoles": []
+  }
+}

@@ -1,0 +1,80 @@
+name: Board Studio millimetres and Chromium
+on:
+  pull_request:
+    paths:
+      [
+        "web/board-studio/**",
+        "scripts/*board-studio.mjs",
+        "scripts/check-board-studio-pdf.py",
+        "scripts/fixtures/board-studio-*.mjs",
+        ".github/workflows/board-studio.yml",
+      ]
+  push:
+    branches: [main]
+    paths:
+      [
+        "web/board-studio/**",
+        "scripts/*board-studio.mjs",
+        "scripts/check-board-studio-pdf.py",
+        "scripts/fixtures/board-studio-*.mjs",
+        ".github/workflows/board-studio.yml",
+      ]
+permissions:
+  contents: read
+jobs:
+  board-studio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: |
+          node scripts/test-board-studio.mjs
+          node scripts/test-authoring-board-studio.mjs
+          node scripts/test-v03-board-studio.mjs
+          node scripts/test-v031-board-studio.mjs
+          node scripts/test-v032-board-studio.mjs
+          node scripts/test-strip-snap-board-studio.mjs
+          node scripts/test-workflows-board-studio.mjs
+          node scripts/test-production-board-studio.mjs
+          node scripts/test-mounting-board-studio.mjs
+          node scripts/test-placement-board-studio.mjs
+          node scripts/test-point-edit-board-studio.mjs
+          node scripts/test-names-segments-board-studio.mjs
+      - name: Install isolated browser tooling
+        run: |
+          npm install --prefix "$RUNNER_TEMP/board-browser" playwright
+          # The Ubuntu runner already supplies Chromium libraries and Liberation fonts.
+          # Avoid re-downloading optional CJK fonts; launch still validates native deps.
+          "$RUNNER_TEMP/board-browser/node_modules/.bin/playwright" install chromium
+      - name: Install isolated PDF reader
+        run: python3 -m pip install --target "$RUNNER_TEMP/board-pdf" pypdf==6.10.0
+      - name: Chromium interaction and download tests
+        run: |
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_SCREENSHOT="$RUNNER_TEMP/board-studio.png" node scripts/browser-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_AUTHORING_SCREENSHOT="$RUNNER_TEMP/board-studio-authoring.png" node scripts/browser-authoring-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_V03_SCREENSHOT="$RUNNER_TEMP/board-studio-v03.png" node scripts/browser-v03-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_V031_SCREENSHOT="$RUNNER_TEMP/board-studio-v031.png" node scripts/browser-v031-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_V032_SCREENSHOT="$RUNNER_TEMP/board-studio-v032.png" node scripts/browser-v032-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" node scripts/browser-strip-snap-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_WORKFLOWS_SCREENSHOT="$RUNNER_TEMP/board-studio-workflows.png" node scripts/browser-workflows-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_PRODUCTION_OUTPUT="$RUNNER_TEMP/board-production" BOARD_PRODUCTION_SCREENSHOT="$RUNNER_TEMP/board-studio-production.png" node scripts/browser-production-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_MOUNTING_SCREENSHOT="$RUNNER_TEMP/board-studio-mounting.png" node scripts/browser-mounting-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_PRODUCTION_MOUNTING=1 BOARD_PRODUCTION_OUTPUT="$RUNNER_TEMP/board-mounting-production" node scripts/browser-production-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_PLACEMENT_SCREENSHOT="$RUNNER_TEMP/board-studio-placement.png" node scripts/browser-placement-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" BOARD_POINT_EDIT_SCREENSHOT="$RUNNER_TEMP/board-studio-point-edit.png" node scripts/browser-point-edit-board-studio.mjs
+          PLAYWRIGHT_MODULE="$RUNNER_TEMP/board-browser/node_modules/playwright" node scripts/browser-names-segments-board-studio.mjs
+      - name: Independently inspect downloaded PDF, SVG and CSV
+        run: |
+          PYTHONPATH="$RUNNER_TEMP/board-pdf" python3 scripts/check-board-studio-pdf.py "$RUNNER_TEMP/board-production"
+          PYTHONPATH="$RUNNER_TEMP/board-pdf" python3 scripts/check-board-studio-pdf.py "$RUNNER_TEMP/board-mounting-production"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: board-studio-chromium
+          path: |
+            ${{ runner.temp }}/board-studio*.png
+            ${{ runner.temp }}/board-production/*
+            ${{ runner.temp }}/board-mounting-production/*

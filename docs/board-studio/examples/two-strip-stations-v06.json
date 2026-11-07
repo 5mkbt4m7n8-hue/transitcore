@@ -1,0 +1,365 @@
+{
+  "format": "intransit-board",
+  "version": 3,
+  "id": "two-strip-stations-v06",
+  "title": "To LED-striper · felles stasjon og dobbelstasjon",
+  "network": {
+    "stations": [],
+    "routes": []
+  },
+  "schematic": null,
+  "board": {
+    "width": 300,
+    "height": 400,
+    "material": "general",
+    "thickness": 3
+  },
+  "layers": {
+    "routes": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "rings": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "capsules": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "names": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "leds": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "holes": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "mounting": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "bindings": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "strips": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "outline": {
+      "visible": true,
+      "locked": false,
+      "export": true
+    },
+    "guides": {
+      "visible": true,
+      "locked": false,
+      "export": false
+    }
+  },
+  "layout": {
+    "stations": [
+      {
+        "id": "shared-stop",
+        "name": "Felles holdeplass",
+        "x": 90,
+        "y": 120,
+        "source": null,
+        "points": 2,
+        "pointSpacing": 40,
+        "symbolAngle": 90,
+        "splitBias": 0,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "capsuleType": "stadium",
+        "capsuleExtraWidth": 0,
+        "capsuleExtraHeight": 0,
+        "symbolKind": "cross-strip",
+        "allowShared": false,
+        "transitionLength": null,
+        "markerAngle": 0,
+        "markerDx": 0,
+        "markerDy": 0,
+        "label": {
+          "dx": 10,
+          "dy": 0,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "ringCenters": [
+          {
+            "x": 90,
+            "y": 100
+          },
+          {
+            "x": 90,
+            "y": 140
+          }
+        ],
+        "holes": [
+          {
+            "id": "shared-stop:hole:0",
+            "x": 90,
+            "y": 100
+          },
+          {
+            "id": "shared-stop:hole:1",
+            "x": 90,
+            "y": 140
+          }
+        ]
+      },
+      {
+        "id": "double-stop",
+        "name": "Dobbel retning",
+        "x": 150,
+        "y": 120,
+        "source": null,
+        "points": 2,
+        "pointSpacing": 44.721359549995796,
+        "symbolAngle": 63.434948822922024,
+        "splitBias": 0,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "capsuleType": "stadium",
+        "capsuleExtraWidth": 0,
+        "capsuleExtraHeight": 0,
+        "symbolKind": "double-strip",
+        "allowShared": false,
+        "transitionLength": null,
+        "markerAngle": 0,
+        "markerDx": 0,
+        "markerDy": 0,
+        "label": {
+          "dx": 10,
+          "dy": 0,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "ringCenters": [
+          {
+            "x": 140,
+            "y": 100
+          },
+          {
+            "x": 160,
+            "y": 140
+          }
+        ],
+        "holes": [
+          {
+            "id": "double-stop:hole:0",
+            "x": 140,
+            "y": 100
+          },
+          {
+            "id": "double-stop:hole:1",
+            "x": 160,
+            "y": 140
+          }
+        ]
+      },
+      {
+        "id": "single-stop",
+        "name": "Enkeltstopp",
+        "x": 180,
+        "y": 100,
+        "source": null,
+        "points": 1,
+        "pointSpacing": 10,
+        "symbolAngle": 0,
+        "splitBias": 0,
+        "ringOuter": 6,
+        "ringInner": 4.6,
+        "stroke": 0.18,
+        "holeDiameter": 2.5,
+        "capsulePadding": 1,
+        "capsuleStroke": 0.18,
+        "ringColor": "#555555",
+        "doubleRing": true,
+        "capsuleType": "none",
+        "capsuleExtraWidth": 0,
+        "capsuleExtraHeight": 0,
+        "symbolKind": "single",
+        "allowShared": false,
+        "transitionLength": null,
+        "markerAngle": 0,
+        "markerDx": 0,
+        "markerDy": 0,
+        "label": {
+          "dx": 10,
+          "dy": 0,
+          "angle": 0,
+          "size": 4.1,
+          "spacing": 0.4,
+          "weight": 600,
+          "font": "Arial",
+          "anchor": "start"
+        },
+        "ringCenters": [
+          {
+            "x": 180,
+            "y": 100
+          }
+        ],
+        "holes": [
+          {
+            "id": "single-stop:hole:0",
+            "x": 180,
+            "y": 100
+          }
+        ]
+      }
+    ],
+    "routes": [],
+    "guides": [],
+    "parallelConstraints": []
+  },
+  "ledLayout": {
+    "profiles": [
+      {
+        "id": "two-strip-profile",
+        "name": "WS2812B-2020 · 100 LED/m",
+        "ledType": "WS2812B-2020 RGB",
+        "voltage": 5,
+        "density": 100,
+        "nominalPitch": 10,
+        "pitch": 10,
+        "width": 5,
+        "count": 500,
+        "length": 5000,
+        "firstOffset": 5,
+        "housingWidth": 2,
+        "housingLength": 2,
+        "cutPoints": [],
+        "splices": []
+      }
+    ],
+    "segments": [
+      {
+        "id": "demo-strip-A",
+        "number": 1,
+        "name": "Stripe A · retning sentrum",
+        "profileId": "two-strip-profile",
+        "x": 55,
+        "y": 100,
+        "angle": 0,
+        "count": 16,
+        "length": 160,
+        "startIndex": 10,
+        "controllerId": "kontroller-1",
+        "chainId": "A",
+        "direction": 1,
+        "mounting": "back",
+        "cutPoints": [],
+        "splices": []
+      },
+      {
+        "id": "demo-strip-B",
+        "number": 2,
+        "name": "Stripe B · retning fra sentrum",
+        "profileId": "two-strip-profile",
+        "x": 55,
+        "y": 140,
+        "angle": 0,
+        "count": 16,
+        "length": 160,
+        "startIndex": 100,
+        "controllerId": "kontroller-1",
+        "chainId": "B",
+        "direction": -1,
+        "mounting": "back",
+        "cutPoints": [],
+        "splices": []
+      }
+    ],
+    "bindings": [
+      {
+        "id": "ef634447-7542-4410-bc02-33dbc64727f0",
+        "stationId": "shared-stop",
+        "pointIndex": 0,
+        "segmentId": "demo-strip-A",
+        "ledId": "demo-strip-A:led:3",
+        "mode": "direct",
+        "shared": false
+      },
+      {
+        "id": "341ea605-6d1c-48b8-adf7-343ed9a332de",
+        "stationId": "shared-stop",
+        "pointIndex": 1,
+        "segmentId": "demo-strip-B",
+        "ledId": "demo-strip-B:led:3",
+        "mode": "direct",
+        "shared": false
+      },
+      {
+        "id": "645f6cf6-4d36-4ae9-ae87-bbcc359e3309",
+        "stationId": "double-stop",
+        "pointIndex": 0,
+        "segmentId": "demo-strip-A",
+        "ledId": "demo-strip-A:led:8",
+        "mode": "direct",
+        "shared": false
+      },
+      {
+        "id": "dbcae5a7-4dfb-4c80-bece-c6d7637acf4b",
+        "stationId": "double-stop",
+        "pointIndex": 1,
+        "segmentId": "demo-strip-B",
+        "ledId": "demo-strip-B:led:10",
+        "mode": "direct",
+        "shared": false
+      },
+      {
+        "id": "99f36491-8848-43ea-b03d-6f26af50d001",
+        "stationId": "single-stop",
+        "pointIndex": 0,
+        "segmentId": "demo-strip-A",
+        "ledId": "demo-strip-A:led:12",
+        "mode": "direct",
+        "shared": false
+      }
+    ]
+  },
+  "library": {
+    "templates": []
+  },
+  "production": {
+    "profiles": [],
+    "mountingHoles": []
+  }
+}
