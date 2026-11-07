@@ -1,13 +1,13 @@
 (function(root){
  'use strict';
- const NS='http://www.w3.org/2000/svg',M=root.InTransitMapModel,S=root.TransitCoreSignals,L=root.InTransitMapLayoutOps,N=root.InTransitStopLinks,Live=root.InTransitLiveMonitor,History=root.InTransitDayHistory;
+ const NS='http://www.w3.org/2000/svg',M=root.InTransitMapModel,S=root.TransitCoreSignals,L=root.InTransitMapLayoutOps,N=root.InTransitStopLinks,Live=root.InTransitLiveMonitor,History=root.InTransitDayHistory,T=root.InTransitDrawingTools,D=root.InTransitDisplayStations,P=root.InTransitDisplayPreview,B=root.InTransitPhysicalBoard;
  const el=(tag,attrs={})=>{const n=document.createElementNS(NS,tag);for(const [k,v]of Object.entries(attrs))n.setAttribute(k,v);return n;};
  const fingerprint=value=>{
   const json=JSON.stringify(value);let hash=2166136261;
   for(let i=0;i<json.length;i++){hash^=json.charCodeAt(i);hash=Math.imul(hash,16777619);}
   return (hash>>>0).toString(16)+'-'+json.length;
  };
- function download(name,text){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+ function download(name,text,type='application/json'){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([text],{type}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  root.InTransitNetwork={async create(host){
   const response=await fetch('network/trondheim-layout.json');if(!response.ok)throw Error('Kartlayout HTTP '+response.status);
   const canonical=await response.json();const errors=M.validate(canonical);if(errors.length)throw Error(errors.join(', '));
@@ -26,16 +26,340 @@
    }else if(published.status!==404)throw Error('Kunne ikke hente publisert kart (HTTP '+published.status+').');
   }catch(error){publishedWarning='Publisert kart kunne ikke lastes: '+error.message+'. Originalkartet vises.';}
 
-  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><a data-role="geoLink" href="./geo/" class="map-geo-link">Åpne stopp i geografisk kart</a><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p class="map-warning" data-role="notice"></p><div data-role="dayHistoryHost"></div><details class="map-live-debug" data-role="liveDebug"><summary>Sanntidsmonitor · hvorfor vises/vises ikke bussen?</summary><div class="map-live-debug-body"><p>Leser kun den aktive Linear-feeden. Ingen ekstra GPS-posisjon eller rutedekning utledes.</p><div class="map-live-debug-controls"><label>Holdeplass <select data-role="debugStop" aria-label="Diagnoseholdeplass"></select></label><label>Entur-plattform <select data-role="debugQuay" aria-label="Diagnoseplattform"></select></label><label>Buss-ID (valgfritt) <input data-role="debugVehicle" type="search" placeholder="Søk etter buss-ID i mottatt frame" autocomplete="off" aria-label="Søk etter buss-ID"></label></div><div class="map-live-debug-metrics"><div><strong data-role="debugHealth">Venter på data</strong><small data-role="debugMeta"></small></div><div><strong data-role="debugReason">Ingen holdeplass valgt</strong><small data-role="debugExplanation"></small></div></div><div class="map-live-debug-results"><section><strong>Quay / fysisk LED</strong><pre data-role="debugQuays"></pre></section><section><strong>Observerte busser</strong><pre data-role="debugObservations"></pre></section><section><strong>Søk i hele mottatte frame</strong><pre data-role="debugVehicleResult"></pre></section></div><button type="button" data-act="exportLiveDebug">Eksporter diagnose (JSON)</button><small>En buss som ikke finnes i valgt frame, kan fortsatt kjøre. Dette er ikke et historisk opptak eller direkte GPS-sporing.</small></div></details><div class="map-editor" id="networkEditor" hidden><button data-act="addStop">+ Ny holdeplass</button><button data-act="addPath">+ Ny kartlinje</button><button data-act="undo">Angre</button><button data-act="nextPlatformReview" type="button">Neste uavklarte plattform</button><span class="map-platform-progress" data-role="platformProgress">Plattformkontroll lastes …</span><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><span class="map-draft-status" data-role="draftStatus" aria-live="polite">Ingen nye endringer</span><section class="map-cloud"><strong>Permanent skylagring</strong><small>Alle endringer lagres lokalt. Koble til skyen med administratornøkkelen for lagring på tvers av enheter. Nøkkelen beholdes kun mens siden er åpen.</small><label>Administratornøkkel <input type="password" autocomplete="off" data-role="cloudKey" placeholder="Administratornøkkel"></label><button type="button" data-act="cloudConnect">Koble til skylagring</button><button type="button" data-act="cloudDisconnect" hidden>Koble fra</button><button type="button" data-act="cloudUseRemote" hidden>Hent fra skyen</button><button type="button" data-act="cloudUseLocal" hidden>Bruk lokal versjon i skyen</button><span data-role="cloudStatus" role="status" aria-live="polite">Kun lokal lagring – ikke synkronisert til skyen.</span><div class="map-publish-actions"><button type="button" data-act="publishMap" disabled>Publiser kart til GitHub</button><span data-role="publishStatus" aria-live="polite">Før publisering må skyen vise «Lagret permanent i skyen».</span><a data-role="publishLink" hidden target="_blank" rel="noopener noreferrer">Åpne publiseringsforslag på GitHub</a></div></section><div class="map-sketch-controls" data-role="sketchControls" hidden><strong data-role="sketchHelp" aria-live="polite"></strong><button data-act="finishSketch">Fullfør linjen</button><button data-act="sketchUndo">Fjern siste punkt</button><button data-act="sketchCancel">Avbryt tegning</button></div><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
+  host.innerHTML=`<div class="map-shell"><div class="map-toolbar"><button data-act="in" aria-label="Zoom inn">+</button><button data-act="out" aria-label="Zoom ut">−</button><button data-act="fit">Tilpass hele kartet</button><label class="map-toggle"><input type="checkbox" data-role="reference"> Vis originaltegningen</label><label class="map-toggle"><input type="checkbox" data-role="routeColors" checked> Vis dokumenterte rutefarger</label><label class="map-toggle"><input type="checkbox" data-role="largeLabels"> Større navn</label><label class="map-review-label">Gjennomgå linje <select data-role="reviewPath" aria-label="Velg kartlinje for kvalitetssjekk"></select></label><select data-role="focus" aria-label="Fokus på holdeplass"></select><a data-role="geoLink" href="./geo/" class="map-geo-link">Åpne stopp i geografisk kart</a><button data-act="edit" aria-pressed="false">Rediger kart</button><button data-act="export">Eksporter JSON</button><label>Importer JSON <input data-role="import" type="file" accept="application/json,.json"></label></div><p data-role="mapPreviewBanner" class="map-preview-banner" hidden role="status" aria-live="polite"></p><p class="map-warning" data-role="notice"></p><div data-role="dayHistoryHost"></div><details class="map-live-debug" data-role="liveDebug"><summary>Sanntidsmonitor · hvorfor vises/vises ikke bussen?</summary><div class="map-live-debug-body"><p>Leser kun den aktive Linear-feeden. Ingen ekstra GPS-posisjon eller rutedekning utledes.</p><div class="map-live-debug-controls"><label>Holdeplass <select data-role="debugStop" aria-label="Diagnoseholdeplass"></select></label><label>Entur-plattform <select data-role="debugQuay" aria-label="Diagnoseplattform"></select></label><label>Buss-ID (valgfritt) <input data-role="debugVehicle" type="search" placeholder="Søk etter buss-ID i mottatt frame" autocomplete="off" aria-label="Søk etter buss-ID"></label></div><div class="map-live-debug-metrics"><div><strong data-role="debugHealth">Venter på data</strong><small data-role="debugMeta"></small></div><div><strong data-role="debugReason">Ingen holdeplass valgt</strong><small data-role="debugExplanation"></small></div></div><div class="map-live-debug-results"><section><strong>Quay / fysisk LED</strong><pre data-role="debugQuays"></pre></section><section><strong>Observerte busser</strong><pre data-role="debugObservations"></pre></section><section><strong>Søk i hele mottatte frame</strong><pre data-role="debugVehicleResult"></pre></section></div><button type="button" data-act="exportLiveDebug">Eksporter diagnose (JSON)</button><small>En buss som ikke finnes i valgt frame, kan fortsatt kjøre. Dette er ikke et historisk opptak eller direkte GPS-sporing.</small></div></details><div class="map-editor" id="networkEditor" hidden><section class="map-studio-tools" aria-label="Map Studio tegneverktøy"><strong>Map Studio · tegnehjelp</strong><label><input type="checkbox" data-role="studioGrid" checked>Vis rutenett</label><label><input type="checkbox" data-role="studioSnap" checked>Fest til rutenett</label><label>Vinkellås <select data-role="studioAngleMode" aria-label="Vinkellås"><option value="0">Fri</option><option value="15">15°</option><option value="45" selected>45°</option></select></label><label>Avstand <select data-role="studioSpacing" aria-label="Rutenettavstand"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select></label><button type="button" data-act="exportSvg">Eksporter SVG-tegning</button><button type="button" data-act="studioSelect">Marker område</button><small>Presisjonen gjelder nye og flyttede punkt. Eksisterende kart endres ikke ved å slå på tegnehjelp. JSON er prosjektfilen; SVG er visuell eksport til f.eks. Inkscape.</small></section><div class="map-studio-region-controls" data-role="studioRegionControls" hidden><strong data-role="studioRegionHelp">Marker et område i kartet.</strong><button type="button" data-act="studioClearRegion">Fjern markering</button></div><button data-act="addStop">+ Ny holdeplass</button><button data-act="addPath">+ Ny kartlinje</button><button data-act="undo">Angre</button><button data-act="nextPlatformReview" type="button">Neste uavklarte plattform</button><span class="map-platform-progress" data-role="platformProgress">Plattformkontroll lastes …</span><button data-act="discard">Forkast endringer</button><button data-act="save">Lagre arbeidskopi</button><button data-act="restore">Hent arbeidskopi</button><span class="map-draft-status" data-role="draftStatus" aria-live="polite">Ingen nye endringer</span><section class="map-cloud"><strong>Permanent skylagring</strong><small>Alle endringer lagres lokalt. Koble til skyen med administratornøkkelen for lagring på tvers av enheter. Nøkkelen beholdes kun mens siden er åpen.</small><label>Administratornøkkel <input type="password" autocomplete="off" data-role="cloudKey" placeholder="Administratornøkkel"></label><button type="button" data-act="cloudConnect">Koble til skylagring</button><button type="button" data-act="cloudDisconnect" hidden>Koble fra</button><button type="button" data-act="cloudUseRemote" hidden>Hent fra skyen</button><button type="button" data-act="cloudUseLocal" hidden>Bruk lokal versjon i skyen</button><span data-role="cloudStatus" role="status" aria-live="polite">Kun lokal lagring – ikke synkronisert til skyen.</span><div class="map-publish-actions"><button type="button" data-act="publishMap" disabled>Publiser kart til GitHub</button><span data-role="publishStatus" aria-live="polite">Før publisering må skyen vise «Lagret permanent i skyen».</span><a data-role="publishLink" hidden target="_blank" rel="noopener noreferrer">Åpne publiseringsforslag på GitHub</a></div></section><div class="map-sketch-controls" data-role="sketchControls" hidden><strong data-role="sketchHelp" aria-live="polite"></strong><button data-act="finishSketch">Fullfør linjen</button><button data-act="sketchUndo">Fjern siste punkt</button><button data-act="sketchCancel">Avbryt tegning</button></div><div data-role="fields"></div></div><svg class="map-viewport" aria-label="InTransit Trondheim nettverkskart" role="img"></svg><p data-role="summary"></p><pre class="map-details" data-role="details" aria-live="polite"></pre><details><summary>Stoppmapping og datavalidering</summary><pre class="map-details" data-role="report"></pre><button data-act="report">Eksporter valideringsrapport</button></details></div>`;
+  host.querySelector('.map-shell').insertAdjacentHTML('beforeend',
+   '<details class="map-physical-board" data-role="boardPanel" aria-label="Forhåndsvis fysisk tavle">'+
+   '<summary>Map Studio · Fysisk tavleforhåndsvisning (cm)</summary>'+
+   '<div class="map-board-controls">'+
+   '<label>Størrelse <select data-role="boardPreset" aria-label="Tavleformat">'+
+   '<option value="30x40">30 × 40 cm</option><option value="50x70">50 × 70 cm</option>'+
+   '<option value="40x40">40 × 40 cm</option><option value="custom">Egne mål</option></select></label>'+
+   '<label>Bredde (cm) <input type="number" data-role="boardWidth" min="10" max="200" step="0.5" value="30"></label>'+
+   '<label>Høyde (cm) <input type="number" data-role="boardHeight" min="10" max="200" step="0.5" value="40"></label>'+
+   '<label>LED-diameter (mm) <input type="number" data-role="boardLedDiameter" min="2" max="20" step="0.5" value="5"></label>'+
+   '<label>Yttermarg (mm) <input type="number" data-role="boardMargin" min="3" max="50" step="1" value="12"></label>'+
+   '<label>Navnestørrelse (mm) <input type="number" data-role="boardLabelSize" min="1.5" max="8" step="0.1" value="2.4"></label>'+
+   '<label class="map-board-show-labels"><input type="checkbox" data-role="boardLabels" checked> Vis navn</label>'+
+   '<label class="map-board-move-label"><input type="checkbox" data-role="boardMove"> Flytt stasjoner og navn</label>'+
+   '<label class="map-board-move-label"><input type="checkbox" data-role="boardRouteEdit"> Rediger linjeknekkpunkter</label>'+
+   '<label>Linje <select data-role="boardPath" aria-label="Velg grafisk linje"></select></label>'+
+   '<label>Delstrekning <select data-role="boardSegment" aria-label="Velg grafisk delstrekning"></select></label>'+
+   '<button type="button" data-role="boardAddBend">+ Legg til knekkpunkt</button>'+
+   '<label>Ekstra knekkpunkt <select data-role="boardBendSelect" aria-label="Velg ekstra knekkpunkt"></select></label>'+
+   '<button type="button" data-role="boardRemoveBend">Fjern valgt knekkpunkt</button>'+
+   '<button type="button" data-role="boardResetRoute">Tilbakestill valgt trasé</button>'+
+   '<label class="map-board-follow-label"><input type="checkbox" data-role="boardFollow"> Linjene følger flyttede stasjoner</label>'+
+   '<button type="button" data-role="boardUndo">Angre siste endring</button>'+
+   '<button type="button" data-role="boardReset">Tilbakestill dette formatet</button>'+
+   '<button type="button" data-role="boardExport">Eksporter SVG i fysisk størrelse</button>'+
+   '</div><p class="map-board-info" data-role="boardMetrics" aria-live="polite"></p>'+
+   '<div class="map-board-preview" data-role="boardSvgHost" aria-label="Skalerbar fysisk tavle i valgt format"></div>'+
+   '<p class="map-board-warning" data-role="boardWarnings"></p>'+
+   '<small>Aktiver «Rediger kart». Velg «Flytt stasjoner og navn» eller «Rediger linjeknekkpunkter». Dra en LED-runding eller felles ring for å flytte stasjonen; dra stasjonsnavnet separat. «Linjene følger flyttede stasjoner» tilpasser kun linjeknekkpunkter som opprinnelig sammenfaller nøyaktig med kartstoppet; dette er en grafisk effekt uten rutebekreftelse. Piltaster flytter 1 mm (Shift: 5 mm). Plasseringer lagres separat for hvert valgt tavlemål i prosjekt-JSON. Linjene flyttes ikke automatisk når en stasjon flyttes.</small>'+
+   '<small>Tavlemål og LED-diameter er i faktiske cm/mm. Utskrevet SVG har riktige mm-mål, men kontroller at utskriftsprogrammet ikke bruker «Tilpass side». Dette er en visuell tegning, ikke en verifisert kablingsplan eller fysisk LED-bestilling.</small>'+
+   '</details>');
   const q=r=>host.querySelector(`[data-role="${r}"]`),svg=host.querySelector('svg'),editorPanel=host.querySelector('#networkEditor');
   let localNames={...publishedNames,...N.names(initial)};let layout=initial,context={},editing=false,selection=null,selectedSegmentIndex=0,drag=null,box=[0,0,913,1280],phase=0,report={},frame=null;
-  let placementMode=null,moveStopId=null,routeSketch=null,placementGestureMoved=false,suppressAutoSave=false,cloud=null,selectedSide=null;
+  let placementMode=null,moveStopId=null,routeSketch=null,placementGestureMoved=false,suppressAutoSave=false,cloud=null,selectedSide=null,selectedQuay=null;
   let debugStopId='',debugQuayId='',debugSide=null,lastDiagnostic=null;
   let playback=null,replayBoard=null,replayHardware=null,replayLoad=null;
   const autoDraftKey='intransit-map-autodraft-v1',manualDraftKey='intransit-map-draft-v1';
+  const drawingPrefs={gridVisible:true,gridSnap:true,angleStep:45,gridSize:10};
+  const boardSettings={widthCm:30,heightCm:40,ledDiameterMm:5,marginMm:12,labelFontMm:2.4,showLabels:true};
+  let lastBoardResult=null,boardDrag=null,designer=null;
+  let regionSelecting=false,regionDraft=null,regionSelection=null;
+   let previewMode='live',previewTargetId=null;
+  const snapPoint=(p,previous=null)=>T.snap(p,{...drawingPrefs,previous});
   // Stable reference is the traced source file; published edits are overlaid.
+  function boardRender(){
+   if(!q('boardPanel').open)return;
+   try{
+    const target=(layout.displayStations||[]).find(ds=>ds.id===previewTargetId);
+    const demo=editing&&previewMode!=='live'&&target;
+    const litQuays=demo?target.members.filter((m,i)=>P.simulated(previewMode,i)?.state==='AT_STOP').map(m=>m.quayId):[];
+    const result=B.build(layout,boardSettings,{simulated:Boolean(demo),litQuays,previewOverrides:boardDrag?.preview,
+     showRouteHandles:editing&&q('boardRouteEdit').checked});
+    lastBoardResult=result;
+    boardRouteControls();
+    q('boardFollow').checked=B.currentProfile(layout,boardSettings).followStations===true;
+    // Replacing the SVG momentarily collapses the scrollable surface. Retain
+    // the viewport across redraws, including a click with no actual movement.
+    const surface=q('boardSvgHost'),left=surface.scrollLeft,top=surface.scrollTop;
+    surface.innerHTML=result.svg.replace(/^<\?xml[^>]*>\s*/,'');
+    designer?.decorate();
+    surface.scrollLeft=left;surface.scrollTop=top;
+    q('boardSvgHost').classList.toggle('map-board-move-active',editing&&q('boardMove').checked);
+    q('boardSvgHost').classList.toggle('map-board-route-active',editing&&q('boardRouteEdit').checked);
+    q('boardMetrics').textContent=boardSettings.widthCm+' × '+boardSettings.heightCm+
+     ' cm · LED Ø '+boardSettings.ledDiameterMm+' mm · '+result.summary.markers+
+     ' markører · '+result.summary.labels+' navn · '+result.summary.overlaps+' LED-avstandskonflikter · utnyttet flate '+result.dimensions.usagePct+
+     ' %'+(demo?' · SIMULERT':' · kun grafisk preview')+
+     ' · format '+B.profileKey(boardSettings)+' · '+Object.keys(B.currentProfile(layout,boardSettings).positions||{}).length+' flyttede punkter'+
+     (result.summary.followStations?' · linjetilpasning aktiv ('+result.summary.trackedVertices+' knekkpunkter)':' · linjetilpasning av')+
+     ' · '+result.summary.editedRouteVertices+' manuelt plasserte linjepunkter';
+    if(designer?.isActive())q('boardMetrics').textContent=boardSettings.widthCm+' × '+boardSettings.heightCm+' cm · '+result.summary.markers+' stasjonspunkter · eget oppsett for dette formatet';
+    q('boardWarnings').textContent=designer?.isActive()?(result.summary.overlaps+' steder har lyspunkter som ligger for tett. Oransje ringer viser hvor du bør kontrollere avstanden. Tavlen er en visuell skisse.'):
+     result.warnings.length?
+     'Kontrollpunkter ('+result.warnings.length+'): '+
+     result.warnings.slice().sort((a,b)=>Number(b.code==='LED_OVERLAP')-Number(a.code==='LED_OVERLAP')).slice(0,4).map(w=>w.message).join(' · ')+
+     (result.warnings.length>4?' · …':''):'Ingen registrerte overlapp i denne visningen.';
+   }catch(error){
+    lastBoardResult=null;q('boardSvgHost').replaceChildren();q('boardWarnings').textContent='Kan ikke tegne tavlen: '+error.message;
+   }
+  }
+  function setBoardSize(widthCm,heightCm,preset){
+   boardSettings.widthCm=widthCm;boardSettings.heightCm=heightCm;
+   q('boardWidth').value=String(widthCm);q('boardHeight').value=String(heightCm);
+   q('boardPreset').value=preset||'custom';boardRender();
+  }
+  q('boardPreset').onchange=()=>{
+   const preset=B.PRESETS.find(p=>p.id===q('boardPreset').value);
+   if(preset)setBoardSize(preset.widthCm,preset.heightCm,preset.id);
+  };
+  for(const [role,key] of [['boardWidth','widthCm'],['boardHeight','heightCm'],
+   ['boardLedDiameter','ledDiameterMm'],['boardMargin','marginMm'],['boardLabelSize','labelFontMm']]){
+   q(role).onchange=()=>{
+    const value=Number(q(role).value),previous=boardSettings[key];
+    boardSettings[key]=value;
+    try{B.dimensions(boardSettings);}
+    catch(error){boardSettings[key]=previous;q(role).value=String(previous);
+     q('boardWarnings').textContent='Ugyldige mål: '+error.message;return;}
+    if(role==='boardWidth'||role==='boardHeight')q('boardPreset').value=
+     B.PRESETS.find(p=>p.widthCm===boardSettings.widthCm&&p.heightCm===boardSettings.heightCm)?.id||'custom';
+    boardRender();
+   };
+  }
+  q('boardLabels').onchange=()=>{boardSettings.showLabels=q('boardLabels').checked;boardRender();};
+  q('boardPanel').ontoggle=()=>{if(q('boardPanel').open)boardRender();};
+  q('boardExport').onclick=()=>{
+   try{
+    const target=(layout.displayStations||[]).find(ds=>ds.id===previewTargetId);
+    const demo=editing&&previewMode!=='live'&&target;
+    const litQuays=demo?target.members.filter((m,i)=>P.simulated(previewMode,i)?.state==='AT_STOP').map(m=>m.quayId):[];
+    const result=B.build(layout,boardSettings,{simulated:Boolean(demo),litQuays});
+    download('intransit-board-'+boardSettings.widthCm+'x'+boardSettings.heightCm+'cm.svg',result.svg,'image/svg+xml');
+   }catch(error){q('boardWarnings').textContent='Eksport feilet: '+error.message;}
+  };
+
+
+  // Board-only dragging: the canonical Trondheim stop and path coordinates
+  // never participate in editor.change(), only physicalBoardLayouts does.
+  function boardHit(event){
+   if(q('boardRouteEdit').checked){
+    const routeEl=event.target?.closest?.('[data-board-route-path][data-board-route-key]');
+    if(!routeEl||!q('boardSvgHost').contains(routeEl))return null;
+    const pathId=routeEl.getAttribute('data-board-route-path'),
+     key=routeEl.getAttribute('data-board-route-key'),
+     type=routeEl.getAttribute('data-board-route-type'),
+     handle=B.routeGeometry(layout,boardSettings).handles.find(h=>
+      h.pathId===pathId&&h.key===key&&h.type===type);
+    if(!handle)return null;
+    q('boardPath').value=pathId;
+    boardRouteControls();
+    if(type==='bend')q('boardBendSelect').value=key;
+    return {kind:'route',pathId,key,routeType:type,
+     items:[{key,x:handle.x,y:handle.y}],dims:B.dimensions(boardSettings)};
+   }
+   const target=event.target?.closest?.('[data-board-label], [data-board-key], [data-board-group]');
+   if(!target||!q('boardSvgHost').contains(target))return null;
+   const dims=B.dimensions(boardSettings),profile=B.currentProfile(layout,boardSettings),
+    parts=B.layoutElements(layout,dims,profile);
+   const labelId=target.getAttribute('data-board-label');
+   if(labelId){
+    const label=parts.labels.find(item=>item.stopId===labelId);
+    return label?{kind:'labels',items:[{key:labelId,x:label.x,y:label.y}],dims}:null;
+   }
+   const groupId=target.getAttribute('data-board-group')||
+    target.getAttribute('data-display-station');
+   const selected=groupId?parts.markers.filter(item=>item.groupId===groupId):
+    parts.markers.filter(item=>item.key===target.getAttribute('data-board-key'));
+   return selected.length?{kind:'positions',items:selected.map(item=>({key:item.key,x:item.x,y:item.y})),dims}:null;
+  }
+  function focusBoardHit(hit){
+   const node=[...q('boardSvgHost').querySelectorAll('[tabindex]')].find(n=>
+    hit.kind==='route'?n.dataset.boardRoutePath===hit.pathId&&n.dataset.boardRouteKey===hit.key:
+    hit.kind==='labels'?n.dataset.boardLabel===hit.items[0].key:n.dataset.boardKey===hit.items[0].key);
+   node?.focus({preventScroll:true});
+  }
+  function boardPointerPosition(event){
+   const svgElement=q('boardSvgHost').querySelector('svg');
+   if(!svgElement)return null;
+   const rect=svgElement.getBoundingClientRect(),d=B.dimensions(boardSettings);
+   if(rect.width<1||rect.height<1)return null;
+   return {x:(event.clientX-rect.left)*d.widthMm/rect.width,
+    y:(event.clientY-rect.top)*d.heightMm/rect.height};
+  }
+  function boardOffset(hit,dx,dy){
+   const d=hit.dims;
+   const clearance=hit.kind==='positions'?d.marginMm+d.ledDiameterMm/2:d.marginMm/2;
+   const minDx=Math.max(...hit.items.map(m=>clearance-m.x));
+   const maxDx=Math.min(...hit.items.map(m=>d.widthMm-clearance-m.x));
+   const minDy=Math.max(...hit.items.map(m=>clearance-m.y));
+   const maxDy=Math.min(...hit.items.map(m=>d.heightMm-clearance-m.y));
+   const shiftX=Math.min(maxDx,Math.max(minDx,dx)),shiftY=Math.min(maxDy,Math.max(minDy,dy));
+   const coords=Object.fromEntries(hit.items.map(m=>[m.key,{
+    x:Math.round((m.x+shiftX)/d.widthMm*1e6)/1e6,
+    y:Math.round((m.y+shiftY)/d.heightMm*1e6)/1e6
+   }]));
+   if(hit.kind==='route'){
+    const position=coords[hit.key];
+    const source=B.currentProfile(layout,boardSettings).routes?.[hit.pathId]||{vertices:{},bends:[]};
+    const modified={vertices:{...source.vertices},bends:(source.bends||[]).map(b=>({...b}))};
+    if(hit.routeType==='vertex')modified.vertices[hit.key]=position;
+    else{
+     const bend=modified.bends.find(b=>b.id===hit.key);
+     if(bend)Object.assign(bend,position);
+    }
+    return {preview:{routes:{[hit.pathId]:modified}},position,
+     distance:Math.hypot(shiftX,shiftY)};
+   }
+   return {preview:{[hit.kind]:coords},distance:Math.hypot(shiftX,shiftY)};
+  }
+  q('boardFollow').onchange=()=>{
+   if(!editing){
+    q('boardFollow').checked=B.currentProfile(layout,boardSettings).followStations===true;
+    q('boardWarnings').textContent='Aktiver «Rediger kart» for å endre linjetilpasning.';
+    return;
+   }
+   try{editor.change(next=>B.saveOverrides(next,boardSettings,{followStations:q('boardFollow').checked}));}
+   catch(error){q('boardWarnings').textContent=error.message;boardRender();}
+  };
+
+
+  function boardRouteControls(){
+   const paths=layout.paths||[],pathSelect=q('boardPath');
+   const prev=pathSelect.value;
+   pathSelect.replaceChildren(...paths.map(path=>new Option('Linje '+(paths.indexOf(path)+1),path.id)));
+   if(paths.some(p=>p.id===prev))pathSelect.value=prev;
+   const selected=paths.find(p=>p.id===pathSelect.value),segmentSelect=q('boardSegment');
+   const oldSegment=segmentSelect.value;
+   segmentSelect.replaceChildren(...(selected?.points||[]).slice(0,-1).map((_,i)=>
+    new Option('Del '+(i+1),String(i))));
+   if([...segmentSelect.options].some(o=>o.value===oldSegment))segmentSelect.value=oldSegment;
+   const bendSelect=q('boardBendSelect'),oldBend=bendSelect.value;
+   const bends=B.currentProfile(layout,boardSettings).routes?.[selected?.id]?.bends||[];
+   bendSelect.replaceChildren(...bends.map(b=>new Option('Ekstra punkt '+(bends.indexOf(b)+1)+' · del '+(b.afterIndex+1),b.id)));
+   if(bends.some(b=>b.id===oldBend))bendSelect.value=oldBend;
+   q('boardRemoveBend').disabled=!bends.length;
+   q('boardResetRoute').disabled=!B.currentProfile(layout,boardSettings).routes?.[selected?.id];
+  }
+  q('boardPath').onchange=()=>{boardRouteControls();boardRender();};
+  q('boardRouteEdit').onchange=()=>{
+   if(q('boardRouteEdit').checked&&!editing){
+    q('boardRouteEdit').checked=false;
+    q('boardWarnings').textContent='Aktiver «Rediger kart» for å redigere tavlens linjer.';
+   }
+   if(q('boardRouteEdit').checked)q('boardMove').checked=false;
+   boardRouteControls();boardRender();
+  };
+  q('boardAddBend').onclick=()=>{
+   if(!editing||!q('boardRouteEdit').checked){
+    q('boardWarnings').textContent='Aktiver redigering av linjeknekkpunkter først.';return;
+   }
+   const pathId=q('boardPath').value,segment=Number(q('boardSegment').value);
+   try{
+    const g=B.routeGeometry(layout,boardSettings);
+    const first=g.handles.find(h=>h.pathId===pathId&&h.type==='vertex'&&h.index===segment),
+     last=g.handles.find(h=>h.pathId===pathId&&h.type==='vertex'&&h.index===segment+1),
+     d=B.dimensions(boardSettings);
+    if(!first||!last)throw Error('Fant ikke grafisk delstrekning');
+    const position={x:(first.x+last.x)/2/d.widthMm,y:(first.y+last.y)/2/d.heightMm};
+    editor.change(next=>B.addRouteBend(next,boardSettings,pathId,segment,position));
+    boardRouteControls();
+   }catch(error){q('boardWarnings').textContent=error.message;}
+  };
+  q('boardRemoveBend').onclick=()=>{
+   if(!editing||!q('boardRouteEdit').checked)return;
+   try{
+    editor.change(next=>B.removeRouteBend(next,boardSettings,q('boardPath').value,q('boardBendSelect').value));
+    boardRouteControls();
+   }catch(error){q('boardWarnings').textContent=error.message;}
+  };
+  q('boardResetRoute').onclick=()=>{
+   if(!editing)return;
+   try{
+    if(!B.currentProfile(layout,boardSettings).routes?.[q('boardPath').value])return;
+    editor.change(next=>B.resetRoute(next,boardSettings,q('boardPath').value));
+    boardRouteControls();
+   }catch(error){q('boardWarnings').textContent=error.message;}
+  };
+
+  q('boardMove').onchange=()=>{
+   if(q('boardMove').checked)q('boardRouteEdit').checked=false;
+   if(q('boardMove').checked&&!editing){
+    q('boardMove').checked=false;
+    q('boardWarnings').textContent='Aktiver «Rediger kart» for å flytte fysiske tavlesymboler.';
+   }
+   boardRender();
+  };
+  q('boardUndo').onclick=()=>{
+   boardDrag=null;editor.undo();boardRender();
+  };
+  q('boardReset').onclick=()=>{
+   boardDrag=null;
+   if(!editing){
+    q('boardWarnings').textContent='Aktiver «Rediger kart» for å tilbakestille tavleformatet.';
+    return;
+   }
+   if(!layout.physicalBoardLayouts?.profiles?.[B.profileKey(boardSettings)]){
+    q('boardWarnings').textContent='Ingen endrede plasseringer i dette tavleformatet.';
+    return;
+   }
+   try{editor.change(next=>B.resetOverrides(next,boardSettings));boardRender();}
+   catch(error){q('boardWarnings').textContent=error.message;}
+  };
+  const boardHost=q('boardSvgHost');
+  boardHost.addEventListener('pointerdown',event=>{
+   if(!editing||(!q('boardMove').checked&&!q('boardRouteEdit').checked)||event.button!==0||boardDrag)return;
+   const hit=boardHit(event),start=boardPointerPosition(event);
+   if(!hit||!start)return;
+   event.preventDefault();
+   event.target.closest('[tabindex]')?.focus({preventScroll:true});
+   boardDrag={pointerId:event.pointerId,start,hit,preview:null,distance:0};
+   boardHost.setPointerCapture(event.pointerId);
+  });
+  boardHost.addEventListener('pointermove',event=>{
+   if(!boardDrag||event.pointerId!==boardDrag.pointerId)return;
+   const point=boardPointerPosition(event);if(!point)return;
+   const move=boardOffset(boardDrag.hit,point.x-boardDrag.start.x,point.y-boardDrag.start.y);
+   boardDrag.preview=move.preview;boardDrag.distance=move.distance;boardDrag.position=move.position;
+   boardRender();
+  });
+  function finishBoardDrag(event,commit){
+   if(!boardDrag||event.pointerId!==boardDrag.pointerId)return;
+   const drag=boardDrag;boardDrag=null;
+   try{if(boardHost.hasPointerCapture(event.pointerId))boardHost.releasePointerCapture(event.pointerId);}catch{}
+   if(commit&&drag.distance>=0.25&&drag.preview){
+    try{editor.change(next=>{
+     if(drag.hit.kind==='route')B.setRoutePoint(next,boardSettings,drag.hit.pathId,
+      drag.hit.routeType==='vertex'?Number(drag.hit.key):drag.hit.key,drag.position);
+     else B.saveOverrides(next,boardSettings,drag.preview);
+    });}
+    catch(error){q('boardWarnings').textContent=error.message;}
+   }
+   boardRender();focusBoardHit(drag.hit);
+  }
+  boardHost.addEventListener('pointerup',event=>finishBoardDrag(event,true));
+  boardHost.addEventListener('pointercancel',event=>finishBoardDrag(event,false));
+  boardHost.addEventListener('keydown',event=>{
+   if(!editing||(!q('boardMove').checked&&!q('boardRouteEdit').checked)||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+   const hit=boardHit(event);if(!hit)return;
+   const step=event.shiftKey?5:1;
+   const dx=event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0;
+   const dy=event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0;
+   const move=boardOffset(hit,dx,dy);
+   event.preventDefault();
+   if(move.distance<=0)return;
+   try{editor.change(next=>{
+    if(hit.kind==='route')B.setRoutePoint(next,boardSettings,hit.pathId,
+     hit.routeType==='vertex'?Number(hit.key):hit.key,move.position);
+    else B.saveOverrides(next,boardSettings,move.preview);
+   });focusBoardHit(hit);}
+   catch(error){q('boardWarnings').textContent=error.message;}
+  });
+
   const draftStatus=q('draftStatus');
-  function setDraftStatus(message){draftStatus.textContent=message;}
+  function setDraftStatus(message){draftStatus.textContent=message;if(q('designerStatus'))q('designerStatus').textContent=message;}
    const displayName=stop=>localNames[stop.id]||stop.name;
    const geoHref=id=>id&&initial.stops.some(stop=>stop.id===id)?N.geographicUrl(id):'./geo/';
    function syncGeoLink(id){q('geoLink').href=geoHref(id);}
@@ -104,6 +428,45 @@
   const viewportCenter=()=>({x:box[0]+box[2]/2,y:box[1]+box[3]/2});
   function zoom(f,cx=box[0]+box[2]/2,cy=box[1]+box[3]/2){const w=Math.min(1826,Math.max(40,box[2]*f)),h=w*1280/913;box=[cx-(cx-box[0])*w/box[2],cy-(cy-box[1])*h/box[3],w,h];setBox();}
   function coords(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+  
+  function syncRegionControls(){
+   q('studioRegionControls').hidden=!regionSelection;
+   const b=host.querySelector('[data-act="studioSelect"]');
+   b.setAttribute('aria-pressed',String(regionSelecting));
+   b.textContent=regionSelecting?'Avbryt markering':'Marker område';
+   if(regionSelection)q('studioRegionHelp').textContent=regionSelection.stopIds.length+
+    ' stasjoner og '+regionSelection.vertices.length+' linjepunkt. Dra rammen for å flytte, eller dra gule håndtak for å strekke.';
+  }
+  function regionBounds(){
+   if(!regionSelection)return null;
+   const points=[...layout.stops.filter(s=>regionSelection.stopIds.includes(s.id)),
+    ...regionSelection.vertices.map(({pathId,index})=>layout.paths.find(p=>p.id===pathId)?.points[index]).filter(Boolean)];
+   if(!points.length)return null;
+   return {left:Math.min(...points.map(p=>p.x)),right:Math.max(...points.map(p=>p.x)),
+    top:Math.min(...points.map(p=>p.y)),bottom:Math.max(...points.map(p=>p.y))};
+  }
+  function drawRegionOverlay(){
+   svg.querySelector('.map-studio-region-overlay')?.remove();
+   if(!editing)return;
+   const g=el('g',{class:'map-studio-region-overlay','aria-label':'Områdemarkering'});
+   if(regionSelecting&&regionDraft){
+    const {start:a,end:b}=regionDraft;
+    g.append(el('rect',{class:'map-studio-region-draft',x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),
+     width:Math.abs(a.x-b.x),height:Math.abs(a.y-b.y)}));
+   }else if(regionSelection){
+    const b=regionBounds();
+    if(b){
+     const x=b.left-7,y=b.top-7,w=Math.max(18,b.right-b.left+14),h=Math.max(18,b.bottom-b.top+14);
+     const rect=el('rect',{class:'map-studio-region-selected',x,y,width:w,height:h,rx:3});
+     rect.dataset.studioRegion='move';g.append(rect);
+     for(const edge of ['top','bottom']){
+      const handle=el('circle',{class:'map-studio-region-handle',cx:x+w/2,cy:edge==='top'?y:y+h,r:9});
+      handle.dataset.studioRegion=edge;g.append(handle);
+     }
+    }
+   }
+   svg.append(g);
+  }
   function syncSketchControls(){
    const controls=q('sketchControls'),active=!!routeSketch;
    controls.hidden=!active;
@@ -138,7 +501,7 @@
   }
   function startSketch(pathId=null){
    if(pathId&&!layout.paths.some(p=>p.id===pathId))throw Error('Fant ikke kartlinjen');
-   placementMode=null;moveStopId=null;
+   placementMode=null;moveStopId=null;regionSelecting=false;regionSelection=null;regionDraft=null;syncRegionControls();
    routeSketch={pathId,points:[],cursor:null};
    placementGestureMoved=false;
    syncSketchControls();showSketchPreview();
@@ -152,11 +515,12 @@
     q('details').textContent='Velg et punkt innenfor kartflaten.';return;
    }
    const last=routeSketch.points.at(-1)||(routeSketch.pathId?layout.paths.find(v=>v.id===routeSketch.pathId)?.points.at(-1):null);
-   if(last&&Math.hypot(p.x-last.x,p.y-last.y)<1){
+   const snapped=snapPoint(p,last);
+   if(last&&Math.hypot(snapped.x-last.x,snapped.y-last.y)<1){
     q('details').textContent='Velg et punkt litt lenger unna det forrige.';return;
    }
    if(routeSketch.points.length>997){q('details').textContent='Linjen kan ikke ha flere punkter';return;}
-   routeSketch.points.push({x:p.x,y:p.y});routeSketch.cursor=null;
+   routeSketch.points.push(snapped);routeSketch.cursor=null;
    syncSketchControls();showSketchPreview();
   }
   function undoSketchPoint(){
@@ -292,24 +656,35 @@
    }
    renderLiveDebug();
   }
-  function details(stop){syncGeoLink(stop.id);
-   const quayIds=selectedSide&&stop.diodeMode==='split'
+  function details(stop){if(selectedQuay&&!stop.bindings.some(b=>b.stopId===selectedQuay))selectedQuay=null;syncGeoLink(stop.id);
+   const quayIds=selectedQuay?[selectedQuay]:selectedSide&&stop.diodeMode==='split'
     ?Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===selectedSide&&r.verification==='user-reviewed').map(([id])=>id)
     :null;
-   const values=M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
+   const values=previewMode!=='live'&&editing?[]:M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
    const age=(playbackClock()-Date.parse(playbackFrame()?.generatedAt))/1000;
-   q('details').textContent=displayName(stop)+(localNames[stop.id]?' (lokalt navn; original: '+stop.name+')':'')+(selectedSide?' · '+(selectedSide==='left'?'VENSTRE':'HØYRE')+' på tegningen (Quay '+(quayIds?.join(', ')||'ikke kartlagt')+')':'')+'\n'+(stop.verification!=='confirmed'?'Uavklart navn / ID. Ingen live-kobling.':values.length?values.map(v=>`Linje ${v.line||'?'} · ${v.destination||'Ukjent destinasjon'} · buss ${v.id||'ikke oppgitt'} · ${v.state}\nKilde: ${v.source||'ikke oppgitt'} · observasjonsalder: ${v.ageSeconds??'ukjent'} s`).join('\n'):'OFF · ingen aktiv gyldig observasjon; bekrefter ikke tom holdeplass.')+`\nFrame-alder: ${Number.isFinite(age)?Math.floor(age)+' s':'ingen frame'}`;
+   q('details').textContent=(editing&&previewMode!=='live'?'SIMULERT LED-TEST · ':'')+displayName(stop)+(selectedQuay?' · '+selectedQuay:'')+(localNames[stop.id]?' (lokalt navn; original: '+stop.name+')':'')+(selectedSide?' · '+(selectedSide==='left'?'VENSTRE':'HØYRE')+' på tegningen (Quay '+(quayIds?.join(', ')||'ikke kartlagt')+')':'')+'\n'+(stop.verification!=='confirmed'?'Uavklart navn / ID. Ingen live-kobling.':values.length?values.map(v=>`Linje ${v.line||'?'} · ${v.destination||'Ukjent destinasjon'} · buss ${v.id||'ikke oppgitt'} · ${v.state}\nKilde: ${v.source||'ikke oppgitt'} · observasjonsalder: ${v.ageSeconds??'ukjent'} s`).join('\n'):'OFF · ingen aktiv gyldig observasjon; bekrefter ikke tom holdeplass.')+`\nFrame-alder: ${Number.isFinite(age)?Math.floor(age)+' s':'ingen frame'}`;
    syncDebugSelection(stop);
   }
   function draw(){
    svg.replaceChildren();setBox();svg.classList.toggle('map-big-labels',largeLabels.checked);
    // Only a repository-relative, supplied reference image can be displayed.
    if(layout.reference?.available&&/^\.\/assets\/[\w.-]+\.(png|jpg|svg|webp)$/.test(layout.reference.path||''))svg.append(el('image',{href:layout.reference.path,x:0,y:0,width:913,height:1280,opacity:reference.checked?.55:editing?.28:.08}));
+    if(editing&&drawingPrefs.gridVisible){
+     const steps=[];
+     for(let x=drawingPrefs.gridSize;x<913;x+=drawingPrefs.gridSize)steps.push('M'+x+' 0V1280');
+     for(let y=drawingPrefs.gridSize;y<1280;y+=drawingPrefs.gridSize)steps.push('M0 '+y+'H913');
+     svg.append(el('path',{class:'map-studio-grid',d:steps.join(' '),'aria-hidden':'true'}));
+    }
    for(const path of layout.paths){if(path.routes.length&&!context.all&&!playback&&!path.routes.includes(context.route))continue;
-    const p=el('polyline',{points:path.points.map(p=>p.x+','+p.y).join(' '),stroke:path.color,'stroke-width':path.width,class:'map-route',tabindex:0,'aria-label':path.id});
-    p.onclick=()=>{selection={type:'path',id:path.id};selectedSegmentIndex=0;draw();fields();q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');};p.dataset.routePath=path.id;svg.append(p);
-   }
-   // Overlay only edges with direct Quay-to-Quay adjacency in loaded profiles.
+     for(const track of T.visualTracks(path)){
+      const p=el('polyline',{points:track.points.map(p=>p.x+','+p.y).join(' '),stroke:track.color,'stroke-width':track.width,
+       class:'map-route',tabindex:0,'aria-label':path.id+' · visuelt spor '+(track.lane+1)});
+      p.dataset.routePath=path.id;p.dataset.visualLane=String(track.lane);
+      p.onclick=()=>{selection={type:'path',id:path.id};selectedSegmentIndex=0;draw();fields();q('details').textContent=path.id+'\\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');};
+      svg.append(p);
+     }
+    }
+    // Overlay only edges with direct Quay-to-Quay adjacency in loaded profiles.
    // This does not establish the route of an entire polyline or live coverage.
    const edges=M.verifiedSegments(layout,context.profiles||[],context.boards||[]);
    const reviewed=layout.paths.flatMap(path=>Object.entries(path.reviewedSegments||{}).map(([index,item])=>({path,index:Number(index),item})));
@@ -340,9 +715,36 @@
      stroke.dataset.routeEvidence='manual-review';svg.append(stroke);
     });
    }
+   // A group replaces the original marker only when all real Quays are covered.
+   const groupedIds=new Set,groupedQuays=new Map;
+   for(const ds of layout.displayStations||[])for(const member of ds.members){
+    if(!groupedQuays.has(member.mapStopId))groupedQuays.set(member.mapStopId,new Set);
+    groupedQuays.get(member.mapStopId).add(member.quayId);
+   }
    for(const stop of layout.stops){
-    const resolved=M.resolve(recordedStop(stop),activeBoard(),activeHardware());
-    if(stop.verification==='confirmed'&&!context.all&&!playback&&!resolved.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
+    const all=D.uniqueQuays(stop),grouped=groupedQuays.get(stop.id)||new Set;
+    if(all.length&&all.every(qid=>grouped.has(qid)))groupedIds.add(stop.id);
+   }
+   for(const stop of layout.stops){
+     if(groupedIds.has(stop.id)){
+      if(stop.label.visible){const label=el('text',{x:stop.label.x,y:stop.label.y,class:'map-label'});
+       label.textContent=displayName(stop);label.dataset.label=stop.id;
+       if(selection?.type==='stop'&&selection.id===stop.id)label.dataset.selected='true';
+       svg.append(label);
+      }
+      continue;
+     }
+     if(stop.stationStyle==='double'){
+      const platforms=el('g',{class:'map-station-platforms','aria-hidden':'true'});
+      for(const side of [-1,1])platforms.append(el('rect',{
+       x:stop.x+side*(stop.radius+3)-2,y:stop.y-stop.radius-3,width:4,height:stop.radius*2+6,rx:2
+      }));
+      svg.append(platforms);
+     }
+    const leftovers=D.uniqueQuays(stop).filter(id=>!groupedQuays.get(stop.id)?.has(id));
+    const resolved=M.resolve(recordedStop(stop),activeBoard(),activeHardware())
+     .filter(b=>!groupedQuays.get(stop.id)?.has(b.stopId));
+    if(stop.verification==='confirmed'&&!context.all&&!playback&&!resolved.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id&&!groupedQuays.has(stop.id))continue;
     const sides=stop.diodeMode==='split'?['left','right']:[null];
     sides.forEach((side,i)=>{
      const mapped=side===null?[]:Object.entries(stop.platformSides||{}).filter(([,r])=>r.verification==='user-reviewed'&&r.side===side).map(([id])=>id);
@@ -352,20 +754,52 @@
      if(stop.verification!=='confirmed'||(side!==null&&!mapped.length))group.dataset.unresolved='true';
      if(side!==null){group.dataset.direction=side;group.dataset.side=side;group.dataset.review=mapped.length?'user-reviewed':'pending';}
      group.dataset.stop=stop.id;
+     if(groupedQuays.has(stop.id))group.dataset.remainingQuays=leftovers.join(',');
      if(selection?.type==='stop'&&selection.id===stop.id)group.dataset.selected='true';
      group.append(el('circle',{r:Math.max(stop.radius,10),class:'map-stop-hit'}));
      group.append(el('circle',{r:stop.radius}));
      group.append(el('text',{y:2}));
-     group.onclick=()=>{selection={type:'stop',id:stop.id};selectedSide=side;fields();details(stop);};
+     group.onclick=()=>{selection={type:'stop',id:stop.id};selectedSide=side;selectedQuay=null;fields();details(stop);};
      group.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();group.onclick();}};
      svg.append(group);
     });
     if(stop.label.visible){const label=el('text',{x:stop.label.x,y:stop.label.y,class:'map-label'});label.textContent=displayName(stop);label.dataset.label=stop.id;if(selection?.type==='stop'&&selection.id===stop.id)label.dataset.selected='true';svg.append(label);}
    }
+   // Each source-backed marker has its own Quay and independent LED state.
+   // The outer capsule is purely decorative.
+   for(const ds of layout.displayStations||[]){
+    const geom=D.geometry(layout,ds),group=el('g',{class:'map-display-station','data-display-station':ds.id});
+    if(ds.style.type!=='double')group.append(el('rect',{class:'map-display-outline',x:geom.outline.x,y:geom.outline.y,
+     width:geom.outline.width,height:geom.outline.height,
+     rx:ds.style.outerShape==='capsule'?Math.min(geom.outline.width,geom.outline.height)/2:
+      ds.style.outerShape==='circle'?Math.min(geom.outline.width,geom.outline.height)/2:Math.min(geom.outline.width,geom.outline.height)/3,
+     'stroke-width':ds.style.ringWidth}));
+    let count=0;
+    for(const {member,point} of geom.members){
+     const stop=layout.stops.find(s=>s.id===member.mapStopId);
+     if(!stop)continue;
+     const binding=M.resolve(recordedStop(stop),activeBoard(),activeHardware()).filter(b=>b.stopId===member.quayId);
+     if(stop.verification==='confirmed'&&!editing&&!context.all&&!playback&&!binding.some(b=>b.node.routes.includes(context.route))&&selection?.id!==stop.id)continue;
+     count++;
+     const marker=el('g',{class:'map-stop',transform:'translate('+point.x+' '+point.y+')',
+      role:'button',tabindex:0,'aria-label':displayName(stop)+' · '+member.quayId});
+     marker.dataset.stop=stop.id;marker.dataset.quay=member.quayId;
+     marker.dataset.displayStation=ds.id;
+     if(member.placementReview!=='user-reviewed')marker.dataset.unresolved='true';
+     if(selection?.type==='stop'&&selection.id===stop.id)marker.dataset.selected='true';
+     marker.append(el('circle',{r:Math.max(ds.style.markerRadius,9),class:'map-stop-hit'}));
+     marker.append(el('circle',{r:ds.style.markerRadius}));
+     marker.append(el('text',{y:2}));
+     marker.onclick=()=>{selection={type:'stop',id:stop.id};selectedQuay=member.quayId;selectedSide=null;fields();details(stop);};
+     marker.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();marker.onclick();}};
+     group.append(marker);
+    }
+    if(count)svg.append(group);
+   }
    // Only the explicitly selected line exposes handles above stop hit areas.
    const selectedPath=editing&&selection?.type==='path'?layout.paths.find(p=>p.id===selection.id):null;
    if(selectedPath)selectedPath.points.forEach((v,i)=>{const h=el('circle',{cx:v.x,cy:v.y,r:4,class:'map-handle'});h.dataset.path=selectedPath.id;h.dataset.index=i;svg.append(h);});
-   showSketchPreview();
+   showSketchPreview();drawRegionOverlay();
    q('focus').replaceChildren(new Option('Fokus på punkt …',''),...layout.stops.map(s=>new Option(displayName(s),s.id)));
     q('focus').value=selection?.type==='stop'?selection.id:'';syncGeoLink(selection?.type==='stop'?selection.id:null);
    const currentPath=routeReview.value;
@@ -377,25 +811,70 @@
     report.routeEvidence={method:'consecutive Quays or catalog-verified, uniquely mapped StopPlaces',manualApproved:reviewed.length,drawn,possibleEdges:layout.paths.reduce((count,p)=>count+Math.max(0,p.points.length-1),0),exactOnly:edges.filter(e=>e.routes.every(r=>r.evidence==='exact-quay')).length,withStopPlace:edges.filter(e=>e.routes.some(r=>r.evidence==='unique-stopplace')).length,edges:edges.map(e=>({path:e.pathId,edge:e.edgeIndex,from:e.from,to:e.to,routes:e.routes.map(r=>({id:r.id,evidence:r.evidence}))})),byPath:layout.paths.map(p=>({id:p.id,documented:edges.filter(e=>e.pathId===p.id).length,segments:Math.max(0,p.points.length-1),fullRouteVerified:false}))};
     q('report').textContent=JSON.stringify(report,null,2);
    q('notice').textContent=(report.coverage.scope==='selected-corridors'?'Kartet viser et bevisst utvalg av strekninger; bussrutene trenger ikke være komplette fra ende til ende. Flere kan legges til senere. ':'')+'Datakoblinger som gjenstår: '+report.unconfirmed.length+' stopp; '+report.unconfirmedNames.length+' uten navn. '+edges.length+'/'+report.routeEvidence.possibleEdges+' naboforbindelser dokumentert i rutekonfigurasjonen; '+drawn+' fargevises for valgte ruter. '+reviewed.length+' delstrekninger er manuelt godkjent. Uavklarte delstrekninger er nøytrale. Full samtidig live-dekning er ikke bekreftet.';
-   paint();
+   paint();boardRender();
   }
   function paint(){
+   const target=(layout.displayStations||[]).find(ds=>ds.id===previewTargetId);
+   const demoActive=editing&&previewMode!=='live'&&Boolean(target);
+   const banner=q('mapPreviewBanner');
+   banner.hidden=!demoActive;
+   banner.textContent=demoActive?'SIMULERT LED-TEST – ingen av de viste lysene er sanntid. Velg LIVE / kilde for å avslutte.':'';
+   const diagnostics=new Map;
+   for(const ds of layout.displayStations||[]){
+    const report=P.inspect(layout,ds,activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),M);
+    for(const item of report)diagnostics.set(ds.id+'|'+item.quayId,item);
+   }
+   const diagnosticPanel=q('fields').querySelector('[data-role="displayPreviewReport"]');
+   if(diagnosticPanel&&selection?.type==='stop'){
+    const ds=(layout.displayStations||[]).find(ds=>ds.members.some(m=>m.mapStopId===selection.id));
+    if(ds){
+     diagnosticPanel.textContent=(demoActive?'SIMULERT – LED-kilder vist kun som diagnostikk\n':'')+
+      ds.members.map((m,i)=>{
+       const r=diagnostics.get(ds.id+'|'+m.quayId);
+       return (i?'B':'A')+' · '+m.quayId+'\n'+
+        'Kartpunkt: '+m.mapStopId+' · tavlenode: '+(r?.boardNodeIds.join(', ')||'–')+'\n'+
+        'Logisk LED: '+(r?.logicalLeds.join(', ')||'–')+
+        ' · fysisk LED: '+(r?.physicalLeds.join(', ')||'–')+'\n'+
+        'Kilde: '+(r?.sourceStatus||'UKJENT')+
+        (r?.frameAgeSeconds===null?'':' · frame '+r.frameAgeSeconds+' s')+
+        ' · grafisk side: '+m.placementReview;
+      }).join('\n\n');
+    }
+   }
    let all=[];
    for(const group of svg.querySelectorAll('.map-stop')){
     const stop=layout.stops.find(s=>s.id===group.dataset.stop);
     // On split markers, ONLY manually assigned Quays can trigger that side.
     // Missing reviews show OFF, never a guessed direction or a merged LED.
     const side=group.dataset.side||null;
-    const quayIds=side?Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===side&&r.verification==='user-reviewed').map(([id])=>id):null;
-    const values=M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
+    const remaining=group.dataset.remainingQuays?new Set(group.dataset.remainingQuays.split(',')):null;
+    const quayIds=group.dataset.quay?[group.dataset.quay]:side?
+     Object.entries(stop.platformSides||{}).filter(([,r])=>r.side===side&&r.verification==='user-reviewed')
+      .map(([id])=>id).filter(id=>!remaining||remaining.has(id)):
+      remaining?[...remaining]:null;
+    const diagnostic=group.dataset.quay?diagnostics.get(group.dataset.displayStation+'|'+group.dataset.quay):null;
+    const conflict=diagnostic&&['SHARED_LED','UNMAPPED','UNVERIFIED','NO_HARDWARE'].includes(diagnostic.sourceStatus);
+    const values=demoActive||conflict?[]:
+     M.signals(recordedStop(stop),activeBoard(),activeHardware(),playbackFrame(),activeLine(),playbackClock(),null,quayIds);
     all.push(...values);
     const max=Math.max(0,...values.map(v=>S.priority(v.state))),choices=values.filter(v=>S.priority(v.state)===max),v=choices.length?choices[phase%choices.length]:null;
-    group.dataset.state=v?.state||'OFF';const rgb=v?.rgb;group.style.color=Array.isArray(rgb)&&rgb.length===3&&rgb.every(n=>Number.isInteger(n)&&n>=0&&n<=255)?`rgb(${rgb.join(',')})`:'#70839a';group.querySelector('text').textContent=context.numbers&&v?String(v.line||'?'):side?(side==='left'?'V':'H'):'';
+    const memberIndex=demoActive&&group.dataset.displayStation===target.id?
+     target.members.findIndex(m=>m.quayId===group.dataset.quay):-1;
+    const simulation=memberIndex>=0?P.simulated(previewMode,memberIndex):null;
+    const state=simulation?simulation.state:v?.state||'OFF';
+    const rgb=simulation?simulation.rgb:v?.rgb;
+    group.dataset.state=state;
+    if(demoActive)group.dataset.preview='simulated';else delete group.dataset.preview;
+    if(diagnostic)group.dataset.mapping=diagnostic.sourceStatus;
+    group.style.color=Array.isArray(rgb)&&rgb.length===3&&rgb.every(n=>Number.isInteger(n)&&n>=0&&n<=255)?
+     `rgb(${rgb.join(',')})`:'#70839a';
+    group.querySelector('text').textContent=demoActive?'':context.numbers&&v?String(v.line||'?'):side?(side==='left'?'V':'H'):'';
    }
    const active=all.filter(v=>v.state!=='PASSED'),known=active.every(v=>v.id),count=new Set(active.map(v=>v.id)).size;
-   q('summary').textContent=(playback?'HISTORIKK – IKKE LIVE · ':'' )+`${layout.stops.length} kartpunkter · ${report.unmapped?.length||0} uten kobling · `+(known&&active.length?`${count} identifiserte aktive busser i kartets tilgjengelige feed`:'Aktivt bussantall ikke bekreftet')+' · Viser bare tegnede strekninger og data fra eksisterende Linear-feed; ikke nødvendigvis komplette bussruter.';
+   q('summary').textContent=(demoActive?'SIMULERT TEST · ':playback?'HISTORIKK – IKKE LIVE · ':'' )+`${layout.stops.length} kartpunkter · ${report.unmapped?.length||0} uten kobling · `+(known&&active.length?`${count} identifiserte aktive busser i kartets tilgjengelige feed`:'Aktivt bussantall ikke bekreftet')+' · Viser bare tegnede strekninger og data fra eksisterende Linear-feed; ikke nødvendigvis komplette bussruter.';
    if(selection?.type==='stop'){const selected=layout.stops.find(s=>s.id===selection.id);if(selected)details(selected);else selection=null;}
    if(q('liveDebug').open)renderLiveDebug();
+   if(q('boardPanel').open&&previewMode!=='live')boardRender();
   }
 
   function reviewPath(id){
@@ -417,6 +896,40 @@
    if(selection.type==='path'){
      input('Nøytral linjefarge',item.color,'color',(n,v)=>pick(n).color=v);
      input('Linjetykkelse',item.width,'number',(n,v)=>pick(n).width=v);
+      {const trackEditor=document.createElement('section');trackEditor.className='map-track-editor';
+      const trackTitle=document.createElement('strong');trackTitle.textContent='Spor og parallelle rutefarger (kun grafikk)';
+      const trackInfo=document.createElement('small');trackInfo.textContent='1 eller 2 tegnede spor, inntil 4 fargestriper per spor. Dette er utseende, ikke dokumenterte bussruter eller Quay-retninger.';
+      const settings=item.visualTracks||{trackCount:1,routeCount:1,spacing:5,colors:[item.color]};
+      function optionField(title,items,value,onChange){
+       const label=document.createElement('label');label.textContent=title;
+       const control=document.createElement('select');
+       for(const [id,text] of items)control.append(new Option(text,String(id)));
+       control.value=String(value);
+       control.onchange=()=>onChange(Number(control.value));
+       label.append(control);trackEditor.append(label);
+      }
+      const updateTracks=changes=>{try{editor.change(next=>{
+       const p=pick(next),old=p.visualTracks||{trackCount:1,routeCount:1,spacing:5,colors:[p.color]};
+       const trackCount=changes.trackCount??old.trackCount,routeCount=changes.routeCount??old.routeCount;
+       const size=trackCount*routeCount;
+       p.visualTracks={trackCount,routeCount,spacing:changes.spacing??old.spacing,
+        colors:Array.from({length:size},(_,i)=>old.colors[i]||p.color)};
+      });}catch(e){q('details').textContent=e.message;fields();}};
+      trackEditor.append(trackTitle,trackInfo);
+      optionField('Antall spor',[[1,'Ett spor'],[2,'Dobbeltspor']],settings.trackCount,n=>updateTracks({trackCount:n}));
+      optionField('Rutefarger per spor',[[1,'1'],[2,'2'],[3,'3'],[4,'4']],settings.routeCount,n=>updateTracks({routeCount:n}));
+      optionField('Avstand',[[3,'3'],[5,'5'],[8,'8'],[12,'12'],[18,'18'],[24,'24']],settings.spacing,n=>updateTracks({spacing:n}));
+      for(let i=0;i<settings.trackCount*settings.routeCount;i++){
+       const label=document.createElement('label');label.textContent='Farge '+(i+1);
+       const swatch=document.createElement('input');swatch.type='color';swatch.value=settings.colors[i]||item.color;
+       swatch.onchange=()=>{try{editor.change(next=>{
+        const p=pick(next);p.visualTracks||={trackCount:1,routeCount:1,spacing:5,colors:[p.color]};
+        p.visualTracks.colors[i]=swatch.value;
+       });}catch(e){q('details').textContent=e.message;fields();}};
+       label.append(swatch);trackEditor.append(label);
+      }
+      area.append(trackEditor);}
+
      const review=document.createElement('section');review.className='map-segment-editor';
      const heading=document.createElement('strong');heading.textContent='Rutetilknytning per delstrekning – manuell godkjenning';review.append(heading);
      const segment=document.createElement('select');segment.setAttribute('aria-label','Velg delstrekning');
@@ -498,7 +1011,92 @@
     area.append(del);
    }
    if(item.id.startsWith('custom-stop-'))input('Navn på nytt kartpunkt',item.name,'text',(n,v)=>{pick(n).name=v;});
-   input('Punktstørrelse',item.radius,'number',(n,v)=>pick(n).radius=v);input('Vis etikett',item.label.visible,'checkbox',(n,v)=>pick(n).label.visible=v);input('To dioder',item.diodeMode==='split','checkbox',(n,v)=>pick(n).diodeMode=v?'split':'shared');
+   input('Dobbel stasjon (kun grafikk)',item.stationStyle==='double','checkbox',(n,v)=>pick(n).stationStyle=v?'double':'single');
+    input('Punktstørrelse',item.radius,'number',(n,v)=>pick(n).radius=v);input('Vis etikett',item.label.visible,'checkbox',(n,v)=>pick(n).label.visible=v);input('To dioder',item.diodeMode==='split','checkbox',(n,v)=>pick(n).diodeMode=v?'split':'shared');
+
+   // Grouping controls only ever reference existing Quay IDs from this stop.
+   const visualGroup=(layout.displayStations||[]).find(ds=>ds.members.some(m=>m.mapStopId===item.id));
+   const panelGroup=document.createElement('section');panelGroup.className='map-display-controls';
+   const titleGroup=document.createElement('strong');titleGroup.textContent='Map Studio · ekte dobbelstasjon';
+   const noteGroup=document.createElement('small');
+   noteGroup.textContent=visualGroup?'Begge rundinger er knyttet til hver sin ekte Quay. Grafisk side er ikke automatisk verifisert.':'Opprett dobbelstasjon fra to bekreftede Quay-er, uten å endre stopp- eller LED-identitet.';
+   panelGroup.append(titleGroup,noteGroup);
+   if(visualGroup){
+    const updateGroup=fn=>{try{editor.change(next=>fn(next.displayStations.find(ds=>ds.id===visualGroup.id)));}catch(error){q('details').textContent=error.message;}};
+    function optionGroup(name,options,value,change){
+     const label=document.createElement('label');label.textContent=name;
+     const select=document.createElement('select');
+     for(const [id,text] of options)select.append(new Option(text,String(id)));
+     select.value=String(value);select.onchange=()=>updateGroup(g=>change(g,select.value));
+     label.append(select);panelGroup.append(label);
+    }
+    optionGroup('Stasjonsstil',[['double_outer_ring','Felles ring'],['double_capsule','Kapsel'],['double','To separate rundinger']],
+     visualGroup.style.type,(g,v)=>{g.style.type=v;g.style.outerShape=v==='double_capsule'?'capsule':'ellipse';});
+    optionGroup('Avstand fra sporet',[[6,'Tett'],[9,'Normal'],[12,'Luftig'],[16,'Ekstra luftig']],
+     Math.abs(visualGroup.members[0].offset.across),(g,v)=>{
+      g.members.forEach((m,i)=>{m.offset.across=(i===0?-1:1)*Number(v);m.placementReview='unreviewed';});
+      g.reviewStatus='unreviewed';
+     });
+    optionGroup('Ytre ringmargin',[[2,'Liten'],[4,'Normal'],[7,'Stor']],
+     visualGroup.style.ringPadding,(g,v)=>{g.style.ringPadding=Number(v);});
+    const demoLabel=document.createElement('label');demoLabel.textContent='LED-test (kun forhåndsvisning)';
+    const demoSelect=document.createElement('select');demoSelect.dataset.role='displayLedSimulation';
+    for(const [id,name] of [['live','LIVE / kilde'],['off','SIMULERT · begge av'],
+     ['a','SIMULERT · bare A lyser'],['b','SIMULERT · bare B lyser'],['both','SIMULERT · begge lyser']])
+     demoSelect.append(new Option(name,id));
+    demoSelect.value=previewTargetId===visualGroup.id?previewMode:'live';
+    demoSelect.onchange=()=>{
+     previewMode=demoSelect.value;previewTargetId=visualGroup.id;paint();
+    };
+    demoLabel.append(demoSelect);panelGroup.append(demoLabel);
+    const diag=document.createElement('pre');diag.dataset.role='displayPreviewReport';
+    diag.className='map-display-preview-report';
+    panelGroup.append(diag);
+    const removeGroup=document.createElement('button');removeGroup.type='button';removeGroup.textContent='Opphev visuell gruppering';
+    removeGroup.onclick=()=>{try{previewMode='live';previewTargetId=null;editor.change(next=>D.remove(next,visualGroup.id));selectedQuay=null;}catch(error){q('details').textContent=error.message;}};
+    panelGroup.append(removeGroup);
+   }else{
+    const addGroup=document.createElement('button');addGroup.type='button';addGroup.textContent='+ Opprett dobbelstasjon fra ekte Quay-er';
+    addGroup.disabled=item.verification!=='confirmed'||D.uniqueQuays(item).length!==2;
+    addGroup.onclick=()=>{try{editor.change(next=>D.addDouble(next,item.id));selectedQuay=null;}catch(error){q('details').textContent=error.message;}};
+    panelGroup.append(addGroup);
+    if(addGroup.disabled){const warning=document.createElement('small');warning.textContent='Krever et bekreftet kartpunkt med nøyaktig to unike Entur Quay-er.';panelGroup.append(warning);}
+    const groupedStops=new Set((layout.displayStations||[]).flatMap(ds=>ds.members.map(m=>m.mapStopId)));
+    const candidates=D.nearbyPairs(layout,item.id).filter(v=>!groupedStops.has(v.stopId));
+    if(item.verification==='confirmed'&&D.uniqueQuays(item).length&&candidates.length){
+     const subsection=document.createElement('strong');subsection.textContent='Grupper med et annet, nærliggende kartstopp';
+     const help=document.createElement('small');
+     help.textContent='Velg manuelt én ekte Quay fra hvert kartpunkt. Andre Quay-er blir værende i kartet og får ikke doble signaler. Nærhet alene bekrefter ingen fysisk plattformside.';
+     panelGroup.append(subsection,help);
+     const labelSecond=document.createElement('label');labelSecond.textContent='Andre holdeplass';
+     const targetSelect=document.createElement('select');targetSelect.dataset.role='displayPairTarget';
+     for(const candidate of candidates)targetSelect.append(new Option(candidate.name+' · '+candidate.stopId+
+      (candidate.sameStopPlace?' (samme StopPlace)':'')+' · '+candidate.distance.toFixed(1)+' kartenheter',candidate.stopId));
+     labelSecond.append(targetSelect);
+     const labelFirst=document.createElement('label');labelFirst.textContent='Første Quay';
+     const selectFirst=document.createElement('select');selectFirst.dataset.role='displayPairFirstQuay';
+     for(const quay of D.uniqueQuays(item))selectFirst.append(new Option(quay,quay));
+     labelFirst.append(selectFirst);
+     const labelQuay=document.createElement('label');labelQuay.textContent='Andre Quay';
+     const selectQuay=document.createElement('select');selectQuay.dataset.role='displayPairSecondQuay';
+     const refresh=()=>{
+      const candidate=candidates.find(x=>x.stopId===targetSelect.value);
+      selectQuay.replaceChildren(...(candidate?.quays||[]).map(q=>new Option(q,q)));
+     };
+     targetSelect.onchange=refresh;refresh();labelQuay.append(selectQuay);
+     const groupPair=document.createElement('button');groupPair.type='button';
+     groupPair.textContent='+ Samle to separate stopp i én dobbeltstasjon';groupPair.dataset.act='createDisplayPair';
+     groupPair.onclick=()=>{try{
+      editor.change(next=>D.addPair(next,item.id,selectFirst.value,targetSelect.value,selectQuay.value));
+      selectedQuay=null;
+     }catch(error){q('details').textContent=error.message;}};
+     panelGroup.append(labelSecond,labelFirst,labelQuay,groupPair);
+    }
+   }
+   area.append(panelGroup);
+   // The editor panel is created after draw() invokes paint(); populate
+   // the read-only LED diagnostic immediately, not at the next 1.2 s tick.
+   if(visualGroup)paint();
    const knownQuays=[...new Set(item.bindings.map(b=>b.stopId).filter(id=>typeof id==='string'&&/^NSR:Quay:\d+$/.test(id)))].sort();
    if(knownQuays.length){
     const panel=document.createElement('section');panel.className='map-platform-review';
@@ -550,7 +1148,7 @@
   host.querySelectorAll('[data-act]').forEach(button=>button.onclick=()=>{try{switch(button.dataset.act){
    case'in':zoom(.75);break;case'out':zoom(1.33);break;case'fit':box=[0,0,913,1280];setBox();break;
    case'edit':editing=!editing;
-    if(!editing){placementMode=null;moveStopId=null;cancelSketch();}
+    if(!editing){placementMode=null;moveStopId=null;boardDrag=null;q('boardMove').checked=false;q('boardRouteEdit').checked=false;cancelSketch();}
     editorPanel.hidden=!editing;button.setAttribute('aria-pressed',editing);draw();fields();break;
    case'nextPlatformReview':{
     const pending=M.platformAudit(layout).pending;
@@ -564,6 +1162,7 @@
    }
    case'addStop':{
     if(!editing)break;
+    regionSelection=null;regionSelecting=false;regionDraft=null;syncRegionControls();
     cancelSketch();moveStopId=null;placementMode=placementMode==='stop'?null:'stop';
     syncSketchControls();
     q('details').textContent=placementMode
@@ -587,6 +1186,16 @@
     try{editor.discard();}finally{suppressAutoSave=false;}
     clearAutoDraft();selection=null;fields();cloud?.changed();break;
    case'export':download('trondheim-layout.json',editor.export());break;
+    case'exportSvg':download('trondheim-intransit.svg',T.exportSVG(layout),'image/svg+xml');break;
+    case'studioSelect':
+     cancelSketch();placementMode=null;moveStopId=null;
+     regionSelection=null;regionDraft=null;regionSelecting=!regionSelecting;
+     syncRegionControls();draw();
+     q('details').textContent=regionSelecting
+      ?'Dra en markering rundt stasjoner eller linjepunkter. Bare punkter innenfor rektangelet blir valgt.'
+      :'Områdemarkering avsluttet.';
+     break;
+    case'studioClearRegion':regionSelection=null;regionDraft=null;regionSelecting=false;syncRegionControls();draw();break;
    case'exportLiveDebug':{
     if(!lastDiagnostic)renderLiveDebug();
     if(lastDiagnostic)download('trondheim-live-diagnose.json',JSON.stringify({
@@ -617,7 +1226,7 @@
     break;
    }
   }}catch(e){q('details').textContent=e.message;}});
-  q('import').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>2000000)throw Error('JSON er for stor');editor.import(JSON.parse(await file.text()));}catch(error){q('details').textContent=error.message;}finally{e.target.value='';}};
+  q('import').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>2000000)throw Error('JSON er for stor');editor.import(JSON.parse(await file.text()));setDraftStatus('Prosjekt åpnet');}catch(error){q('details').textContent=error.message;setDraftStatus('Kunne ikke åpne prosjekt: '+error.message);}finally{e.target.value='';}};
   q('liveDebug').ontoggle=()=>renderLiveDebug();
   q('debugStop').onchange=()=>{
    debugStopId=q('debugStop').value;debugQuayId='';debugSide=null;
@@ -633,17 +1242,40 @@
   reference.onchange=()=>draw();
   routeColors.onchange=()=>draw();
   largeLabels.onchange=()=>draw();
+   q('studioGrid').onchange=()=>{drawingPrefs.gridVisible=q('studioGrid').checked;draw();};
+   q('studioSnap').onchange=()=>{drawingPrefs.gridSnap=q('studioSnap').checked;showSketchPreview();};
+   q('studioAngleMode').onchange=()=>{drawingPrefs.angleStep=Number(q('studioAngleMode').value);showSketchPreview();};
+   q('studioSpacing').onchange=()=>{drawingPrefs.gridSize=Number(q('studioSpacing').value);draw();};
   svg.onwheel=e=>{e.preventDefault();const p=coords(e);zoom(e.deltaY<0?.85:1.18,p.x,p.y);};
   const pointers=new Map;
   svg.onpointerdown=e=>{svg.setPointerCapture(e.pointerId);const p=coords(e);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+   if(editing&&regionSelecting){regionDraft={start:p,end:p};drawRegionOverlay();return;}
    if(editing&&(placementMode||routeSketch)){placementGestureMoved=pointers.size>1;return;}
-   const target=e.target.closest('[data-stop],[data-label],[data-path],[data-route-path]');if(target?.dataset.routePath){selection={type:'path',id:target.dataset.routePath};fields();const path=layout.paths.find(p=>p.id===selection.id);q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');}if(target&&(target.dataset.stop||target.dataset.label)){const id=target.dataset.stop||target.dataset.label;selection={type:'stop',id};fields();details(layout.stops.find(s=>s.id===id));}drag={id:e.pointerId,start:p,box:[...box],target:editing&&target&&!target.dataset.routePath?target:null,before:editor.get(),next:null};};
+   const target=e.target.closest('[data-studio-region],[data-stop],[data-label],[data-path],[data-route-path]');
+   if(editing&&regionSelection&&target?.dataset.studioRegion){
+    drag={id:e.pointerId,mode:'region',regionMode:target.dataset.studioRegion,start:p,before:editor.get(),next:null};return;
+   }if(target?.dataset.routePath){selection={type:'path',id:target.dataset.routePath};fields();const path=layout.paths.find(p=>p.id===selection.id);q('details').textContent=path.id+'\n'+(path.routes.join(', ')||'Linjetilknytning uavklart');}if(target&&(target.dataset.stop||target.dataset.label)){const id=target.dataset.stop||target.dataset.label;selection={type:'stop',id};fields();details(layout.stops.find(s=>s.id===id));}drag={id:e.pointerId,start:p,box:[...box],target:editing&&target&&!target.dataset.routePath?target:null,before:editor.get(),next:null};};
   svg.onpointermove=e=>{
+   if(editing&&regionSelecting&&regionDraft){
+    if(pointers.size===1&&pointers.has(e.pointerId)){pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});regionDraft.end=coords(e);drawRegionOverlay();}
+    return;
+   }
+   if(drag?.mode==='region'&&pointers.has(e.pointerId)){
+    if(pointers.size!==1)return;
+    const p=coords(e);
+    if(Math.hypot(p.x-drag.start.x,p.y-drag.start.y)<.5){drag.next=null;layout=drag.before;draw();return;}
+    const next=structuredClone(drag.before);
+    try{
+     T.transformArea(next,regionSelection,{mode:drag.regionMode,dx:p.x-drag.start.x,dy:p.y-drag.start.y});
+     drag.next=next;layout=next;draw();
+    }catch(error){drag.next=null;layout=drag.before;draw();q('details').textContent=error.message;}
+    return;
+   }
    if(editing&&(placementMode||routeSketch)){
     const origin=pointers.get(e.pointerId);
     if(origin&&Math.hypot(origin.x-e.clientX,origin.y-e.clientY)>10)placementGestureMoved=true;
     if(routeSketch&&e.pointerType!=='touch'&&pointers.size===0){
-     try{routeSketch.cursor=coords(e);showSketchPreview();}catch{}
+     try{const last=routeSketch.points.at(-1)||(routeSketch.pathId?layout.paths.find(v=>v.id===routeSketch.pathId)?.points.at(-1):null);routeSketch.cursor=snapPoint(coords(e),last);showSketchPreview();}catch{}
     }
     return;
    }
@@ -651,19 +1283,31 @@
    const prev=[...pointers.values()];pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){const next=[...pointers.values()],dist=a=>Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);zoom(dist(prev)/Math.max(1,dist(next)));drag.target=null;drag.start=coords(e);drag.box=[...box];return;}
    const p=coords(e),t=drag.target;if(!t){box=[box[0]+drag.start.x-p.x,box[1]+drag.start.y-p.y,box[2],box[3]];setBox();return;}
    const next=structuredClone(drag.before),x=Math.max(0,Math.min(913,p.x)),y=Math.max(0,Math.min(1280,p.y));
-   if(t.dataset.path){const path=next.paths.find(v=>v.id===t.dataset.path),i=Number(t.dataset.index);path.points[i]={x,y};if(path.reviewedSegments){delete path.reviewedSegments[i];delete path.reviewedSegments[i-1];}}
+   if(t.dataset.path){const path=next.paths.find(v=>v.id===t.dataset.path),i=Number(t.dataset.index);path.points[i]=snapPoint({x,y},path.points[i-1]||null);if(path.reviewedSegments){delete path.reviewedSegments[i];delete path.reviewedSegments[i-1];}}
    else if(t.dataset.label){
     const stop=next.stops.find(s=>s.id===t.dataset.label),old=drag.before.stops.find(s=>s.id===t.dataset.label);
     stop.label.x=Math.max(0,Math.min(913,old.label.x+p.x-drag.start.x));
     stop.label.y=Math.max(0,Math.min(1280,old.label.y+p.y-drag.start.y));
    }else if(t.dataset.stop){
     const old=drag.before.stops.find(s=>s.id===t.dataset.stop);
-    L.moveStop(next,t.dataset.stop,old.x+p.x-drag.start.x,old.y+p.y-drag.start.y);
+    const snapped=T.snap({x:old.x+p.x-drag.start.x,y:old.y+p.y-drag.start.y},{gridSnap:drawingPrefs.gridSnap,gridSize:drawingPrefs.gridSize});
+     L.moveStop(next,t.dataset.stop,snapped.x,snapped.y);
    }
    drag.next=next;layout=next;draw();
   };
-  function end(e){pointers.delete(e.pointerId);if(editing&&(placementMode||routeSketch))return;if(drag?.next)editor.import(drag.next);drag=null;draw();}
-  svg.onpointerup=end;svg.onpointercancel=()=>{pointers.clear();drag=null;placementGestureMoved=true;layout=editor.get();draw();};
+  function end(e){
+   pointers.delete(e.pointerId);
+   if(editing&&regionSelecting){
+    const a=regionDraft;regionSelection=a?T.selectArea(editor.get(),a.start,a.end):null;
+    regionDraft=null;regionSelecting=false;syncRegionControls();draw();
+    q('details').textContent=regionSelection?'Dra rammen for å flytte, eller gule håndtak for å strekke.':'Ingen punkter i markeringen.';
+    return;
+   }
+   if(editing&&(placementMode||routeSketch))return;
+   if(drag?.next){try{editor.import(drag.next);if(drag.mode==='region'&&regionSelection){const bounds=regionBounds();if(bounds)regionSelection.bounds=bounds;}}catch(error){layout=editor.get();q('details').textContent=error.message;}}
+   drag=null;draw();
+  }
+  svg.onpointerup=end;svg.onpointercancel=()=>{pointers.clear();drag=null;regionDraft=null;regionSelecting=false;syncRegionControls();placementGestureMoved=true;layout=editor.get();draw();};
   // Capture click before the old map line/stop selection handlers, so an
   // insertion works even when the chosen pixel overlaps existing geometry.
   svg.addEventListener('click',e=>{
@@ -674,22 +1318,24 @@
     if(routeSketch){sketchTap(p);return;}
     if(placementMode==='move'){
      const id=moveStopId;
-     editor.change(next=>L.moveStop(next,id,p.x,p.y));
+     const snapped=snapPoint(p);
+      editor.change(next=>L.moveStop(next,id,snapped.x,snapped.y));
      placementMode=null;moveStopId=null;selection={type:'stop',id};
      syncSketchControls();fields();draw();
      q('details').textContent='Holdeplassen er flyttet. Bare holdeplassmarkøren og navneetiketten ble flyttet. Linjegeometrien er uendret. Bruk Angre for å gå tilbake.';
      return;
     }
     let id;
-    editor.change(next=>{id=L.addStop(next,p.x,p.y);});
+    const snapped=snapPoint(p);
+     editor.change(next=>{id=L.addStop(next,snapped.x,snapped.y);});
     selection={type:'stop',id};selectedSegmentIndex=0;
     placementMode=null;syncSketchControls();fields();draw();
     q('details').textContent='Ny holdeplass lagt til. Dra punktet eller rediger feltene.';
    }catch(error){q('details').textContent=error.message;}
   },true);
   document.addEventListener('keydown',e=>{
-   if(!editing||(!routeSketch&&placementMode!=='move')||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName||''))return;
-   if(e.key==='Escape'){e.preventDefault();cancelSketch();placementMode=null;moveStopId=null;syncSketchControls();fields();}
+   if(!editing||(!routeSketch&&placementMode!=='move'&&!regionSelecting&&!regionSelection)||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement?.tagName||''))return;
+   if(e.key==='Escape'){e.preventDefault();cancelSketch();placementMode=null;moveStopId=null;regionSelection=null;regionDraft=null;regionSelecting=false;syncRegionControls();syncSketchControls();fields();draw();}
    else if(e.key==='Backspace'){e.preventDefault();undoSketchPoint();}
    else if(e.key==='Enter'){e.preventDefault();finishSketch();}
   });
@@ -704,7 +1350,19 @@
   if(new URLSearchParams(location.search).get('debug')==='1'){q('liveDebug').open=true;renderLiveDebug();}
   if(new URLSearchParams(location.search).get('history')==='1')historyUI.open();
   if(publishedWarning)q('cloudStatus').textContent=publishedWarning;
-  return {update(next){context=next;frame=next.frame;if(!playback)draw();},clear(){frame=null;if(!playback)paint();},
+  designer=root.InTransitBoardDesigner.create(host,{
+   enableEditing(){previewMode='live';if(!editing)host.querySelector('[data-act="edit"]').click();},
+   disableEditing(){if(editing)host.querySelector('[data-act="edit"]').click();},
+   render:boardRender,
+   save(){
+    try{localStorage.setItem(manualDraftKey,editor.export());setDraftStatus('Arbeidskopi lagret på denne enheten. Prosjektfil lastes ned.');}
+    catch{setDraftStatus('Lokal lagring er utilgjengelig. Behold prosjektfilen som lastes ned.');}
+    download('trondheim-layout.json',editor.export());
+   },
+   open(){q('import').click();},
+   name(id){const stop=layout.stops.find(s=>s.id===id);return stop?displayName(stop):'';}
+  });
+  return {design(value=true){designer.enter(value);},update(next){context=next;frame=next.frame;if(!playback&&!designer?.isActive())draw();},clear(){frame=null;if(!playback)paint();},
    focusStop(id){const stop=layout.stops.find(s=>s.id===id);if(!stop)return false;
     selection={type:'stop',id:stop.id};box=[stop.x-80,stop.y-112,160,224];setBox();draw();fields();details(stop);return true;}};
  }};

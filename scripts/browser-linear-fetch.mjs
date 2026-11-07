@@ -41,7 +41,8 @@ try{
  await page.selectOption('#route','atb-bus-1-live');await page.selectOption('#source','production');await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('VALID')&&!document.querySelector('#status').textContent.includes('staging.lgb84'));
  mode='offline';await page.locator('#refresh').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('LAST_VALID'));
  assert.match(await page.locator('#quality').innerText(),/SISTE GYLDIGE/);
- await page.waitForFunction(()=>document.querySelectorAll('.led.on').length===0,{},{timeout:15000});assert.match(await page.locator('#quality').innerText(),/UTDATERT/);
+ // LED expiry and the human-readable age badge update on separate timer ticks.
+ await page.waitForFunction(()=>document.querySelectorAll('.led.on').length===0&&document.querySelector('#quality').textContent.includes('UTDATERT'),{},{timeout:15000});assert.match(await page.locator('#quality').innerText(),/UTDATERT/);
  mode='healthy';await page.locator('#refresh').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('VALID')&&!document.querySelector('#status').textContent.includes('LAST_VALID'));assert(await page.locator('.led.on').count()>0);
  assert.deepEqual(errors,[]);console.log('Browser: intermittent recovery, legend, source/route switching, in-flight isolation, TTL OFF and recovery passed');
 }finally{release?.();await browser.close();await new Promise(resolve=>server.close(resolve));}

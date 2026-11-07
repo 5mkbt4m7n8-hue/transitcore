@@ -405,6 +405,164 @@ try{
  await page.locator('.map-stop').first().click();
  await page.getByLabel('To dioder',{exact:true}).check();assert.equal(await page.locator('.map-stop[data-direction]').count(),2);
  await page.locator('[data-act=undo]').click();assert.equal(await page.locator('.map-stop[data-direction]').count(),0);
+ // Explicit display grouping uses real individual Quays, never fake station LEDs.
+ await page.locator('[data-role=focus]').selectOption('original-000');
+ await page.getByRole('button',{name:'+ Opprett dobbelstasjon fra ekte Quay-er'}).click();
+ assert.equal(await page.locator('.map-display-station').count(),1);
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay]').count(),2);
+ assert.deepEqual(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay]').evaluateAll(nodes=>nodes.map(n=>n.dataset.quay).sort()),
+  ['NSR:Quay:71132','NSR:Quay:71134']);
+ assert.equal(await page.locator('.map-display-outline').count(),1,'one shared outline without an LED');
+
+ // Board dimensions are real physical cm/mm, independent of a 64×64 grid.
+ await page.locator('[data-role=boardPanel] > summary').click();
+ await page.locator('[data-role=boardSvgHost] svg').waitFor();
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'300mm');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('height'),'400mm');
+ assert.match(await page.locator('[data-role=boardMetrics]').innerText(),/30 × 40 cm/);
+ await page.locator('[data-role=boardPreset]').selectOption('50x70');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'500mm');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('height'),'700mm');
+ await page.locator('[data-role=boardPreset]').selectOption('40x40');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('viewBox'),'0 0 400 400');
+ await page.locator('[data-role=boardWidth]').fill('35');
+ await page.locator('[data-role=boardWidth]').press('Tab');
+ await page.locator('[data-role=boardHeight]').fill('52');
+ await page.locator('[data-role=boardHeight]').press('Tab');
+ assert.equal(await page.locator('[data-role=boardPreset]').inputValue(),'custom');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'350mm');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('height'),'520mm');
+ const physicalDownload=page.waitForEvent('download');
+ await page.locator('[data-role=boardExport]').click();
+ assert.equal((await physicalDownload).suggestedFilename(),'intransit-board-35x52cm.svg');
+
+ // In physical layout edit mode, dragging a grouped LED moves BOTH Quay circles
+ // without changing Trondheim stops or the source trace. Format positions are
+ // project JSON data with Undo, and are independent of 30×40/50×70 previews.
+ await page.locator('[data-role=boardMove]').check();
+ const beforePhysicalStop=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.stops.find(s=>s.id==='original-000'));
+
+ const ledA=page.locator('[data-role=boardSvgHost] circle[data-board-key="quay:NSR:Quay:71132"]');
+ const ledB=page.locator('[data-role=boardSvgHost] circle[data-board-key="quay:NSR:Quay:71134"]');
+ const startA=Number(await ledA.getAttribute('cx')),startB=Number(await ledB.getAttribute('cx'));
+ await ledA.scrollIntoViewIfNeeded();
+ const ledBox=await ledA.boundingBox();
+ assert(ledBox&&ledBox.width>0);
+ await page.mouse.move(ledBox.x+ledBox.width/2,ledBox.y+ledBox.height/2);
+ await page.mouse.down();
+ await page.mouse.move(ledBox.x+ledBox.width/2+35,ledBox.y+ledBox.height/2+12,{steps:4});
+ await page.mouse.up();
+
+ const physicalMovedDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert.equal(physicalMovedDraft.stops.length,100);
+ assert.equal(physicalMovedDraft.stops.find(s=>s.id==='original-000').x,beforePhysicalStop.x);
+ assert.equal(physicalMovedDraft.stops.find(s=>s.id==='original-000').y,beforePhysicalStop.y);
+ assert.equal(Object.keys(physicalMovedDraft.physicalBoardLayouts.profiles['35x52'].positions).length,2,'both group Quays moved together');
+ assert(Math.abs(Number(await ledA.getAttribute('cx'))-startA)>1);
+ assert(Math.abs(Number(await ledB.getAttribute('cx'))-startB)>1);
+
+ const originalRouteSvg=await page.locator('[data-role=boardSvgHost] polyline[data-route="trace-01"]').first().getAttribute('points');
+ await page.locator('[data-role=boardFollow]').check();
+ const followedRouteSvg=await page.locator('[data-role=boardSvgHost] polyline[data-route="trace-01"]').first().getAttribute('points');
+ assert.notEqual(followedRouteSvg,originalRouteSvg,'physical graphic route follows moved grouped Pirbadet stop');
+ assert.match(await page.locator('[data-role=boardMetrics]').innerText(),/linjetilpasning aktiv/);
+ assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.physicalBoardLayouts.profiles['35x52'].followStations),true);
+ await page.locator('[data-role=boardFollow]').uncheck();
+ assert.equal(await page.locator('[data-role=boardSvgHost] polyline[data-route="trace-01"]').first().getAttribute('points'),originalRouteSvg,
+  'turning graphic follow off restores original path rendering');
+ await page.locator('[data-role=boardUndo]').click();
+ await page.locator('[data-role=boardUndo]').click();
+ assert.equal(await page.locator('[data-role=boardFollow]').isChecked(),false);
+
+ const movedA=Number(await ledA.getAttribute('cx'));
+ await page.locator('[data-role=boardPreset]').selectOption('30x40');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'300mm');
+ assert.equal(await page.locator('[data-role=boardPreset]').inputValue(),'30x40');
+ await page.locator('[data-role=boardWidth]').fill('35');
+ await page.locator('[data-role=boardWidth]').press('Tab');
+ await page.locator('[data-role=boardHeight]').fill('52');
+ await page.locator('[data-role=boardHeight]').press('Tab');
+ assert.equal(Number(await ledA.getAttribute('cx')),movedA,'custom size retains its independent station placement');
+ const caption=page.locator('[data-role=boardSvgHost] text[data-board-label="original-000"]');
+ await caption.scrollIntoViewIfNeeded();
+ const captionBox=await caption.boundingBox();
+ assert(captionBox&&captionBox.width>0);
+ await page.mouse.move(captionBox.x+captionBox.width/2,captionBox.y+captionBox.height/2);
+ await page.mouse.down();
+ await page.mouse.move(captionBox.x+captionBox.width/2+20,captionBox.y+captionBox.height/2+10,{steps:3});
+ await page.mouse.up();
+ const labeledDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert(labeledDraft.physicalBoardLayouts.profiles['35x52'].labels['original-000'],'dragging a name saves separate board text coordinates');
+ await page.locator('[data-role=boardUndo]').click();
+ assert(!await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.physicalBoardLayouts.profiles['35x52'].labels['original-000']),
+  'Undo restores just the last label move');
+ await page.locator('[data-role=boardReset]').click();
+ assert.equal(await page.locator('[data-role=boardSvgHost] circle[data-board-moved="true"]').count(),0);
+ assert(!await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.physicalBoardLayouts?.profiles?.['35x52']));
+ await page.locator('[data-role=boardUndo]').click();
+ assert.equal(await page.locator('[data-role=boardSvgHost] circle[data-board-moved="true"]').count(),2,'Undo restores exact two Quay offsets');
+ await page.locator('[data-role=boardReset]').click();
+ // Return the shared Undo stack to the exact pre-board-test group state.
+ // The ordinary station-style Undo assertions later in this file depend on it.
+ await page.locator('[data-role=boardUndo]').click();
+ await page.locator('[data-role=boardUndo]').click();
+ assert(!await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout.physicalBoardLayouts),
+  'board drag test leaves no uncommitted board edits or extra history entries');
+ await page.locator('[data-role=boardMove]').uncheck();
+
+
+ assert.match(await page.locator('[data-role=displayPreviewReport]').innerText(),/NSR:Quay:71132/);
+ assert.match(await page.locator('[data-role=displayPreviewReport]').innerText(),/NSR:Quay:71134/);
+ await page.locator('[data-role=displayLedSimulation]').selectOption('a');
+ await page.waitForFunction(()=>document.querySelector('[data-role=boardSvgHost] svg circle[data-quay="NSR:Quay:71132"]')?.getAttribute('fill')==='#44e392');
+ assert.equal(await page.locator('[data-role=boardSvgHost] svg circle[data-quay="NSR:Quay:71134"]').getAttribute('fill'),'#152a3c');
+
+ assert.equal(await page.locator('[data-role=mapPreviewBanner]').isVisible(),true,'Simulation needs visible warning');
+ assert.match(await page.locator('[data-role=mapPreviewBanner]').innerText(),/SIMULERT/);
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay="NSR:Quay:71132"]').getAttribute('data-state'),'AT_STOP');
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay="NSR:Quay:71134"]').getAttribute('data-state'),'OFF');
+ await page.locator('[data-role=displayLedSimulation]').selectOption('b');
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay="NSR:Quay:71132"]').getAttribute('data-state'),'OFF');
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-quay="NSR:Quay:71134"]').getAttribute('data-state'),'AT_STOP');
+ await page.locator('[data-role=displayLedSimulation]').selectOption('both');
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-state="AT_STOP"]').count(),2);
+ await page.locator('[data-role=displayLedSimulation]').selectOption('off');
+ assert.equal(await page.locator('.map-stop[data-display-station="display-original-000"][data-state="AT_STOP"]').count(),0);
+ await page.locator('[data-role=displayLedSimulation]').selectOption('live');
+ assert.equal(await page.locator('[data-role=mapPreviewBanner]').isVisible(),false,'Live mode hides simulation banner');
+
+ await page.locator('.map-display-controls select').first().selectOption('double');
+ assert.equal(await page.locator('.map-display-outline').count(),0,'separate marker option removes only outer ring');
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-display-outline').count(),1,'Undo restores outer ring');
+ await page.getByRole('button',{name:'Opphev visuell gruppering'}).click();
+ assert.equal(await page.locator('.map-display-station').count(),0,'ungrouping restores legacy stop marker');
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-display-station').count(),1,'ungroup operation can be undone');
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-display-station').count(),0,'original map preserved by Undo');
+ // A real close-by pair is explicitly chosen; four Samfundet Quays remain
+ // represented, even though only one Quay from each stop is grouped.
+ await page.locator('[data-role=focus]').selectOption('original-049');
+ await page.locator('[data-role=displayPairTarget]').selectOption('original-050');
+ await page.locator('[data-role=displayPairFirstQuay]').selectOption('NSR:Quay:73101');
+ await page.locator('[data-role=displayPairSecondQuay]').selectOption('NSR:Quay:73100');
+ await page.locator('[data-act=createDisplayPair]').click();
+ const groupId='display-pair-original-049-original-050';
+ assert.equal(await page.locator('.map-display-station[data-display-station="'+groupId+'"]').count(),1);
+ assert.deepEqual(await page.locator('.map-display-station[data-display-station="'+groupId+'"] .map-stop[data-quay]')
+  .evaluateAll(nodes=>nodes.map(n=>({stop:n.dataset.stop,quay:n.dataset.quay}))),
+  [{stop:'original-049',quay:'NSR:Quay:73101'},{stop:'original-050',quay:'NSR:Quay:73100'}]);
+ assert.equal(await page.locator('.map-stop[data-stop="original-049"][data-remaining-quays]').getAttribute('data-remaining-quays'),
+  'NSR:Quay:73103');
+ assert.equal(await page.locator('.map-stop[data-stop="original-050"][data-remaining-quays]').getAttribute('data-remaining-quays'),
+  'NSR:Quay:73102');
+ const groupedDraft=await page.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert.equal(groupedDraft.stops.length,100);
+ assert.equal(groupedDraft.displayStations[0].members.length,2);
+ await page.locator('[data-act=undo]').click();
+ assert.equal(await page.locator('.map-display-station').count(),0,'Undo removes cross-stop group in one transaction');
+ assert.equal(await page.locator('.map-stop[data-remaining-quays]').count(),0,'Undo restores full original Quay view');
  // The platform-audit workflow must enumerate verified Entur Quays without
  // guessing which side corresponds to route direction 0 or direction 1.
  assert.match(await page.locator('[data-role=platformProgress]').innerText(),/0\/65/);
@@ -503,6 +661,149 @@ try{
  const drawn=await publishedPage.locator('.map-stop[data-stop="original-014"]').first().getAttribute('transform');
  assert(drawn.includes(String(s.x)),'Approved position is shown on public map');
  await publishedPage.close();
+
+ // Physical route editor opens in an isolated browser session so the shared
+ // main map-editor Undo history remains unaffected by this test.
+ const routePage=await browser.newPage({viewport:{width:1240,height:900}});
+ const routeErrors=[];routePage.on('pageerror',error=>routeErrors.push(error.message));
+ await routePage.goto('http://127.0.0.1:'+server.address().port+'/web/linear/index.html?view=network');
+ await routePage.waitForSelector('.map-stop');
+ await routePage.locator('[data-act=edit]').click();
+ await routePage.locator('[data-role=boardPanel] > summary').click();
+ await routePage.locator('[data-role=boardSvgHost] svg').waitFor();
+ await routePage.locator('[data-role=boardRouteEdit]').check();
+ await routePage.locator('[data-role=boardPath]').selectOption('trace-01');
+ const routeLineSelector='[data-role=boardSvgHost] polyline[data-route="trace-01"]';
+ const routeBase=await routePage.locator(routeLineSelector).first().getAttribute('points');
+ const routeVertex=routePage.locator('[data-role=boardSvgHost] [data-board-route-path="trace-01"][data-board-route-key="0"]');
+ await routeVertex.scrollIntoViewIfNeeded();
+ const vertexBox=await routeVertex.boundingBox();
+ assert(vertexBox?.width>1,'draggable graphic route handle must be visible');
+ await routePage.mouse.move(vertexBox.x+vertexBox.width/2,vertexBox.y+vertexBox.height/2);
+ await routePage.mouse.down();
+ await routePage.mouse.move(vertexBox.x+vertexBox.width/2+34,vertexBox.y+vertexBox.height/2+25,{steps:4});
+ await routePage.mouse.up();
+ const routeAfter=await routePage.locator(routeLineSelector).first().getAttribute('points');
+ assert.notEqual(routeAfter,routeBase,'dragging a physical route vertex updates the preview');
+ const routeDraft=await routePage.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert(routeDraft.physicalBoardLayouts.profiles['30x40'].routes['trace-01'].vertices['0'],'route drag saved per-format');
+ assert.equal(routeDraft.paths[0].points.length,3,'source route vertices unchanged by graphic drag');
+ await routePage.locator('[data-role=boardPreset]').selectOption('50x70');
+ assert.equal(await routePage.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'500mm');
+ assert.equal((await routePage.locator('[data-role=boardSvgHost] [data-board-route-path="trace-01"][data-board-route-key="0"]').getAttribute('fill')),'#70d1fa');
+ await routePage.locator('[data-role=boardPreset]').selectOption('30x40');
+ assert.equal(await routePage.locator(routeLineSelector).first().getAttribute('points'),routeAfter,
+  '30×40 retains graphic bends after visiting a different format');
+ await routePage.locator('[data-role=boardSegment]').selectOption('0');
+ await routePage.locator('[data-role=boardAddBend]').click();
+ const routeAfterBend=await routePage.locator(routeLineSelector).first().getAttribute('points');
+ assert.notEqual(routeAfterBend,routeAfter,'adding intermediate bend changes polyline');
+ const bendHandle=routePage.locator('[data-role=boardSvgHost] [data-board-route-path="trace-01"][data-board-route-key="bend-1"]');
+ assert.equal(await bendHandle.count(),1,'new bend is individually draggable');
+ await bendHandle.focus();await bendHandle.press('ArrowRight');
+ assert.equal(await bendHandle.count(),1,'keyboard moves inserted bend without dropping it');
+ const bendDraft=await routePage.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert.equal(bendDraft.physicalBoardLayouts.profiles['30x40'].routes['trace-01'].bends.length,1);
+ assert.equal(bendDraft.paths[0].points.length,3,'inserted board bend is not saved into original schematic');
+ await routePage.locator('[data-role=boardBendSelect]').selectOption('bend-1');
+ await routePage.locator('[data-role=boardRemoveBend]').click();
+ assert.equal(await bendHandle.count(),0);
+ await routePage.locator('[data-role=boardResetRoute]').click();
+ assert.equal(await routePage.locator(routeLineSelector).first().getAttribute('points'),routeBase,'route reset restores source artwork');
+ const resetDraft=await routePage.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert(!resetDraft.physicalBoardLayouts.profiles['30x40'].routes['trace-01'],'route reset removes only board-specific graphic edits');
+ assert.deepEqual(routeErrors,[]);
+ await routePage.close();
+
+ // Guided designer must open directly, without any editor toggles or live feed.
+ const design=await browser.newPage({viewport:{width:1280,height:960}}),designErrors=[];
+ design.on('pageerror',e=>designErrors.push(e.message));
+ await design.goto('http://127.0.0.1:'+server.address().port+'/web/linear/index.html?view=designer');
+ await design.locator('.board-designer [data-role=boardSvgHost] svg').waitFor();
+ assert.equal(await design.locator('.map-viewport').isVisible(),false);
+ assert.equal(await design.locator('[data-role=boardMove]').isChecked(),true);
+ assert.equal(await design.locator('[data-role=boardWidth]').isVisible(),false);
+ assert.equal(await design.locator('[data-role=boardPath]').isVisible(),false);
+ const symbol='[data-role=boardSvgHost] [data-board-key]';
+ const start=await design.locator(symbol).first().getAttribute('cx');
+ await design.locator(symbol).first().scrollIntoViewIfNeeded();
+ const target=await design.locator(symbol).first().boundingBox();
+ await design.mouse.move(target.x+target.width/2,target.y+target.height/2);
+ await design.mouse.down();await design.mouse.move(target.x+target.width/2+20,target.y+target.height/2+10,{steps:4});await design.mouse.up();
+ assert.notEqual(await design.locator(symbol).first().getAttribute('cx'),start);
+ assert.equal(await design.locator('[data-selected=true]').count()>0,true,'selection survives redraw');
+ const keyboardBefore=Number(await design.locator(symbol).first().getAttribute('cx'));
+ await design.keyboard.press('ArrowRight');await design.keyboard.press('ArrowRight');
+ assert(Math.abs(Number(await design.locator(symbol).first().getAttribute('cx'))-keyboardBefore-2)<.01,'selection retains keyboard focus through redraws');
+ await design.locator('[data-role=boardUndo]').click();await design.locator('[data-role=boardUndo]').click();
+ const moved=await design.locator(symbol).first().getAttribute('cx');
+ await design.locator('[data-role=boardPreset]').selectOption('50x70');
+ assert.equal(await design.locator('[data-role=boardSvgHost] svg').getAttribute('width'),'500mm');
+ await design.locator('[data-role=boardPreset]').selectOption('30x40');
+ assert.equal(await design.locator(symbol).first().getAttribute('cx'),moved);
+ await design.locator('[data-role=boardUndo]').click();
+ assert.equal(await design.locator(symbol).first().getAttribute('cx'),start);
+ await design.locator('[data-zoom]').selectOption('2');
+ const zoomedWidth=await design.locator('[data-role=boardSvgHost] svg').evaluate(n=>n.getBoundingClientRect().width);
+ await design.locator('[data-zoom]').selectOption('1');
+ assert(zoomedWidth>await design.locator('[data-role=boardSvgHost] svg').evaluate(n=>n.getBoundingClientRect().width)*1.9);
+ await design.locator('[data-tool=route]').click();
+ const pickLine=await design.locator('[data-role=boardSvgHost] polyline[data-route="trace-02"]').first().evaluate(n=>{
+  const matrix=n.getScreenCTM();for(let f=.1;f<1;f+=.1){const p=n.getPointAtLength(n.getTotalLength()*f),screen=new DOMPoint(p.x,p.y).matrixTransform(matrix);
+   if(document.elementFromPoint(screen.x,screen.y)===n)return {x:screen.x,y:screen.y};}return null;
+ });
+ assert(pickLine,'line has an accessible hit area');await design.mouse.click(pickLine.x,pickLine.y);
+ assert.equal(await design.locator('[data-role=boardPath]').inputValue(),'trace-02','clicking artwork selects the line');
+ const dLine='[data-role=boardSvgHost] polyline[data-route="trace-01"]';
+ await design.locator('[data-role=boardPath]').selectOption('trace-01');
+ const dBase=await design.locator(dLine).first().getAttribute('points');
+ const dHandle=design.locator('[data-board-route-path="trace-01"][data-board-route-key="0"]');
+ const hb=await dHandle.boundingBox();
+ await design.mouse.move(hb.x+hb.width/2,hb.y+hb.height/2);await design.mouse.down();
+ await design.mouse.move(hb.x+hb.width/2+25,hb.y+hb.height/2+15,{steps:3});await design.mouse.up();
+ assert.notEqual(await design.locator(dLine).first().getAttribute('points'),dBase);
+ await design.locator('[data-role=boardAddBend]').click();
+ assert.equal(await design.locator('[data-board-route-type=bend]').count(),1);
+ const downloadProject=design.waitForEvent('download');await design.locator('[data-save]').click();
+ assert.equal((await downloadProject).suggestedFilename(),'trondheim-layout.json');
+ const saved=await design.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ assert.deepEqual(saved.stops,original.stops,'physical editing preserves all Quay bindings and stop coordinates');
+ assert.deepEqual(saved.paths,original.paths,'physical editing preserves original traced paths');
+ await design.locator('[data-role=import]').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from('{broken')});
+ assert.match(await design.locator('[data-role=designerStatus]').textContent(),/Kunne ikke åpne prosjekt/);
+ assert.deepEqual(await design.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout),saved,'invalid import leaves project untouched');
+ await design.locator('[data-role=import]').setInputFiles({name:'project.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(saved))});
+ await design.waitForFunction(()=>document.querySelector('[data-role=designerStatus]')?.textContent==='Prosjekt åpnet');
+ await design.reload();await design.locator('.board-designer [data-role=boardSvgHost] svg').waitFor();
+ await design.locator('[data-tool=route]').click();
+ assert.equal(await design.locator('[data-board-route-type=bend]').count(),1,'project restored after reload');
+ if(process.env.INTRANSIT_SCREENSHOT_DIR)await design.screenshot({path:join(process.env.INTRANSIT_SCREENSHOT_DIR,'guided-designer-desktop.png'),fullPage:true});
+ await design.setViewportSize({width:390,height:844});
+ assert.equal(await design.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'mobile has no horizontal overflow');
+ await design.locator('[data-tool=move]').click();
+ const touchDraft=await design.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout);
+ await design.locator('[data-tool=preview]').click();
+ assert.equal(await design.locator('[data-role=boardMove]').isChecked(),false);
+ assert.equal(await design.locator('[data-board-route-path]').count(),0,'preview hides editing handles');
+ assert.deepEqual(await design.evaluate(()=>JSON.parse(localStorage.getItem('intransit-map-autodraft-v1')).layout),touchDraft,'tool switching makes no data edits');
+ if(process.env.INTRANSIT_SCREENSHOT_DIR)await design.screenshot({path:join(process.env.INTRANSIT_SCREENSHOT_DIR,'guided-designer-mobile.png'),fullPage:true});
+ await design.locator('[data-view=live]').click();
+ assert.equal(await design.locator('.map-viewport').isVisible(),true);
+ assert.equal(await design.locator('[data-act=edit]').getAttribute('aria-pressed'),'false');
+ assert.deepEqual(designErrors,[]);await design.close();
+ // Native touch input, not synthetic mouse events, in an isolated phone context.
+ const phone=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+ await phone.goto('http://127.0.0.1:'+server.address().port+'/web/linear/index.html?view=designer');
+ const phoneSymbol=phone.locator('[data-role=boardSvgHost] [data-board-key]').first();
+ await phoneSymbol.waitFor();await phone.waitForLoadState('networkidle');await phoneSymbol.scrollIntoViewIfNeeded();
+ const touchBox=await phoneSymbol.boundingBox(),touchStart=await phoneSymbol.getAttribute('cx');
+ const session=await phone.context().newCDPSession(phone);
+ const touchPoint={x:touchBox.x+touchBox.width/2,y:touchBox.y+touchBox.height/2};
+ await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[touchPoint]});
+ await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:touchPoint.x+22,y:touchPoint.y+12}]});
+ await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+ assert.notEqual(await phoneSymbol.getAttribute('cx'),touchStart,'finger drag moves physical station on phone');
+ await phone.close();
 
  assert.deepEqual(errors,[]);console.log('Browser: map editor tap-placement, autosave, reload, discard, original geometry, route overlays, mobile and feed regression PASS');
 }finally{await browser.close();await new Promise(r=>server.close(r));}

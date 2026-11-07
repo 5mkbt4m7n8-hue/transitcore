@@ -13,6 +13,7 @@
    if(!s||typeof s!=='object'){errors.push('Ugyldig stopp');continue;}
    if(typeof s.id!=='string'||!s.id||ids.has(s.id))errors.push('Duplisert / ugyldig kart-ID');ids.add(s.id);
    if(!point(s)||!point(s.label)||typeof s.name!=='string'||typeof s.label.visible!=='boolean'||!['shared','split'].includes(s.diodeMode)||!Number.isFinite(s.radius)||s.radius<2||s.radius>20||!Array.isArray(s.bindings))errors.push('Ugyldig stopp '+s.id);
+   if(s.stationStyle!==undefined&&!['single','double'].includes(s.stationStyle))errors.push('Ugyldig stasjonsvisning '+s.id);
    for(const b of Array.isArray(s.bindings)?s.bindings:[])if(!b||typeof b.boardId!=='string'||typeof b.nodeId!=='string')errors.push('Ugyldig kobling '+s.id);
    if(s.platformSides!==undefined){
     if(!s.platformSides||typeof s.platformSides!=='object'||Array.isArray(s.platformSides))errors.push('Ugyldig plattformkontroll '+s.id);
@@ -30,10 +31,124 @@
   for(const p of layout.paths){
    if(!p||typeof p.id!=='string'||ids.has(p.id)||!/^#[a-f\d]{6}$/i.test(p.color)||!Number.isFinite(p.width)||p.width<.5||p.width>15||!Array.isArray(p.points)||p.points.length<2||!p.points.every(point)||!Array.isArray(p.routes)){errors.push('Ugyldig linje '+p?.id);continue;}
    ids.add(p.id);
+   if(p.visualTracks!==undefined){
+    const v=p.visualTracks;
+    if(!v||typeof v!=='object'||Array.isArray(v)||![1,2].includes(v.trackCount)||
+       !Number.isInteger(v.routeCount)||v.routeCount<1||v.routeCount>4||
+       !Number.isFinite(v.spacing)||v.spacing<2||v.spacing>24||
+       !Array.isArray(v.colors)||v.colors.length!==v.trackCount*v.routeCount||
+       v.colors.some(color=>!/^#[a-f\d]{6}$/i.test(color)))
+     errors.push('Ugyldig sporgeometri eller farger '+p.id);
+   }
    if(p.reviewedSegments!==undefined){
     if(!p.reviewedSegments||typeof p.reviewedSegments!=='object'||Array.isArray(p.reviewedSegments)){errors.push('Ugyldige godkjente delstrekninger '+p.id);continue;}
     for(const [index,item] of Object.entries(p.reviewedSegments)){
      if(!/^(0|[1-9]\d*)$/.test(index)||Number(index)>=p.points.length-1||!item||item.verification!=='user-reviewed'||!Array.isArray(item.routes)||item.routes.length<1||item.routes.length>12||new Set(item.routes).size!==item.routes.length||item.routes.some(id=>typeof id!=='string'||!/^atb-bus-\d+-live$/.test(id)))errors.push('Ugyldig manuell rutetilknytning '+p.id+'/'+index);
+    }
+   }
+  }
+  // Display stations are optional decorative groups bound to canonical Quays.
+  if(layout.displayStations!==undefined||layout.displayStationsVersion!==undefined){
+   if(layout.displayStationsVersion!==1||!Array.isArray(layout.displayStations)||layout.displayStations.length>3000){
+    errors.push('Ugyldig versjon eller liste over visuelle stasjoner');
+   }else{
+    const groupIds=new Set,usedQuays=new Set,usedSlots=new Set;
+    const validStyle=new Set(['single','single_ring','double','double_outer_ring','double_capsule','interchange','terminus']);
+    for(const group of layout.displayStations){
+     if(!group||typeof group.id!=='string'||!group.id||groupIds.has(group.id)||ids.has(group.id)||
+      !point(group.anchor)||!group.style||!validStyle.has(group.style.type)||
+      !['capsule','circle','ellipse'].includes(group.style.outerShape)||
+      ![group.style.markerRadius,group.style.ringPadding,group.style.ringWidth].every(Number.isFinite)||
+      group.style.markerRadius<2||group.style.markerRadius>20||group.style.ringPadding<0||
+      group.style.ringPadding>30||group.style.ringWidth<.5||group.style.ringWidth>10||
+      !['unreviewed','user-reviewed'].includes(group.reviewStatus)||!Array.isArray(group.members)||
+      group.members.length<1||group.members.length>32){
+      errors.push('Ugyldig visuell stasjon '+(group?.id||''));continue;
+     }
+     groupIds.add(group.id);
+     if(!group.label||!['shared','separate'].includes(group.label.mode)||
+      !layout.stops.some(stop=>stop.id===group.label.sourceMapStopId))
+      errors.push('Ugyldig etikett i visuell stasjon '+group.id);
+     if(group.trackAnchor!==undefined){
+      const ta=group.trackAnchor,p=layout.paths.find(p=>p.id===ta?.pathId);
+      if(!p||!Number.isInteger(ta.segmentIndex)||ta.segmentIndex<0||ta.segmentIndex>=p.points.length-1||
+       !['follow-tangent','manual'].includes(ta.orientation))
+       errors.push('Ugyldig sporkobling i visuell stasjon '+group.id);
+     }
+     if(['double','double_outer_ring','double_capsule'].includes(group.style.type)&&group.members.length!==2)
+      errors.push('Dobbel stasjon krever to Quay-er '+group.id);
+     for(const m of group.members){
+      const stop=layout.stops.find(stop=>stop.id===m?.mapStopId),key=m?.quayId;
+      if(!m||typeof m.id!=='string'||!m.id||usedSlots.has(m.id)||
+       !/^NSR:Quay:\d+$/.test(key||'')||usedQuays.has(key)||
+       !stop||stop.verification!=='confirmed'||!stop.bindings.some(b=>b.stopId===key)||
+       !['a','b','center','custom'].includes(m.slot)||
+       !m.offset||!Number.isFinite(m.offset.along)||!Number.isFinite(m.offset.across)||
+       Math.abs(m.offset.along)>300||Math.abs(m.offset.across)>300||
+       !['unreviewed','user-reviewed'].includes(m.placementReview))
+       errors.push('Ugyldig Quay-medlem i visuell stasjon '+group.id);
+      else {usedQuays.add(key);usedSlots.add(m.id);}
+     }
+    }
+   }
+  }
+  // Per-size physical artwork is independent of verified canonical GPS/Quay data.
+  // Positions use board-normalized coordinates, never GPS or map coordinates.
+  if(layout.physicalBoardLayouts!==undefined){
+   const board=layout.physicalBoardLayouts,profiles=board?.profiles;
+   if(!board||board.version!==1||!profiles||typeof profiles!=='object'||Array.isArray(profiles)||
+    Object.keys(profiles).length>80)errors.push('Ugyldig samling fysiske tavleformater');
+   else{
+    const validStops=new Set(layout.stops.map(s=>'stop:'+s.id)),
+     validLabels=new Set(layout.stops.map(s=>s.id)),
+     validQuays=new Set((layout.displayStations||[]).flatMap(ds=>
+      (ds.members||[]).map(m=>'quay:'+m.quayId)));
+    const pos=p=>p&&typeof p==='object'&&!Array.isArray(p)&&
+     Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=0&&p.x<=1&&p.y>=0&&p.y<=1;
+    for(const [format,profile] of Object.entries(profiles)){
+     const match=/^(\d{1,3}(?:\.\d{1,3})?)x(\d{1,3}(?:\.\d{1,3})?)$/.exec(format);
+     if(!match||Number(match[1])<10||Number(match[1])>200||
+      Number(match[2])<10||Number(match[2])>200||!profile||
+      !profile.positions||typeof profile.positions!=='object'||Array.isArray(profile.positions)||
+      !profile.labels||typeof profile.labels!=='object'||Array.isArray(profile.labels)||
+      (profile.followStations!==undefined&&typeof profile.followStations!=='boolean')){
+      errors.push('Ugyldig fysisk tavleformat '+format);continue;
+     }
+     const markers=Object.entries(profile.positions),labels=Object.entries(profile.labels);
+     if(markers.length>3000||labels.length>3000){errors.push('For mange flyttede stasjoner i '+format);continue;}
+     for(const [key,value] of markers)
+      if(!pos(value)||!(validStops.has(key)||validQuays.has(key)))
+       errors.push('Ugyldig flyttet LED-stasjon '+key+' i '+format);
+     for(const [key,value] of labels)
+      if(!pos(value)||!validLabels.has(key))
+       errors.push('Ugyldig tavle-etikett '+key+' i '+format);
+     if(profile.routes!==undefined){
+      if(!profile.routes||typeof profile.routes!=='object'||Array.isArray(profile.routes)||
+       Object.keys(profile.routes).length>layout.paths.length){
+       errors.push('Ugyldige tavletraséer i '+format);
+      }else for(const [routeId,route] of Object.entries(profile.routes)){
+       const source=layout.paths.find(path=>path.id===routeId);
+       if(!source||!route||typeof route!=='object'||Array.isArray(route)||
+        !route.vertices||typeof route.vertices!=='object'||Array.isArray(route.vertices)||
+        !Array.isArray(route.bends)||route.bends.length>1000||
+        Object.keys(route.vertices).length>source.points.length){
+        errors.push('Ugyldig fysisk linje '+routeId+' i '+format);continue;
+       }
+       for(const [index,position] of Object.entries(route.vertices)){
+        if(!/^(0|[1-9]\d*)$/.test(index)||Number(index)>=source.points.length||!pos(position))
+         errors.push('Ugyldig fysisk linjeknekkpunkt '+routeId+'/'+index);
+       }
+       const bendIds=new Set;
+       for(const bend of route.bends){
+        if(!bend||!/^bend-[1-9]\d*$/.test(bend.id||'')||bendIds.has(bend.id)||
+         !Number.isInteger(bend.afterIndex)||bend.afterIndex<0||
+         bend.afterIndex>=source.points.length-1||!pos(bend))
+         errors.push('Ugyldig ekstra knekkpunkt i '+routeId);
+        else bendIds.add(bend.id);
+       }
+      }
+     }
+
     }
    }
   }

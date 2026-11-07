@@ -59,6 +59,20 @@ on:
       - 'worker/linear-publish.mjs'
       - 'worker/led-feed-worker.mjs'
       - 'scripts/browser-intransit-map.mjs'
+      - 'scripts/browser-map-studio.mjs'
+      - 'scripts/browser-studio-phase-one.mjs'
+      - 'scripts/browser-studio-selection.mjs'
+      - 'scripts/browser-studio-phase-two.mjs'
+      - 'scripts/test-studio-phase-two.mjs'
+      - 'scripts/browser-studio-phase-three.mjs'
+      - 'scripts/test-studio-phase-three.mjs'
+      - 'scripts/test-studio-v011.mjs'
+      - 'scripts/test-studio-v012.mjs'
+      - 'scripts/test-studio-smart-stations.mjs'
+      - 'scripts/browser-studio-smart-stations.mjs'
+      - 'scripts/browser-studio-v012.mjs'
+      - 'scripts/browser-studio-v011.mjs'
+      - 'scripts/test-studio-document.mjs'
       - 'scripts/audit-intransit-route-evidence.mjs'
       - '.github/workflows/linear-mobile.yml'
   push:
@@ -107,6 +121,20 @@ on:
       - 'worker/linear-publish.mjs'
       - 'worker/led-feed-worker.mjs'
       - 'scripts/browser-intransit-map.mjs'
+      - 'scripts/browser-map-studio.mjs'
+      - 'scripts/browser-studio-phase-one.mjs'
+      - 'scripts/browser-studio-selection.mjs'
+      - 'scripts/browser-studio-phase-two.mjs'
+      - 'scripts/test-studio-phase-two.mjs'
+      - 'scripts/browser-studio-phase-three.mjs'
+      - 'scripts/test-studio-phase-three.mjs'
+      - 'scripts/test-studio-v011.mjs'
+      - 'scripts/test-studio-v012.mjs'
+      - 'scripts/test-studio-smart-stations.mjs'
+      - 'scripts/browser-studio-smart-stations.mjs'
+      - 'scripts/browser-studio-v012.mjs'
+      - 'scripts/browser-studio-v011.mjs'
+      - 'scripts/test-studio-document.mjs'
       - 'scripts/audit-intransit-route-evidence.mjs'
       - '.github/workflows/linear-mobile.yml'
 permissions:
@@ -130,6 +158,12 @@ jobs:
 
       - name: Verify InTransit layout, mapping and editor
         run: node scripts/test-intransit-map.mjs
+
+      - name: Verify Map Studio vector tracks and area transformations
+        run: node scripts/test-map-studio.mjs
+
+      - name: Verify independent artwork documents and source isolation
+        run: node scripts/test-studio-document.mjs
 
       - name: Verify protected persistent Linear cloud drafts
         run: node scripts/test-linear-cloud-draft.mjs
@@ -226,6 +260,11 @@ jobs:
 
       - name: Browser regression for frame recovery and direction legend
         run: node scripts/browser-linear-fetch.mjs
+
+      - name: Browser regression for stable viewport and map creation
+        env:
+          INTRANSIT_SCREENSHOT_DIR: artifacts/intransit-map
+        run: node scripts/browser-map-studio.mjs
 
       - name: Upload InTransit review screenshots
         if: always()
